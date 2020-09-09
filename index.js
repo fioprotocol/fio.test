@@ -1,0 +1,45 @@
+require('mocha')
+const {expect} = require('chai')
+
+describe('TEST SUITE', () => {
+  //unlockWallet('fio');
+
+  require('./tests/addaddress.js'); // v1.0.x
+  require('./tests/fees.js'); // v1.0.x
+  require('./tests/fio-request.js'); // v1.0.x
+  require('./tests/producer.js'); // v1.0.x
+  require('./tests/pushtransaction.js'); // v1.0.x
+  require('./tests/ram2.js');  // v1.0.x //Eric to update to remove clio
+  require('./tests/register_fio_domain.js'); // v1.0.x
+  require('./tests/transfer-tokens.js'); // v1.0.x
+  require('./tests/vote.js');  // v1.0.x
+
+  //require('./tests/action-whitelisting.js'); // FIP-12
+  //require('./tests/fee-voting-fee-setting.js'); // FIP-10
+
+  //require('./tests/transfer-domain.js'); // FIP-1.a 
+  //require('./tests/paging.js'); // FIP-2
+  //require('./tests/cancel-funds-request.js'); // FIP-3
+  //require('./tests/removeaddress.js'); // FIP-4
+
+  //require('./tests/producer-fee-setting.js');  // FIP-10 in development
+  //require('./tests/burn-address.js'); // FIP-7 testing
+
+  //require('./tests/transfer-address.js'); // FIP-1.b in testing
+  // require('./tests/transfer-locked-tokens.js');  // FIP-6 in development
+
+  //require('./tests/history.js'); // Only run against history node.
+  
+  //require('./tests/locks.js');  // Depends on local wallet. Need to fix
+  //require('./tests/testnet-smoketest.js'); // In development
+  //require('./tests/msig.js'); // In development
+  //require('./tests/get-blocks.js'); // In development
+  //require('./tests/pub_k1.js');  // Moved to later release
+  //require('./tests/performance-check.js'); // In development
+  //require('./tests/expired-domains.js'); // In development
+  //require('./tests/fiojs-examples.js'); // In development
+  
+  //TODO - Need to upgrade to latest require('./tests/fio.smoketest.js');
+  //TODO - Need to update: require('./tests/permissions.js');
+  //TODO - Need to update: require('./tests/max-txn-size.js');
+});
