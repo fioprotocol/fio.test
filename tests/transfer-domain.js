@@ -255,16 +255,32 @@ describe('B. Transfer a domain to FIO Public Key which does not map to existing 
       }
   })
 
-  it(`getFioBalance for non-existent walletB1 account. Expect error type 500: ${config.error.keyNotFound}`, async () => {
+  it(`(sdk) getFioBalance for non-existent walletB2 account. Expect error type 404: ${config.error.keyNotFound}`, async () => {
     try {
       const result = await faucet.genericAction('getFioBalance', {
-        fioPublicKey: walletB1.publicKey
+        fioPublicKey: walletB2.publicKey
       }) 
+      expect(err).to.equal(null);
     } catch (err) {
-      console.log('Error: ', err.json)
+      //console.log('Error: ', err)
       expect(err.json.message).to.equal(config.error.keyNotFound)
-      expect(err.errorCode).to.equal(500);
+      expect(err.errorCode).to.equal(404);
     } 
+  })
+
+  it(`(API) getFioBalance for non-existent walletB1 account. Expect error type 404: ${config.error.keyNotFound}`, async () => {
+    try {
+      const json = {
+        "fio_public_key": walletB2.publicKey
+      }
+      result = await callFioApi("get_fio_balance", json);
+      console.log('get_fio_balance', result);
+      expect(err).to.equal(null);
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err.error.message).to.equal(config.error.keyNotFound)
+      expect(err.statusCode).to.equal(404);
+    }
   })
 
   it('Get transfer_fio_domain fee', async () => {
@@ -320,17 +336,18 @@ describe('B. Transfer a domain to FIO Public Key which does not map to existing 
     }
   })
 
-  it(`getFioNames for walletB2. Expect error type ${config.error2.noFioNames.statusCode}: ${config.error.noFioNames}`, async () => {
+  it(`getFioNames for walletB2. Expect error type ${config.error2.noFioNames.statusCode}: ${config.error2.noFioNames.message}`, async () => {
     try {
       const json = {
         "fio_public_key": walletB2.publicKey
       }
       result = await callFioApi("get_fio_names", json);
       console.log('getFioNames', result)
+      expect(err).to.equal(null);
     } catch (err) {
       //console.log('Error', err)
       expect(err.error.message).to.equal(config.error2.noFioNames.message)
-      expect(err.statusCode).to.equal(config.error2.noFioNames.statusCode);
+      expect(err.statusCode).to.equal(config.error2.noFioNames.type);
     }
   })
 

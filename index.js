@@ -4,7 +4,7 @@ const {expect} = require('chai')
 describe('TEST SUITE', () => {
   //unlockWallet('fio');
 
-  require('./tests/addaddress.js'); // v1.0.x
+  require('./tests/addaddress.js'); // v1.0.x  Also includes FIP-13 tests.
   require('./tests/fees.js'); // v1.0.x
   require('./tests/fio-request.js'); // v1.0.x
   require('./tests/producer.js'); // v1.0.x
@@ -14,13 +14,14 @@ describe('TEST SUITE', () => {
   require('./tests/transfer-tokens.js'); // v1.0.x
   require('./tests/vote.js');  // v1.0.x
 
-  //require('./tests/action-whitelisting.js'); // FIP-12
-  //require('./tests/fee-voting-fee-setting.js'); // FIP-10
+  //require('./tests/action-whitelisting.js'); // FIP-12, fio v2.0.0, fio.contracts v2.0.0 // Causes future tests to fail. Only run alone.
 
-  //require('./tests/transfer-domain.js'); // FIP-1.a 
-  //require('./tests/paging.js'); // FIP-2
-  //require('./tests/cancel-funds-request.js'); // FIP-3
-  //require('./tests/removeaddress.js'); // FIP-4
+  require('./tests/transfer-domain.js'); // FIP-1.a, fio v2.0.0, fio.contracts v2.1.0
+  require('./tests/paging.js'); // FIP-2, fio v2.0.0, fio.contracts v2.1.0
+  require('./tests/cancel-funds-request.js'); // FIP-3, fio v2.0.0, fio.contracts v2.1.0
+  require('./tests/removeaddress.js'); // FIP-4, fio v2.0.0, fio.contracts v2.1.0
+
+  //require('./tests/fee-voting-fee-setting.js'); // FIP-10
 
   //require('./tests/producer-fee-setting.js');  // FIP-10 in development
   //require('./tests/burn-address.js'); // FIP-7 testing
@@ -29,7 +30,7 @@ describe('TEST SUITE', () => {
   // require('./tests/transfer-locked-tokens.js');  // FIP-6 in development
 
   //require('./tests/history.js'); // Only run against history node.
-  
+
   //require('./tests/locks.js');  // Depends on local wallet. Need to fix
   //require('./tests/testnet-smoketest.js'); // In development
   //require('./tests/msig.js'); // In development
@@ -38,7 +39,7 @@ describe('TEST SUITE', () => {
   //require('./tests/performance-check.js'); // In development
   //require('./tests/expired-domains.js'); // In development
   //require('./tests/fiojs-examples.js'); // In development
-  
+
   //TODO - Need to upgrade to latest require('./tests/fio.smoketest.js');
   //TODO - Need to update: require('./tests/permissions.js');
   //TODO - Need to update: require('./tests/max-txn-size.js');

@@ -2,9 +2,11 @@ const TESTURL = 'http://localhost:8889'
 //const TESTURL = 'http://testnet.fioprotocol.io'
 //const TESTURL = 'http://52.183.126.67:8889'  //dev1
 //const TESTURL = 'http://dev2.fio.dev:8889'
+//const TESTURL = 'http://dev3.fio.dev:8889'
 //const TESTURL = 'http://dev3.fio.dev:8080'  // 8080 is the history node
 //const TESTURL = 'http://dev4.fio.dev:8889' 
 //const TESTURL = 'https://fio.greymass.com' //Mainnet
+//const TESTURL = 'http://devnet-a.az.fio.dev:8888'
 
 
 const DEVTOOLSDIR = '../fio.devtools'
@@ -138,7 +140,7 @@ const config = {
             type: 500
         },
         invalidActor: {
-            message: 'missing authority of',
+            message: 'Missing required authority',
             type: 500
         },
         accountExists: {
@@ -172,22 +174,26 @@ const config = {
         //    bundledEligible: true,
         //    fee: 400000000
         //},
-        //transfer_fio_domain: {
-        //    bundledEligible: false,
-        //    fee: 1000000000
-        //},
-        //transfer_fio_address: {
-        //    bundledEligible: false,
-        //    fee: 1000000000
-        //},
+        transfer_fio_domain: {
+            bundledEligible: false,
+            fee: 1000000000
+        },
+        transfer_fio_address: {
+            bundledEligible: false,
+            fee: 1000000000
+        },
         add_pub_address: {
             bundledEligible: true,
             fee: 600000000
         },
-        //rem_pub_address: {
-        //    bundledEligible: true,
-        //    fee: 600000000
-        //},
+        remove_pub_address: {
+            bundledEligible: true,
+            fee: 600000000
+        },
+        remove_all_pub_addresses: {
+            bundledEligible: true,
+            fee: 600000000
+        },
         transfer_tokens_pub_key: {
             bundledEligible: false,
             fee: 2000000000
@@ -267,11 +273,11 @@ const config = {
         msig_invalidate: {
             bundledEligible: false,
             fee: 400000000
-        } //,
-        //cancel_funds_request: {
-        //    bundledEligible: true,
-        //    fee: 600000000
-        //}
+        } ,
+        cancel_funds_request: {
+            bundledEligible: true,
+            fee: 600000000
+        }
 
     },
 

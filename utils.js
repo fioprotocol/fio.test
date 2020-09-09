@@ -12,6 +12,7 @@ var fs = require('fs');
 const { Fio } = require('@fioprotocol/fiojs');
 fetch = require('node-fetch');
 const {FIOSDK } = require('@fioprotocol/FIOSDK')
+const {TextEncoder,TextDecoder } = require('text-encoding')
 const Transactions_2 = require("@fioprotocol/FIOSDK/lib/transactions/Transactions")
 let transaction = new Transactions_2.Transactions
 

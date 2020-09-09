@@ -1,8 +1,8 @@
 require('mocha')
-config = require('../config.js');
 const {expect} = require('chai')
 const {newUser, fetchJson, callFioApi, callFioApiSigned, generateFioDomain, timeout} = require('../utils.js');
-const {FIOSDK} = require('@fioprotocol/FIOSDK')
+const {FIOSDK } = require('@fioprotocol/FIOSDK')
+config = require('../config.js');
 
 /**
  * Whitelisting does not work with the eosio account
@@ -24,7 +24,120 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-describe(`General addaction testing with random contracts and domains (can be run pre and post fork)`, () => {
+describe(`************************** action-whitelisting.js ************************** \n A. Remove action, add action, action testing `, () => {
+  let userA1
+  const fundsAmount = 1000000000
+
+  it(`Create users`, async () => {
+      userA1 = await newUser(faucet);
+  })
+
+  it(`remove action .`, async () => {
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'remaction',
+        account: 'eosio',
+        actor: fiotoken.account,
+        privKey: fiotoken.privateKey,
+        data: {
+          action: 'trnsfiopubky',
+          actor: fiotoken.account
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.processed.receipt.status).to.equal('executed');
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`action not found test, Transfer FIO to userA1 FIO public key`, async () => {
+    try{
+      const result = await faucet.genericAction('transferTokens', {
+        payeeFioPublicKey: userA1.publicKey,
+        amount: fundsAmount,
+        maxFee: config.api.transfer_tokens_pub_key.fee,
+        technologyProviderId: ''
+      })
+      console.log('Result: ', result)
+      expect(result).to.equal(null);
+    } catch (err) {
+    //  console.log("err.json ", err.json);
+        expect(err.json.error.what).to.equal('Action validate exception');
+        expect(err.json.code).to.equal(500);
+    }
+  })
+
+  it(`addaction succeeds.`, async () => {
+    try{
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'addaction',
+        account: 'eosio',
+        actor: fiotoken.account,
+        privKey: fiotoken.privateKey,
+        data: {
+          action: 'trnsfiopubky',
+          contract: 'fio.token',
+          actor: fiotoken.account
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.processed.receipt.status).to.equal('executed');
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+})
+
+describe.skip('A.2. Add random action hoses up the SDK session. Non recoverable. So, only run addaction as a separate test.', () => {
+  let user1, user2, user3, newAction, newContract
+
+  it(`Create users`, async () => {
+    try {
+      user1 = await newUser(faucet);
+      newAction = generateFioDomain(7);
+      newContract = generateFioDomain(7);
+    } catch (err) {
+      console.log('Err: ', err)
+      expect(err).to.equal(null);
+    }
+  })
+
+  it('addaction with random action and contract name succeeds.', async () => {
+    const result = await callFioApiSigned('push_transaction', {
+      action: 'addaction',
+      account: 'eosio',
+      actor: fiotoken.account,
+      privKey: fiotoken.privateKey,
+      data: {
+        action: newAction,
+        contract: newContract,
+        actor: fiotoken.account,
+      }
+    })
+     //console.log('Result: ', result)
+     expect(result.processed.receipt.status).to.equal('executed');
+  })
+
+  it('Wait a few seconds.', async () => {
+    await timeout(5000);
+  })
+
+  it(`Create users`, async () => {
+    try {
+      user2 = await newUser(faucet);
+    } catch (err) {
+      console.log('Err: ', err)
+      expect(err).to.equal(null);
+    }
+  })
+
+})
+
+describe(`B. General addaction testing with random contracts and domains (can be run pre and post fork)`, () => {
   let newAction, newContract, newAction2
 
   it(`Create users`, async () => {
@@ -107,9 +220,8 @@ describe(`General addaction testing with random contracts and domains (can be ru
 
 })
 
-
-describe(`B. Test addaction error conditions`, () => {
-  let newAction, newContract, newAction2, newContract2
+let newAction, newContract, newAction2, newContract2
+describe(`C. Test addaction error conditions`, () => {
 
   it(`Create users`, async () => {
     newAction = generateFioDomain(7);
@@ -117,7 +229,7 @@ describe(`B. Test addaction error conditions`, () => {
     newAction2 = generateFioDomain(7);
     newContract2 = generateFioDomain(7);
 
-    action_13 = generateFioDomain(13)  // Use as 13 character action
+    action_13 = 'eddie1233213a' // Use as 13 character name string
   })
 
   it(`addaction with empty action.  Returns Error: ${config.error2.invalidAction.type}: ${config.error2.invalidAction.message}`, async () => {
@@ -154,7 +266,7 @@ describe(`B. Test addaction error conditions`, () => {
     expect(result.code).to.equal(config.error2.invalidContract.type);
   })
 
-  it(`addaction with invalid actor.  Returns Error: ${config.error2.invalidActor.type}: ${config.error2.invalidActor.message} <invalidactor>`, async () => {
+  it(`addaction with invalid actor.  Returns Error: ${config.error2.invalidActor.type}: ${config.error2.invalidActor.message}`, async () => {
     const result = await callFioApiSigned('push_transaction', {
       action: 'addaction',
       account: 'eosio',
@@ -167,7 +279,7 @@ describe(`B. Test addaction error conditions`, () => {
       }
     })
     //console.log('Result: ', result)
-    expect(result.error.details[0].message).contains(config.error2.invalidActor.message);
+    expect(result.error.what).contains(config.error2.invalidActor.message);
     expect(result.code).to.equal(config.error2.invalidActor.type);
   })
 
@@ -227,25 +339,135 @@ describe(`B. Test addaction error conditions`, () => {
   })
 
   it(`addaction with 13 character action and 7 character contract. Returns Error: ${config.error2.invalidAction.type}: ${config.error2.invalidAction.message}`, async () => {
-    const result = await callFioApiSigned('push_transaction', {
-      action: 'addaction',
-      account: 'eosio',
-      actor: fiotoken.account,
-      privKey: fiotoken.privateKey,
-      data: {
-        action: action_13,
-        contract: newContract,
-        actor: fiotoken.account
-      }
-    })
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'addaction',
+        account: 'eosio',
+        actor: fiotoken.account,
+        privKey: fiotoken.privateKey,
+        data: {
+          action: action_13,
+          contract: newContract,
+          actor: fiotoken.account
+        }
+      })
+
     //console.log('Result: ', result.error.details)
     expect(result.error.details[0].message).to.equal(config.error2.invalidAction.message);
     expect(result.code).to.equal(config.error2.invalidAction.type);
+    } catch (err) {
+      console.log('Error: ', err)
+    }
   })
 
 })
 
-describe(`C. get_actions paging tests`, () => {
+describe(`D. General remaction testing `, () => {
+
+  it(`remaction succeeds.`, async () => {
+    try {
+    const result = await callFioApiSigned('push_transaction', {
+      action: 'remaction',
+      account: 'eosio',
+      actor: fiotoken.account,
+      privKey: fiotoken.privateKey,
+      data: {
+        action: newAction,
+        actor: fiotoken.account
+      }
+    })
+    expect(result.processed.receipt.status).to.equal('executed');
+    } catch (err) {
+      console.log('Error', err);
+     expect(err).to.equal(null);
+    }
+  })
+
+
+  it('Call get_actions and confirm action is gone', async () => {
+    try {
+      const json = {
+        //limit: 100,
+        //offset: 0
+      }
+      actionList = await callFioApi("get_actions", json);
+      //console.log('actions: ', actions);
+      let found = false;
+      for (action in actionList.actions) {
+        if (actionList.actions[action].action == newAction) {
+          found = true;
+        }
+      }
+      expect(found).to.equal(false);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`remaction fails, action not found.`, async () => {
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'remaction',
+        account: 'eosio',
+        actor: fiotoken.account,
+        privKey: fiotoken.privateKey,
+        data: {
+          action: "boggle",
+          actor: fiotoken.account
+        }
+      })
+    //  console.log("Result: ", result);
+      expect(result.error.what).contains(config.error2.accountExists.message);
+      expect(result.code).to.equal(config.error2.accountExists.type);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`remaction with 13 character action. Returns Error: ${config.error2.invalidAction.type}: ${config.error2.invalidAction.message}`, async () => {
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'remaction',
+        account: 'eosio',
+        actor: fiotoken.account,
+        privKey: fiotoken.privateKey,
+        data: {
+          action: action_13,
+          contract: newContract,
+          actor: fiotoken.account
+        }
+      })
+
+      //console.log('Result: ', result.error.details)
+      expect(result.error.details[0].message).to.equal(config.error2.invalidAction.message);
+      expect(result.code).to.equal(config.error2.invalidAction.type);
+    } catch (err) {
+      console.log('Error: ', err)
+    }
+  })
+
+  it(`remaction with invalid actor.  Returns Error: ${config.error2.invalidActor.type}: ${config.error2.invalidActor.message}`, async () => {
+    const result = await callFioApiSigned('push_transaction', {
+      action: 'remaction',
+      account: 'eosio',
+      actor: fiotoken.account,
+      privKey: fiotoken.privateKey,
+      data: {
+        action: newAction,
+        contract: newContract,
+        actor: 'otheractor'
+      }
+    })
+    //console.log('Result: ', result)
+    expect(result.error.what).contains(config.error2.invalidActor.message);
+    expect(result.code).to.equal(config.error2.invalidActor.type);
+  })
+
+})
+
+describe(`E. get_actions paging tests`, () => {
   let newAction, newContract, currentCount
 
   it(`Create users`, async () => {
@@ -388,7 +610,7 @@ describe(`C. get_actions paging tests`, () => {
         offset: 345.678
       }
       actionList = await callFioApi("get_actions", json);
-      expect(actionList.status).to.equal(null);
+      expect(actionList.status).to.equal(undefined);
     } catch (err) {
       //console.log('Error', err.error);
       expect(err.error.message).to.equal(config.error2.noActions.message);
@@ -397,3 +619,57 @@ describe(`C. get_actions paging tests`, () => {
   })
 
 })
+
+/* run this test to verify performance only..otherwise leave it commented out
+describe(`F. Test addaction perf`, () => {
+
+  let findit;
+  for ( j=0;j<500;j++)
+  {
+    it(`Create users`, async () => {
+      newAction = generateFioDomain(7);
+      newContract = generateFioDomain(7);
+      findit= newAction;
+    })
+
+
+    it(`addaction.`, async () => {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'addaction',
+        account: 'eosio',
+        actor: fiotoken.account,
+        privKey: fiotoken.privateKey,
+        data: {
+          action: newAction,
+          contract: newContract,
+          actor: fiotoken.account
+        }
+      })
+      //console.log('Result: ', result.processed.action_traces)
+      //expect(result.error.details[0].message).to.equal(config.error2.invalidAction.message);
+      //expect(result.code).to.equal(config.error2.invalidAction.type);
+    })
+  }
+
+  it('Call get_actions and confirm action is in table', async () => {
+    try {
+      const json = {
+        //limit: 100,
+        //offset: 0
+      }
+      actionList = await callFioApi("get_actions", json);
+      //console.log('actions: ', actions);
+      let found = false;
+      for (action in actionList.actions) {
+        if (actionList.actions[action].action == findit) {
+          found = true;
+        }
+      }
+      expect(found).to.equal(true);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+})
+*/

@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, fetchJson, callFioApi} = require('../utils.js');
+const {newUser, timeout, fetchJson, callFioApi, callFioApiSigned} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/FIOSDK')
 config = require('../config.js');
 
@@ -130,28 +130,31 @@ describe(`************************** removeaddress.js **************************
         maxFee: config.api.add_pub_address.fee,
         tpid: ''
       })
-
+      expect(result).to.equal(null)
+      console.log('err: ', err.json)
     } catch (err) {
       expect(err.message).to.equal(config.error.validationError2)
       expect(err.list[0].message).to.equal(config.error.fioAddressLengthErr)
     }
   })
 
-  it(`(SDK) removePublicAddress Fail, address doesn't exist. Expect error code ${config.error2.addressNotFound.statusCode}: ${config.error2.addressNotFound.message}`, async () => {
+  it(`(SDK) removePublicAddress Fail, address doesn't exist. Expect error code 404: Invalid FIO Address`, async () => {
     try {
       const result = await userA1.sdk.genericAction('removePublicAddresses', {
-        fioAddress: "ed@dapix12567890123344556dev",
+        fioAddress: "ed@dapixtt",
         publicAddresses: config.public_addresses,
-        maxFee: config.api.add_pub_address.fee,
+        maxFee: config.api.remove_all_pub_addresses.fee,
         tpid: ''
       })
-
+      expect(result).to.equal(null)
     } catch (err) {
-      expect(err.json.message).to.equal(config.error2.addressNotFound.message)
-      expect(err.errorCode).to.equal(config.error2.addressNotFound.statusCode)
+      //console.log('err: ', err)
+      expect(err.json.fields[0].error).to.equal('Invalid FIO Address')
+      expect(err.errorCode).to.equal(404);
     }
   })
 })
+
 
 describe(`B. Remove public addresses, public adresses parameter tests`, () => {
   let userA1
@@ -407,7 +410,8 @@ describe(`B. Remove public addresses, public adresses parameter tests`, () => {
   })
 })
 
-  describe(`C. Remove public address, max fee parameter tests`, () => {
+
+describe(`C. Remove public address, max fee parameter tests`, () => {
     let userA1
 
     it(`Create users`, async () => {
@@ -750,6 +754,7 @@ describe(`E. Add and remove addresses with bundles remaining`, () => {
 
 })
 
+
 describe(`E-2. Add and remove addresses with NO bundles remaining`, () => {
   let userA1, userA2, remove_all_pub_addresses_fee, remove_pub_address_fee
 
@@ -994,6 +999,10 @@ describe(`E-2. Add and remove addresses with NO bundles remaining`, () => {
       }
     })
 
+    it('Wait a few seconds to avoid duplicate transaction.', async () => {
+      await timeout(2000);
+    })
+
     it(`Add ETH public addresses to userA1`, async () => {
       try {
         const result = await userA1.sdk.genericAction('addPublicAddresses', {
@@ -1026,6 +1035,10 @@ describe(`E-2. Add and remove addresses with NO bundles remaining`, () => {
         console.log('Error', err.json);
         expect(err).to.equal(null);
       }
+    })
+
+    it('Wait a few seconds to avoid duplicate transaction.', async () => {
+      await timeout(3000);
     })
 
     it(`Remove ETH address from userA1. Verify fee was collected.`, async () => {
@@ -1067,6 +1080,7 @@ describe(`E-2. Add and remove addresses with NO bundles remaining`, () => {
 
 })
 
+
 describe(`F. Sad - result in error`, () => {
   let userA1, userA2
 
@@ -1090,8 +1104,26 @@ describe(`F. Sad - result in error`, () => {
       expect(err).to.equal(null)
     }
   })
+  
+  it.skip(`Fixed in BD-1955, release 2.x? Remove with invalid FIO Address - Direct API call. Expect error: ${config.error2.invalidFioAddress.message}`, async () => {
+    const result = await callFioApiSigned('push_transaction', {
+      action: 'remaddress',
+      account: 'fio.address',
+      actor: userA1.account,
+      privKey: userA1.privateKey,
+      data: {
+        "fio_address": 'invalid@@address',
+        "public_addresses": config.public_addresses,
+        "max_fee": config.api.remove_pub_address.fee,
+        "tpid": '',
+        "actor": userA1.account
+      }
+    })
+    console.log('Result: ', result)
+    expect(result.fields[0].error).to.equal(config.error2.invalidFioAddress.message);
+  })
 
-  it.skip(`Bug: Remove with invalid FIO Address. Expect error type ${config.error2.invalidFioAddress.statusCode}: ${config.error2.invalidFioAddress.message}`, async () => {
+  it.skip(`Fixed in BD-1955, release 2.x? Remove with invalid FIO Address - push transaction. Expect error type ${config.error2.invalidFioAddress.type}: ${config.error2.invalidFioAddress.message}`, async () => {
     try{
       const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'remaddress',
@@ -1099,20 +1131,21 @@ describe(`F. Sad - result in error`, () => {
         data: {
           "fio_address": 'invalid@@address',
           "public_addresses": config.public_addresses,
-          "max_fee": config.api.rem_pub_address.fee,
+          "max_fee": config.api.remove_pub_address.fee,
           "tpid": '',
           "actor": userA1.account
         }
       })
+      console.log('Result:', result)
       expect(result.status).to.equal(null);
     } catch (err) {
-      console.log('Error: ', err.json)
+      //console.log('Error: ', err.json)
       expect(err.json.fields[0].error).to.equal(config.error2.invalidFioAddress.message)
-      expect(err.errorCode).to.equal(config.error2.invalidFioAddress.statusCode);
+      expect(err.errorCode).to.equal(config.error2.invalidFioAddress.type);
     }
   })
 
-  it(`Remove invalid public addresses. Expect error type ${config.error2.invalidPublicAddress.statusCode}: ${config.error2.invalidPublicAddress.message}`, async () => {
+  it(`Remove invalid public addresses. Expect error type ${config.error2.invalidPublicAddress.type}: ${config.error2.invalidPublicAddress.message}`, async () => {
     try {
       const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'remaddress',
@@ -1131,19 +1164,20 @@ describe(`F. Sad - result in error`, () => {
                 public_address: 'alsoinvalid',
               }
           ],
-          "max_fee": config.api.rem_pub_address.fee,
+          "max_fee": config.api.remove_pub_address.fee,
           "tpid": '',
           "actor": userA1.account
         }
       })
       expect(result.status).to.equal(null);
     } catch (err) {
+      //console.log('Err: ', err.json);
       expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message)
-      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
+      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.type);
     }
   })
 
-  it(`Remove with invalid TPID. Expect error type ${config.error2.invalidTpid.statusCode}: ${config.error2.invalidTpid.message}`, async () => {
+  it(`Remove with invalid TPID. Expect error type ${config.error2.invalidTpid.type}: ${config.error2.invalidTpid.message}`, async () => {
     try{
       const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'remaddress',
@@ -1151,7 +1185,7 @@ describe(`F. Sad - result in error`, () => {
         data: {
           "fio_address": userA1.address,
           "public_addresses": config.public_addresses,
-          "max_fee": config.api.rem_pub_address.fee,
+          "max_fee": config.api.remove_pub_address.fee,
           "tpid": 'invalid@@tpid',
           "actor": userA1.account
         }
@@ -1159,11 +1193,30 @@ describe(`F. Sad - result in error`, () => {
       expect(result.status).to.equal(null);
     } catch (err) {
       expect(err.json.fields[0].error).to.equal(config.error2.invalidTpid.message)
-      expect(err.errorCode).to.equal(config.error2.invalidTpid.statusCode);
+      expect(err.errorCode).to.equal(config.error2.invalidTpid.type);
     }
   })
 
-  it.skip(`Bug: Remove with invalid actor. Expect error type ${config.error2.invalidActor.statusCode}: ${config.error2.invalidActor.message}`, async () => {
+  it(`Remove with invalid actor - Direct API call. Expect error type ${config.error2.invalidActor.type}: ${config.error2.invalidActor.message}`, async () => {
+    const result = await callFioApiSigned('push_transaction', {
+      action: 'remaddress',
+      account: 'fio.address',
+      actor: userA1.account,
+      privKey: userA1.privateKey,
+      data: {
+        "fio_address": userA1.address,
+        "public_addresses": config.public_addresses,
+        "max_fee": config.api.remove_pub_address.fee,
+        "tpid": '',
+        "actor": 'invalidactor'
+      }
+    })
+    //console.log('Result: ', result)
+    expect(result.error.what).to.equal(config.error2.invalidActor.message)
+    expect(result.code).to.equal(config.error2.invalidActor.type);
+  })
+
+  it(`Not a bug. SDK generates the actor from the userA1 private key. So, this will work.`, async () => {
     try{
       const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'remaddress',
@@ -1171,20 +1224,40 @@ describe(`F. Sad - result in error`, () => {
         data: {
           "fio_address": userA1.address,
           "public_addresses": config.public_addresses,
-          "max_fee": config.api.rem_pub_address.fee,
+          "max_fee": config.api.remove_pub_address.fee,
           "tpid": '',
           "actor": 'invalidactor'
         }
       })
-      expect(result.status).to.equal(null);
+      //console.log('Result:', result)
+      expect(result.status).to.equal('OK')
     } catch (err) {
-      console.log('Error: ', err)
-      expect(err.json.fields[0].error).to.equal(config.error2.invalidActor.message)
-      expect(err.errorCode).to.equal(config.error2.invalidActor.statusCode);
+      console.log('Error', err)
+      expect(err).to.equal(null)
     }
   })
 
-  it(`userA2 tries to remove userA1s public addresses. Expect error type ${config.error2.invalidSignature.statusCode}: ${config.error2.invalidSignature.message}`, async () => {
+  it('Wait a few seconds to avoid duplicate transaction.', async () => {
+    await timeout(2000);
+  })
+
+  it(`Add back public addresses to userA1`, async () => {
+    try {
+      const result = await userA1.sdk.genericAction('addPublicAddresses', {
+        fioAddress: userA1.address,
+        publicAddresses: config.public_addresses,
+        maxFee: config.api.add_pub_address.fee,
+        walletFioAddress: ''
+      })
+      //console.log('Result:', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`userA2 tries to remove userA1s public addresses. Expect error type ${config.error2.invalidSignature.type}: ${config.error2.invalidSignature.message}`, async () => {
     try{
       const result = await userA2.sdk.genericAction('pushTransaction', {
         action: 'remaddress',
@@ -1192,7 +1265,7 @@ describe(`F. Sad - result in error`, () => {
         data: {
           "fio_address": userA1.address,
           "public_addresses": config.public_addresses,
-          "max_fee": config.api.rem_pub_address.fee,
+          "max_fee": config.api.remove_pub_address.fee,
           "tpid": '',
           "actor": userA1.account
         }
@@ -1201,7 +1274,7 @@ describe(`F. Sad - result in error`, () => {
     } catch (err) {
       //console.log('Error', err)
       expect(err.json.message).to.equal(config.error2.invalidSignature.message)
-      expect(err.errorCode).to.equal(config.error2.invalidSignature.statusCode);
+      expect(err.errorCode).to.equal(config.error2.invalidSignature.type);
     }
   })
 
@@ -1333,7 +1406,7 @@ describe(`F. Sad - result in error`, () => {
         data: {
           "fio_address": userA1.address,
           "public_addresses": config.public_addresses,
-          "max_fee": config.api.rem_pub_address.fee - 100000000,
+          "max_fee": config.api.remove_pub_address.fee - 100000000,
           "tpid": '',
           "actor": userA1.account
         }
@@ -1354,7 +1427,7 @@ describe(`F. Sad - result in error`, () => {
         data: {
           "fio_address": userA1.address,
           "public_addresses": config.public_addresses,
-          "max_fee": config.api.rem_pub_address.fee,
+          "max_fee": config.api.remove_pub_address.fee,
           "tpid": '',
           "actor": userA1.account
         }
