@@ -15,7 +15,6 @@ describe('TEST SUITE', () => {
   require('./tests/vote.js');  // v1.0.x
 
   //require('./tests/action-whitelisting.js'); // FIP-12
-  //require('./tests/fee-voting-fee-setting.js'); // FIP-10
 
   //require('./tests/transfer-domain.js'); // FIP-1.a 
   //require('./tests/paging.js'); // FIP-2

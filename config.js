@@ -100,54 +100,6 @@ const config = {
         invalidSignature: {
             message: 'Request signature not valid or not allowed.',
             statusCode: 403
-        },
-        noFioNames: {
-            message: 'No FIO names',
-            type: 404
-        },
-        addressNotFound: {
-            message: 'FIO Address not found',
-            type: 404
-        },
-        invalidFioAddress: {
-            message: 'Invalid FIO Address',
-            type: 400
-        },
-        invalidPublicAddress: {
-            message: 'Invalid public address',
-            type: 400
-        },
-        invalidTpid: {
-            message: 'TPID must be empty or valid FIO address',
-            type: 400
-        },
-        invalidActor: {
-            message: 'Invalid Actor',
-            type: 403
-        },
-        invalidSignature: {
-            message: 'Request signature not valid or not allowed.',
-            type: 403
-        },
-        invalidAction: {
-            message: 'Action invalid or not found',
-            type: 500
-        },
-        invalidContract: {
-            message: 'Invalid Contract',
-            type: 500
-        },
-        invalidActor: {
-            message: 'missing authority of',
-            type: 500
-        },
-        accountExists: {
-            message: 'Account name already exists',
-            type: 500
-        },
-        noActions: {
-            message: 'No actions',
-            type: 404
         }
     },
 

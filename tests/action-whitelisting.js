@@ -1,126 +1,194 @@
 require('mocha')
-config = require('../config.js');
+//config = require('../config.js');
+const {config, error} = require('../config.js');
 const {expect} = require('chai')
-const {newUser, fetchJson, callFioApi, callFioApiSigned, generateFioDomain, timeout} = require('../utils.js');
-const {FIOSDK} = require('@fioprotocol/FIOSDK')
+const {newUser, fetchJson, existingUser, callFioApi, callFioApiSigned, generateFioDomain} = require('../utils.js');
+const {FIOSDK } = require('@fioprotocol/FIOSDK')
 
-/**
- * Whitelisting does not work with the eosio account
- * 
+const Transactions_2 = require("@fioprotocol/FIOSDK/lib/transactions/Transactions");
+const { ConsoleLogger } = require('typedoc/dist/lib/utils');
+let transaction = new Transactions_2.Transactions
+
 const eosio = {
   account: 'eosio',
   publicKey: 'FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS',
   privateKey: '5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY'
 }
-*/
- 
+
 const fiotoken = {
   account: 'fio.token',
   publicKey: 'FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS',
   privateKey: '5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY'
 }
 
+
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
+  
+  //eosio = await existingUser('eosio', '5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY', 'FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS','','');
+  
 })
 
-describe(`General addaction testing with random contracts and domains (can be run pre and post fork)`, () => {
-  let newAction, newContract, newAction2
+describe(`************************** action-whitelisting.js ************************** \n A. addaction`, () => {
+  let user1, action, contract
+  const action_regDomain = 'regdomain'  
+  const contract_regDomain = 'fio.address'
 
   it(`Create users`, async () => {
-    newAction = generateFioDomain(7);
-    newAction2 = generateFioDomain(7);
-    newContract = generateFioDomain(7);
+    user1 = await newUser(faucet);
+    user1.domain2 = generateFioDomain(7);
+    console.log('account: ', user1.account)
 
-    contract_50 = generateFioDomain(50) // Use as random 50 character contract
-    contract_1000 = generateFioDomain(1000) // Use as random 50 character contract
+    action_05 = generateFioDomain(5)  // Use as random 5 character action
+    contract_10 = generateFioDomain(5) + generateFioDomain(5)  // Use as random 10 character contract
+    action_13 = generateFioDomain(13)  // Use as 13 character action
+    action_14 = generateFioDomain(14)  // Use as 14 character action
   })
 
-  it(`addaction with random action and contract name succeeds.`, async () => {
-    const result = await callFioApiSigned('push_transaction', {
-      action: 'addaction',
-      account: 'eosio',
-      actor: fiotoken.account,
-      privKey: fiotoken.privateKey,
-      data: {
-        action: newAction,
-        contract: newContract,
-        actor: fiotoken.account
-      }
-    })
-     //console.log('Result: ', result)
-     expect(result.processed.receipt.status).to.equal('executed');
-  })
-
-  it('Call get_actions and confirm action is in table', async () => {
+  it.skip(`test`, async () => {
     try {
-      const json = {
-        //limit: 100,              
-        //offset: 0
-      }
-      actionList = await callFioApi("get_actions", json);
-      //console.log('actions: ', actions);
-      let found = false;
-      for (action in actionList.actions) {
-        if (actionList.actions[action].action == newAction) {
-          found = true;
+      const result = await callFioApiSigned('register_fio_domain', {
+        action: 'regdomain',
+        account: 'fio.address',
+        actor: user1.account,
+        privKey: user1.privateKey,
+        data: {
+          fio_domain: 'testdomain3',
+          owner_fio_public_key: user1.publicKey,
+          max_fee: config.api.register_fio_domain.fee,
+          tpid: '',
+          actor: user1.account
         }
-      }
-      expect(found).to.equal(true); 
+      })
+      console.log('Result: ', result)
+      //expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error', err);
-      expect(err).to.equal(null);
     }
   })
 
-  it(`addaction with 7 character action and 50 character contract succeeds.`, async () => {
-    const result = await callFioApiSigned('push_transaction', {
-      action: 'addaction',
-      account: 'eosio',
-      actor: fiotoken.account,
-      privKey: fiotoken.privateKey,
-      data: {
-        action: newAction + 'a',
-        contract: contract_50,
-        actor: fiotoken.account
-      }
-    })
-    //console.log('Result: ', result)
-    expect(result.processed.receipt.status).to.equal('executed');
+
+
+  it.skip(`Prior to adding ${action_regDomain} confirm it cannot be called. Returns Error: `, async () => {
+    try{
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'addaction',
+        account: 'eosio',
+        data: {
+          "action": action_regDomain,
+          "contract": contract_regDomain,
+          "actor": 'eosio'
+        }
+      })
+      //console.log('Result: ', result);
+      expect(result).to.equal(null);
+    } catch (err) {
+      //console.log('Error', err);
+      expect(err.json.fields[0].error).to.equal(config.error.requestNotFound);
+      expect(err.errorCode).to.equal(400);
+    }
   })
 
-  it(`addaction with 7 character action and 1000 character contract succeeds.`, async () => {
-    const result = await callFioApiSigned('push_transaction', {
-      action: 'addaction',
-      account: 'eosio',
-      actor: fiotoken.account,
-      privKey: fiotoken.privateKey,
-      data: {
-        action: newAction + 'b',
-        contract: contract_1000,
-        actor: fiotoken.account
-      }
-    })
-    //console.log('Result: ', result)
-    expect(result.processed.receipt.status).to.equal('executed');
+  it.skip(`Prior to adding ${action_regDomain} confirm it cannot be called. Returns Error: `, async () => {
+    try {
+      const result = await callFioApiSigned('register_fio_domain', {
+        action: 'regdomain',
+        account: 'fio.address',
+        actor: user1.account,
+        privKey: user1.privateKey,
+        data: {
+          fio_domain: user1.domain2,
+          owner_fio_public_key: user1.publicKey,
+          max_fee: config.api.register_fio_domain.fee,
+          tpid: '',
+          actor: user1.account
+        }
+      })
+      console.log('Result: ', result)
+      //expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err);
+    }
+  })
+
+  it.skip(`Add new action to whitelist. Confirm response as per FIP.`, async () => {
+    try{
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'addaction',
+        account: 'eosio',
+        data: {
+          "action": action_regDomain,
+          "contract": contract_regDomain,
+          "actor": 'eosio'
+        }
+      })
+      //console.log('Result: ', result);
+      expect(result).to.equal(null);
+    } catch (err) {
+      //console.log('Error', err);
+      expect(err.json.fields[0].error).to.equal(config.error.requestNotFound);
+      expect(err.errorCode).to.equal(400);
+    }
+  })
+
+  it.skip(`test`, async () => {
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'regdomain',
+        account: 'fio.address',
+        actor: user1.account,
+        privKey: user1.privateKey,
+        data: {
+          fio_domain: 'testdomain4',
+          owner_fio_public_key: user1.publicKey,
+          max_fee: config.api.register_fio_domain.fee,
+          tpid: '',
+          actor: user1.account
+        }
+      })
+      console.log('Result: ', result)
+      //expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err);
+    }
+  })
+
+  it(`Add new action to whitelist. Confirm response as per FIP.`, async () => {
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'addaction',
+        account: 'eosio',
+        actor: 'fio.token',
+        privKey: eosio.privateKey,
+        data: {
+          action: 'test3',
+          contract: 'test3',
+          actor: 'fio.token'
+        }
+      })
+      console.log('Result: ', result)
+      //expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err);
+    }
   })
 
 })
 
 
-describe(`B. Test addaction error conditions`, () => {
-  let newAction, newContract, newAction2, newContract2
+describe.only(`Test addaction error conditions`, () => {
 
   it(`Create users`, async () => {
-    newAction = generateFioDomain(7);
-    newContract = generateFioDomain(7);
-    newAction2 = generateFioDomain(7);
-    newContract2 = generateFioDomain(7);
+    action = generateFioDomain(7) 
+    contract = generateFioDomain(7) 
 
+    action_05 = generateFioDomain(5)  // Use as random 5 character action
+    contract_10 = generateFioDomain(5) + generateFioDomain(5)  // Use as random 10 character contract
     action_13 = generateFioDomain(13)  // Use as 13 character action
+    action_14 = generateFioDomain(14)  // Use as 14 character action
   })
 
-  it(`addaction with empty action.  Returns Error: ${config.error2.invalidAction.type}: ${config.error2.invalidAction.message}`, async () => {
+  it(`addaction with empty action.  Returns Error: ${error.invalidAction.type}: ${error.invalidAction.message}`, async () => {
     const result = await callFioApiSigned('push_transaction', {
       action: 'addaction',
       account: 'eosio',
@@ -128,272 +196,896 @@ describe(`B. Test addaction error conditions`, () => {
       privKey: fiotoken.privateKey,
       data: {
         action: '',
-        contract: newContract,
+        contract: contract,
         actor: fiotoken.account
       }
     })
     //console.log('Result: ', result)
-    expect(result.error.details[0].message).to.equal(config.error2.invalidAction.message);
-    expect(result.code).to.equal(config.error2.invalidAction.type);
+    expect(result.error.details[0].message).to.equal(error.invalidAction.message);
+    expect(result.code).to.equal(error.invalidAction.type);
   })
 
-  it(`addaction with empty contract.  Returns Error: ${config.error2.invalidContract.type}: ${config.error2.invalidContract.message}`, async () => {
+  it(`addaction with empty contract.  Returns Error: ${error.invalidContract.type}: ${error.invalidContract.message}`, async () => {
     const result = await callFioApiSigned('push_transaction', {
       action: 'addaction',
       account: 'eosio',
       actor: fiotoken.account,
       privKey: fiotoken.privateKey,
       data: {
-        action: newAction,
+        action: action,
         contract: '',
         actor: fiotoken.account
       }
     })
     //console.log('Result: ', result.error)
-    expect(result.error.details[0].message).to.equal(config.error2.invalidContract.message);
-    expect(result.code).to.equal(config.error2.invalidContract.type);
+    expect(result.error.details[0].message).to.equal(error.invalidContract.message);
+    expect(result.code).to.equal(error.invalidContract.type);
   })
 
-  it(`addaction with invalid actor.  Returns Error: ${config.error2.invalidActor.type}: ${config.error2.invalidActor.message} <invalidactor>`, async () => {
+  it(`addaction with invalidactor.  Returns Error: ${error.invalidActor.type}: ${error.invalidActor.message} <invalidactor>`, async () => {
     const result = await callFioApiSigned('push_transaction', {
       action: 'addaction',
       account: 'eosio',
       actor: fiotoken.account,
       privKey: fiotoken.privateKey,
       data: {
-        action: newAction,
-        contract: newContract,
+        action: action,
+        contract: contract,
         actor: 'otheractor'
       }
     })
-    //console.log('Result: ', result)
-    expect(result.error.details[0].message).contains(config.error2.invalidActor.message);
-    expect(result.code).to.equal(config.error2.invalidActor.type);
-  })
-
-  it(`addaction with 7 character action and contract name succeeds.`, async () => {
-    const result = await callFioApiSigned('push_transaction', {
-      action: 'addaction',
-      account: 'eosio',
-      actor: fiotoken.account,
-      privKey: fiotoken.privateKey,
-      data: {
-        action: newAction,
-        contract: newContract,
-        actor: fiotoken.account
-      }
-    })
-    //console.log('Result: ', result.processed.action_traces)
-    //expect(result.error.details[0].message).to.equal(config.error2.invalidAction.message);
-    //expect(result.code).to.equal(config.error2.invalidAction.type);
-  })
-
-  it('Wait a few seconds to avoid duplicate transaction.', async () => {
-    await timeout(2000);
-  })
-
-  it(`addaction with existing action AND existing contract.  Returns Error: ${config.error2.accountExists.type}: ${config.error2.accountExists.message} <invalidactor>`, async () => {
-    const result = await callFioApiSigned('push_transaction', {
-      action: 'addaction',
-      account: 'eosio',
-      actor: fiotoken.account,
-      privKey: fiotoken.privateKey,
-      data: {
-        action: newAction,
-        contract: newContract,
-        actor: fiotoken.account
-      }
-    })
-    //console.log('Result: ', result)
-    expect(result.error.what).contains(config.error2.accountExists.message);
-    expect(result.code).to.equal(config.error2.accountExists.type);
-  })
-
-  it(`addaction with existing action but DIFFERENT contract. Returns Error: ${config.error2.invalidAction.type}: ${config.error2.invalidAction.message}`, async () => {
-    const result = await callFioApiSigned('push_transaction', {
-      action: 'addaction',
-      account: 'eosio',
-      actor: fiotoken.account,
-      privKey: fiotoken.privateKey,
-      data: {
-        action: newAction,
-        contract: newContract2,
-        actor: fiotoken.account
-      }
-    })
-    //console.log('Result: ', result)
-    expect(result.error.details[0].message).to.equal(config.error2.invalidAction.message);
-    expect(result.code).to.equal(config.error2.invalidAction.type);
-  })
-
-  it(`addaction with 13 character action and 7 character contract. Returns Error: ${config.error2.invalidAction.type}: ${config.error2.invalidAction.message}`, async () => {
-    const result = await callFioApiSigned('push_transaction', {
-      action: 'addaction',
-      account: 'eosio',
-      actor: fiotoken.account,
-      privKey: fiotoken.privateKey,
-      data: {
-        action: action_13,
-        contract: newContract,
-        actor: fiotoken.account
-      }
-    })
-    //console.log('Result: ', result.error.details)
-    expect(result.error.details[0].message).to.equal(config.error2.invalidAction.message);
-    expect(result.code).to.equal(config.error2.invalidAction.type);
+    //console.log('Result: ', result.error)
+    expect(result.error.details[0].message).contains(error.invalidActor.message);
+    expect(result.code).to.equal(error.invalidActor.type);
   })
 
 })
 
-describe(`C. get_actions paging tests`, () => {
-  let newAction, newContract, currentCount
+
+/*
+describe(`************************** action-whitelisting.js ************************** \n A. addaction`, () => {
+  let user1, user2, user1RequestId, cancel_funds_request_fee, user1OrigRam, user1OrigBundle
+  const payment = 5000000000 // 5 FIO
+  const requestMemo = 'Memo in the initial request'
+  const btcPubAdd = 'btc:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9'
 
   it(`Create users`, async () => {
-    newAction = generateFioDomain(7);
-    newContract = generateFioDomain(7);
+      user1 = await newUser(faucet);
+      userA2 = await newUser(faucet);
   })
 
-  it('Call get_actions to get initial count', async () => {
+  it(`Add new action to whitelist. Confirm response as per FIP.`, async () => {
+    try{
+      const result = await userC1.sdk.genericAction('pushTransaction', {
+        action: 'addaction',
+        account: 'eosio',
+        data: {
+          "action": 1000,
+          "contract": config.api.cancel_funds_request.fee,
+          "actor": 'eosio'
+        }
+      })
+      //console.log('Result: ', result);
+      expect(result).to.equal(null);
+    } catch (err) {
+      //console.log('Error', err);
+      expect(err.json.fields[0].error).to.equal(config.error.requestNotFound);
+      expect(err.errorCode).to.equal(400);
+    }
+  })
+
+
+
+  it(`user1 requests funds from userA2`, async () => {
     try {
-      const json = { }
-      actionList = await callFioApi("get_actions", json);
-      currentCount = actionList.actions.length
-      expect(currentCount).to.greaterThan(0); 
+      const result = await user1.sdk.genericAction('requestFunds', { 
+        payerFioAddress: userA2.address, 
+        payeeFioAddress: user1.address,
+        payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
+        amount: payment,
+        chainCode: 'BTC',
+        tokenCode: 'BTC',
+        memo: requestMemo,
+        maxFee: config.api.new_funds_request.fee,
+        payerFioPublicKey: userA2.publicKey,
+        technologyProviderId: '',
+        hash: '',
+        offLineUrl: ''
+      })    
+      //console.log('Result: ', result)
+      user1RequestId = result.fio_request_id
+      expect(result.status).to.equal('requested') 
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`get_sent_fio_requests for user1`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('getSentFioRequests', {
+        limit: '',
+        offset: ''
+      }) 
+      //console.log('result: ', result)
+      expect(result.requests[0].fio_request_id).to.equal(user1RequestId);
+      expect(result.requests[0].content.memo).to.equal(requestMemo);
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`get_pending_fio_requests for userA2`, async () => {
+    try {
+      const result = await userA2.sdk.genericAction('getPendingFioRequests', {
+        limit: '',
+        offset: ''
+      }) 
+      //console.log('result: ', result)
+      expect(result.requests[0].fio_request_id).to.equal(user1RequestId);
+      expect(result.requests[0].content.memo).to.equal(requestMemo);
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it('Confirm cancel_funds_request fee for user1 is zero (bundles remaining)', async () => {
+    try {
+      result = await user1.sdk.getFee('cancel_funds_request', user1.address);
+      cancel_funds_request_fee = result.fee;
+      //console.log('result: ', result)
+      expect(result.fee).to.equal(0);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
     }
   })
 
-  it(`addaction with random action and contract name succeeds.`, async () => {
-    const result = await callFioApiSigned('push_transaction', {
-      action: 'addaction',
-      account: 'eosio',
-      actor: fiotoken.account,
-      privKey: fiotoken.privateKey,
-      data: {
-        action: newAction,
-        contract: newContract,
-        actor: fiotoken.account
-      }
-    })
-     //console.log('Result: ', result)
-     expect(result.processed.receipt.status).to.equal('executed');
-  })
-
-  it(`Call (get_actions, no limit param, no offset param). Expect additional action`, async () => {
+  it('Call get_table_rows from fionames to get bundles remaining for user1', async () => {
     try {
-      const json = { }
-      actionList = await callFioApi("get_actions", json);
-      oldCount = currentCount;
-      currentCount = actionList.actions.length
-      expect(currentCount).to.equal(oldCount + 1); 
+      const json = {
+        json: true,               // Get the response as json
+        code: 'fio.address',      // Contract that we target
+        scope: 'fio.address',         // Account that owns the data
+        table: 'fionames',        // Table name
+        limit: 1000,                // Maximum number of rows that we want to get
+        reverse: false,           // Optional: Get reversed data
+        show_payer: false          // Optional: Show ram payer
+      }
+      fionames = await callFioApi("get_table_rows", json);
+      //console.log('fionames: ', fionames);
+      for (name in fionames.rows) {
+        if (fionames.rows[name].name == user1.address) {
+          //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown); 
+          user1OrigBundle = fionames.rows[name].bundleeligiblecountdown;
+        }
+      }
+      expect(user1OrigBundle).to.equal(98);  // 2 for new_funds_request
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
     }
   })
 
-  it(`Call (get_actions, limit=1, offset=0). Expect 1 request.`, async () => {
+  it(`Get RAM quota for user1`, async () => {
     try {
       const json = {
-        limit: 1,              
-        offset: 0
+        "account_name": user1.account
       }
-      actionList = await callFioApi("get_actions", json);
-      expect(actionList.actions.length).to.equal(1);
+      result = await callFioApi("get_account", json);
+      user1OrigRam = result.ram_quota;
+      //console.log('Ram quota: ', result.ram_quota);
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Call cancel_funds_request to cancel request in pending state`, async () => {
+    try{
+      const result = await user1.sdk.genericAction('cancelFundsRequest', {
+        fioRequestId: user1RequestId,
+        maxFee: cancel_funds_request_fee,
+        technologyProviderId: ''
+      })
+      //console.log('Result: ', result);
+      expect(result).to.have.all.keys('status', 'fee_collected')
+      expect(result.status).to.equal('cancelled');
+      expect(result.fee_collected).to.equal(0);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
     }
   })
 
-  it(`Call (get_actions, limit=2, offset=4). Expect 2 requests.`, async () => {
+  it(`Verify request was cancelled: get_sent_fio_requests for user1 returns 1 request with status 'cancelled'`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('getSentFioRequests', {
+        limit: '',
+        offset: ''
+      }) 
+      //console.log('result: ', result)
+      expect(result.requests[0].fio_request_id).to.equal(user1RequestId);
+      expect(result.requests[0].content.memo).to.equal(requestMemo);
+      expect(result.requests[0].status).to.equal('cancelled');
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Verify request was cancelled: get_pending_fio_requests for userA2 returns: ${config.error.noPendingRequests}`, async () => {
+    try {
+      const result = await userA2.sdk.genericAction('getPendingFioRequests', {
+        limit: '',
+        offset: ''
+      }) 
+      console.log('result: ', result);
+      expect(result).to.equal(null);
+    } catch (err) {
+      //console.log('Error: ', err.json);
+      expect(err.json.message).to.equal(config.error.noPendingRequests);
+    }
+  })
+
+  it(`Verify request was cancelled: get_cancelled_fio_requests returns 1 request with status 'cancelled'`, async () => {
     try {
       const json = {
-        limit: 2,              
-        offset: 4
+        "fio_public_key": user1.publicKey
       }
-      actionList = await callFioApi("get_actions", json);
-      expect(actionList.actions.length).to.equal(2);
+      result = await callFioApi("get_cancelled_fio_requests", json);
+      //console.log('Result: ', result);
+      expect(result.requests[0].fio_request_id).to.equal(user1RequestId);
+      expect(result.requests[0].status).to.equal('cancelled');
+    } catch (err) {
+      //console.log('Error', err.error.message)
+      expect(err.error.message).to.equal(config.error.noFioRequests)
+    }
+  })
+
+  it(`Verify user1 bundle count decreased by 1`, async () => {
+    let bundleCount;
+    try {
+      const json = {
+        json: true,               // Get the response as json
+        code: 'fio.address',      // Contract that we target
+        scope: 'fio.address',         // Account that owns the data
+        table: 'fionames',        // Table name
+        limit: 1000,                // Maximum number of rows that we want to get
+        reverse: false,           // Optional: Get reversed data
+        show_payer: false          // Optional: Show ram payer
+      }
+      fionames = await callFioApi("get_table_rows", json);
+      //console.log('fionames: ', fionames);
+      for (name in fionames.rows) {
+        if (fionames.rows[name].name == user1.address) {
+          //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown); 
+          bundleCount = fionames.rows[name].bundleeligiblecountdown;
+        }
+      }
+      expect(bundleCount).to.equal(user1OrigBundle - 1);  // 1 bundle for cancel_funds_request
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
     }
   })
 
-  it(`Call (get_actions, limit=10, offset=15). Expect 10 requests.`, async () => {
+  it(`Verify RAM quota for user1 was incremented by ${config.RAM.CANCELFUNDSRAM}`, async () => {
     try {
       const json = {
-        limit: 10,              
-        offset: 15
+        "account_name": user1.account
       }
-      actionList = await callFioApi("get_actions", json);
-      expect(actionList.actions.length).to.equal(10);
+      result = await callFioApi("get_account", json);
+      //console.log('Ram quota: ', result.ram_quota);
+      expect(result.ram_quota).to.equal(user1OrigRam + config.RAM.CANCELFUNDSRAM);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+})
+
+
+describe('B. cancel_funds_request with NO bundles remaining', () => {
+
+  let userB1, userB2, userB1RequestId, cancel_funds_request_fee, userB1OrigRam, userB1OrigBundle
+  const payment = 5000000000 // 5 FIO
+  const requestMemo = 'Memo in the initial request'
+  const btcPubAdd = 'btc:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9'
+
+  it(`Create users`, async () => {
+      userB1 = await newUser(faucet);
+      userB2 = await newUser(faucet);
+  })
+
+  it(`Use up all of userB1's bundles with 51 record_obt_data transactions`, async () => {
+    for (i = 0; i < 51; i++) {
+      try {
+        const result = await userB1.sdk.genericAction('recordObtData', {
+          payerFioAddress: userB1.address,
+          payeeFioAddress: userB2.address,
+          payerTokenPublicAddress: userB1.publicKey,
+          payeeTokenPublicAddress: userB2.publicKey,
+          amount: 5000000000,
+          chainCode: "BTC",
+          tokenCode: "BTC",
+          status: '',
+          obtId: '',
+          maxFee: config.api.record_obt_data.fee,
+          technologyProviderId: '',
+          payeeFioPublicKey: userB2.publicKey,
+          memo: 'this is a test',
+          hash: '',
+          offLineUrl: ''
+        })
+        //console.log('Result: ', result)
+        expect(result.status).to.equal('sent_to_blockchain')
+      } catch (err) {
+        console.log('Error', err.json)
+        expect(err).to.equal(null)
+      }
+    }
+  })
+
+  it(`Add BTC address to userB1`, async () => {
+    try {
+      const result = await userB1.sdk.genericAction('addPublicAddresses', {
+        fioAddress: userB1.address,
+        publicAddresses: [
+          {
+            chain_code: 'BTC',
+            token_code: 'BTC',
+            public_address: btcPubAdd,
+          }
+        ],
+        maxFee: config.api.add_pub_address.fee,
+        technologyProviderId: ''
+      })
+      //console.log('Result:', result)
+      expect(result.status).to.equal('OK') 
+    } catch (err) {
+      console.log('Error', err)
+      //expect(err).to.equal(null)
+    }      
+  })
+
+  it(`userB1 requests funds from userB2`, async () => {
+    try {
+      const result = await userB1.sdk.genericAction('requestFunds', { 
+        payerFioAddress: userB2.address, 
+        payeeFioAddress: userB1.address,
+        payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
+        amount: payment,
+        chainCode: 'BTC',
+        tokenCode: 'BTC',
+        memo: requestMemo,
+        maxFee: config.api.new_funds_request.fee,
+        payerFioPublicKey: userB2.publicKey,
+        technologyProviderId: '',
+        hash: '',
+        offLineUrl: ''
+      })    
+      //console.log('Result: ', result)
+      userB1RequestId = result.fio_request_id
+      expect(result.status).to.equal('requested') 
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`get_sent_fio_requests for userB1`, async () => {
+    try {
+      const result = await userB1.sdk.genericAction('getSentFioRequests', {
+        limit: '',
+        offset: ''
+      }) 
+      //console.log('result: ', result)
+      expect(result.requests[0].fio_request_id).to.equal(userB1RequestId);
+      expect(result.requests[0].content.memo).to.equal(requestMemo);
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`get_pending_fio_requests for userB2`, async () => {
+    try {
+      const result = await userB2.sdk.genericAction('getPendingFioRequests', {
+        limit: '',
+        offset: ''
+      }) 
+      //console.log('result: ', result)
+      expect(result.requests[0].fio_request_id).to.equal(userB1RequestId);
+      expect(result.requests[0].content.memo).to.equal(requestMemo);
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Verify cancel_funds_request fee is > 0 (no more bundles)`, async () => {
+    try {
+      result = await userB1.sdk.getFee('cancel_funds_request', userB1.address);
+      cancel_funds_request_fee = result.fee;
+      //console.log('result: ', result)
+      expect(result.fee).to.be.greaterThan(0);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
     }
   })
 
-  it(`Negative offset. Call (get_actions, limit=1, offset=-1). Expect error type 400: ${config.error.invalidOffset}`, async () => {
+  it('Call get_table_rows from fionames to get bundles remaining for userB1. Expect 0 bundles', async () => {
     try {
       const json = {
-        limit: 1,              
-        offset: -1
+        json: true,               // Get the response as json
+        code: 'fio.address',      // Contract that we target
+        scope: 'fio.address',         // Account that owns the data
+        table: 'fionames',        // Table name
+        limit: 1000,                // Maximum number of rows that we want to get
+        reverse: false,           // Optional: Get reversed data
+        show_payer: false          // Optional: Show ram payer
       }
-      actionList = await callFioApi("get_actions", json);
-      expect(actionList.status).to.equal(null);
-    } catch (err) {
-      //console.log('Error', err.error);
-      expect(err.error.fields[0].error).to.equal(config.error.invalidOffset);
-      expect(err.statusCode).to.equal(400);
-    }
-  })
- 
-  it(`Negative limit. Call (get_actions, limit=-5, offset=5). Expect error type 400: ${config.error.invalidLimit}`, async () => {
-    try {
-      const json = {
-        limit: -5,              
-        offset: 5
+      fionames = await callFioApi("get_table_rows", json);
+      //console.log('fionames: ', fionames);
+      for (name in fionames.rows) {
+        if (fionames.rows[name].name == userB1.address) {
+          //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown); 
+          userB1OrigBundle = fionames.rows[name].bundleeligiblecountdown;
+        }
       }
-      actionList = await callFioApi("get_actions", json);
-      expect(actionList.status).to.equal(null);
+      expect(userB1OrigBundle).to.equal(0);  
     } catch (err) {
-      //console.log('Error', err.error);
-      expect(err.error.fields[0].error).to.equal(config.error.invalidLimit);
-      expect(err.statusCode).to.equal(400);
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 
-  it(`Send string to limit/offset. Expect error type 500: ${config.error.parseError}`, async () => {
+  it(`Get RAM quota for userB1`, async () => {
     try {
       const json = {
-        limit: "string",
-        offset: "string2"
+        "account_name": userB1.account
       }
-      actionList = await callFioApi("get_actions", json);
-      expect(actionList.status).to.equal(null);
+      result = await callFioApi("get_account", json);
+      userB1OrigRam = result.ram_quota;
+      //console.log('Ram quota: ', result.ram_quota);
     } catch (err) {
-      //console.log('Error', err.error.error);
-      expect(err.error.error.what).to.equal(config.error.parseError);
-      expect(err.error.code).to.equal(500);
+      //console.log('Error', err)
+      expect(err).to.equal(null)
     }
   })
 
-  it(`Use floats in limit/offset. Expect error type ${config.error2.noActions.type}: ${config.error2.noActions.message}`, async () => {
+  it(`Call cancel_funds_request to cancel request in pending state. Verify fee was collected`, async () => {
+    try{
+      const result = await userB1.sdk.genericAction('cancelFundsRequest', {
+        fioRequestId: userB1RequestId,
+        maxFee: cancel_funds_request_fee,
+        technologyProviderId: ''
+      })
+      //console.log('Result: ', result);
+      expect(result).to.have.all.keys('status', 'fee_collected')
+      expect(result.status).to.equal('cancelled');
+      expect(result.fee_collected).to.equal(cancel_funds_request_fee);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Verify request was cancelled: get_sent_fio_requests for userB1 returns 1 request with status 'cancelled'`, async () => {
+    try {
+      const result = await userB1.sdk.genericAction('getSentFioRequests', {
+        limit: '',
+        offset: ''
+      }) 
+      //console.log('result: ', result)
+      expect(result.requests[0].fio_request_id).to.equal(userB1RequestId);
+      expect(result.requests[0].content.memo).to.equal(requestMemo);
+      expect(result.requests[0].status).to.equal('cancelled');
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Verify request was cancelled: get_pending_fio_requests for userB2 returns: ${config.error.noPendingRequests}`, async () => {
+    try {
+      const result = await userB2.sdk.genericAction('getPendingFioRequests', {
+        limit: '',
+        offset: ''
+      }) 
+      console.log('result: ', result);
+      expect(result).to.equal(null);
+    } catch (err) {
+      //console.log('Error: ', err.json);
+      expect(err.json.message).to.equal(config.error.noPendingRequests);
+    }
+  })
+
+  it(`Verify request was cancelled: get_cancelled_fio_requests returns 1 request with status 'cancelled'`, async () => {
     try {
       const json = {
-        limit: 123.456,
-        offset: 345.678
+        "fio_public_key": userB1.publicKey
       }
-      actionList = await callFioApi("get_actions", json);
-      expect(actionList.status).to.equal(null);
+      result = await callFioApi("get_cancelled_fio_requests", json);
+      //console.log('Result: ', result);
+      expect(result.requests[0].fio_request_id).to.equal(userB1RequestId);
+      expect(result.requests[0].status).to.equal('cancelled');
     } catch (err) {
-      //console.log('Error', err.error);
-      expect(err.error.message).to.equal(config.error2.noActions.message);
-      expect(err.statusCode).to.equal(config.error2.noActions.type);
+      //console.log('Error', err.error.message)
+      expect(err.error.message).to.equal(config.error.noFioRequests)
+    }
+  })
+
+  it(`Verify RAM quota for userB1 was incremented by ${config.RAM.CANCELFUNDSRAM}`, async () => {
+    try {
+      const json = {
+        "account_name": userB1.account
+      }
+      result = await callFioApi("get_account", json);
+      //console.log('Ram quota: ', result.ram_quota);
+      expect(result.ram_quota).to.equal(userB1OrigRam + config.RAM.CANCELFUNDSRAM);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 
 })
+
+describe(`C. Test cancel_funds_request error conditions`, () => {
+  let userC1, userC2, userC1RequestId, userC1RequestId2, userC1Balance
+  const payment = 5000000000 // 5 FIO
+  const requestMemo = 'Memo in the initial request'
+  const btcPubAdd = 'btc:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9'
+
+  it(`Create users`, async () => {
+    userC1 = await newUser(faucet);
+    userC2 = await newUser(faucet);
+  })
+  
+  it(`Run get_cancelled_fio_requests when no request have been cancelled. Expect error type 404: ${config.error.noFioRequests}`, async () => {
+    try {
+      const json = {
+        "fio_public_key": userC1.publicKey
+      }
+      result = await callFioApi("get_cancelled_fio_requests", json);
+      //console.log('Result: ', result);
+      expect(result).to.equal(null);
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err.error.message).to.equal(config.error.noFioRequests)
+      expect(err.statusCode).to.equal(404);
+    }
+  })
+
+  it(`userC1 requests funds from userC2`, async () => {
+    try {
+      const result = await userC1.sdk.genericAction('requestFunds', { 
+        payerFioAddress: userC2.address, 
+        payeeFioAddress: userC1.address,
+        payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
+        amount: payment,
+        chainCode: 'BTC',
+        tokenCode: 'BTC',
+        memo: requestMemo,
+        maxFee: config.api.new_funds_request.fee,
+        payerFioPublicKey: userC2.publicKey,
+        technologyProviderId: '',
+        hash: '',
+        offLineUrl: ''
+      })    
+      //console.log('Result: ', result.fio_request_id)
+      userC1RequestId = result.fio_request_id
+      expect(result.status).to.equal('requested') 
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Cancel non-existent request. Expect error type 400: ${config.error.requestNotFound}`, async () => {
+    try{
+      const result = await userC1.sdk.genericAction('pushTransaction', {
+        action: 'cancelfndreq',
+        account: 'fio.reqobt',
+        data: {
+          "fio_request_id": 1000,
+          "max_fee": config.api.cancel_funds_request.fee,
+          "tpid": '',
+          "actor": userC1.account
+        }
+      })
+      //console.log('Result: ', result);
+      expect(result).to.equal(null);
+    } catch (err) {
+      //console.log('Error', err);
+      expect(err.json.fields[0].error).to.equal(config.error.requestNotFound);
+      expect(err.errorCode).to.equal(400);
+    }
+  })
+
+  it(`Cancel request with invalid tpid. Expect error type 400: ${config.error.invalidTpid}`, async () => {
+    try{
+      const result = await userC1.sdk.genericAction('pushTransaction', {
+        action: 'cancelfndreq',
+        account: 'fio.reqobt',
+        data: {
+          "fio_request_id": userC1RequestId,
+          "max_fee": config.api.cancel_funds_request.fee,
+          "tpid": '-invalidtpid-',
+          "actor": userC1.account
+        }
+      })
+      //console.log('Result: ', result);
+      expect(result).to.equal(null);
+    } catch (err) {
+      //console.log('Error', err);
+      expect(err.json.fields[0].error).to.equal(config.error.invalidTpid);
+      expect(err.errorCode).to.equal(400);
+    }
+  })
+
+  it(`Cancel request not initiated by actor. Expect error type 403: ${config.error.signatureError}`, async () => {
+    try{
+      const result = await userC2.sdk.genericAction('pushTransaction', {
+        action: 'cancelfndreq',
+        account: 'fio.reqobt',
+        data: {
+          "fio_request_id": userC1RequestId,
+          "max_fee": config.api.cancel_funds_request.fee,
+          "tpid": '',
+          "actor": userC2.account
+        }
+      })
+      //console.log('Result: ', result);
+      expect(result).to.equal(null);
+    } catch (err) {
+      //console.log('Error', err);
+      expect(err.json.message).to.equal(config.error.signatureError);
+      expect(err.errorCode).to.equal(403);
+    }
+  })
+
+  it(`userC2 records OBT response to transaction`, async () => {
+      try {
+        const result = await userC2.sdk.genericAction('recordObtData', {
+          fioRequestId: userC1RequestId,
+          payerFioAddress: userC2.address,
+          payeeFioAddress: userC1.address,
+          payerTokenPublicAddress: userC2.publicKey,
+          payeeTokenPublicAddress: userC1.publicKey,
+          amount: 5000000000,
+          chainCode: "BTC",
+          tokenCode: "BTC",
+          status: '',
+          obtId: '',
+          maxFee: config.api.record_obt_data.fee,
+          technologyProviderId: '',
+          payeeFioPublicKey: userC1.publicKey,
+          memo: 'this is a test',
+          hash: '',
+          offLineUrl: ''
+        })
+        //console.log('Result: ', result)
+        expect(result.status).to.equal('sent_to_blockchain')
+      } catch (err) {
+        console.log('Error', err.json)
+        expect(err).to.equal(null)
+      }
+  })
+
+   it(`Cancel request after it was approved. Expect error type 400: ${config.error.invalidRequestStatus}`, async () => {
+    try{
+      const result = await userC1.sdk.genericAction('pushTransaction', {
+        action: 'cancelfndreq',
+        account: 'fio.reqobt',
+        data: {
+          "fio_request_id": userC1RequestId,
+          "max_fee": config.api.cancel_funds_request.fee,
+          "tpid": '',
+          "actor": userC1.account
+        }
+      })
+      console.log('Result: ', result);
+      expect(result).to.equal(null);
+    } catch (err) {
+      //console.log('Error', err);
+      expect(err.json.fields[0].error).to.equal(config.error.invalidRequestStatus);
+      expect(err.errorCode).to.equal(400);
+    }
+  })
+
+  it(`Add ETH address to userC1`, async () => {
+    try {
+      const result = await userC1.sdk.genericAction('addPublicAddresses', {
+        fioAddress: userC1.address,
+        publicAddresses: [
+          {
+            chain_code: 'ETH',
+            token_code: 'ETH',
+            public_address: 'adsfasdfasdfasdf',
+          }
+        ],
+        maxFee: config.api.add_pub_address.fee,
+        technologyProviderId: ''
+      })
+      //console.log('Result:', result)
+      expect(result.status).to.equal('OK') 
+    } catch (err) {
+      console.log('Error', err)
+      //expect(err).to.equal(null)
+    }      
+  })
+
+  it(`userC1 request #2 from userC2`, async () => {
+    try {
+      const result = await userC1.sdk.genericAction('requestFunds', { 
+        payerFioAddress: userC2.address, 
+        payeeFioAddress: userC1.address,
+        payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
+        amount: payment,
+        chainCode: 'BTC',
+        tokenCode: 'BTC',
+        memo: requestMemo,
+        maxFee: config.api.new_funds_request.fee,
+        payerFioPublicKey: userC2.publicKey,
+        technologyProviderId: '',
+        hash: '',
+        offLineUrl: ''
+      })    
+      //console.log('Result: ', result)
+      userC1RequestId2 = result.fio_request_id
+      expect(result.status).to.equal('requested') 
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Use up all of userC1's bundles with 51 record_obt_data transactions`, async () => {
+    for (i = 0; i < 51; i++) {
+      try {
+        const result = await userC1.sdk.genericAction('recordObtData', {
+          payerFioAddress: userC1.address,
+          payeeFioAddress: userC2.address,
+          payerTokenPublicAddress: userC1.publicKey,
+          payeeTokenPublicAddress: userC2.publicKey,
+          amount: 5000000000,
+          chainCode: "BTC",
+          tokenCode: "BTC",
+          status: '',
+          obtId: '',
+          maxFee: config.api.record_obt_data.fee,
+          technologyProviderId: '',
+          payeeFioPublicKey: userC2.publicKey,
+          memo: 'this is a test',
+          hash: '',
+          offLineUrl: ''
+        })
+        //console.log('Result: ', result)
+        expect(result.status).to.equal('sent_to_blockchain')
+      } catch (err) {
+        console.log('Error', err.json)
+        expect(err).to.equal(null)
+      }
+    }
+  })
+
+  it(`vote_producer to use up last remaining bundle`, async () => {
+    try {
+      const result = await userC1.sdk.genericAction('pushTransaction', {
+        action: 'voteproducer',
+        account: 'eosio',
+        data: {
+          "producers": [
+            'bp1@dapixdev'
+          ],
+          fio_address: userC1.address,
+          actor: userC1.account,
+          max_fee: config.api.vote_producer.fee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK') 
+    } catch (err) {
+      console.log('Error: ', err.json)
+      expect(err).to.equal('null')
+    } 
+  })
+
+  it(`Get balance for userC1`, async () => {
+    try {
+      const result = await userC1.sdk.genericAction('getFioBalance', {
+        fioPublicKey: userC1.publicKey
+      }) 
+      userC1Balance = result.balance
+      //console.log('userC1 fio balance', result)
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it('Transfer entire balance for userC1 to userC2 to register address', async () => {
+    try {
+      const result = await userC1.sdk.genericAction('transferTokens', {
+        payeeFioPublicKey: userC2.publicKey,
+        amount: userC1Balance - config.api.transfer_tokens_pub_key.fee,
+        maxFee: config.api.transfer_tokens_pub_key.fee,
+        walletFioAddress: ''
+      })
+      //console.log('Result: ', result)
+      expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
+    } 
+  })
+
+  it(`Verify balance for userC1 = 0`, async () => {
+    try {
+      const result = await userC1.sdk.genericAction('getFioBalance', {
+        fioPublicKey: userC1.publicKey
+      }) 
+      //console.log('userC1 fio balance', result)
+      expect(result.balance).to.equal(0)
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it('Call get_table_rows from fionames to get bundles remaining for userC1. Verify 0 bundles', async () => {
+    let bundleCount
+    try {
+      const json = {
+        json: true,               // Get the response as json
+        code: 'fio.address',      // Contract that we target
+        scope: 'fio.address',         // Account that owns the data
+        table: 'fionames',        // Table name
+        limit: 1000,                // Maximum number of rows that we want to get
+        reverse: false,           // Optional: Get reversed data
+        show_payer: false          // Optional: Show ram payer
+      }
+      fionames = await callFioApi("get_table_rows", json);
+      //console.log('fionames: ', fionames);
+      for (name in fionames.rows) {
+        if (fionames.rows[name].name == userC1.address) {
+          //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown); 
+          bundleCount = fionames.rows[name].bundleeligiblecountdown;
+        }
+      }
+      expect(bundleCount).to.equal(0);  
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Cancel request without available bundled tx and with insufficient fee. Expect error type 400: ${config.error.insufficientFunds}`, async () => {
+    try{
+      const result = await userC1.sdk.genericAction('pushTransaction', {
+        action: 'cancelfndreq',
+        account: 'fio.reqobt',
+        data: {
+          "fio_request_id": userC1RequestId2,
+          "max_fee": config.api.cancel_funds_request.fee,
+          "tpid": '',
+          "actor": userC1.account
+        }
+      })
+      console.log('Result: ', result);
+      expect(result).to.equal(null);
+    } catch (err) {
+      //console.log('Error', err);
+      expect(err.json.fields[0].error).to.equal(config.error.insufficientFunds);
+      expect(err.errorCode).to.equal(400);
+    }
+  })
+
+})
+*/

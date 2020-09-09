@@ -309,6 +309,15 @@ const callFioApiSigned = async (endPoint, txn) => {
     });
   
     json = await pushResult.json()
+
+    if (json.type) {
+      console.log('Error: ', json.fields[0].error);
+    } else if (json.error) {
+      console.log('Error: ', json.error)
+    } else {
+      console.log('Success. Transaction ID: ', json.transaction_id)
+    }
+
     return json;
   };
 
