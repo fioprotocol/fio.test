@@ -33,14 +33,9 @@ describe('TEST SUITE', () => {
 
   //require('./tests/locks.js');  // Depends on local wallet. Need to fix
   //require('./tests/testnet-smoketest.js'); // In development
-  //require('./tests/msig.js'); // In development
-  //require('./tests/get-blocks.js'); // In development
   //require('./tests/pub_k1.js');  // Moved to later release
-  //require('./tests/performance-check.js'); // In development
   //require('./tests/expired-domains.js'); // In development
-  //require('./tests/fiojs-examples.js'); // In development
 
-  //TODO - Need to upgrade to latest require('./tests/fio.smoketest.js');
   //TODO - Need to update: require('./tests/permissions.js');
   //TODO - Need to update: require('./tests/max-txn-size.js');
 });

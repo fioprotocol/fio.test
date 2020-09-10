@@ -1,8 +1,8 @@
 require('mocha')
 const {expect} = require('chai')
-const {callFioApi, fetchJson} = require('../utils.js');
+const {callFioApi, fetchJson} = require('../../utils.js');
 const {FIOSDK } = require('@fioprotocol/FIOSDK');
-config = require('../config.js');
+config = require('../../config.js');
 const exec = require('child_process').exec;
 
 //const proposer='5du5xkgkki5x'  // Bohdan testnet
