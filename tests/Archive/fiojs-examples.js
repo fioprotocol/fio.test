@@ -3,9 +3,9 @@ const fiojs_1 = require("@fioprotocol/fiojs");
 const { Ecc } = require('@fioprotocol/fiojs');
 
 require('mocha')
-config = require('../config.js');
+config = require('../../config.js');
 const {expect} = require('chai')
-const {newUser, fetchJson, callFioApi} = require('../utils.js');
+const {newUser, fetchJson, callFioApi} = require('../../utils.js');
 const {FIOSDK } = require('@fioprotocol/FIOSDK')
 
 

@@ -1,9 +1,9 @@
 require('mocha')
 const rp = require('request-promise');
 const {performance} = require('perf_hooks');
-config = require('../config.js');
+config = require('../../config.js');
 const {expect} = require('chai')
-const {newUser, fetchJson, generateFioDomain, generateFioAddress, createKeypair, callFioApi} = require('../utils.js');
+const {newUser, fetchJson, generateFioDomain, generateFioAddress, createKeypair, callFioApi} = require('../../utils.js');
 const {FIOSDK } = require('@fioprotocol/FIOSDK')
 
 

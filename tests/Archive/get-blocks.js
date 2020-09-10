@@ -1,8 +1,8 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, getBlock, fetchJson} = require('../utils.js');
+const {newUser, getBlock, fetchJson} = require('../../utils.js');
 const {FIOSDK } = require('@fioprotocol/FIOSDK')
-config = require('../config.js');
+config = require('../../config.js');
 
 
 
