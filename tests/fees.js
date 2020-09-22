@@ -36,7 +36,7 @@ describe('************************** fees.js ************************** \n Test 
           expect(result.fee).to.equal(config.api[fioEndpoint].fee)
         }
       } catch (err) {
-        console.log('Error: ', err)
+        console.log('Error: ', err.json)
       }
     }
   })
