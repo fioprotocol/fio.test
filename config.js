@@ -28,7 +28,7 @@ const config = {
     error: {
         validationError: 'ValidationError',
         validationError2: 'Validation error',
-        signatureError: 'Request signature not valid or not allowed.',
+        signatureError: 'Request signature is not valid or this user is not allowed to sign this transaction.',
         invalidAmount: 'Invalid amount value',
         invalidKey: 'Invalid FIO Public Key',
         keyNotFound: 'Public key not found',
@@ -67,7 +67,7 @@ const config = {
         invalidRequestStatus: 'Only pending requests can be cancelled.',
         noPendingRequests: 'No pending FIO Requests',
         invalidTpid: 'TPID must be empty or valid FIO address',
-        invalidRequestSignature: 'Request signature not valid or not allowed.',
+        invalidRequestSignature: 'Request signature is not valid or this user is not allowed to sign this transaction.',
         invalidFeeValue: 'Invalid fee value',
         activeProducer: 'FIO Address is active producer. Unregister first.',
         activeProxy: 'FIO Address is proxy. Unregister first.',
@@ -100,7 +100,7 @@ const config = {
             statusCode: 403
         },
         invalidSignature: {
-            message: 'Request signature not valid or not allowed.',
+            message: 'Request signature is not valid or this user is not allowed to sign this transaction.',
             statusCode: 403
         },
         noFioNames: {
@@ -128,7 +128,7 @@ const config = {
             type: 403
         },
         invalidSignature: {
-            message: 'Request signature not valid or not allowed.',
+            message: 'Request signature is not valid or this user is not allowed to sign this transaction.',
             type: 403
         },
         invalidAction: {
