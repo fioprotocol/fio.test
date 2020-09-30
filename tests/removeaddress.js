@@ -1184,7 +1184,19 @@ describe(`F. Sad - result in error`, () => {
         account: 'fio.address',
         data: {
           "fio_address": userA1.address,
-          "public_addresses": config.public_addresses,
+          //"public_addresses": config.public_addresses,
+          "public_addresses": [
+            {
+              chain_code: 'BCH',
+              token_code: 'BCH',
+              public_address: 'invalidaddress',
+              },
+              {
+                chain_code: 'DASH',
+                token_code: 'DASH',
+                public_address: 'alsoinvalid',
+              }
+          ],
           "max_fee": config.api.remove_pub_address.fee,
           "tpid": 'invalid@@tpid',
           "actor": userA1.account
@@ -1197,7 +1209,7 @@ describe(`F. Sad - result in error`, () => {
     }
   })
 
-  it(`Remove with invalid actor - Direct API call. Expect error type ${config.error2.invalidActor.type}: ${config.error2.invalidActor.message}`, async () => {
+  it(`CAUSING ISSUES WITH TESTS THAT COME NEXT: Remove with invalid actor - Direct API call. Expect error type ${config.error2.invalidActor.type}: ${config.error2.invalidActor.message}`, async () => {
     const result = await callFioApiSigned('push_transaction', {
       action: 'remaddress',
       account: 'fio.address',
@@ -1205,13 +1217,24 @@ describe(`F. Sad - result in error`, () => {
       privKey: userA1.privateKey,
       data: {
         "fio_address": userA1.address,
-        "public_addresses": config.public_addresses,
+        "public_addresses": [
+          {
+            chain_code: 'BCH',
+            token_code: 'BCH',
+            public_address: 'invalidaddress',
+            },
+            {
+              chain_code: 'DASH',
+              token_code: 'DASH',
+              public_address: 'alsoinvalid',
+            }
+        ],
         "max_fee": config.api.remove_pub_address.fee,
         "tpid": '',
         "actor": 'invalidactor'
       }
     })
-    //console.log('Result: ', result)
+    console.log('Result: ', result)
     expect(result.error.what).to.equal(config.error2.invalidActor.message)
     expect(result.code).to.equal(config.error2.invalidActor.type);
   })

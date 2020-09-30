@@ -19,7 +19,10 @@ describe('TEST SUITE', () => {
   require('./tests/transfer-domain.js'); // FIP-1.a, fio v2.0.0, fio.contracts v2.1.0
   require('./tests/paging.js'); // FIP-2, fio v2.0.0, fio.contracts v2.1.0
   require('./tests/cancel-funds-request.js'); // FIP-3, fio v2.0.0, fio.contracts v2.1.0
+
   require('./tests/removeaddress.js'); // FIP-4, fio v2.0.0, fio.contracts v2.1.0
+
+  require('./tests/txn-resubmit.js'); //Available with fiosdk_typescript v1.2.0
 
   //require('./tests/fee-voting-fee-setting.js'); // FIP-10
 
@@ -35,7 +38,7 @@ describe('TEST SUITE', () => {
   //require('./tests/testnet-smoketest.js'); // In development
   //require('./tests/pub_k1.js');  // Moved to later release
   //require('./tests/expired-domains.js'); // In development
-
+ 
   //TODO - Need to update: require('./tests/permissions.js');
   //TODO - Need to update: require('./tests/max-txn-size.js');
 });
