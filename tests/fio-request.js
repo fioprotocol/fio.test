@@ -154,7 +154,7 @@ describe(`************************** fio-request.js ************************** \
   })
 
   it('Wait a few seconds To make sure the obt gets recorded.', async () => {
-    await timeout(5000);
+    await timeout(7000);
   })
 
   it(`get_sent_fio_requests for userA1`, async () => {

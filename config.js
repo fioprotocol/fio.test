@@ -170,10 +170,10 @@ const config = {
             bundledEligible: false,
             fee: 40000000000
         },
-        //burn_fio_address: {
-        //    bundledEligible: true,
-        //    fee: 400000000
-        //},
+        burn_fio_address: {
+            bundledEligible: true,
+            fee: 400000000
+        },
         transfer_fio_domain: {
             bundledEligible: false,
             fee: 1000000000
