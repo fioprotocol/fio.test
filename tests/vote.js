@@ -1592,7 +1592,7 @@ describe('G. Test multiple users proxying and unproxying votes to same proxy', (
 
 })
 
-describe.skip('FIP-9: G.2 Test vote_producer with and without FIO Address', () => {
+describe('FIP-9: G.2 Test vote_producer with and without FIO Address', () => {
   let voterG3, voterG4, voterG5, voterG6, total_bp_votes, bundleCount, balance
 
   it(`Create users`, async () => {
@@ -1922,7 +1922,7 @@ describe.skip('FIP-9: G.2 Test vote_producer with and without FIO Address', () =
       expect(result.status).to.equal('OK')
       expect(result.fee_collected).to.equal(config.api.vote_producer.fee)
     } catch (err) {
-      console.log('Error: ', err);
+      console.log('Error: ', err.json.fields);
       expect(err).to.equal(null);
     }
   })
@@ -2065,7 +2065,7 @@ describe.skip('FIP-9: G.2 Test vote_producer with and without FIO Address', () =
 
 })
 
-describe.skip('FIP-9: G.3 Test proxy_vote with and without FIO Address', () => {
+describe('FIP-9: G.3 Test proxy_vote with and without FIO Address', () => {
   let proxyG1, voterG7, voterG8, voterG9, voterG10, total_bp_votes, bundleCount, balance
  
   it(`Create users`, async () => {
