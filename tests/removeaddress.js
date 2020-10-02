@@ -1085,7 +1085,7 @@ describe(`E-2. Add and remove addresses with NO bundles remaining`, () => {
 })
 
 
-describe.only(`F. Sad - result in error`, () => {
+describe(`F. Sad - result in error`, () => {
   let userA1, userA2
 
   it(`Create users`, async () => {
