@@ -558,6 +558,34 @@ async function getTopprods() {
     });
 }
 
+async function readProdFile(prodFile) {
+    return new Promise(function(resolve, reject) {
+        try {
+            let producers = [];
+            //producers.push({}); // Push a null producer into the [0] position so the prod # aligns with the array #
+            require('fs').readFileSync(prodFile, 'utf-8').split(/\r?\n/).forEach(function(prod){
+                //console.log(prod);
+                // Format of data: FIO_Address, Priv Key, Pub Key, Account, FIO Amount
+                prodInfo = prod.split(',');
+                if (prodInfo[0] != '') {
+                    producers.push({
+                        domain: prodInfo[0].split('@').pop(),
+                        address: prodInfo[0],
+                        privateKey: prodInfo[1],
+                        publicKey: prodInfo[2],
+                        account: prodInfo[3],
+                        fioBalance: parseInt(prodInfo[4])
+                    })
+                }
+            })
+            resolve(producers);
+        } catch (err) {
+            console.log('Error: ', err);
+            reject(err);
+        } 
+    });
+}
+
 
 /**
  * Old. Need to get rid of clio calls and replace with API
@@ -788,34 +816,6 @@ async function getPermissions(publicKey) {
 }
 
 
-async function readProdFile(prodFile) {
-    return new Promise(function(resolve, reject) {
-        try {
-            let producers = [];
-            //producers.push({}); // Push a null producer into the [0] position so the prod # aligns with the array #
-            require('fs').readFileSync(prodFile, 'utf-8').split(/\r?\n/).forEach(function(prod){
-                //console.log(prod);
-                // Format of data: FIO_Address, Priv Key, Pub Key, Account, FIO Amount
-                prodInfo = prod.split(',');
-                if (prodInfo[0] != '') {
-                    producers.push({
-                        domain: prodInfo[0].split('@').pop(),
-                        address: prodInfo[0],
-                        privateKey: prodInfo[1],
-                        publicKey: prodInfo[2],
-                        account: prodInfo[3],
-                        fioBalance: parseInt(prodInfo[4])
-                    })
-                }
-            })
-            resolve(producers);
-        } catch (err) {
-            console.log('Error: ', err);
-            reject(err);
-        } 
-    });
-}
-
 async function getRam(account) {
     return new Promise(function(resolve, reject) {
         let ramUse
@@ -981,5 +981,5 @@ class Ram {
 } //Ram class
 */
 
-module.exports = {newUser, existingUser, getTopprods, callFioApi, callFioApiSigned, callFioHistoryApi, convertToK1, unlockWallet, getFees, getAccountFromKey, getProdVoteTotal, addLock, getTotalVotedFio, getAccountVoteWeight, setRam, printUserRam, user, getMnemonic, fetchJson, randStr, timeout, generateFioDomain, generateFioAddress, createKeypair};
+module.exports = {newUser, existingUser, getTopprods, callFioApi, callFioApiSigned, callFioHistoryApi, convertToK1, unlockWallet, getFees, getAccountFromKey, getProdVoteTotal, addLock, getTotalVotedFio, getAccountVoteWeight, setRam, printUserRam, user, getMnemonic, fetchJson, randStr, timeout, generateFioDomain, generateFioAddress, createKeypair, readProdFile};
 

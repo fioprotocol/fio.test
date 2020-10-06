@@ -651,6 +651,10 @@ describe(`E. Add and remove addresses with bundles remaining`, () => {
       }
     })
 
+    it('Wait a few seconds...', async () => {
+      await timeout(2000);
+    })
+
     it(`Remove BCH and DASH from userA1`, async () => {
       try {
         const result = await userA1.sdk.genericAction('removePublicAddresses', {
@@ -1105,7 +1109,7 @@ describe(`F. Sad - result in error`, () => {
     }
   })
   
-  it.skip(`Fixed in BD-1955, release 2.x? Remove with invalid FIO Address - Direct API call. Expect error: ${config.error2.invalidFioAddress.message}`, async () => {
+  it(`Fixed in BD-1955, Remove with invalid FIO Address - Direct API call. Expect error: ${config.error2.invalidFioAddress.message}`, async () => {
     const result = await callFioApiSigned('push_transaction', {
       action: 'remaddress',
       account: 'fio.address',
@@ -1119,11 +1123,11 @@ describe(`F. Sad - result in error`, () => {
         "actor": userA1.account
       }
     })
-    console.log('Result: ', result)
+    //console.log('Result: ', result)
     expect(result.fields[0].error).to.equal(config.error2.invalidFioAddress.message);
   })
 
-  it.skip(`Fixed in BD-1955, release 2.x? Remove with invalid FIO Address - push transaction. Expect error type ${config.error2.invalidFioAddress.type}: ${config.error2.invalidFioAddress.message}`, async () => {
+  it(`Fixed in BD-1955, Remove with invalid FIO Address - push transaction. Expect error type ${config.error2.invalidFioAddress.type}: ${config.error2.invalidFioAddress.message}`, async () => {
     try{
       const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'remaddress',
