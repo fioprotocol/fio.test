@@ -1209,7 +1209,7 @@ describe(`F. Sad - result in error`, () => {
     }
   })
 
-  it(`CAUSING ISSUES WITH TESTS THAT COME NEXT: Remove with invalid actor - Direct API call. Expect error type ${config.error2.invalidActor.type}: ${config.error2.invalidActor.message}`, async () => {
+  it(`Remove with invalid actor - Direct API call. Expect error type ${config.error2.invalidActor.type}: ${config.error2.invalidActor.message}`, async () => {
     const result = await callFioApiSigned('push_transaction', {
       action: 'remaddress',
       account: 'fio.address',
