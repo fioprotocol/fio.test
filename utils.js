@@ -266,15 +266,15 @@ function callFioApi(apiCall, JSONObject) {
 };
 
 const callFioApiSigned = async (endPoint, txn) => {
-    info = await (await fetch(fiourl + 'get_info')).json();
-    blockInfo = await (await fetch(fiourl + 'get_block', {body: `{"block_num_or_id": ${info.last_irreversible_block_num}}`, method: 'POST'})).json()
-    chainId = info.chain_id;
-    currentDate = new Date();
-    timePlusTen = currentDate.getTime() + 10000;
-    timeInISOString = (new Date(timePlusTen)).toISOString();
-    expiration = timeInISOString.substr(0, timeInISOString.length - 1);
+    const info = await (await fetch(fiourl + 'get_info')).json();
+    const blockInfo = await (await fetch(fiourl + 'get_block', {body: `{"block_num_or_id": ${info.last_irreversible_block_num}}`, method: 'POST'})).json()
+    const chainId = info.chain_id;
+    const currentDate = new Date();
+    const timePlusTen = currentDate.getTime() + 10000;
+    const timeInISOString = (new Date(timePlusTen)).toISOString();
+    const expiration = timeInISOString.substr(0, timeInISOString.length - 1);
     
-    transaction = {
+    const transaction = {
        expiration,
        ref_block_num: blockInfo.block_num & 0xffff,
        ref_block_prefix: blockInfo.ref_block_prefix,
@@ -289,8 +289,8 @@ const callFioApiSigned = async (endPoint, txn) => {
        }]
     };
   
-    abiMap = new Map()
-    tokenRawAbi = await (await fetch(fiourl + 'get_raw_abi', {body: '{"account_name": "' + txn.account + '"}', method: 'POST'})).json()
+    const abiMap = new Map()
+    const tokenRawAbi = await (await fetch(fiourl + 'get_raw_abi', {body: '{"account_name": "' + txn.account + '"}', method: 'POST'})).json()
     abiMap.set(txn.account, tokenRawAbi)
    
     var privateKeys = [txn.privKey];
@@ -304,12 +304,12 @@ const callFioApiSigned = async (endPoint, txn) => {
       textEncoder: new TextEncoder()
     });
   
-    pushResult = await fetch(fiourl + endPoint, {
+    const pushResult = await fetch(fiourl + endPoint, {
         body: JSON.stringify(tx),
         method: 'POST',
     });
   
-    json = await pushResult.json()
+    const json = await pushResult.json()
     return json;
   };
 
