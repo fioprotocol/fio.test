@@ -1238,7 +1238,7 @@ describe(`F. Sad - result in error`, () => {
         "actor": 'invalidactor'
       }
     })
-    console.log('Result: ', result)
+    //console.log('Result: ', result)
     expect(result.error.what).to.equal(config.error2.invalidActor.message)
     expect(result.code).to.equal(config.error2.invalidActor.type);
   })

@@ -15,7 +15,6 @@ describe('************************** burn-address.js ************************** 
     it(`Create users`, async () => {
         walletA1 = await newUser(faucet);
         walletA1.address2 = generateFioAddress(walletA1.domain, 5)
-        walletA1.address3 = generateFioAddress(walletA1.domain, 5)
         wallet2 = await newUser(faucet);
     })
 
@@ -121,16 +120,6 @@ describe('************************** burn-address.js ************************** 
         }
       })
 
-    it(`Register walletA1.address3`, async () => {
-        const result = await walletA1.sdk.genericAction('registerFioAddress', {
-            fioAddress: walletA1.address3,
-            maxFee: config.api.register_fio_address.fee,
-            technologyProviderId: ''
-        })
-        //console.log('Result: ', result)
-        expect(result.status).to.equal('OK')
-    })
-
     it(`Use up all of walletA1's bundles with 51 record_obt_data transactions`, async () => {
         for (i = 0; i < 51; i++) {
             try {
@@ -187,7 +176,7 @@ describe('************************** burn-address.js ************************** 
         }
       })
 
-    it(`Confirm burn_fio_address fee for walletA1 is ${config.api.burn_fio_address.fee}`, async () => {
+    it(`Confirm burn_fio_address fee for walletA1.address is ${config.api.burn_fio_address.fee}`, async () => {
         try {
             result = await walletA1.sdk.getFee('burn_fio_address', walletA1.address);
             //console.log('result: ', result)
@@ -204,14 +193,14 @@ describe('************************** burn-address.js ************************** 
                 fioPublicKey: walletA1.publicKey
             })
             balance = result.balance
-            console.log('balance: ', balance)
+            //console.log('balance: ', balance)
         } catch (err) {
             //console.log('Error', err)
             expect(err).to.equal(null)
         }
     })
 
-    it(`Burn walletA1.address3. Expect status = 'OK'. Expect fee_collected = ${config.api.burn_fio_address.fee}`, async () => {
+    it(`Burn walletA1.address. Expect status = 'OK'. Expect fee_collected = ${config.api.burn_fio_address.fee}`, async () => {
         try {
             const result = await callFioApiSigned('push_transaction', {
                 action: 'burnaddress',
@@ -219,13 +208,13 @@ describe('************************** burn-address.js ************************** 
                 actor: walletA1.account,
                 privKey: walletA1.privateKey,
                 data: {
-                    "fio_address": walletA1.address3,
+                    "fio_address": walletA1.address,
                     "max_fee": config.api.burn_fio_address.fee,
                     "tpid": '',
                     "actor": walletA1.account
                 }
             })
-            console.log('Result: ', JSON.parse(result.processed.action_traces[0].receipt.response));
+            //console.log('Result: ', JSON.parse(result.processed.action_traces[0].receipt.response));
             expect(JSON.parse(result.processed.action_traces[0].receipt.response).status).to.equal('OK');
             expect(JSON.parse(result.processed.action_traces[0].receipt.response).fee_collected).to.equal(config.api.burn_fio_address.fee);
         } catch (err) {
@@ -234,7 +223,7 @@ describe('************************** burn-address.js ************************** 
         }
     })
 
-    it(`Call get_table_rows from fionames. Verify address3 not in table.`, async () => {
+    it(`Call get_table_rows from fionames. Verify address not in table.`, async () => {
         let inTable = false;
         try {
           const json = {
@@ -249,7 +238,7 @@ describe('************************** burn-address.js ************************** 
           fionames = await callFioApi("get_table_rows", json);
           //console.log('fionames: ', fionames);
           for (name in fionames.rows) {
-            if (fionames.rows[name].name == walletA1.address3) {
+            if (fionames.rows[name].name == walletA1.address) {
               //console.log('fioname: ', fionames.rows[name]); 
               inTable = true;
             }
@@ -266,7 +255,7 @@ describe('************************** burn-address.js ************************** 
         const result = await walletA1.sdk.genericAction('getFioBalance', {
             fioPublicKey: walletA1.publicKey
         })
-        console.log('balance: ', result.balance);
+        //console.log('balance: ', result.balance);
         expect(result.balance).to.equal(origBalance - config.api.burn_fio_address.fee);
       })
 
