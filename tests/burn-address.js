@@ -329,17 +329,23 @@ describe('D. burnFioAddress Error testing', () => {
 
     it(`Burn address with invalid max_fee format (-33000000000). Expect error type 400: ${config.error.invalidFeeValue}`, async () => {
         try {
-            const result = await userD1.sdk.genericAction('burnFioAddress', {
-                fioAddress: userD1.address,
-                maxFee: -33000000000,
-                technologyProviderId: ''
+            const result = await callFioApiSigned('push_transaction', {
+                action: 'burnaddress',
+                account: 'fio.address',
+                actor: userD1.account,
+                privKey: userD1.privateKey,
+                data: {
+                    "fio_address": userD1.address,
+                    "max_fee": -33000000000,
+                    "tpid": '',
+                    "actor": userD1.account
+                }
             })
-            console.log('Result: ', result);
-            expect(result.status).to.equal(null);
+            //console.log('Result: ', result);
+            expect(result.fields[0].error).to.equal(config.error.invalidFeeValue)
         } catch (err) {
-            //console.log('Error: ', err)
-            expect(err.json.fields[0].error).to.equal(config.error.invalidFeeValue)
-            expect(err.errorCode).to.equal(400);
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
         }
     })
 
@@ -379,31 +385,45 @@ describe('D. burnFioAddress Error testing', () => {
 
     it(`Burn address not owned by actor. Expect error type 403: ${config.error.signatureError}`, async () => {
         try {
-            const result = await userD1.sdk.genericAction('burnFioAddress', {
-                fioAddress: userD2.address,
-                maxFee: config.api.burn_fio_address.fee,
-                technologyProviderId: ''
+            const result = await callFioApiSigned('push_transaction', {
+                action: 'burnaddress',
+                account: 'fio.address',
+                actor: userD1.account,
+                privKey: userD1.privateKey,
+                data: {
+                    "fio_address": userD2.address,
+                    "max_fee": config.api.burn_fio_address.fee,
+                    "tpid": '',
+                    "actor": userD1.account
+                }
             })
-            expect(result.status).to.equal(null);
+            //console.log('Result: ', result);
+            expect(result.message).to.equal(config.error.signatureError)
         } catch (err) {
-            //console.log('Error: ', err)
-            expect(err.json.message).to.equal(config.error.signatureError);
-            expect(err.errorCode).to.equal(403);
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
         }
     })
 
     it(`Burn address that is not registered. Expect error type 400: ${config.error.fioAddressNotRegistered}`, async () => {
         try {
-            const result = await userD1.sdk.genericAction('burnFioAddress', {
-                fioAddress: 'sdaewrewfa@dkahsdk',
-                maxFee: config.api.burn_fio_address.fee,
-                technologyProviderId: ''
+            const result = await callFioApiSigned('push_transaction', {
+                action: 'burnaddress',
+                account: 'fio.address',
+                actor: userD1.account,
+                privKey: userD1.privateKey,
+                data: {
+                    "fio_address": 'sdaewrewfa@dkahsdk',
+                    "max_fee": config.api.burn_fio_address.fee,
+                    "tpid": '',
+                    "actor": userD1.account
+                }
             })
-            expect(result.status).to.equal(null);
+            //console.log('Result: ', result);
+            expect(result.fields[0].error).to.equal(config.error.fioAddressNotRegistered)
         } catch (err) {
-            //console.log('Error: ', err)
-            expect(err.json.fields[0].error).to.equal(config.error.fioAddressNotRegistered)
-            expect(err.errorCode).to.equal(400);
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
         }
     })
 
@@ -451,16 +471,23 @@ describe('D. burnFioAddress Error testing', () => {
 
     it(`Burn address with insufficient max fee. Expect error type 400: ${config.error.feeExceedsMax}`, async () => {
         try {
-            const result = await userD1.sdk.genericAction('burnFioAddress', {
-                fioAddress: userD1.address,
-                maxFee: config.api.burn_fio_address.fee - 200000000,
-                technologyProviderId: ''
+            const result = await callFioApiSigned('push_transaction', {
+                action: 'burnaddress',
+                account: 'fio.address',
+                actor: userD1.account,
+                privKey: userD1.privateKey,
+                data: {
+                    "fio_address": userD1.address,
+                    "max_fee": config.api.burn_fio_address.fee - 200000000,
+                    "tpid": '',
+                    "actor": userD1.account
+                }
             })
-            expect(result.status).to.equal(null);
+            //console.log('Result: ', result);
+            expect(result.fields[0].error).to.equal(config.error.feeExceedsMax)
         } catch (err) {
-            //console.log('Error: ', err)
-            expect(err.json.fields[0].error).to.equal(config.error.feeExceedsMax)
-            expect(err.errorCode).to.equal(400);
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
         }
     })
 
@@ -523,16 +550,23 @@ describe('D. burnFioAddress Error testing', () => {
 
     it(`Burn address with insufficient funds and no bundled transactions. Expect error type 400: ${config.error.insufficientFunds}`, async () => {
         try {
-            const result = await userD1.sdk.genericAction('burnFioAddress', {
-                fioAddress: userD1.address,
-                maxFee: config.api.burn_fio_address.fee,
-                technologyProviderId: ''
+            const result = await callFioApiSigned('push_transaction', {
+                action: 'burnaddress',
+                account: 'fio.address',
+                actor: userD1.account,
+                privKey: userD1.privateKey,
+                data: {
+                    "fio_address": userD1.address,
+                    "max_fee": config.api.burn_fio_address.fee,
+                    "tpid": '',
+                    "actor": userD1.account
+                }
             })
-            expect(result.status).to.equal(null);
+            //console.log('Result: ', result);
+            expect(result.fields[0].error).to.equal(config.error.insufficientFunds)
         } catch (err) {
-            //console.log('Error: ', err.json)
-            expect(err.json.fields[0].error).to.equal(config.error.insufficientFunds)
-            expect(err.errorCode).to.equal(400);
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
         }
     })
 
