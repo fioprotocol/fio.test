@@ -19,12 +19,14 @@ const config = {
     CLIO: DEVTOOLSDIR + '/bin/clio -u ' + TESTURL,
     WALLETKEY: 'PW5HtgbxQztpSqZvpBveGitSxBZWvF8Q4kw3wxZhCjYWehVtLj3ns', // Unlocks local FIO wallet
     PRODKEYFILE: DEVTOOLSDIR + '/scripts/launch/producers/keys_producers_devnet.csv',
+    PRODKEYFILELOCAL: DEVTOOLSDIR + '/scripts/launch/producers/keys.csv',
 
     FAUCET_PRIV_KEY: '5KF2B21xT5pE5G3LNA6LKJc6AP2pAd2EnfpAUrJH12SFV8NtvCD',
     FAUCET_PUB_KEY: 'FIO6zwqqzHQcqCc2MB4jpp1F73MXpisEQe2SDghQFSGQKoAPjvQ3H',
 
     FUNDS: 2000000000000,
     BILLION: 1000000000,
+    maxFee: 800000000000,
 
     error: {
         validationError: 'ValidationError',

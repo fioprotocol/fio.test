@@ -86,17 +86,33 @@ describe('************************** txn-resubmit.js ************************** 
         }
       })
 
-      it(`Resubmit transaction. Expect 'Duplicate transaction' error.`, async () => {
+      it(`Resubmit transaction via SDK. Expect 'Duplicate transaction' error.`, async () => {
         try {
           userA1.sdk.setSignedTrxReturnOption(true)
           const result = await userA1.sdk.executePreparedTrx('new_funds_request', preparedTrx)
           expect(result).to.equal(null);
           userA1.sdk.setSignedTrxReturnOption(false)
         } catch (err) {
-          //console.log('Error: ', err)
+          //console.log('Error: ', err.json.error.details)
           expect(err.json.error.what).to.equal('Duplicate transaction')
         }
       })
 
+    it(`Resubmit transaction using push_transaction endpoint. Expect 'Duplicate transaction' error.`, async () => {
+      try {
+        const fiourl = config.URL + "/v1/chain/";
+        const endPoint = "push_transaction";
+        const result = await fetch(fiourl + endPoint, {
+          body: JSON.stringify(preparedTrx),
+          method: 'POST',
+        }); 
+        const json = await result.json()
+        //console.log('result: ', result)
+        expect(json.error.what).to.equal('Duplicate transaction')
+      } catch (err) {
+        console.log('Error: ', err)
+        expect(err).to.equal(null);
+      }
+    })
 
 })
