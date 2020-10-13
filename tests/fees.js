@@ -36,7 +36,34 @@ describe('************************** fees.js ************************** \n Test 
           expect(result.fee).to.equal(config.api[fioEndpoint].fee)
         }
       } catch (err) {
-        console.log('Error: ', err.json)
+        console.log('Error: ', err)
+      }
+    }
+  })
+
+  it(`Test all fees UPPERCASE`, async () => {
+    let fioEndpoint;
+    for (fioEndpoint in config.api) {
+      try {
+        //console.log('fioEndpoint: ', fioEndpoint)
+        //console.log('bundledEligible: ', config.api[fioEndpoint].bundledEligible)
+        if (config.api[fioEndpoint].bundledEligible) {
+          const result = await userA1.sdk.genericAction('getFee', {
+            endPoint: fioEndpoint, 
+            fioAddress: userA1.address.toUpperCase(),
+          })
+          //console.log('Returned fee: ', result)
+          expect(result.fee).to.equal(0)
+        } else {
+          const result = await userA1.sdk.genericAction('getFee', {
+            endPoint: fioEndpoint,
+            fioAddress: ''
+          })
+          //console.log('Returned fee: ', result)
+          expect(result.fee).to.equal(config.api[fioEndpoint].fee)
+        }
+      } catch (err) {
+        console.log('Error: ', err)
       }
     }
   })
