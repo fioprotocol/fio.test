@@ -8,7 +8,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
 })
 
-describe.only('************************** fees.js ************************** \n Test Transaction Fees', () => {
+describe('************************** fees.js ************************** \n Test Transaction Fees', () => {
   let userA1
 
   it(`Create users`, async () => {
