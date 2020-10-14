@@ -20,6 +20,7 @@ let userA1, userA2, userA3, userA4, keys, keys1, keys2, keys3, locksdk,
     locksdk1, locksdk2, locksdk3, newFioAddress, newFioDomain, newFioDomain2, newFioAddress2,
     total_bp_votes_before, total_bp_votes_after
 const fundsAmount = 500000000000
+const maxTestFundsAmount = 5000000000
 const halfundsAmount = 230000000000
 
 describe(`************************** transfer-locked-tokens.js ************************** \n A. Create accounts for tests`, () => {
@@ -211,8 +212,6 @@ After tokens are proxied and the proxy votes unlocked token weight is voted
 
 Register FIO Address can be paid with unlocked tokens
 */
-
-
 
 describe(`************************** transfer-locked-tokens.js ************************** \n B. 2 unlock periods, Canvote set to false tests`, () => {
 
@@ -422,9 +421,7 @@ describe(`************************** transfer-locked-tokens.js *****************
   //end check that we arent abl to vote with this lock
 })
 
-
 //end new tests matching testing requirements.
-
 
 
 describe(`************************** transfer-locked-tokens.js ************************** \n C. Canvote true, verify tokens are voted.`, () => {
@@ -542,8 +539,6 @@ describe(`************************** transfer-locked-tokens.js *****************
   })
 })
 
-
-
 describe(`************************** transfer-locked-tokens.js ************************** \n D. Token unlocking tests`, () => {
 
   it(`Transfer ${fundsAmount} locked FIO using canvote false, two lock periods of 20 sec and 50 percent`, async () => {
@@ -554,11 +549,51 @@ describe(`************************** transfer-locked-tokens.js *****************
         periods: [
           {
             duration: 20,
-            percent: 50.0,
+            percent: 45.0,
           },
           {
             duration: 20,
-            percent: 50.0,
+            percent: 45.0,
+          },
+          {
+            duration: 20,
+            percent: 1.0,
+          },
+          {
+            duration: 20,
+            percent: 1.0,
+          },
+          {
+            duration: 20,
+            percent: 1.0,
+          },
+          {
+            duration: 20,
+            percent: 1.0,
+          },
+          {
+            duration: 20,
+            percent: 1.0,
+          },
+          {
+            duration: 20,
+            percent: 1.0,
+          },
+          {
+            duration: 20,
+            percent: 1.0,
+          },
+          {
+            duration: 20,
+            percent: 1.0,
+          },
+          {
+            duration: 20,
+            percent: 1.0,
+          },
+          {
+            duration: 20,
+            percent: 1.0,
           }
         ],
         amount: fundsAmount,
@@ -637,4 +672,65 @@ it(`Transfer ${halfundsAmount} FIO to another account`, async () => {
 
 })
 
+
+let accounts = [], privkeys = [], pubkeys = []
+let lockholder
+
+//comment out other tests, then run this test, then after running, re-run the other tests in order to test the
+//system loaded up with a decent number of general locked token grants.
+describe(`************************** transfer-locked-tokens.js ************************** \n E. MAX tests`, () => {
+
+  it.skip(`load the protocol with 50k general grants`, async () => {
+    try {
+
+
+      for (let step = 0; step < 50000; step++) {
+
+        try {
+
+          if (step % 100 == 0){
+            userA4 = await newUser(faucet);
+            console.log("created another granting user")
+          }
+          keys = await createKeypair();
+          accounts.push(keys.account)
+          privkeys.push(keys.privateKey)
+          pubkeys.push(keys.publicKey)
+
+
+          const result = await userA4.sdk.genericAction('transferLockedTokens', {
+            payeePublicKey: keys.publicKey,
+            canVote: false,
+            periods: [
+              {
+                duration: 20,
+                percent: 50.0,
+              },
+              {
+                duration: 20,
+                percent: 50.0,
+              }
+            ],
+            amount: maxTestFundsAmount,
+            maxFee: 400000000000,
+            tpid: '',
+
+          })
+          expect(result.status).to.equal('OK')
+          expect(result).to.have.all.keys('status', 'fee_collected')
+
+          console.log(" max test iteration: ", step)
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+      }
+    catch
+      (err)
+      {
+        console.log('Error', err)
+      }
+
+  })
+})
 
