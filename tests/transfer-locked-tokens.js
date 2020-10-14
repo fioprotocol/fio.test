@@ -21,7 +21,7 @@ let userA1, userA2, userA3, userA4, keys, keys1, keys2, keys3, locksdk,
     total_bp_votes_before, total_bp_votes_after
 const fundsAmount = 500000000000
 const maxTestFundsAmount = 5000000000
-const halfundsAmount = 230000000000
+const halfundsAmount = 220000000000
 
 describe(`************************** transfer-locked-tokens.js ************************** \n A. Create accounts for tests`, () => {
 
@@ -56,6 +56,7 @@ describe(`************************** transfer-locked-tokens.js *****************
     console.log("              locked token holder votable priv key ",keys1.privateKey)
   })
 })
+
 
 describe(`************************** transfer-locked-tokens.js ************************** \n B. Parameter tests`, () => {
 
@@ -115,6 +116,32 @@ describe(`************************** transfer-locked-tokens.js *****************
     }
   })
 
+  it(`Transfer locked tokens, fail periods are not in ascending order of duration`, async () => {
+    try {
+      const result = await userA1.sdk.genericAction('transferLockedTokens', {
+        payeePublicKey: keys.publicKey,
+        canVote: false,
+        periods: [
+          {
+            duration: 240,
+            percent: 50.4444,
+          },
+          {
+            duration: 120,
+            percent: 49.5556,
+          }
+        ],
+        amount: fundsAmount,
+        maxFee: 400000000000,
+        tpid: '',
+
+      })
+
+    } catch (err) {
+      var expected = `Error 400`
+      expect(err.message).to.include(expected)
+    }
+  })
 
   it(`Transfer locked tokens, fail duration 0`, async () => {
     try {
@@ -247,7 +274,7 @@ describe(`************************** transfer-locked-tokens.js *****************
             percent: 40.0,
           },
           {
-            duration: 20,
+            duration: 40,
             percent: 60.0,
           }
         ],
@@ -423,7 +450,6 @@ describe(`************************** transfer-locked-tokens.js *****************
 
 //end new tests matching testing requirements.
 
-
 describe(`************************** transfer-locked-tokens.js ************************** \n C. Canvote true, verify tokens are voted.`, () => {
 
   //test cases
@@ -439,7 +465,7 @@ describe(`************************** transfer-locked-tokens.js *****************
             percent: 50.0,
           },
           {
-            duration: 20,
+            duration: 40,
             percent: 50.0,
           }
         ],
@@ -552,47 +578,47 @@ describe(`************************** transfer-locked-tokens.js *****************
             percent: 45.0,
           },
           {
-            duration: 20,
+            duration: 40,
             percent: 45.0,
           },
           {
-            duration: 20,
+            duration: 60,
             percent: 1.0,
           },
           {
-            duration: 20,
+            duration: 80,
             percent: 1.0,
           },
           {
-            duration: 20,
+            duration: 100,
             percent: 1.0,
           },
           {
-            duration: 20,
+            duration: 120,
             percent: 1.0,
           },
           {
-            duration: 20,
+            duration: 140,
             percent: 1.0,
           },
           {
-            duration: 20,
+            duration: 160,
             percent: 1.0,
           },
           {
-            duration: 20,
+            duration: 180,
             percent: 1.0,
           },
           {
-            duration: 20,
+            duration: 200,
             percent: 1.0,
           },
           {
-            duration: 20,
+            duration: 220,
             percent: 1.0,
           },
           {
-            duration: 20,
+            duration: 240,
             percent: 1.0,
           }
         ],
@@ -626,10 +652,11 @@ describe(`************************** transfer-locked-tokens.js *****************
     try{
     const result = await locksdk2.genericAction('transferTokens', {
       payeeFioPublicKey: userA1.publicKey,
-      amount: fundsAmount,
+      amount: 495000000000,
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     })
+      expect(result.status).to.not.equal('OK')
   } catch (err) {
     var expected = `Error 400`
     expect(err.message).to.include(expected)
@@ -707,7 +734,7 @@ describe(`************************** transfer-locked-tokens.js *****************
                 percent: 50.0,
               },
               {
-                duration: 20,
+                duration: 40,
                 percent: 50.0,
               }
             ],
