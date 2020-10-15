@@ -198,6 +198,9 @@ describe(`************************** transfer-locked-tokens.js *****************
 })
 
 //begin new tests matching testing requirements.
+//to perform max tests, comment out the tests (B,C,D), then run the load the protocol with 50k general grants
+//test (E), add the desired number of grants to the system, then skip the load the protocol with 50k general grants test (E)
+//and run (A,B,C,D). this proves the loaded system runs without issue.
 /*
 After tokens are proxied and the proxy votes 0 weight is voted
 
@@ -574,52 +577,204 @@ describe(`************************** transfer-locked-tokens.js *****************
         canVote: false,
         periods: [
           {
+            duration: 1,
+            percent: 0.273,
+          },
+          {
+            duration: 2,
+            percent: .273,
+          },
+          {
+            duration: 3,
+            percent: .273,
+          },
+          {
+            duration: 4,
+            percent: .273,
+          },
+          {
+            duration: 5,
+            percent: .273,
+          },
+          {
+            duration: 6,
+            percent: .273,
+          },
+          {
+            duration: 7,
+            percent: .273,
+          },
+          {
+            duration: 8,
+            percent: .273,
+          },
+          {
+            duration: 9,
+            percent: .273,
+          },
+          {
+            duration: 10,
+            percent: .273,
+          },
+          {
+            duration: 11,
+            percent: .273,
+          },
+          {
+            duration: 12,
+            percent: .273,
+          },
+          {
+            duration: 13,
+            percent: .273,
+          },
+          {
+            duration: 14,
+            percent: .273,
+          },
+          {
+            duration: 15,
+            percent: .273,
+          },
+          {
+            duration: 16,
+            percent: .273,
+          },
+          {
+            duration: 17,
+            percent: .273,
+          },
+          {
+            duration: 18,
+            percent: .273,
+          },
+          {
+            duration: 19,
+            percent: .273,
+          },
+          {
             duration: 20,
-            percent: 45.0,
+            percent: .273,
+          },
+          {
+            duration: 21,
+            percent: .273,
+          },
+          {
+            duration: 22,
+            percent: .273,
+          },
+          {
+            duration: 23,
+            percent: .273,
+          },
+          {
+            duration: 24,
+            percent: .273,
+          },
+          {
+            duration: 25,
+            percent: .273,
+          },
+          {
+            duration: 26,
+            percent: .273,
+          },
+          {
+            duration: 27,
+            percent: .273,
+          },
+          {
+            duration: 28,
+            percent: .273,
+          },
+          {
+            duration: 29,
+            percent: .273,
+          },
+          {
+            duration: 30,
+            percent: .273,
+          },
+          {
+            duration: 31,
+            percent: .273,
+          },
+          {
+            duration: 32,
+            percent: .273,
+          },
+          {
+            duration: 33,
+            percent: .273,
+          },
+          {
+            duration: 34,
+            percent: .273,
+          },
+          {
+            duration: 35,
+            percent: .273,
+          },
+          {
+            duration: 36,
+            percent: .273,
+          },
+          {
+            duration: 37,
+            percent: .273,
+          },
+          {
+            duration: 38,
+            percent: .273,
+          },
+          {
+            duration: 39,
+            percent: .273,
           },
           {
             duration: 40,
-            percent: 45.0,
+            percent: .273,
           },
           {
-            duration: 60,
-            percent: 1.0,
+            duration: 41,
+            percent: .273,
           },
           {
-            duration: 80,
-            percent: 1.0,
+            duration: 42,
+            percent: .273,
           },
           {
-            duration: 100,
-            percent: 1.0,
+            duration: 43,
+            percent: .273,
           },
           {
-            duration: 120,
-            percent: 1.0,
+            duration: 44,
+            percent: .273,
           },
           {
-            duration: 140,
-            percent: 1.0,
+            duration: 45,
+            percent: .273,
           },
           {
-            duration: 160,
-            percent: 1.0,
+            duration: 46,
+            percent: .273,
           },
           {
-            duration: 180,
-            percent: 1.0,
+            duration: 47,
+            percent: .273,
           },
           {
-            duration: 200,
-            percent: 1.0,
+            duration: 48,
+            percent: .273,
           },
           {
-            duration: 220,
-            percent: 1.0,
+            duration: 49,
+            percent: .273,
           },
           {
-            duration: 240,
-            percent: 1.0,
+            duration: 50,
+            percent: 86.623,
           }
         ],
         amount: fundsAmount,
@@ -635,8 +790,8 @@ describe(`************************** transfer-locked-tokens.js *****************
   })
 
 
-  it(`Waiting 20 seconds for first unlock`, async () => {
-    console.log("            waiting 20 seconds for first unlock ")
+  it(`Waiting 20 seconds`, async () => {
+    console.log("            waiting 20 seconds ")
   })
 
   it(` wait 20 seconds`, async () => {
@@ -648,7 +803,7 @@ describe(`************************** transfer-locked-tokens.js *****************
   })
 
   //try to transfer whole amount, fail.
-  it(`Transfer ${fundsAmount} Fail, fail to transfer entire amount, only half is unlocked`, async () => {
+  it(`Transfer ${fundsAmount} Fail, fail to transfer entire amount`, async () => {
     try{
     const result = await locksdk2.genericAction('transferTokens', {
       payeeFioPublicKey: userA1.publicKey,
@@ -664,18 +819,18 @@ describe(`************************** transfer-locked-tokens.js *****************
   })
 
 
-it(`Transfer ${halfundsAmount} FIO to another account`, async () => {
+it(`Transfer 1 FIO to another account`, async () => {
   const result = await locksdk2.genericAction('transferTokens', {
     payeeFioPublicKey: userA1.publicKey,
-    amount: halfundsAmount,
+    amount: 1000000000,
     maxFee: config.api.transfer_tokens_pub_key.fee,
     technologyProviderId: ''
   })
   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
 })
 
-  it(`Waiting 20 seconds for second unlock`, async () => {
-    console.log("            waiting 20 seconds for second unlock ")
+  it(`Waiting 20 seconds`, async () => {
+    console.log("            waiting 20 seconds ")
   })
 
 it(` wait 20 seconds`, async () => {
@@ -687,15 +842,36 @@ it(` wait 20 seconds`, async () => {
 })
 
 
-it(`Transfer ${halfundsAmount} FIO to another account`, async () => {
+it(`Transfer 5 FIO to another account`, async () => {
   const result = await locksdk2.genericAction('transferTokens', {
     payeeFioPublicKey: userA1.publicKey,
-    amount: halfundsAmount,
+    amount: 5000000000,
     maxFee: config.api.transfer_tokens_pub_key.fee,
     technologyProviderId: ''
   })
   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
 })
+
+  it(`Waiting 20 seconds`, async () => {
+    console.log("            waiting 20 seconds ")
+  })
+  it(` wait 20 seconds`, async () => {
+    try {
+      wait(20000)
+    } catch (err) {
+      console.log('Error', err)
+    }
+  })
+
+  it(`Transfer 400 FIO to another account`, async () => {
+    const result = await locksdk2.genericAction('transferTokens', {
+      payeeFioPublicKey: userA1.publicKey,
+      amount: 400000000000,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    })
+    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  })
 
 })
 
@@ -703,8 +879,9 @@ it(`Transfer ${halfundsAmount} FIO to another account`, async () => {
 let accounts = [], privkeys = [], pubkeys = []
 let lockholder
 
-//comment out other tests, then run this test, then after running, re-run the other tests in order to test the
-//system loaded up with a decent number of general locked token grants.
+//to perform max tests, comment out the tests (B,C,D), then run the load the protocol with 50k general grants
+//test (E), add the desired number of grants to the system, then skip the load the protocol with 50k general grants test (E)
+//and run (A,B,C,D). this proves the loaded system runs without issue.
 describe(`************************** transfer-locked-tokens.js ************************** \n E. MAX tests`, () => {
 
   it.skip(`load the protocol with 50k general grants`, async () => {
@@ -730,12 +907,204 @@ describe(`************************** transfer-locked-tokens.js *****************
             canVote: false,
             periods: [
               {
+                duration: 1,
+                percent: 0.273,
+              },
+              {
+                duration: 2,
+                percent: .273,
+              },
+              {
+                duration: 3,
+                percent: .273,
+              },
+              {
+                duration: 4,
+                percent: .273,
+              },
+              {
+                duration: 5,
+                percent: .273,
+              },
+              {
+                duration: 6,
+                percent: .273,
+              },
+              {
+                duration: 7,
+                percent: .273,
+              },
+              {
+                duration: 8,
+                percent: .273,
+              },
+              {
+                duration: 9,
+                percent: .273,
+              },
+              {
+                duration: 10,
+                percent: .273,
+              },
+              {
+                duration: 11,
+                percent: .273,
+              },
+              {
+                duration: 12,
+                percent: .273,
+              },
+              {
+                duration: 13,
+                percent: .273,
+              },
+              {
+                duration: 14,
+                percent: .273,
+              },
+              {
+                duration: 15,
+                percent: .273,
+              },
+              {
+                duration: 16,
+                percent: .273,
+              },
+              {
+                duration: 17,
+                percent: .273,
+              },
+              {
+                duration: 18,
+                percent: .273,
+              },
+              {
+                duration: 19,
+                percent: .273,
+              },
+              {
                 duration: 20,
-                percent: 50.0,
+                percent: .273,
+              },
+              {
+                duration: 21,
+                percent: .273,
+              },
+              {
+                duration: 22,
+                percent: .273,
+              },
+              {
+                duration: 23,
+                percent: .273,
+              },
+              {
+                duration: 24,
+                percent: .273,
+              },
+              {
+                duration: 25,
+                percent: .273,
+              },
+              {
+                duration: 26,
+                percent: .273,
+              },
+              {
+                duration: 27,
+                percent: .273,
+              },
+              {
+                duration: 28,
+                percent: .273,
+              },
+              {
+                duration: 29,
+                percent: .273,
+              },
+              {
+                duration: 30,
+                percent: .273,
+              },
+              {
+                duration: 31,
+                percent: .273,
+              },
+              {
+                duration: 32,
+                percent: .273,
+              },
+              {
+                duration: 33,
+                percent: .273,
+              },
+              {
+                duration: 34,
+                percent: .273,
+              },
+              {
+                duration: 35,
+                percent: .273,
+              },
+              {
+                duration: 36,
+                percent: .273,
+              },
+              {
+                duration: 37,
+                percent: .273,
+              },
+              {
+                duration: 38,
+                percent: .273,
+              },
+              {
+                duration: 39,
+                percent: .273,
               },
               {
                 duration: 40,
-                percent: 50.0,
+                percent: .273,
+              },
+              {
+                duration: 41,
+                percent: .273,
+              },
+              {
+                duration: 42,
+                percent: .273,
+              },
+              {
+                duration: 43,
+                percent: .273,
+              },
+              {
+                duration: 44,
+                percent: .273,
+              },
+              {
+                duration: 45,
+                percent: .273,
+              },
+              {
+                duration: 46,
+                percent: .273,
+              },
+              {
+                duration: 47,
+                percent: .273,
+              },
+              {
+                duration: 48,
+                percent: .273,
+              },
+              {
+                duration: 49,
+                percent: .273,
+              },
+              {
+                duration: 50,
+                percent: 86.623,
               }
             ],
             amount: maxTestFundsAmount,
@@ -760,4 +1129,3 @@ describe(`************************** transfer-locked-tokens.js *****************
 
   })
 })
-
