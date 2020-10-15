@@ -82,6 +82,7 @@ describe(`************************** transfer-locked-tokens.js *****************
         tpid: '',
 
       })
+      expect(result.status).to.not.equal('OK')
 
     } catch (err) {
       var expected = `Error 400`
@@ -109,6 +110,7 @@ describe(`************************** transfer-locked-tokens.js *****************
         tpid: '',
 
       })
+      expect(result.status).to.not.equal('OK')
 
     } catch (err) {
       var expected = `Error 400`
@@ -136,6 +138,7 @@ describe(`************************** transfer-locked-tokens.js *****************
         tpid: '',
 
       })
+      expect(result.status).to.not.equal('OK')
 
     } catch (err) {
       var expected = `Error 400`
@@ -163,6 +166,7 @@ describe(`************************** transfer-locked-tokens.js *****************
         tpid: '',
 
       })
+      expect(result.status).to.not.equal('OK')
     } catch (err) {
       var expected = `Error 400`
       expect(err.message).to.include(expected)
@@ -189,6 +193,231 @@ describe(`************************** transfer-locked-tokens.js *****************
         tpid: '',
 
       })
+      expect(result.status).to.not.equal('OK')
+    } catch (err) {
+      var expected = `Error 400`
+      expect(err.message).to.include(expected)
+    }
+  })
+
+  it(`Too many lock periods, fail`, async () => {
+    try {
+      const result = await userA4.sdk.genericAction('transferLockedTokens', {
+        payeePublicKey: keys2.publicKey,
+        canVote: false,
+        periods: [
+          {
+            duration: 1,
+            percent: 0.273,
+          },
+          {
+            duration: 2,
+            percent: .273,
+          },
+          {
+            duration: 3,
+            percent: .273,
+          },
+          {
+            duration: 4,
+            percent: .273,
+          },
+          {
+            duration: 5,
+            percent: .273,
+          },
+          {
+            duration: 6,
+            percent: .273,
+          },
+          {
+            duration: 7,
+            percent: .273,
+          },
+          {
+            duration: 8,
+            percent: .273,
+          },
+          {
+            duration: 9,
+            percent: .273,
+          },
+          {
+            duration: 10,
+            percent: .273,
+          },
+          {
+            duration: 11,
+            percent: .273,
+          },
+          {
+            duration: 12,
+            percent: .273,
+          },
+          {
+            duration: 13,
+            percent: .273,
+          },
+          {
+            duration: 14,
+            percent: .273,
+          },
+          {
+            duration: 15,
+            percent: .273,
+          },
+          {
+            duration: 16,
+            percent: .273,
+          },
+          {
+            duration: 17,
+            percent: .273,
+          },
+          {
+            duration: 18,
+            percent: .273,
+          },
+          {
+            duration: 19,
+            percent: .273,
+          },
+          {
+            duration: 20,
+            percent: .273,
+          },
+          {
+            duration: 21,
+            percent: .273,
+          },
+          {
+            duration: 22,
+            percent: .273,
+          },
+          {
+            duration: 23,
+            percent: .273,
+          },
+          {
+            duration: 24,
+            percent: .273,
+          },
+          {
+            duration: 25,
+            percent: .273,
+          },
+          {
+            duration: 26,
+            percent: .273,
+          },
+          {
+            duration: 27,
+            percent: .273,
+          },
+          {
+            duration: 28,
+            percent: .273,
+          },
+          {
+            duration: 29,
+            percent: .273,
+          },
+          {
+            duration: 30,
+            percent: .273,
+          },
+          {
+            duration: 31,
+            percent: .273,
+          },
+          {
+            duration: 32,
+            percent: .273,
+          },
+          {
+            duration: 33,
+            percent: .273,
+          },
+          {
+            duration: 34,
+            percent: .273,
+          },
+          {
+            duration: 35,
+            percent: .273,
+          },
+          {
+            duration: 36,
+            percent: .273,
+          },
+          {
+            duration: 37,
+            percent: .273,
+          },
+          {
+            duration: 38,
+            percent: .273,
+          },
+          {
+            duration: 39,
+            percent: .273,
+          },
+          {
+            duration: 40,
+            percent: .273,
+          },
+          {
+            duration: 41,
+            percent: .273,
+          },
+          {
+            duration: 42,
+            percent: .273,
+          },
+          {
+            duration: 43,
+            percent: .273,
+          },
+          {
+            duration: 44,
+            percent: .273,
+          },
+          {
+            duration: 45,
+            percent: .273,
+          },
+          {
+            duration: 46,
+            percent: .273,
+          },
+          {
+            duration: 47,
+            percent: .273,
+          },
+          {
+            duration: 48,
+            percent: .273,
+          },
+          {
+            duration: 49,
+            percent: .273,
+          },
+          {
+            duration: 50,
+            percent: .273,
+          },
+          {
+            duration: 51,
+            percent: 86.35,
+          }
+        ],
+        amount: fundsAmount,
+        maxFee: 400000000000,
+        tpid: '',
+
+      })
+      expect(result.status).to.not.equal('OK')
+
     } catch (err) {
       var expected = `Error 400`
       expect(err.message).to.include(expected)
@@ -407,7 +636,6 @@ describe(`************************** transfer-locked-tokens.js *****************
       console.log('Error', err)
     }
   })
-
 
 
   it(`Get bp1@dapixdev total_votes before locked account votes`, async () => {
