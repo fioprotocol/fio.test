@@ -418,3 +418,153 @@ describe.skip(`C. FIP-13. Get_pub_addresses endpoint`, () => {
     })
 
 })
+
+describe.skip(`FIP18. Chain-level addressing`, () => {
+
+    let userB1
+
+    it(`Create users`, async () => {
+        userB1 = await newUser(faucet);
+    })
+
+    it(`add_pub_address with token_code: ETH and public_address`, async () => {
+        const result = await userB1.sdk.genericAction('addPublicAddresses', {
+            fioAddress: userB1.address,
+            publicAddresses: [
+                {
+                    chain_code: 'ETH',
+                    token_code: 'ETH',
+                    public_address: 'fdsfsdfsdzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+                }
+            ],
+            maxFee: config.api.add_pub_address.fee,
+            walletFioAddress: ''
+        })
+        //console.log('Result:', result)
+        expect(result.status).to.equal('OK')
+    })
+
+    it(`add_pub_address with token_code: * and public_address: B`, async () => {
+        const result = await userB1.sdk.genericAction('addPublicAddresses', {
+            fioAddress: userB1.address,
+            publicAddresses: [
+                {
+                    chain_code: 'ETH',
+                    token_code: '*',
+                    public_address: 'j0xnwlffdn0zuyaslx3c90q7n9g9cvbfbjndghj56ufhghfdgh',
+                }
+            ],
+            maxFee: config.api.add_pub_address.fee,
+            walletFioAddress: ''
+        })
+        //console.log('Result:', result)
+        expect(result.status).to.equal('OK')
+    })
+
+    it(`add_pub_address with token_code: * and public_address: C`, async () => {
+        const result = await userB1.sdk.genericAction('addPublicAddresses', {
+            fioAddress: userB1.address,
+            publicAddresses: [
+                {
+                    chain_code: 'ETH',
+                    token_code: '*',
+                    public_address: 'fdn0zuyaslx3c90q7n9g9cvbfbjndghj56ufhghdfsgfsfdgh',
+                }
+            ],
+            maxFee: config.api.add_pub_address.fee,
+            walletFioAddress: ''
+        })
+        //console.log('Result:', result)
+        expect(result.status).to.equal('OK')
+    })
+
+    it('Run /get_pub_address with token_code: *', async () => {
+        try {
+            const result = await userB1.sdk.genericAction('getPublicAddress', {
+                fioAddress: userB1.address,
+                chainCode: "ETH",
+                tokenCode: "*"
+            })
+            //console.log('Result', result)
+            expect(result.public_address).to.equal('fdn0zuyaslx3c90q7n9g9cvbfbjndghj56ufhghdfsgfsfdgh')
+        } catch (err) {
+            console.log('Error', err)
+        }
+    })
+
+    it('Run /get_pub_address with random token_code', async () => {
+        try {
+            const result = await userB1.sdk.genericAction('getPublicAddress', {
+                fioAddress: userB1.address,
+                chainCode: "ETH",
+                tokenCode: "EKJTKG"
+            })
+            //console.log('Result', result)
+            expect(result.public_address).to.equal('fdn0zuyaslx3c90q7n9g9cvbfbjndghj56ufhghdfsgfsfdgh')
+        } catch (err) {
+            console.log('Error', err)
+        }
+    })
+
+    it('Run /get_pub_address with token_code: ETH', async () => {
+        try {
+            const result = await userB1.sdk.genericAction('getPublicAddress', {
+                fioAddress: userB1.address,
+                chainCode: "ETH",
+                tokenCode: "ETH"
+            })
+            //console.log('Result', result)
+            expect(result.public_address).to.equal('fdsfsdfsdzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9')
+        } catch (err) {
+            console.log('Error', err)
+        }
+    })
+
+    it(`Run remove_pub_address with with token_code: *`, async () => {
+        try {
+            const result = await userB1.sdk.genericAction('removePublicAddresses', {
+                fioAddress: userB1.address,
+                publicAddresses: [
+                    {
+                        chain_code: 'ETH',
+                        token_code: '*',
+                        public_address: 'fdn0zuyaslx3c90q7n9g9cvbfbjndghj56ufhghdfsgfsfdgh',
+                    }
+                ],
+                maxFee: config.api.remove_pub_address.fee,
+                tpid: ''
+            })
+            //console.log('Result:', result)
+            expect(result).to.have.all.keys('status', 'fee_collected')
+        } catch (err) {
+            console.log('Error', err)
+            expect(err).to.equal(null)
+        }
+    })
+
+    it('Run /get_pub_address with random token_code', async () => {
+        try {
+            const result = await userB1.sdk.genericAction('getPublicAddress', {
+                fioAddress: userB1.address,
+                chainCode: "ETH",
+                tokenCode: "EKJTKG"
+            })
+        } catch (err) {
+            expect(err.json.message).to.equal(config.error.publicAddressFound)
+        }
+    })
+
+    it('Run /get_pub_address with token code:ETH', async () => {
+        try {
+            const result = await userB1.sdk.genericAction('getPublicAddress', {
+                fioAddress: userB1.address,
+                chainCode: "ETH",
+                tokenCode: "ETH"
+            })
+            //console.log('Result', result)
+            expect(result.public_address).to.equal('fdsfsdfsdzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9')
+        } catch (err) {
+            console.log('Error', err)
+        }
+    })
+})
