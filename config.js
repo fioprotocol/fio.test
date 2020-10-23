@@ -7,7 +7,7 @@ const TESTURL = 'http://localhost:8889'
 //const TESTURL = 'http://dev4.fio.dev:8889' 
 //const TESTURL = 'https://fio.greymass.com' //Mainnet
 //const TESTURL = 'http://devnet-a.az.fio.dev:8888'
-
+//const TESTURL = 'http://52.247.194.34:8889' //Devnet
 
 const DEVTOOLSDIR = '../fio.devtools'
 
@@ -17,6 +17,10 @@ const config = {
     BASE_URL: TESTURL + '/v1/',
     CLIO: DEVTOOLSDIR + '/bin/clio -u ' + TESTURL,
     WALLETKEY: 'PW5HtgbxQztpSqZvpBveGitSxBZWvF8Q4kw3wxZhCjYWehVtLj3ns', // Unlocks local FIO wallet
+
+    //use this prod key file after you get a copy of the file from Ed, then you can run the
+    //fee-voting-fee-setting.js.
+   // PRODKEYFILE: DEVTOOLSDIR + '/scripts/launch/producers/keys_producers_devnet.csv',
     PRODKEYFILE: DEVTOOLSDIR + '/scripts/launch/producers/keys.csv',
 
     FAUCET_PRIV_KEY: '5KF2B21xT5pE5G3LNA6LKJc6AP2pAd2EnfpAUrJH12SFV8NtvCD',
@@ -24,6 +28,7 @@ const config = {
 
     FUNDS: 2000000000000,
     BILLION: 1000000000,
+    maxFee: 800000000000,
 
     error: {
         validationError: 'ValidationError',
@@ -170,10 +175,10 @@ const config = {
             bundledEligible: false,
             fee: 40000000000
         },
-        //burn_fio_address: {
-        //    bundledEligible: true,
-        //    fee: 400000000
-        //},
+        burn_fio_address: {
+            bundledEligible: true,
+            fee: 400000000
+        },
         transfer_fio_domain: {
             bundledEligible: false,
             fee: 1000000000
