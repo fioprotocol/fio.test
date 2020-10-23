@@ -560,3 +560,109 @@ describe('D. burnFioAddress Error testing', () => {
     })
 
 })
+
+describe.only('E. Test burnfioaddress SDK call', () => {
+
+    let walletA1, walletA1FioNames
+
+    it(`Create users`, async () => {
+        walletA1 = await newUser(faucet);
+        walletA1.address2 = generateFioAddress(walletA1.domain, 5)
+        wallet2 = await newUser(faucet);
+    })
+
+    it(`Register walletA1.address2`, async () => {
+        const result = await walletA1.sdk.genericAction('registerFioAddress', {
+            fioAddress: walletA1.address2,
+            maxFee: config.api.register_fio_address.fee,
+            technologyProviderId: ''
+        })
+        //console.log('Result: ', result)
+        expect(result.status).to.equal('OK')
+    })
+
+    it(`getFioNames for walletA1 and confirm it owns 2 addresses and that one of them is walletA1.address2`, async () => {
+        try {
+            const result = await walletA1.sdk.genericAction('getFioNames', {
+                fioPublicKey: walletA1.publicKey
+            })
+            //console.log('getFioNames', result)
+            expect(result.fio_addresses.length).to.equal(2)
+            expect(result.fio_domains[0].fio_domain).to.equal(walletA1.domain)
+            expect(result.fio_addresses[0].fio_address).to.equal(walletA1.address)
+            expect(result.fio_addresses[1].fio_address).to.equal(walletA1.address2)
+        } catch (err) {
+            console.log('Error', err)
+            expect(err).to.equal(null)
+        }
+    })
+
+    it('Confirm burn_fio_address fee for walletA1 is zero (bundles remaining)', async () => {
+        try {
+            result = await walletA1.sdk.getFee('burn_fio_address', walletA1.address);
+            //console.log('result: ', result)
+            expect(result.fee).to.equal(0);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+    
+    it(`(SDK) Burn walletA1.address2. Expect status = 'OK'. Expect fee_collected = 0`, async () => {
+        try {
+            const result = await walletA1.sdk.genericAction('burnFioAddress', {
+                fioAddress: walletA1.address2,
+                maxFee: config.api.burn_fio_address.fee,
+                technologyProviderId: ''
+            })
+            //console.log('Result: ', result);
+            expect(result.status).to.equal('OK');
+            expect(result.fee_collected).to.equal(0);
+        } catch (err) {
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`getFioNames for walletA1 and confirm it now only owns 1 address`, async () => {
+        try {
+            walletA1FioNames = await walletA1.sdk.genericAction('getFioNames', {
+                fioPublicKey: walletA1.publicKey
+            })
+            //console.log('getFioNames', result)
+            expect(walletA1FioNames.fio_addresses.length).to.equal(1)
+            expect(walletA1FioNames.fio_domains[0].fio_domain).to.equal(walletA1.domain)
+            expect(walletA1FioNames.fio_addresses[0].fio_address).to.equal(walletA1.address)
+        } catch (err) {
+            console.log('Error:', err)
+            expect(err).to.equal(null)
+        }
+    })
+
+    it(`Call get_table_rows from fionames. Verify address not in table.`, async () => {
+        let inTable = false;
+        try {
+          const json = {
+            json: true,               // Get the response as json
+            code: 'fio.address',      // Contract that we target
+            scope: 'fio.address',         // Account that owns the data
+            table: 'fionames',        // Table name
+            limit: 1000,                // Maximum number of rows that we want to get
+            reverse: false,           // Optional: Get reversed data
+            show_payer: false          // Optional: Show ram payer
+          }
+          fionames = await callFioApi("get_table_rows", json);
+          //console.log('fionames: ', fionames);
+          for (name in fionames.rows) {
+            if (fionames.rows[name].name == walletA1.address2) {
+              //console.log('fioname: ', fionames.rows[name]); 
+              inTable = true;
+            }
+          }
+          expect(inTable).to.equal(false);
+        } catch (err) {
+          console.log('Error', err);
+          expect(err).to.equal(null);
+        }
+    })
+})
