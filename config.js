@@ -9,7 +9,6 @@ const TESTURL = 'http://localhost:8889'
 //const TESTURL = 'http://devnet-a.az.fio.dev:8888'
 //const TESTURL = 'http://52.247.194.34:8889' //Devnet
 
-
 const DEVTOOLSDIR = '../fio.devtools'
 
 const config = {
@@ -18,8 +17,11 @@ const config = {
     BASE_URL: TESTURL + '/v1/',
     CLIO: DEVTOOLSDIR + '/bin/clio -u ' + TESTURL,
     WALLETKEY: 'PW5HtgbxQztpSqZvpBveGitSxBZWvF8Q4kw3wxZhCjYWehVtLj3ns', // Unlocks local FIO wallet
-    PRODKEYFILE: DEVTOOLSDIR + '/scripts/launch/producers/keys_producers_devnet.csv',
-    PRODKEYFILELOCAL: DEVTOOLSDIR + '/scripts/launch/producers/keys.csv',
+
+    //use this prod key file after you get a copy of the file from Ed, then you can run the
+    //fee-voting-fee-setting.js.
+   // PRODKEYFILE: DEVTOOLSDIR + '/scripts/launch/producers/keys_producers_devnet.csv',
+    PRODKEYFILE: DEVTOOLSDIR + '/scripts/launch/producers/keys.csv',
 
     FAUCET_PRIV_KEY: '5KF2B21xT5pE5G3LNA6LKJc6AP2pAd2EnfpAUrJH12SFV8NtvCD',
     FAUCET_PUB_KEY: 'FIO6zwqqzHQcqCc2MB4jpp1F73MXpisEQe2SDghQFSGQKoAPjvQ3H',
