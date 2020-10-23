@@ -561,7 +561,7 @@ describe('D. burnFioAddress Error testing', () => {
 
 })
 
-describe.only('E. Test burnfioaddress SDK call', () => {
+describe('E. Test burnfioaddress SDK call', () => {
 
     let walletA1, walletA1FioNames
 
