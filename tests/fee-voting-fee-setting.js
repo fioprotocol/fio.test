@@ -52,11 +52,13 @@ describe('************************** fee-voting-fee-setting.js *****************
 
   let prodA1, userA1, result,  locksdk
   let timeafteraccountcreate = 5000
+
   let amount = 0
 
   let sdktopprods = []
 
   //first vote for the fees for the top prods.
+
   it(`Vote for fees for 18 top producers`, async () => {
     try{
       process.stdout.write("           Vote for 18 prods . ")
@@ -118,14 +120,12 @@ describe('************************** fee-voting-fee-setting.js *****************
               {end_point: "msig_unapprove", value: amount},
               {end_point: "msig_cancel", value: amount},
               {end_point: "msig_exec", value: amount},
-              {end_point: "msig_invalidate", value: amount}
+              {end_point: "msig_invalidate", value: amount
             ],
             max_fee: 4000000000,
             actor: prodA1.account
           }
           })
-
-
         process.stdout.write(". ")
       }
       console.log(" ")
@@ -265,7 +265,7 @@ describe('************************** fee-voting-fee-setting.js *****************
         }
       })
       console.log("regproducer")
-
+      
       result = await prodA1.sdk.genericAction('pushTransaction', {
         action: 'voteproducer',
         account: 'eosio',
@@ -7241,4 +7241,3 @@ describe('************************** fee-voting-fee-setting.js *****************
   })
 
 })
-

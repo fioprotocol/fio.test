@@ -8,14 +8,13 @@ before(async () => {
     faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
 })
 
-describe.only('************************** burn-address.js ************************** \n A. Transfer an address to FIO Public Key which maps to existing account on FIO Chain using new endpoint (not push action)', () => {
+describe('************************** burn-address.js ************************** \n A. Transfer an address to FIO Public Key which maps to existing account on FIO Chain using new endpoint (not push action)', () => {
 
     let walletA1, walletA1FioNames, balance, walletA1OrigBalance, burn_fio_address_fee, feeCollected
 
     it(`Create users`, async () => {
         walletA1 = await newUser(faucet);
         walletA1.address2 = generateFioAddress(walletA1.domain, 5)
-        walletA1.address3 = generateFioAddress(walletA1.domain, 5)
         wallet2 = await newUser(faucet);
     })
 
@@ -121,16 +120,6 @@ describe.only('************************** burn-address.js **********************
         }
       })
 
-    it(`Register walletA1.address3`, async () => {
-        const result = await walletA1.sdk.genericAction('registerFioAddress', {
-            fioAddress: walletA1.address3,
-            maxFee: config.api.register_fio_address.fee,
-            technologyProviderId: ''
-        })
-        //console.log('Result: ', result)
-        expect(result.status).to.equal('OK')
-    })
-
     it(`Use up all of walletA1's bundles with 51 record_obt_data transactions`, async () => {
         for (i = 0; i < 51; i++) {
             try {
@@ -187,7 +176,7 @@ describe.only('************************** burn-address.js **********************
         }
       })
 
-    it(`Confirm burn_fio_address fee for walletA1 is ${config.api.burn_fio_address.fee}`, async () => {
+    it(`Confirm burn_fio_address fee for walletA1.address is ${config.api.burn_fio_address.fee}`, async () => {
         try {
             result = await walletA1.sdk.getFee('burn_fio_address', walletA1.address);
             //console.log('result: ', result)
@@ -204,14 +193,14 @@ describe.only('************************** burn-address.js **********************
                 fioPublicKey: walletA1.publicKey
             })
             balance = result.balance
-            console.log('balance: ', balance)
+            //console.log('balance: ', balance)
         } catch (err) {
             //console.log('Error', err)
             expect(err).to.equal(null)
         }
     })
 
-    it(`Burn walletA1.address3. Expect status = 'OK'. Expect fee_collected = ${config.api.burn_fio_address.fee}`, async () => {
+    it(`Burn walletA1.address. Expect status = 'OK'. Expect fee_collected = ${config.api.burn_fio_address.fee}`, async () => {
         try {
             const result = await callFioApiSigned('push_transaction', {
                 action: 'burnaddress',
@@ -219,13 +208,13 @@ describe.only('************************** burn-address.js **********************
                 actor: walletA1.account,
                 privKey: walletA1.privateKey,
                 data: {
-                    "fio_address": walletA1.address3,
+                    "fio_address": walletA1.address,
                     "max_fee": config.api.burn_fio_address.fee,
                     "tpid": '',
                     "actor": walletA1.account
                 }
             })
-            console.log('Result: ', JSON.parse(result.processed.action_traces[0].receipt.response));
+            //console.log('Result: ', JSON.parse(result.processed.action_traces[0].receipt.response));
             expect(JSON.parse(result.processed.action_traces[0].receipt.response).status).to.equal('OK');
             expect(JSON.parse(result.processed.action_traces[0].receipt.response).fee_collected).to.equal(config.api.burn_fio_address.fee);
         } catch (err) {
@@ -234,7 +223,7 @@ describe.only('************************** burn-address.js **********************
         }
     })
 
-    it(`Call get_table_rows from fionames. Verify address3 not in table.`, async () => {
+    it(`Call get_table_rows from fionames. Verify address not in table.`, async () => {
         let inTable = false;
         try {
           const json = {
@@ -249,7 +238,7 @@ describe.only('************************** burn-address.js **********************
           fionames = await callFioApi("get_table_rows", json);
           //console.log('fionames: ', fionames);
           for (name in fionames.rows) {
-            if (fionames.rows[name].name == walletA1.address3) {
+            if (fionames.rows[name].name == walletA1.address) {
               //console.log('fioname: ', fionames.rows[name]); 
               inTable = true;
             }
@@ -266,7 +255,7 @@ describe.only('************************** burn-address.js **********************
         const result = await walletA1.sdk.genericAction('getFioBalance', {
             fioPublicKey: walletA1.publicKey
         })
-        console.log('balance: ', result.balance);
+        //console.log('balance: ', result.balance);
         expect(result.balance).to.equal(origBalance - config.api.burn_fio_address.fee);
       })
 
@@ -329,17 +318,23 @@ describe('D. burnFioAddress Error testing', () => {
 
     it(`Burn address with invalid max_fee format (-33000000000). Expect error type 400: ${config.error.invalidFeeValue}`, async () => {
         try {
-            const result = await userD1.sdk.genericAction('burnFioAddress', {
-                fioAddress: userD1.address,
-                maxFee: -33000000000,
-                technologyProviderId: ''
+            const result = await callFioApiSigned('push_transaction', {
+                action: 'burnaddress',
+                account: 'fio.address',
+                actor: userD1.account,
+                privKey: userD1.privateKey,
+                data: {
+                    "fio_address": userD1.address,
+                    "max_fee": -33000000000,
+                    "tpid": '',
+                    "actor": userD1.account
+                }
             })
-            console.log('Result: ', result);
-            expect(result.status).to.equal(null);
+            //console.log('Result: ', result);
+            expect(result.fields[0].error).to.equal(config.error.invalidFeeValue)
         } catch (err) {
-            //console.log('Error: ', err)
-            expect(err.json.fields[0].error).to.equal(config.error.invalidFeeValue)
-            expect(err.errorCode).to.equal(400);
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
         }
     })
 
@@ -379,31 +374,45 @@ describe('D. burnFioAddress Error testing', () => {
 
     it(`Burn address not owned by actor. Expect error type 403: ${config.error.signatureError}`, async () => {
         try {
-            const result = await userD1.sdk.genericAction('burnFioAddress', {
-                fioAddress: userD2.address,
-                maxFee: config.api.burn_fio_address.fee,
-                technologyProviderId: ''
+            const result = await callFioApiSigned('push_transaction', {
+                action: 'burnaddress',
+                account: 'fio.address',
+                actor: userD1.account,
+                privKey: userD1.privateKey,
+                data: {
+                    "fio_address": userD2.address,
+                    "max_fee": config.api.burn_fio_address.fee,
+                    "tpid": '',
+                    "actor": userD1.account
+                }
             })
-            expect(result.status).to.equal(null);
+            //console.log('Result: ', result);
+            expect(result.message).to.equal(config.error.signatureError)
         } catch (err) {
-            //console.log('Error: ', err)
-            expect(err.json.message).to.equal(config.error.signatureError);
-            expect(err.errorCode).to.equal(403);
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
         }
     })
 
     it(`Burn address that is not registered. Expect error type 400: ${config.error.fioAddressNotRegistered}`, async () => {
         try {
-            const result = await userD1.sdk.genericAction('burnFioAddress', {
-                fioAddress: 'sdaewrewfa@dkahsdk',
-                maxFee: config.api.burn_fio_address.fee,
-                technologyProviderId: ''
+            const result = await callFioApiSigned('push_transaction', {
+                action: 'burnaddress',
+                account: 'fio.address',
+                actor: userD1.account,
+                privKey: userD1.privateKey,
+                data: {
+                    "fio_address": 'sdaewrewfa@dkahsdk',
+                    "max_fee": config.api.burn_fio_address.fee,
+                    "tpid": '',
+                    "actor": userD1.account
+                }
             })
-            expect(result.status).to.equal(null);
+            //console.log('Result: ', result);
+            expect(result.fields[0].error).to.equal(config.error.fioAddressNotRegistered)
         } catch (err) {
-            //console.log('Error: ', err)
-            expect(err.json.fields[0].error).to.equal(config.error.fioAddressNotRegistered)
-            expect(err.errorCode).to.equal(400);
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
         }
     })
 
@@ -451,16 +460,23 @@ describe('D. burnFioAddress Error testing', () => {
 
     it(`Burn address with insufficient max fee. Expect error type 400: ${config.error.feeExceedsMax}`, async () => {
         try {
-            const result = await userD1.sdk.genericAction('burnFioAddress', {
-                fioAddress: userD1.address,
-                maxFee: config.api.burn_fio_address.fee - 200000000,
-                technologyProviderId: ''
+            const result = await callFioApiSigned('push_transaction', {
+                action: 'burnaddress',
+                account: 'fio.address',
+                actor: userD1.account,
+                privKey: userD1.privateKey,
+                data: {
+                    "fio_address": userD1.address,
+                    "max_fee": config.api.burn_fio_address.fee - 200000000,
+                    "tpid": '',
+                    "actor": userD1.account
+                }
             })
-            expect(result.status).to.equal(null);
+            //console.log('Result: ', result);
+            expect(result.fields[0].error).to.equal(config.error.feeExceedsMax)
         } catch (err) {
-            //console.log('Error: ', err)
-            expect(err.json.fields[0].error).to.equal(config.error.feeExceedsMax)
-            expect(err.errorCode).to.equal(400);
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
         }
     })
 
@@ -523,16 +539,23 @@ describe('D. burnFioAddress Error testing', () => {
 
     it(`Burn address with insufficient funds and no bundled transactions. Expect error type 400: ${config.error.insufficientFunds}`, async () => {
         try {
-            const result = await userD1.sdk.genericAction('burnFioAddress', {
-                fioAddress: userD1.address,
-                maxFee: config.api.burn_fio_address.fee,
-                technologyProviderId: ''
+            const result = await callFioApiSigned('push_transaction', {
+                action: 'burnaddress',
+                account: 'fio.address',
+                actor: userD1.account,
+                privKey: userD1.privateKey,
+                data: {
+                    "fio_address": userD1.address,
+                    "max_fee": config.api.burn_fio_address.fee,
+                    "tpid": '',
+                    "actor": userD1.account
+                }
             })
-            expect(result.status).to.equal(null);
+            //console.log('Result: ', result);
+            expect(result.fields[0].error).to.equal(config.error.insufficientFunds)
         } catch (err) {
-            //console.log('Error: ', err.json)
-            expect(err.json.fields[0].error).to.equal(config.error.insufficientFunds)
-            expect(err.errorCode).to.equal(400);
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
         }
     })
 
