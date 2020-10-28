@@ -58,7 +58,7 @@ describe(`************************** transfer-locked-tokens.js *****************
 })
 
 
-describe(`************************** transfer-locked-tokens.js ************************** \n B. Parameter tests`, () => {
+describe(`B. Parameter tests`, () => {
 
 
 
@@ -472,7 +472,7 @@ After tokens are proxied and the proxy votes unlocked token weight is voted
 Register FIO Address can be paid with unlocked tokens
 */
 
-describe(`************************** transfer-locked-tokens.js ************************** \n B. 2 unlock periods, Canvote set to false tests`, () => {
+describe(`B. 2 unlock periods, Canvote set to false tests`, () => {
 
   let rambefore, ramafter, balancebefore, balanceafter, feetransferlocked
 
@@ -681,7 +681,7 @@ describe(`************************** transfer-locked-tokens.js *****************
 
 //end new tests matching testing requirements.
 
-describe(`************************** transfer-locked-tokens.js ************************** \n C. Canvote true, verify tokens are voted.`, () => {
+describe(`C. Canvote true, verify tokens are voted.`, () => {
 
   //test cases
   //1) create votable locked tokens. verify they are votable.
@@ -796,7 +796,7 @@ describe(`************************** transfer-locked-tokens.js *****************
   })
 })
 
-describe(`************************** transfer-locked-tokens.js ************************** \n D. Token unlocking tests`, () => {
+describe(`D. Token unlocking tests`, () => {
 
   it(`Transfer ${fundsAmount} locked FIO using canvote false, two lock periods of 20 sec and 50 percent`, async () => {
     try {

@@ -8,7 +8,7 @@ before(async () => {
     faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
 })
 
-describe('************************** burn-address.js ************************** \n A. Transfer an address to FIO Public Key which maps to existing account on FIO Chain using new endpoint (not push action)', () => {
+describe('************************** burn-address.js ************************** \n A. Test Burn FIO Address using push_transaction with burnaddress action ', () => {
 
     let walletA1, walletA1FioNames, balance, walletA1OrigBalance, burn_fio_address_fee, feeCollected
 
@@ -561,7 +561,7 @@ describe('D. burnFioAddress Error testing', () => {
 
 })
 
-describe('E. Test burnfioaddress SDK call', () => {
+describe('E. Test burnfioaddress SDK call (uses chain/burn_fio_address endpoint)', () => {
 
     let walletA1, walletA1FioNames
 
