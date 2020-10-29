@@ -58,7 +58,7 @@ describe(`************************** transfer-locked-tokens.js *****************
 })
 
 
-describe(`************************** transfer-locked-tokens.js ************************** \n B. Parameter tests`, () => {
+describe(`B. Parameter tests`, () => {
 
 
 
@@ -472,7 +472,7 @@ After tokens are proxied and the proxy votes unlocked token weight is voted
 Register FIO Address can be paid with unlocked tokens
 */
 
-describe(`************************** transfer-locked-tokens.js ************************** \n B. 2 unlock periods, Canvote set to false tests`, () => {
+describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
 
   let rambefore, ramafter, balancebefore, balanceafter, feetransferlocked
 
@@ -494,8 +494,7 @@ describe(`************************** transfer-locked-tokens.js *****************
     balancebefore = result.balance;
   })
 
-
-  it(`Transfer ${fundsAmount} locked FIO using canvote false`, async () => {
+  it(`transferLockedTokens ${fundsAmount}, canvote false, (20,40%) and (40,60%)`, async () => {
     try {
       const result = await userA1.sdk.genericAction('transferLockedTokens', {
         payeePublicKey: keys.publicKey,
@@ -522,7 +521,7 @@ describe(`************************** transfer-locked-tokens.js *****************
     }
   })
 
-  it(`getFioBalance after, verify Fee transfer_locked_tokens `, async () => {
+  it(`getFioBalance after, verify Fee transfer_locked_tokens was collected`, async () => {
     const result = await userA1.sdk.genericAction('getFioBalance', {})
 
     expect(result).to.have.all.keys('balance','available')
@@ -538,7 +537,7 @@ describe(`************************** transfer-locked-tokens.js *****************
 
   })
 
-  it(`Get locks`, async () => {
+  it(`Verify locks were set with get_locks`, async () => {
     try{
     const result = await locksdk.genericAction('getLocks', {fioPublicKey:keys.publicKey})
 
@@ -595,7 +594,8 @@ describe(`************************** transfer-locked-tokens.js *****************
   }
   })
 
-  //begin check that we arent able to vote with this lock
+  it(`Test Case: Check that we arent able to vote with this lock`, async () => { })
+
   it(`Transfer 1000000000000 FIO into locked funds account`, async () => {
     try {
       const result = await userA3.sdk.genericAction('transferTokens', {
@@ -608,8 +608,6 @@ describe(`************************** transfer-locked-tokens.js *****************
       console.log('Error', err)
     }
   })
-
-
 
   it(`Register domain for voting for locked funds account `, async () => {
     try {
@@ -636,7 +634,6 @@ describe(`************************** transfer-locked-tokens.js *****************
       console.log('Error', err)
     }
   })
-
 
   it(`Get bp1@dapixdev total_votes before locked account votes`, async () => {
     try {
@@ -681,10 +678,11 @@ describe(`************************** transfer-locked-tokens.js *****************
 
 //end new tests matching testing requirements.
 
-describe(`************************** transfer-locked-tokens.js ************************** \n C. Canvote true, verify tokens are voted.`, () => {
+describe(`C. Canvote true, verify tokens are voted.`, () => {
 
   //test cases
-  //1) create votable locked tokens. verify they are votable.
+  it(`Test Case: create votable locked tokens. verify they are votable`, async () => { })
+
   it(`Transfer ${fundsAmount} locked FIO, canVote true`, async () => {
     try {
       const result = await userA4.sdk.genericAction('transferLockedTokens', {
@@ -751,8 +749,6 @@ describe(`************************** transfer-locked-tokens.js *****************
     }
   })
 
-
-
   it(`Get bp1@dapixdev total_votes before locked account votes`, async () => {
     try {
       total_bp_votes_before = await getProdVoteTotal('bp1@dapixdev');
@@ -796,7 +792,7 @@ describe(`************************** transfer-locked-tokens.js *****************
   })
 })
 
-describe(`************************** transfer-locked-tokens.js ************************** \n D. Token unlocking tests`, () => {
+describe(`D. Token unlocking tests`, () => {
 
   it(`Transfer ${fundsAmount} locked FIO using canvote false, two lock periods of 20 sec and 50 percent`, async () => {
     try {
@@ -1110,7 +1106,7 @@ let lockholder
 //to perform max tests, comment out the tests (B,C,D), then run the load the protocol with 50k general grants
 //test (E), add the desired number of grants to the system, then skip the load the protocol with 50k general grants test (E)
 //and run (A,B,C,D). this proves the loaded system runs without issue.
-describe(`************************** transfer-locked-tokens.js ************************** \n E. MAX tests`, () => {
+describe(`E. MAX tests`, () => {
 
   it.skip(`load the protocol with 50k general grants`, async () => {
     try {
