@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, fetchJson, timeout} = require('../utils.js');
+const {newUser, fetchJson, callFioApi, timeout} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/FIOSDK')
 config = require('../config.js');
 
@@ -207,8 +207,8 @@ describe(`************************** fio-request.js ************************** \
   
 })
 
-describe(`B. Test FIO Request error conditions`, () => {
-  let userB1, userB2, userB3, userB1RequestId, userB1RequestId2, userB1Balance
+describe.only(`B. Test FIO Request error conditions`, () => {
+  let userB1, userB2, userB3, userB1RequestId, userB1RequestId2, userB1RequestId3, userB1Balance
   const payment = 5000000000 // 5 FIO
   const requestMemo = 'Memo in the initial request'
   const btcPubAdd = 'btc:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9'
@@ -385,9 +385,6 @@ describe(`B. Test FIO Request error conditions`, () => {
     }
   })
 
-
-/*
-
   it(`Cancel request with invalid tpid returns error: ${config.error.invalidTpid}`, async () => {
     try{
       const result = await userB1.sdk.genericAction('pushTransaction', {
@@ -403,7 +400,7 @@ describe(`B. Test FIO Request error conditions`, () => {
       //console.log('Result: ', result);
       expect(result).to.equal(null);
     } catch (err) {
-      //console.log('Error', err.json);
+      //console.log('Error', err.json.fields[0].error);
       expect(err.json.fields[0].error).to.equal(config.error.invalidTpid);
     }
   })
@@ -420,7 +417,7 @@ describe(`B. Test FIO Request error conditions`, () => {
           "actor": userB2.account
         }
       })
-      //console.log('Result: ', result);
+      console.log('Result: ', result);
       expect(result).to.equal(null);
     } catch (err) {
       //console.log('Error', err.json);
@@ -494,7 +491,7 @@ describe(`B. Test FIO Request error conditions`, () => {
       expect(result.status).to.equal('OK') 
     } catch (err) {
       console.log('Error', err)
-      //expect(err).to.equal(null)
+      expect(err).to.equal(null)
     }      
   })
 
@@ -640,7 +637,76 @@ describe(`B. Test FIO Request error conditions`, () => {
       expect(err.json.fields[0].error).to.equal(config.error.insufficientFunds);
     }
   })
-*/
+
+  it(`userB2 requests funds from userB3`, async () => {
+    try {
+      const result = await userB2.sdk.genericAction('requestFunds', { 
+        payerFioAddress: userB3.address, 
+        payeeFioAddress: userB2.address,
+        payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
+        amount: payment,
+        chainCode: 'FIO',
+        tokenCode: 'FIO',
+        memo: requestMemo,
+        maxFee: config.api.new_funds_request.fee,
+        payerFioPublicKey: userB3.publicKey,
+        technologyProviderId: '',
+        hash: '',
+        offLineUrl: ''
+      })    
+      //console.log('Result: ', result)
+      userB1RequestId3 = result.fio_request_id
+      expect(result.status).to.equal('requested') 
+    } catch (err) {
+      console.log('Error: ', err.json)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`userB3 rejects funds request`, async () => {
+    try{
+      const result = await userB3.sdk.genericAction('pushTransaction', {
+        action: 'rejectfndreq',
+        account: 'fio.reqobt',
+        data: {
+          "fio_request_id": userB1RequestId3,
+          "max_fee": config.api.cancel_funds_request.fee,
+          "tpid": '',
+          "actor": userB3.account
+        }
+      })
+      //console.log('Result:', result)
+      expect(result.status).to.equal('request_rejected') 
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it('Wait a few seconds to avoid duplicate transaction.', async () => {
+    await timeout(2000);
+  })
+
+  it(`userB3 rejects funds request again. Error 400 returns ${config.error.ivalidRejection}`, async () => {
+    try{
+      const result = await userB3.sdk.genericAction('pushTransaction', {
+        action: 'rejectfndreq',
+        account: 'fio.reqobt',
+        data: {
+          "fio_request_id": userB1RequestId3,
+          "max_fee": config.api.cancel_funds_request.fee,
+          "tpid": '',
+          "actor": userB3.account
+        }
+      })
+      console.log('Result: ', result);
+      expect(result).to.equal(null);
+    } catch (err) {
+      //console.log('Error', err.json);
+      expect(err.json.fields[0].error).to.equal(config.error.ivalidRejection);
+    }
+  })
+
 })
 
 
