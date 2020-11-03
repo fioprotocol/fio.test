@@ -25,6 +25,8 @@ describe('TEST SUITE', () => {
 
   require('./tests/transfer-locked-tokens.js');  // FIP-6
 
+  //require('./tests/clio.js');  // FIP-6
+
   //require('./tests/transfer-address.js'); // FIP-1.b in testing
 
   
