@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, getProdVoteTotal, fetchJson, generateFioDomain, generateFioAddress, createKeypair} = require('../utils.js');
+const {newUser, getProdVoteTotal, fetchJson, generateFioDomain, callFioApi,  generateFioAddress, createKeypair} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/FIOSDK')
 config = require('../config.js');
 
@@ -59,8 +59,6 @@ describe(`************************** transfer-locked-tokens.js *****************
 
 
 describe(`B. Parameter tests`, () => {
-
-
 
   it(`Transfer locked tokens, fail periods percent not 100`, async () => {
     try {
@@ -426,6 +424,7 @@ describe(`B. Parameter tests`, () => {
 
 })
 
+
 //begin new tests matching testing requirements.
 //to perform max tests, comment out the tests (B,C,D), then run the load the protocol with 50k general grants
 //test (E), add the desired number of grants to the system, then skip the load the protocol with 50k general grants test (E)
@@ -471,6 +470,7 @@ After tokens are proxied and the proxy votes unlocked token weight is voted
 
 Register FIO Address can be paid with unlocked tokens
 */
+
 
 describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
 
@@ -676,9 +676,559 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
   //end check that we arent abl to vote with this lock
 })
 
+describe(`C. staking incentives, canvote = false`, () => {
+
+  let balancebefore, balanceafter, feetransferlocked,
+  stakeKey1, stakeKey2, stakeKey3,stakeKey4, stakeKey5
+
+  let totalstaking = 0
+
+  //error tests, not set 100%.
+  it(`transferLockedTokens ${fundsAmount}, not 100 percent`, async () => {
+    try {
+      stakeKey1 = await createKeypair();
+      const result = await userA1.sdk.genericAction('transferLockedTokens', {
+        payeePublicKey: stakeKey1.publicKey,
+        canVote: false,
+        periods: [
+          {
+            duration: 15552000,
+            percent: 90.0,
+          }
+        ],
+        amount: fundsAmount,
+        maxFee: 400000000000,
+        tpid: '',
+
+      })
+
+    } catch (err) {
+      //console.log('Error', err)
+      var expected = `Error 400`
+      expect(err.message).to.include(expected)
+    }
+  })
+
+  //specify a first period that is incentivised and specify an additional period.
+  it('get total staking rewards in state, ', async () => {
+    let bundleCount
+    try {
+      const json = {
+        json: true,               // Get the response as json
+        code: 'eosio',      // Contract that we target
+        scope: 'eosio',         // Account that owns the data
+        table: 'global4',        // Table name
+        limit: 1000,                // Maximum number of rows that we want to get
+        reverse: false,           // Optional: Get reversed data
+        show_payer: false          // Optional: Show ram payer
+      }
+      result = await callFioApi("get_table_rows", json);
+      totalstaking = result.rows[0].total_staking_incentives_granted
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`transferLockedTokens ${fundsAmount}, no incentive test, set first period as incentive, then also spec a second period`, async () => {
+    try {
+      stakeKey1 = await createKeypair();
+      const result = await userA1.sdk.genericAction('transferLockedTokens', {
+        payeePublicKey: stakeKey1.publicKey,
+        canVote: false,
+        periods: [
+          {
+            duration: 15552000,
+            percent: 50.0,
+          },
+          {
+            duration: 15552075,
+            percent: 50.0,
+          }
+        ],
+        amount: fundsAmount,
+        maxFee: 400000000000,
+        tpid: '',
+
+      })
+      expect(result.status).to.equal('OK')
+      expect(result).to.have.all.keys( 'status', 'fee_collected')
+    } catch (err) {
+      console.log('Error', err)
+    }
+  })
+
+  it(`Get balance for Payee, should have 500`, async () => {
+    try {
+      const json = {
+        "fio_public_key": stakeKey1.publicKey
+      }
+      result = await callFioApi("get_fio_balance", json);
+      walletA1OrigRam = result.balance;
+      expect(result.balance).to.equal(500000000000)
+      //console.log('result is : ', result);
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it('Verify total staking rewards in state, same as previous', async () => {
+    let bundleCount
+    try {
+      const json = {
+        json: true,               // Get the response as json
+        code: 'eosio',      // Contract that we target
+        scope: 'eosio',         // Account that owns the data
+        table: 'global4',        // Table name
+        limit: 1000,                // Maximum number of rows that we want to get
+        reverse: false,           // Optional: Get reversed data
+        show_payer: false          // Optional: Show ram payer
+      }
+      result = await callFioApi("get_table_rows", json);
+      expect(result.rows[0].total_staking_incentives_granted).to.equal(totalstaking )
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  //First tier tests
+  it('get total staking rewards in state, ', async () => {
+    let bundleCount
+    try {
+      const json = {
+        json: true,               // Get the response as json
+        code: 'eosio',      // Contract that we target
+        scope: 'eosio',         // Account that owns the data
+        table: 'global4',        // Table name
+        limit: 1000,                // Maximum number of rows that we want to get
+        reverse: false,           // Optional: Get reversed data
+        show_payer: false          // Optional: Show ram payer
+      }
+      result = await callFioApi("get_table_rows", json);
+      totalstaking = result.rows[0].total_staking_incentives_granted
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`transferLockedTokens ${fundsAmount}, canVote false, first tier staking incentive duration 15552000 percent incentive 5%`, async () => {
+    try {
+      stakeKey1 = await createKeypair();
+      userA1 = await newUser(faucet);
+      const result = await userA1.sdk.genericAction('transferLockedTokens', {
+        payeePublicKey: stakeKey1.publicKey,
+        canVote: false,
+        periods: [
+          {
+            duration: 15552000,
+            percent: 100.0,
+          }
+        ],
+        amount: fundsAmount,
+        maxFee: 400000000000,
+        tpid: '',
+
+      })
+      expect(result.status).to.equal('OK')
+      expect(result).to.have.all.keys( 'status', 'fee_collected')
+    } catch (err) {
+      console.log('Error', err)
+    }
+  })
+
+  it(`Get balance for Payee, should have 500 + 25`, async () => {
+    try {
+      const json = {
+        "fio_public_key": stakeKey1.publicKey
+      }
+      result = await callFioApi("get_fio_balance", json);
+      walletA1OrigRam = result.balance;
+      expect(result.balance).to.equal(525000000000)
+      //console.log('result is : ', result);
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it('Verify total staking rewards in state, previous plus 25000000000', async () => {
+    let bundleCount
+    try {
+      const json = {
+        json: true,               // Get the response as json
+        code: 'eosio',      // Contract that we target
+        scope: 'eosio',         // Account that owns the data
+        table: 'global4',        // Table name
+        limit: 1000,                // Maximum number of rows that we want to get
+        reverse: false,           // Optional: Get reversed data
+        show_payer: false          // Optional: Show ram payer
+      }
+      result = await callFioApi("get_table_rows", json);
+      expect(result.rows[0].total_staking_incentives_granted).to.equal(totalstaking + 25000000000)
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+
+  //second tier tests
+  it('get total staking rewards in state, ', async () => {
+    let bundleCount
+    try {
+      const json = {
+        json: true,               // Get the response as json
+        code: 'eosio',      // Contract that we target
+        scope: 'eosio',         // Account that owns the data
+        table: 'global4',        // Table name
+        limit: 1000,                // Maximum number of rows that we want to get
+        reverse: false,           // Optional: Get reversed data
+        show_payer: false          // Optional: Show ram payer
+      }
+      result = await callFioApi("get_table_rows", json);
+      totalstaking = result.rows[0].total_staking_incentives_granted
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`transferLockedTokens ${fundsAmount}, canVote false, second tier staking incentive duration 31536000 percent incentive 15%`, async () => {
+    try {
+      stakeKey2 = await createKeypair();
+      userA1 = await newUser(faucet);
+      const result = await userA1.sdk.genericAction('transferLockedTokens', {
+        payeePublicKey: stakeKey2.publicKey,
+        canVote: false,
+        periods: [
+          {
+            duration: 31536000,
+            percent: 100.0,
+          }
+        ],
+        amount: fundsAmount,
+        maxFee: 400000000000,
+        tpid: '',
+
+      })
+      expect(result.status).to.equal('OK')
+      expect(result).to.have.all.keys( 'status', 'fee_collected')
+    } catch (err) {
+      console.log('Error', err)
+    }
+  })
+
+  it(`Get balance for Payee, should have 500 + 75`, async () => {
+    try {
+      const json = {
+        "fio_public_key": stakeKey2.publicKey
+      }
+      result = await callFioApi("get_fio_balance", json);
+      walletA1OrigRam = result.balance;
+      expect(result.balance).to.equal(575000000000)
+      //console.log('result is : ', result);
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it('Verify total staking rewards in state, previous plus 75000000000', async () => {
+    let bundleCount
+    try {
+      const json = {
+        json: true,               // Get the response as json
+        code: 'eosio',      // Contract that we target
+        scope: 'eosio',         // Account that owns the data
+        table: 'global4',        // Table name
+        limit: 1000,                // Maximum number of rows that we want to get
+        reverse: false,           // Optional: Get reversed data
+        show_payer: false          // Optional: Show ram payer
+      }
+      result = await callFioApi("get_table_rows", json);
+      expect(result.rows[0].total_staking_incentives_granted).to.equal(totalstaking + 75000000000)
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  //third tier tests
+  it('get total staking rewards in state, ', async () => {
+    let bundleCount
+    try {
+      const json = {
+        json: true,               // Get the response as json
+        code: 'eosio',      // Contract that we target
+        scope: 'eosio',         // Account that owns the data
+        table: 'global4',        // Table name
+        limit: 1000,                // Maximum number of rows that we want to get
+        reverse: false,           // Optional: Get reversed data
+        show_payer: false          // Optional: Show ram payer
+      }
+      result = await callFioApi("get_table_rows", json);
+      totalstaking = result.rows[0].total_staking_incentives_granted
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`transferLockedTokens ${fundsAmount}, canVote false, third tier staking incentive duration 63072000 percent incentive 40%`, async () => {
+    try {
+      stakeKey3 = await createKeypair();
+      userA1 = await newUser(faucet);
+      const result = await userA1.sdk.genericAction('transferLockedTokens', {
+        payeePublicKey: stakeKey3.publicKey,
+        canVote: false,
+        periods: [
+          {
+            duration: 63072000,
+            percent: 100.0,
+          }
+        ],
+        amount: fundsAmount,
+        maxFee: 400000000000,
+        tpid: '',
+
+      })
+      expect(result.status).to.equal('OK')
+      expect(result).to.have.all.keys( 'status', 'fee_collected')
+    } catch (err) {
+      console.log('Error', err)
+    }
+  })
+
+  it(`Get balance for Payee, should have 500 + 200`, async () => {
+    try {
+      const json = {
+        "fio_public_key": stakeKey3.publicKey
+      }
+      result = await callFioApi("get_fio_balance", json);
+      walletA1OrigRam = result.balance;
+      expect(result.balance).to.equal(700000000000)
+      //console.log('result is : ', result);
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it('Verify total staking rewards in state, previous plus 200000000000', async () => {
+    let bundleCount
+    try {
+      const json = {
+        json: true,               // Get the response as json
+        code: 'eosio',      // Contract that we target
+        scope: 'eosio',         // Account that owns the data
+        table: 'global4',        // Table name
+        limit: 1000,                // Maximum number of rows that we want to get
+        reverse: false,           // Optional: Get reversed data
+        show_payer: false          // Optional: Show ram payer
+      }
+      result = await callFioApi("get_table_rows", json);
+      expect(result.rows[0].total_staking_incentives_granted).to.equal(totalstaking + 200000000000)
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  //fourth tier tests
+  it('get total staking rewards in state, ', async () => {
+    let bundleCount
+    try {
+      const json = {
+        json: true,               // Get the response as json
+        code: 'eosio',      // Contract that we target
+        scope: 'eosio',         // Account that owns the data
+        table: 'global4',        // Table name
+        limit: 1000,                // Maximum number of rows that we want to get
+        reverse: false,           // Optional: Get reversed data
+        show_payer: false          // Optional: Show ram payer
+      }
+      result = await callFioApi("get_table_rows", json);
+      totalstaking = result.rows[0].total_staking_incentives_granted
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`transferLockedTokens ${fundsAmount}, canVote false, fourth tier staking incentive duration 94608000 percent incentive 90%`, async () => {
+    try {
+      stakeKey4 = await createKeypair();
+      userA1 = await newUser(faucet);
+      const result = await userA1.sdk.genericAction('transferLockedTokens', {
+        payeePublicKey: stakeKey4.publicKey,
+        canVote: false,
+        periods: [
+          {
+            duration: 94608000,
+            percent: 100.0,
+          }
+        ],
+        amount: fundsAmount,
+        maxFee: 400000000000,
+        tpid: '',
+
+      })
+      expect(result.status).to.equal('OK')
+      expect(result).to.have.all.keys( 'status', 'fee_collected')
+    } catch (err) {
+      console.log('Error', err)
+    }
+  })
+
+  it(`Get balance for Payee, should have 500 + 450`, async () => {
+    try {
+      const json = {
+        "fio_public_key": stakeKey4.publicKey
+      }
+      result = await callFioApi("get_fio_balance", json);
+      walletA1OrigRam = result.balance;
+      expect(result.balance).to.equal(950000000000)
+      //console.log('result is : ', result);
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it('Verify total staking rewards in state, previous plus 450000000000', async () => {
+    let bundleCount
+    try {
+      const json = {
+        json: true,               // Get the response as json
+        code: 'eosio',      // Contract that we target
+        scope: 'eosio',         // Account that owns the data
+        table: 'global4',        // Table name
+        limit: 1000,                // Maximum number of rows that we want to get
+        reverse: false,           // Optional: Get reversed data
+        show_payer: false          // Optional: Show ram payer
+      }
+      result = await callFioApi("get_table_rows", json);
+      expect(result.rows[0].total_staking_incentives_granted).to.equal(totalstaking + 450000000000)
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  //try to re-lock a grant with one period that is incentivised.
+  it(`transferLockedTokens ${fundsAmount}, Error, try to re-lock a grant that is incentivised`, async () => {
+    try {
+      userA1 = await newUser(faucet);
+      const result = await userA1.sdk.genericAction('transferLockedTokens', {
+        payeePublicKey: stakeKey4.publicKey,
+        canVote: false,
+        periods: [
+          {
+            duration: 94608000,
+            percent: 100.0,
+          }
+        ],
+        amount: fundsAmount,
+        maxFee: 400000000000,
+        tpid: '',
+
+      })
+      expect(1).to.equal(2)
+    } catch (err) {
+      var expected = `Error 400`
+      expect(err.message).to.include(expected)
+    }
+  })
+
+  //no incentive one period  tests
+  it('get total staking rewards in state, ', async () => {
+    let bundleCount
+    try {
+      const json = {
+        json: true,               // Get the response as json
+        code: 'eosio',      // Contract that we target
+        scope: 'eosio',         // Account that owns the data
+        table: 'global4',        // Table name
+        limit: 1000,                // Maximum number of rows that we want to get
+        reverse: false,           // Optional: Get reversed data
+        show_payer: false          // Optional: Show ram payer
+      }
+      result = await callFioApi("get_table_rows", json);
+      totalstaking = result.rows[0].total_staking_incentives_granted
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`transferLockedTokens ${fundsAmount}, canVote false, NO staking incentive duration 1000 `, async () => {
+    try {
+      stakeKey5 = await createKeypair();
+      userA1 = await newUser(faucet);
+      const result = await userA1.sdk.genericAction('transferLockedTokens', {
+        payeePublicKey: stakeKey5.publicKey,
+        canVote: false,
+        periods: [
+          {
+            duration: 1000,
+            percent: 100.0,
+          }
+        ],
+        amount: fundsAmount,
+        maxFee: 400000000000,
+        tpid: '',
+
+      })
+      expect(result.status).to.equal('OK')
+      expect(result).to.have.all.keys( 'status', 'fee_collected')
+    } catch (err) {
+      console.log('Error', err)
+    }
+  })
+
+  it(`Get balance for Payee, should have 500`, async () => {
+    try {
+      const json = {
+        "fio_public_key": stakeKey5.publicKey
+      }
+      result = await callFioApi("get_fio_balance", json);
+      walletA1OrigRam = result.balance;
+      expect(result.balance).to.equal(500000000000)
+      //console.log('result is : ', result);
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it('Verify total staking rewards in state, unchanged', async () => {
+    let bundleCount
+    try {
+      const json = {
+        json: true,               // Get the response as json
+        code: 'eosio',      // Contract that we target
+        scope: 'eosio',         // Account that owns the data
+        table: 'global4',        // Table name
+        limit: 1000,                // Maximum number of rows that we want to get
+        reverse: false,           // Optional: Get reversed data
+        show_payer: false          // Optional: Show ram payer
+      }
+      result = await callFioApi("get_table_rows", json);
+      expect(result.rows[0].total_staking_incentives_granted).to.equal(totalstaking )
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  //end check that we arent abl to vote with this lock
+})
 //end new tests matching testing requirements.
 
-describe(`C. Canvote true, verify tokens are voted.`, () => {
+describe(`D. Canvote true, verify tokens are voted.`, () => {
 
   //test cases
   it(`Test Case: create votable locked tokens. verify they are votable`, async () => { })
@@ -792,7 +1342,7 @@ describe(`C. Canvote true, verify tokens are voted.`, () => {
   })
 })
 
-describe(`D. Token unlocking tests`, () => {
+describe(`E. Token unlocking tests`, () => {
 
   it(`Transfer ${fundsAmount} locked FIO using canvote false, two lock periods of 20 sec and 50 percent`, async () => {
     try {
@@ -1100,13 +1650,14 @@ it(`Transfer 5 FIO to another account`, async () => {
 })
 
 
+
 let accounts = [], privkeys = [], pubkeys = []
 let lockholder
 
 //to perform max tests, comment out the tests (B,C,D), then run the load the protocol with 50k general grants
 //test (E), add the desired number of grants to the system, then skip the load the protocol with 50k general grants test (E)
 //and run (A,B,C,D). this proves the loaded system runs without issue.
-describe(`E. MAX tests`, () => {
+describe(`F. MAX tests`, () => {
 
   it.skip(`load the protocol with 50k general grants`, async () => {
     try {
@@ -1353,3 +1904,8 @@ describe(`E. MAX tests`, () => {
 
   })
 })
+
+//total rewards max test that checks that 1: the case where the remaining incentives avail are less than the incentive amount calculated
+// and 2: the case where the remaining
+//this test will require special setup.
+//setup instructions:
