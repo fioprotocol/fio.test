@@ -58,6 +58,7 @@ describe(`************************** transfer-locked-tokens.js *****************
 })
 
 
+
 describe(`B. Parameter tests`, () => {
 
   it(`Transfer locked tokens, fail periods percent not 100`, async () => {
@@ -423,6 +424,7 @@ describe(`B. Parameter tests`, () => {
   })
 
 })
+
 
 
 //begin new tests matching testing requirements.
@@ -1650,7 +1652,6 @@ it(`Transfer 5 FIO to another account`, async () => {
 })
 
 
-
 let accounts = [], privkeys = [], pubkeys = []
 let lockholder
 
@@ -1905,7 +1906,80 @@ describe(`F. MAX tests`, () => {
   })
 })
 
-//total rewards max test that checks that 1: the case where the remaining incentives avail are less than the incentive amount calculated
-// and 2: the case where the remaining
-//this test will require special setup.
-//setup instructions:
+
+
+
+/*
+   THIS manual test will verify the system is handling the edge case of approaching the max FIO to grant for incentives
+   IT is a manual test.
+  this test is a one time test, setup the startup as indicated below and start the chain
+  then do this test.
+
+  TO setup the chain startup we issue 21M to 2 well known accounts in the dev env.
+  we set up these 2 accounts in the chain genesis, so that they each have 21M FIO.
+
+  go to fio.devtools/scripts/launch/08_token_issue.sh.
+  modify the 2 commands for the accounts below so that they match below (change tokens to issue to 21M tokens for these 2 accounts).
+  ./clio -u http://localhost:8879 push action -j fio.token issue '["htjonrkf1lgs","21000000.000000000 FIO","memo"]' -p eosio@active
+  ./clio -u http://localhost:8879 push action -j fio.token issue '["euwdcp13zlrj","21000000.000000000 FIO","memo"]' -p eosio@active
+  restart the chain.
+
+
+  1) get a key to use  ../fio/build/bin/clio -u http://localhost:8889 create key --to-console
+  Note the public key and account name (this is called account1 by these instructions)
+  2) get another key to use.
+  Note the public key and account, these are called account2 by these instructions.
+
+  now we will stake 20M of the tokens into account1 at 90% incentive.
+
+  ../fio/build/bin/clio -u http://localhost:8889 push action fio.token trnsloctoks '{"payee_public_key":"ACCOUNT2PUBLICKEY","can_vote":1,"periods":[{"duration": 94608000,"percent": 100.0}],"amount":20000000000000000,"max_fee":400000000000,"actor":htjonrkf1lgs,"tpid":""}' --permission htjonrkf1lgs
+
+  this command should succeed.
+  next we will verify the incentivised grant amount, and total incentivised tokens used by the protocol.
+
+  verify the total incentive tokens, should be 18M
+  ../fio/build/bin/clio -u http://localhost:8889 get table eosio eosio global4
+
+  next verify the amount in account1
+  ../fio/build/bin/clio -u http://localhost:8889 get currency balance fio.token ACCOUNT1ACCOUNT
+
+  the result should be 38M tokens
+
+  next we will stake the same amount in aacount2, the result should be that the incentive is
+  computed at 2M tokens
+
+  lock the tokens
+  ../fio/build/bin/clio -u http://localhost:8889 push action fio.token trnsloctoks '{"payee_public_key":"ACCOUNT2PUBLICKEY","can_vote":1,"periods":[{"duration": 94608000,"percent": 100.0}],"amount":20000000000000000,"max_fee":400000000000,"actor":euwdcp13zlrj,"tpid":""}' --permission euwdcp13zlrj
+
+  note that the 20M threshold of incentive tokens has been reached
+  ../fio/build/bin/clio -u http://localhost:8889 get table eosio eosio global4
+  the result should be 20M total granted.
+
+  note the amount in the account2 is given 2M in incentives.(Because we reached max incentives)
+  ../fio/build/bin/clio -u http://localhost:8889 get currency balance fio.token ACCOUNT2ACCOUNT
+  the result should be 22M
+
+  EXTRA CREDIT,
+  generate one more set of keys.
+  lock 1M FIO from the first account holding 21M be sure to specify one period, and incentivized duration.
+  note that no incentives are granted (because we already reached the max.
+  YOU can also run the lock tests and note the staking tests fail (because no incentives are given).
+
+
+
+  FIRST 21M holding account!
+
+  ACCOUNT htjonrkf1lgs    -- adam.dapix
+  OWNER KEYS
+  PUBLIC FIO7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN
+  PRIVATE 5JCpqkvsrCzrAC3YWhx7pnLodr3Wr9dNMULYU8yoUrPRzu269Xz
+
+  SECOND 21M holding account!!
+
+  ACCOUNT euwdcp13zlrj
+  OWNER KEYS
+  PUBLIC FIO8NToQB65dZHv28RXSBBiyMCp55M7FRFw6wf4G3GeRt1VsiknrB
+  PRIVATE 5HvaoRV9QrbbxhLh6zZHqTzesFEG5vusVJGbUazFi5xQvKMMt6U
+  */
+
+
