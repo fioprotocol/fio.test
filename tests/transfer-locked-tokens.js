@@ -624,8 +624,101 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
     }
   })
 
+  let transferdomainkey, domsdk;
+  //test transfer of domain with account that has locked and unlocked funds
+  //first create a locked token grant
+  it(`SUCCESS transferLockedTokens ${fundsAmount}, canvote false, (20000,40000 seconds) and (40,60%)`, async () => {
+    try {
+      transferdomainkey= await createKeypair();
+      const result = await userA1.sdk.genericAction('transferLockedTokens', {
+        payeePublicKey: transferdomainkey.publicKey,
+        canVote: false,
+        periods: [
+          {
+            duration: 20000,
+            percent: 40.0,
+          },
+          {
+            duration: 40000,
+            percent: 60.0,
+          }
+        ],
+        amount: fundsAmount,
+        maxFee: 400000000000,
+        tpid: '',
+
+      })
+      expect(result.status).to.equal('OK')
+      expect(result).to.have.all.keys( 'status', 'fee_collected')
+    } catch (err) {
+      console.log('Error', err)
+    }
+  })
+
+  //now add some other funds to the locked token grant, so its a mix of locked and unlocked
+  it(`Transfer 1000 FIO to locked token holder FIO public key`, async () => {
+    const result = await faucet.genericAction('transferTokens', {
+      payeeFioPublicKey: transferdomainkey.publicKey,
+      amount: 1000000000000,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    })
+   // console.log('Result: ', result)
+    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  })
+
+  it(`Get balance for the locked token holder, should have 1000 available`, async () => {
+    try {
+      const json = {
+        "fio_public_key": transferdomainkey.publicKey
+      }
+      result = await callFioApi("get_fio_balance", json);
+      walletA1OrigRam = result.balance;
+      expect(result.available).to.equal(1000000000000)
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Register domain:  succeeds`, async () => {
+    try {
+    domsdk = new FIOSDK(transferdomainkey.privateKey, transferdomainkey.publicKey, config.BASE_URL, fetchJson);
+    domsdk.domain2 = generateFioDomain(8)
+    const result = await domsdk.genericAction('registerFioDomain', {
+      fioDomain: domsdk.domain2,
+      maxFee: config.api.register_fio_domain.fee ,
+      technologyProviderId: ''
+    })
+    //console.log('Result: ', result)
+    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Transfer domain from locked token holder to userA1`, async () => {
+    try {
+      const result = await domsdk.genericAction('transferFioDomain', {
+        fioDomain: domsdk.domain2,
+        newOwnerKey: userA1.publicKey,
+        maxFee: 400000000000,
+        technologyProviderId: ''
+      })
+      feeCollected = result.fee_collected;
+      //console.log('Result: ', result);
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+
   //end check that we arent abl to vote with this lock
 })
+/*
 
 describe(`C. staking incentives, canvote = false`, () => {
 
@@ -1682,7 +1775,7 @@ it(`Transfer 5 FIO to another account`, async () => {
   })
 
 })
-
+*/
 
 
 let accounts = [], privkeys = [], pubkeys = []
