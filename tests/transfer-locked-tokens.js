@@ -843,7 +843,7 @@ describe(`C. staking incentives, canvote = false`, () => {
                 percent: 50.0,
               }
             ],
-            amount: fundsAmount,
+            amount: fundsAmount*2,
             max_fee: 400000000000,
             tpid: '',
             actor: userA1.account,
@@ -863,11 +863,27 @@ describe(`C. staking incentives, canvote = false`, () => {
         }
         result = await callFioApi("get_fio_balance", json);
         walletA1OrigRam = result.balance;
-        expect(result.balance).to.equal(500000000000)
+        expect(result.balance).to.equal(1000000000000)
         //console.log('result is : ', result);
       } catch (err) {
         //console.log('Error', err)
         expect(err).to.equal(null)
+      }
+    })
+  })
+
+  describe(`FAILURE -- general locked grants cannot be used for fees.`, () => {
+    it(`Register domain for voting for locked funds account `, async () => {
+      try {
+        newFioDomain2 = generateFioDomain(15)
+        const result = await userA1.sdk.genericAction('registerFioDomain', {
+          fioDomain: newFioDomain2,
+          maxFee: 800000000000,
+          tpid: '',
+        })
+      } catch (err) {
+        var expected = `Error 400`
+        expect(err.message).to.include(expected)
       }
     })
   })
