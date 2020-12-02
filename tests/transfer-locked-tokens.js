@@ -856,7 +856,7 @@ describe(`C. staking incentives, canvote = false`, () => {
       }
     })
 
-    it(`Get balance for Payee, should have 500`, async () => {
+    it(`Get balance for Payee, should have 1000`, async () => {
       try {
         const json = {
           "fio_public_key": stakeKey1.publicKey
@@ -872,7 +872,7 @@ describe(`C. staking incentives, canvote = false`, () => {
     })
   })
 
-  describe(`FAILURE -- general locked grants cannot be used for fees.`, () => {
+  describe(`FAILURE -- use account of previous test with 1000 fio, general locked grants cannot be used for fees.`, () => {
     it(`Register domain for voting for locked funds account `, async () => {
       try {
         newFioDomain2 = generateFioDomain(15)
