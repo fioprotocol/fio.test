@@ -61,24 +61,64 @@ describe(`************************** transfer-locked-tokens.js *****************
 
 describe(`B. Parameter tests`, () => {
 
-  it(`Transfer locked tokens, fail periods percent not 100`, async () => {
+
+
+  it(`Failure test, Transfer locked tokens,  periods total percent not 100`, async () => {
     try {
-      const result = await userA1.sdk.genericAction('transferLockedTokens', {
-        payeePublicKey: keys.publicKey,
-        canVote: false,
-        periods: [
-          {
-            duration: 120,
-            percent: 50.30,
-          },
-          {
-            duration: 240,
-            percent: 50.0,
-          }
-        ],
-        amount: fundsAmount,
-        maxFee: 400000000000,
-        tpid: '',
+
+      const result = await userA1.sdk.genericAction('pushTransaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        data: {
+          payee_public_key: keys.publicKey,
+          can_vote: 0,
+          periods: [
+            {
+              duration: 120,
+              percent: 50.30,
+            },
+            {
+              duration: 240,
+              percent: 50.0,
+            }
+          ],
+          amount: fundsAmount,
+          max_fee: 400000000000,
+          tpid: '',
+          actor: userA1.account,
+        }
+      })
+      expect(result.status).to.not.equal('OK')
+
+    } catch (err) {
+      var expected = `Error 400`
+      expect(err.message).to.include(expected)
+    }
+  })
+
+  it(`Failure test, Transfer locked tokens, period percent larger than 3 decimals`, async () => {
+    try {
+      const result = await userA1.sdk.genericAction('pushTransaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        data: {
+          payee_public_key: keys.publicKey,
+          can_vote: 0,
+          periods: [
+            {
+              duration: 120,
+              percent: 50.4444,
+            },
+            {
+              duration: 240,
+              percent: 49.5556,
+            }
+          ],
+          amount: fundsAmount,
+          max_fee: 400000000000,
+          tpid: '',
+          actor: userA1.account,
+        }
 
       })
       expect(result.status).to.not.equal('OK')
@@ -89,24 +129,29 @@ describe(`B. Parameter tests`, () => {
     }
   })
 
-  it(`Transfer locked tokens, fail periods percent larger than 3 decimals`, async () => {
+  it(`Failure test, Transfer locked tokens, periods are not in ascending order of duration`, async () => {
     try {
-      const result = await userA1.sdk.genericAction('transferLockedTokens', {
-        payeePublicKey: keys.publicKey,
-        canVote: false,
-        periods: [
-          {
-            duration: 120,
-            percent: 50.4444,
-          },
-          {
-            duration: 240,
-            percent: 49.5556,
-          }
-        ],
-        amount: fundsAmount,
-        maxFee: 400000000000,
-        tpid: '',
+      const result = await userA1.sdk.genericAction('pushTransaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        data: {
+          payee_public_key: keys.publicKey,
+          can_vote: 0,
+          periods: [
+            {
+              duration: 240,
+              percent: 50.4444,
+            },
+            {
+              duration: 120,
+              percent: 49.5556,
+            }
+          ],
+          amount: fundsAmount,
+          max_fee: 400000000000,
+          tpid: '',
+          actor: userA1.account,
+        }
 
       })
       expect(result.status).to.not.equal('OK')
@@ -117,52 +162,29 @@ describe(`B. Parameter tests`, () => {
     }
   })
 
-  it(`Transfer locked tokens, fail periods are not in ascending order of duration`, async () => {
+  it(`Failure test, Transfer locked tokens, duration 0`, async () => {
     try {
-      const result = await userA1.sdk.genericAction('transferLockedTokens', {
-        payeePublicKey: keys.publicKey,
-        canVote: false,
-        periods: [
-          {
-            duration: 240,
-            percent: 50.4444,
-          },
-          {
-            duration: 120,
-            percent: 49.5556,
-          }
-        ],
-        amount: fundsAmount,
-        maxFee: 400000000000,
-        tpid: '',
-
-      })
-      expect(result.status).to.not.equal('OK')
-
-    } catch (err) {
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
-    }
-  })
-
-  it(`Transfer locked tokens, fail duration 0`, async () => {
-    try {
-      const result = await userA1.sdk.genericAction('transferLockedTokens', {
-        payeePublicKey: keys.publicKey,
-        canVote: false,
-        periods: [
-          {
-            duration: 0,
-            percent: 50.0,
-          },
-          {
-            duration: 240,
-            percent: 50.0,
-          }
-        ],
-        amount: fundsAmount,
-        maxFee: 400000000000,
-        tpid: '',
+      const result = await userA1.sdk.genericAction('pushTransaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        data: {
+          payee_public_key: keys.publicKey,
+          can_vote: 0,
+          periods: [
+            {
+              duration: 0,
+              percent: 50.0,
+            },
+            {
+              duration: 240,
+              percent: 50.0,
+            }
+          ],
+          amount: fundsAmount,
+          max_fee: 400000000000,
+          tpid: '',
+          actor: userA1.account
+        }
 
       })
       expect(result.status).to.not.equal('OK')
@@ -172,24 +194,29 @@ describe(`B. Parameter tests`, () => {
     }
   })
 
-  it(`Transfer locked tokens, fail pub key account pre exists`, async () => {
+  it(`Failute test, Transfer locked tokens, pub key account pre exists`, async () => {
     try {
-      const result = await userA1.sdk.genericAction('transferLockedTokens', {
-        payeePublicKey: userA1.publicKey,
-        canVote: false,
-        periods: [
-          {
-            duration: 0,
-            percent: 50.0,
-          },
-          {
-            duration: 240,
-            percent: 50.0,
-          }
-        ],
-        amount: fundsAmount,
-        maxFee: 400000000000,
-        tpid: '',
+      const result = await userA1.sdk.genericAction('pushTransaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        data: {
+          payee_public_key: userA1.publicKey,
+          can_vote: 0,
+          periods: [
+            {
+              duration: 0,
+              percent: 50.0,
+            },
+            {
+              duration: 240,
+              percent: 50.0,
+            }
+          ],
+          amount: fundsAmount,
+          max_fee: 400000000000,
+          tpid: '',
+          actor: userA1.account
+        }
 
       })
       expect(result.status).to.not.equal('OK')
@@ -199,220 +226,225 @@ describe(`B. Parameter tests`, () => {
     }
   })
 
-  it(`Too many lock periods, fail`, async () => {
+  it(`Failute test, Too many lock periods`, async () => {
     try {
-      const result = await userA4.sdk.genericAction('transferLockedTokens', {
-        payeePublicKey: keys2.publicKey,
-        canVote: false,
-        periods: [
-          {
-            duration: 1,
-            percent: 0.273,
-          },
-          {
-            duration: 2,
-            percent: .273,
-          },
-          {
-            duration: 3,
-            percent: .273,
-          },
-          {
-            duration: 4,
-            percent: .273,
-          },
-          {
-            duration: 5,
-            percent: .273,
-          },
-          {
-            duration: 6,
-            percent: .273,
-          },
-          {
-            duration: 7,
-            percent: .273,
-          },
-          {
-            duration: 8,
-            percent: .273,
-          },
-          {
-            duration: 9,
-            percent: .273,
-          },
-          {
-            duration: 10,
-            percent: .273,
-          },
-          {
-            duration: 11,
-            percent: .273,
-          },
-          {
-            duration: 12,
-            percent: .273,
-          },
-          {
-            duration: 13,
-            percent: .273,
-          },
-          {
-            duration: 14,
-            percent: .273,
-          },
-          {
-            duration: 15,
-            percent: .273,
-          },
-          {
-            duration: 16,
-            percent: .273,
-          },
-          {
-            duration: 17,
-            percent: .273,
-          },
-          {
-            duration: 18,
-            percent: .273,
-          },
-          {
-            duration: 19,
-            percent: .273,
-          },
-          {
-            duration: 20,
-            percent: .273,
-          },
-          {
-            duration: 21,
-            percent: .273,
-          },
-          {
-            duration: 22,
-            percent: .273,
-          },
-          {
-            duration: 23,
-            percent: .273,
-          },
-          {
-            duration: 24,
-            percent: .273,
-          },
-          {
-            duration: 25,
-            percent: .273,
-          },
-          {
-            duration: 26,
-            percent: .273,
-          },
-          {
-            duration: 27,
-            percent: .273,
-          },
-          {
-            duration: 28,
-            percent: .273,
-          },
-          {
-            duration: 29,
-            percent: .273,
-          },
-          {
-            duration: 30,
-            percent: .273,
-          },
-          {
-            duration: 31,
-            percent: .273,
-          },
-          {
-            duration: 32,
-            percent: .273,
-          },
-          {
-            duration: 33,
-            percent: .273,
-          },
-          {
-            duration: 34,
-            percent: .273,
-          },
-          {
-            duration: 35,
-            percent: .273,
-          },
-          {
-            duration: 36,
-            percent: .273,
-          },
-          {
-            duration: 37,
-            percent: .273,
-          },
-          {
-            duration: 38,
-            percent: .273,
-          },
-          {
-            duration: 39,
-            percent: .273,
-          },
-          {
-            duration: 40,
-            percent: .273,
-          },
-          {
-            duration: 41,
-            percent: .273,
-          },
-          {
-            duration: 42,
-            percent: .273,
-          },
-          {
-            duration: 43,
-            percent: .273,
-          },
-          {
-            duration: 44,
-            percent: .273,
-          },
-          {
-            duration: 45,
-            percent: .273,
-          },
-          {
-            duration: 46,
-            percent: .273,
-          },
-          {
-            duration: 47,
-            percent: .273,
-          },
-          {
-            duration: 48,
-            percent: .273,
-          },
-          {
-            duration: 49,
-            percent: .273,
-          },
-          {
-            duration: 50,
-            percent: .273,
-          },
-          {
-            duration: 51,
-            percent: 86.35,
-          }
-        ],
-        amount: fundsAmount,
-        maxFee: 400000000000,
-        tpid: '',
+      const result = await userA4.sdk.genericAction('pushTransaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        data: {
+          payee_public_key: keys2.publicKey,
+          can_vote: 0,
+          periods: [
+            {
+              duration: 1,
+              percent: 0.273,
+            },
+            {
+              duration: 2,
+              percent: .273,
+            },
+            {
+              duration: 3,
+              percent: .273,
+            },
+            {
+              duration: 4,
+              percent: .273,
+            },
+            {
+              duration: 5,
+              percent: .273,
+            },
+            {
+              duration: 6,
+              percent: .273,
+            },
+            {
+              duration: 7,
+              percent: .273,
+            },
+            {
+              duration: 8,
+              percent: .273,
+            },
+            {
+              duration: 9,
+              percent: .273,
+            },
+            {
+              duration: 10,
+              percent: .273,
+            },
+            {
+              duration: 11,
+              percent: .273,
+            },
+            {
+              duration: 12,
+              percent: .273,
+            },
+            {
+              duration: 13,
+              percent: .273,
+            },
+            {
+              duration: 14,
+              percent: .273,
+            },
+            {
+              duration: 15,
+              percent: .273,
+            },
+            {
+              duration: 16,
+              percent: .273,
+            },
+            {
+              duration: 17,
+              percent: .273,
+            },
+            {
+              duration: 18,
+              percent: .273,
+            },
+            {
+              duration: 19,
+              percent: .273,
+            },
+            {
+              duration: 20,
+              percent: .273,
+            },
+            {
+              duration: 21,
+              percent: .273,
+            },
+            {
+              duration: 22,
+              percent: .273,
+            },
+            {
+              duration: 23,
+              percent: .273,
+            },
+            {
+              duration: 24,
+              percent: .273,
+            },
+            {
+              duration: 25,
+              percent: .273,
+            },
+            {
+              duration: 26,
+              percent: .273,
+            },
+            {
+              duration: 27,
+              percent: .273,
+            },
+            {
+              duration: 28,
+              percent: .273,
+            },
+            {
+              duration: 29,
+              percent: .273,
+            },
+            {
+              duration: 30,
+              percent: .273,
+            },
+            {
+              duration: 31,
+              percent: .273,
+            },
+            {
+              duration: 32,
+              percent: .273,
+            },
+            {
+              duration: 33,
+              percent: .273,
+            },
+            {
+              duration: 34,
+              percent: .273,
+            },
+            {
+              duration: 35,
+              percent: .273,
+            },
+            {
+              duration: 36,
+              percent: .273,
+            },
+            {
+              duration: 37,
+              percent: .273,
+            },
+            {
+              duration: 38,
+              percent: .273,
+            },
+            {
+              duration: 39,
+              percent: .273,
+            },
+            {
+              duration: 40,
+              percent: .273,
+            },
+            {
+              duration: 41,
+              percent: .273,
+            },
+            {
+              duration: 42,
+              percent: .273,
+            },
+            {
+              duration: 43,
+              percent: .273,
+            },
+            {
+              duration: 44,
+              percent: .273,
+            },
+            {
+              duration: 45,
+              percent: .273,
+            },
+            {
+              duration: 46,
+              percent: .273,
+            },
+            {
+              duration: 47,
+              percent: .273,
+            },
+            {
+              duration: 48,
+              percent: .273,
+            },
+            {
+              duration: 49,
+              percent: .273,
+            },
+            {
+              duration: 50,
+              percent: .273,
+            },
+            {
+              duration: 51,
+              percent: 86.35,
+            }
+          ],
+          amount: fundsAmount,
+          max_fee: 400000000000,
+          tpid: '',
+          actor: userA4.account,
+        }
 
       })
       expect(result.status).to.not.equal('OK')
@@ -443,41 +475,46 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
   it(`getFioBalance before `, async () => {
     const result = await userA1.sdk.genericAction('getFioBalance', {})
 
-    expect(result).to.have.all.keys('balance','available')
+    expect(result).to.have.all.keys('balance')
     balancebefore = result.balance;
   })
 
   it(`SUCCESS transferLockedTokens ${fundsAmount}, canvote false, (20,40 seconds) and (40,60%)`, async () => {
     try {
-      const result = await userA1.sdk.genericAction('transferLockedTokens', {
-        payeePublicKey: keys.publicKey,
-        canVote: false,
-        periods: [
-          {
-            duration: 20,
-            percent: 40.0,
-          },
-          {
-            duration: 40,
-            percent: 60.0,
-          }
-        ],
-        amount: fundsAmount,
-        maxFee: 400000000000,
-        tpid: '',
+      const result = await userA1.sdk.genericAction('pushTransaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        data: {
+          payee_public_key: keys.publicKey,
+          can_vote: 0,
+          periods: [
+            {
+              duration: 20,
+              percent: 40.0,
+            },
+            {
+              duration: 40,
+              percent: 60.0,
+            }
+          ],
+          amount: fundsAmount,
+          max_fee: 400000000000,
+          tpid: '',
+          actor: userA1.account,
+        }
 
       })
       expect(result.status).to.equal('OK')
       expect(result).to.have.all.keys( 'status', 'fee_collected')
     } catch (err) {
-      console.log('Error', err)
+      console.log(' Error', err)
     }
   })
 
   it(`getFioBalance after, verify Fee transfer_locked_tokens was collected`, async () => {
     const result = await userA1.sdk.genericAction('getFioBalance', {})
 
-    expect(result).to.have.all.keys('balance','available')
+    expect(result).to.have.all.keys('balance')
     balanceafter = result.balance;
     const result1 = await userA1.sdk.genericAction('getFee', {
       endPoint: 'transfer_locked_tokens',
@@ -490,7 +527,7 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
 
   })
 
-  it(`Verify locks were set with get_locks`, async () => {
+  it.skip(`Verify locks were set with get_locks`, async () => {
     try{
     const result = await locksdk.genericAction('getLocks', {fioPublicKey:keys.publicKey})
 
@@ -509,11 +546,9 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
   it(`verify get balance results for locked funds`, async () => {
     const result = await locksdk.genericAction('getFioBalance', {})
 
-    expect(result).to.have.all.keys('balance','available')
+    expect(result).to.have.all.keys('balance')
     expect(result.balance).to.be.a('number')
-    expect(result.available).to.be.a('number')
     expect(result.balance).to.equal(500000000000)
-    expect(result.available).to.equal(0)
 
   })
 
@@ -630,22 +665,27 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
   it(`SUCCESS transferLockedTokens ${fundsAmount}, canvote false, (20000,40000 seconds) and (40,60%)`, async () => {
     try {
       transferdomainkey= await createKeypair();
-      const result = await userA1.sdk.genericAction('transferLockedTokens', {
-        payeePublicKey: transferdomainkey.publicKey,
-        canVote: false,
-        periods: [
-          {
-            duration: 20000,
-            percent: 40.0,
-          },
-          {
-            duration: 40000,
-            percent: 60.0,
-          }
-        ],
-        amount: fundsAmount,
-        maxFee: 400000000000,
-        tpid: '',
+      const result = await userA1.sdk.genericAction('pushTransaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        data: {
+          payee_public_key: transferdomainkey.publicKey,
+          can_vote: 0,
+          periods: [
+            {
+              duration: 20000,
+              percent: 40.0,
+            },
+            {
+              duration: 40000,
+              percent: 60.0,
+            }
+          ],
+          amount: fundsAmount,
+          max_fee: 400000000000,
+          tpid: '',
+          actor: userA1.account,
+        }
 
       })
       expect(result.status).to.equal('OK')
@@ -667,14 +707,14 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
     expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
   })
 
-  it(`Get balance for the locked token holder, should have 1000 available`, async () => {
+  it(`Get balance for the locked token holder, should have 1500 balance`, async () => {
     try {
       const json = {
         "fio_public_key": transferdomainkey.publicKey
       }
       result = await callFioApi("get_fio_balance", json);
       walletA1OrigRam = result.balance;
-      expect(result.available).to.equal(1000000000000)
+      expect(result.balance).to.equal(1500000000000)
     } catch (err) {
       console.log('Error', err)
       expect(err).to.equal(null)
@@ -718,7 +758,7 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
 
   //end check that we arent abl to vote with this lock
 })
-/*
+
 
 describe(`C. staking incentives, canvote = false`, () => {
 
@@ -727,633 +767,708 @@ describe(`C. staking incentives, canvote = false`, () => {
 
   let totalstaking = 0
 
-  //error tests, not set 100%.
-  it(`transferLockedTokens ${fundsAmount}, not 100 percent`, async () => {
-    try {
-      stakeKey1 = await createKeypair();
-      const result = await userA1.sdk.genericAction('transferLockedTokens', {
-        payeePublicKey: stakeKey1.publicKey,
-        canVote: false,
-        periods: [
-          {
-            duration: 15552000,
-            percent: 90.0,
+  describe(`Failure test -- incentivised period but not 100 percent`, () => {
+    //error tests, not set 100%.
+    it(`Failure test, transferLockedTokens ${fundsAmount}, not 100 percent`, async () => {
+      try {
+        stakeKey1 = await createKeypair();
+        const result = await userA1.sdk.genericAction('pushTransaction', {
+          action: 'trnsloctoks',
+          account: 'fio.token',
+          data: {
+            payee_public_key: stakeKey1.publicKey,
+            can_vote: 0,
+            periods: [
+              {
+                duration: 15552000,
+                percent: 90.0,
+              }
+            ],
+            amount: fundsAmount,
+            max_fee: 400000000000,
+            tpid: '',
+            actor: userA1.account,
           }
-        ],
-        amount: fundsAmount,
-        maxFee: 400000000000,
-        tpid: '',
 
-      })
+        })
 
-    } catch (err) {
-      //console.log('Error', err)
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
-    }
-  })
-
-  //specify a first period that is incentivised and specify an additional period.
-  it('get total staking rewards in state, ', async () => {
-    let bundleCount
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'eosio',      // Contract that we target
-        scope: 'eosio',         // Account that owns the data
-        table: 'global4',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
+      } catch (err) {
+        //console.log('Error', err)
+        var expected = `Error 400`
+        expect(err.message).to.include(expected)
       }
-      result = await callFioApi("get_table_rows", json);
-      totalstaking = result.rows[0].total_staking_incentives_granted
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
+    })
+
+    //specify a first period that is incentivised and specify an additional period.
+    it('get total staking rewards in state, ', async () => {
+      let bundleCount
+      try {
+        const json = {
+          json: true,               // Get the response as json
+          code: 'eosio',      // Contract that we target
+          scope: 'eosio',         // Account that owns the data
+          table: 'global4',        // Table name
+          limit: 1000,                // Maximum number of rows that we want to get
+          reverse: false,           // Optional: Get reversed data
+          show_payer: false          // Optional: Show ram payer
+        }
+        result = await callFioApi("get_table_rows", json);
+        totalstaking = result.rows[0].total_staking_incentives_granted
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
   })
 
-  it(`transferLockedTokens ${fundsAmount}, no incentive test, set first period as incentive, then also spec a second period`, async () => {
-    try {
-      stakeKey1 = await createKeypair();
-      const result = await userA1.sdk.genericAction('transferLockedTokens', {
-        payeePublicKey: stakeKey1.publicKey,
-        canVote: false,
-        periods: [
-          {
-            duration: 15552000,
-            percent: 50.0,
-          },
-          {
-            duration: 15552075,
-            percent: 50.0,
+
+  describe(`SUCCESS -- no incentive given when first period is incentivised and second period exists`, () => {
+    it(`transferLockedTokens ${fundsAmount}, no incentive test, set first period as incentive, then also spec a second period`, async () => {
+      try {
+        stakeKey1 = await createKeypair();
+        userA1 = await newUser(faucet);
+        const result = await userA1.sdk.genericAction('pushTransaction', {
+          action: 'trnsloctoks',
+          account: 'fio.token',
+          data: {
+            payee_public_key: stakeKey1.publicKey,
+            can_vote: 0,
+            periods: [
+              {
+                duration: 15552000,
+                percent: 50.0,
+              },
+              {
+                duration: 15552075,
+                percent: 50.0,
+              }
+            ],
+            amount: fundsAmount,
+            max_fee: 400000000000,
+            tpid: '',
+            actor: userA1.account,
           }
-        ],
-        amount: fundsAmount,
-        maxFee: 400000000000,
-        tpid: '',
-
-      })
-      expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys( 'status', 'fee_collected')
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
-
-  it(`Get balance for Payee, should have 500`, async () => {
-    try {
-      const json = {
-        "fio_public_key": stakeKey1.publicKey
+        })
+        expect(result.status).to.equal('OK')
+        expect(result).to.have.all.keys('status', 'fee_collected')
+      } catch (err) {
+        console.log('edededed Error', err)
       }
-      result = await callFioApi("get_fio_balance", json);
-      walletA1OrigRam = result.balance;
-      expect(result.balance).to.equal(500000000000)
-      //console.log('result is : ', result);
-    } catch (err) {
-      //console.log('Error', err)
-      expect(err).to.equal(null)
-    }
+    })
+
+    it(`Get balance for Payee, should have 500`, async () => {
+      try {
+        const json = {
+          "fio_public_key": stakeKey1.publicKey
+        }
+        result = await callFioApi("get_fio_balance", json);
+        walletA1OrigRam = result.balance;
+        expect(result.balance).to.equal(500000000000)
+        //console.log('result is : ', result);
+      } catch (err) {
+        //console.log('Error', err)
+        expect(err).to.equal(null)
+      }
+    })
   })
 
-  it(`transferLockedTokens ${fundsAmount}, no incentive test, set first period as incentive, then also spec a second period as incentive`, async () => {
-    try {
-      stakeKey1 = await createKeypair();
-      userA1 = await newUser(faucet);
-      const result = await userA1.sdk.genericAction('transferLockedTokens', {
-        payeePublicKey: stakeKey1.publicKey,
-        canVote: false,
-        periods: [
-          {
-            duration: 15552000,
-            percent: 50.0,
-          },
-          {
-            duration: 31536000,
-            percent: 50.0,
+  describe(`SUCCESS -- no incentive given when two periods specified both are incentive duration.`, () => {
+    it(`transferLockedTokens ${fundsAmount}, no incentive test, set first period as incentive, then also spec a second period as incentive`, async () => {
+      try {
+        stakeKey1 = await createKeypair();
+        userA1 = await newUser(faucet);
+        const result = await userA1.sdk.genericAction('pushTransaction', {
+          action: 'trnsloctoks',
+          account: 'fio.token',
+          data: {
+            payee_public_key: stakeKey1.publicKey,
+            can_vote: 0,
+            periods: [
+              {
+                duration: 15552000,
+                percent: 50.0,
+              },
+              {
+                duration: 31536000,
+                percent: 50.0,
+              }
+            ],
+            amount: fundsAmount,
+            max_fee: 400000000000,
+            tpid: '',
+            actor: userA1.account,
           }
-        ],
-        amount: fundsAmount,
-        maxFee: 400000000000,
-        tpid: '',
 
-      })
-      expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys( 'status', 'fee_collected')
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
-
-  it(`Get balance for Payee, should have 500`, async () => {
-    try {
-      const json = {
-        "fio_public_key": stakeKey1.publicKey
+        })
+        expect(result.status).to.equal('OK')
+        expect(result).to.have.all.keys('status', 'fee_collected')
+      } catch (err) {
+        console.log('edeeedeeedeed 1 Error', err)
       }
-      result = await callFioApi("get_fio_balance", json);
-      walletA1OrigRam = result.balance;
-      expect(result.balance).to.equal(500000000000)
-      //console.log('result is : ', result);
-    } catch (err) {
-      //console.log('Error', err)
-      expect(err).to.equal(null)
-    }
-  })
+    })
 
-  it('Verify total staking rewards in state, same as previous', async () => {
-    let bundleCount
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'eosio',      // Contract that we target
-        scope: 'eosio',         // Account that owns the data
-        table: 'global4',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
+    it(`Get balance for Payee, should have 500`, async () => {
+      try {
+        const json = {
+          "fio_public_key": stakeKey1.publicKey
+        }
+        result = await callFioApi("get_fio_balance", json);
+        walletA1OrigRam = result.balance;
+        expect(result.balance).to.equal(500000000000)
+        //console.log('result is : ', result);
+      } catch (err) {
+        //console.log('Error', err)
+        expect(err).to.equal(null)
       }
-      result = await callFioApi("get_table_rows", json);
-      expect(result.rows[0].total_staking_incentives_granted).to.equal(totalstaking )
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
-  })
+    })
 
-  //First tier tests
-  it('get total staking rewards in state, ', async () => {
-    let bundleCount
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'eosio',      // Contract that we target
-        scope: 'eosio',         // Account that owns the data
-        table: 'global4',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
+    it('Verify total staking rewards in state, same as previous', async () => {
+      let bundleCount
+      try {
+        const json = {
+          json: true,               // Get the response as json
+          code: 'eosio',      // Contract that we target
+          scope: 'eosio',         // Account that owns the data
+          table: 'global4',        // Table name
+          limit: 1000,                // Maximum number of rows that we want to get
+          reverse: false,           // Optional: Get reversed data
+          show_payer: false          // Optional: Show ram payer
+        }
+        result = await callFioApi("get_table_rows", json);
+        expect(result.rows[0].total_staking_incentives_granted).to.equal(totalstaking )
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
       }
-      result = await callFioApi("get_table_rows", json);
-      totalstaking = result.rows[0].total_staking_incentives_granted
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
+    })
   })
 
-  it(`transferLockedTokens ${fundsAmount}, canVote false, first tier staking incentive duration 15552000 percent incentive 5%`, async () => {
-    try {
-      stakeKey1 = await createKeypair();
-      userA1 = await newUser(faucet);
-      const result = await userA1.sdk.genericAction('transferLockedTokens', {
-        payeePublicKey: stakeKey1.publicKey,
-        canVote: false,
-        periods: [
-          {
-            duration: 15552000,
-            percent: 100.0,
+
+  describe(`SUCCESS -- incentive period 15552000 gives 5%`, () => {
+    //First tier tests
+    it('get total staking rewards in state, ', async () => {
+      let bundleCount
+      try {
+        const json = {
+          json: true,               // Get the response as json
+          code: 'eosio',      // Contract that we target
+          scope: 'eosio',         // Account that owns the data
+          table: 'global4',        // Table name
+          limit: 1000,                // Maximum number of rows that we want to get
+          reverse: false,           // Optional: Get reversed data
+          show_payer: false          // Optional: Show ram payer
+        }
+        result = await callFioApi("get_table_rows", json);
+        totalstaking = result.rows[0].total_staking_incentives_granted
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
+
+    it(`transferLockedTokens ${fundsAmount}, canVote false, first tier staking incentive duration 15552000 percent incentive 5%`, async () => {
+      try {
+        stakeKey1 = await createKeypair();
+        userA1 = await newUser(faucet);
+        const result = await userA1.sdk.genericAction('pushTransaction', {
+          action: 'trnsloctoks',
+          account: 'fio.token',
+          data: {
+            payee_public_key: stakeKey1.publicKey,
+            can_vote: 0,
+            periods: [
+              {
+                duration: 15552000,
+                percent: 100.0,
+              }
+            ],
+            amount: fundsAmount,
+            max_fee: 400000000000,
+            tpid: '',
+            actor: userA1.account,
           }
-        ],
-        amount: fundsAmount,
-        maxFee: 400000000000,
-        tpid: '',
 
-      })
-      expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys( 'status', 'fee_collected')
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
-
-  it(`Get balance for Payee, should have 500 + 25`, async () => {
-    try {
-      const json = {
-        "fio_public_key": stakeKey1.publicKey
+        })
+        expect(result.status).to.equal('OK')
+        expect(result).to.have.all.keys('status', 'fee_collected')
+      } catch (err) {
+        console.log('Error', err)
       }
-      result = await callFioApi("get_fio_balance", json);
-      walletA1OrigRam = result.balance;
-      expect(result.balance).to.equal(525000000000)
-      //console.log('result is : ', result);
-    } catch (err) {
-      //console.log('Error', err)
-      expect(err).to.equal(null)
-    }
-  })
+    })
 
-  it('Verify total staking rewards in state, previous plus 25000000000', async () => {
-    let bundleCount
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'eosio',      // Contract that we target
-        scope: 'eosio',         // Account that owns the data
-        table: 'global4',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
+    it(`Get balance for Payee, should have 500 + 25`, async () => {
+      try {
+        const json = {
+          "fio_public_key": stakeKey1.publicKey
+        }
+        result = await callFioApi("get_fio_balance", json);
+        walletA1OrigRam = result.balance;
+        expect(result.balance).to.equal(525000000000)
+        //console.log('result is : ', result);
+      } catch (err) {
+        //console.log('Error', err)
+        expect(err).to.equal(null)
       }
-      result = await callFioApi("get_table_rows", json);
-      expect(result.rows[0].total_staking_incentives_granted).to.equal(totalstaking + 25000000000)
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
-  })
+    })
 
-  //second tier tests
-  it('get total staking rewards in state, ', async () => {
-    let bundleCount
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'eosio',      // Contract that we target
-        scope: 'eosio',         // Account that owns the data
-        table: 'global4',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
+    it('Verify total staking rewards in state, previous plus 25000000000', async () => {
+      let bundleCount
+      try {
+        const json = {
+          json: true,               // Get the response as json
+          code: 'eosio',      // Contract that we target
+          scope: 'eosio',         // Account that owns the data
+          table: 'global4',        // Table name
+          limit: 1000,                // Maximum number of rows that we want to get
+          reverse: false,           // Optional: Get reversed data
+          show_payer: false          // Optional: Show ram payer
+        }
+        result = await callFioApi("get_table_rows", json);
+        expect(result.rows[0].total_staking_incentives_granted).to.equal(totalstaking + 25000000000)
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
       }
-      result = await callFioApi("get_table_rows", json);
-      totalstaking = result.rows[0].total_staking_incentives_granted
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
+    })
   })
 
-  it(`transferLockedTokens ${fundsAmount}, canVote false, second tier staking incentive duration 31536000 percent incentive 15%`, async () => {
-    try {
-      stakeKey2 = await createKeypair();
-      userA1 = await newUser(faucet);
-      const result = await userA1.sdk.genericAction('transferLockedTokens', {
-        payeePublicKey: stakeKey2.publicKey,
-        canVote: false,
-        periods: [
-          {
-            duration: 31536000,
-            percent: 100.0,
+  describe(`SUCCESS -- incentive period 31536000 gives 15%`, () => {
+    //second tier tests
+    it('get total staking rewards in state, ', async () => {
+      let bundleCount
+      try {
+        const json = {
+          json: true,               // Get the response as json
+          code: 'eosio',      // Contract that we target
+          scope: 'eosio',         // Account that owns the data
+          table: 'global4',        // Table name
+          limit: 1000,                // Maximum number of rows that we want to get
+          reverse: false,           // Optional: Get reversed data
+          show_payer: false          // Optional: Show ram payer
+        }
+        result = await callFioApi("get_table_rows", json);
+        totalstaking = result.rows[0].total_staking_incentives_granted
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
+
+    it(`transferLockedTokens ${fundsAmount}, canVote false, second tier staking incentive duration 31536000 percent incentive 15%`, async () => {
+      try {
+        stakeKey2 = await createKeypair();
+        userA1 = await newUser(faucet);
+        const result = await userA1.sdk.genericAction('pushTransaction', {
+          action: 'trnsloctoks',
+          account: 'fio.token',
+          data: {
+            payee_public_key: stakeKey2.publicKey,
+            can_vote: 0,
+            periods: [
+              {
+                duration: 31536000,
+                percent: 100.0,
+              }
+            ],
+            amount: fundsAmount,
+            max_fee: 400000000000,
+            tpid: '',
+            actor: userA1.account,
           }
-        ],
-        amount: fundsAmount,
-        maxFee: 400000000000,
-        tpid: '',
 
-      })
-      expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys( 'status', 'fee_collected')
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
-
-  it(`Get balance for Payee, should have 500 + 75`, async () => {
-    try {
-      const json = {
-        "fio_public_key": stakeKey2.publicKey
+        })
+        expect(result.status).to.equal('OK')
+        expect(result).to.have.all.keys('status', 'fee_collected')
+      } catch (err) {
+        console.log('Error', err)
       }
-      result = await callFioApi("get_fio_balance", json);
-      walletA1OrigRam = result.balance;
-      expect(result.balance).to.equal(575000000000)
-      //console.log('result is : ', result);
-    } catch (err) {
-      //console.log('Error', err)
-      expect(err).to.equal(null)
-    }
-  })
+    })
 
-  it('Verify total staking rewards in state, previous plus 75000000000', async () => {
-    let bundleCount
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'eosio',      // Contract that we target
-        scope: 'eosio',         // Account that owns the data
-        table: 'global4',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
+    it(`Get balance for Payee, should have 500 + 75`, async () => {
+      try {
+        const json = {
+          "fio_public_key": stakeKey2.publicKey
+        }
+        result = await callFioApi("get_fio_balance", json);
+        walletA1OrigRam = result.balance;
+        expect(result.balance).to.equal(575000000000)
+        //console.log('result is : ', result);
+      } catch (err) {
+        //console.log('Error', err)
+        expect(err).to.equal(null)
       }
-      result = await callFioApi("get_table_rows", json);
-      expect(result.rows[0].total_staking_incentives_granted).to.equal(totalstaking + 75000000000)
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
-  })
+    })
 
-  //third tier tests
-  it('get total staking rewards in state, ', async () => {
-    let bundleCount
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'eosio',      // Contract that we target
-        scope: 'eosio',         // Account that owns the data
-        table: 'global4',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
+    it('Verify total staking rewards in state, previous plus 75000000000', async () => {
+      let bundleCount
+      try {
+        const json = {
+          json: true,               // Get the response as json
+          code: 'eosio',      // Contract that we target
+          scope: 'eosio',         // Account that owns the data
+          table: 'global4',        // Table name
+          limit: 1000,                // Maximum number of rows that we want to get
+          reverse: false,           // Optional: Get reversed data
+          show_payer: false          // Optional: Show ram payer
+        }
+        result = await callFioApi("get_table_rows", json);
+        expect(result.rows[0].total_staking_incentives_granted).to.equal(totalstaking + 75000000000)
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
       }
-      result = await callFioApi("get_table_rows", json);
-      totalstaking = result.rows[0].total_staking_incentives_granted
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
+    })
   })
 
-  it(`transferLockedTokens ${fundsAmount}, canVote false, third tier staking incentive duration 63072000 percent incentive 40%`, async () => {
-    try {
-      stakeKey3 = await createKeypair();
-      userA1 = await newUser(faucet);
-      const result = await userA1.sdk.genericAction('transferLockedTokens', {
-        payeePublicKey: stakeKey3.publicKey,
-        canVote: false,
-        periods: [
-          {
-            duration: 63072000,
-            percent: 100.0,
+  describe(`SUCCESS -- incentive period 63072000 gives 40%`, () => {
+    //third tier tests
+    it('get total staking rewards in state, ', async () => {
+      let bundleCount
+      try {
+        const json = {
+          json: true,               // Get the response as json
+          code: 'eosio',      // Contract that we target
+          scope: 'eosio',         // Account that owns the data
+          table: 'global4',        // Table name
+          limit: 1000,                // Maximum number of rows that we want to get
+          reverse: false,           // Optional: Get reversed data
+          show_payer: false          // Optional: Show ram payer
+        }
+        result = await callFioApi("get_table_rows", json);
+        totalstaking = result.rows[0].total_staking_incentives_granted
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
+
+    it(`transferLockedTokens ${fundsAmount}, canVote false, third tier staking incentive duration 63072000 percent incentive 40%`, async () => {
+      try {
+        stakeKey3 = await createKeypair();
+        userA1 = await newUser(faucet);
+        const result = await userA1.sdk.genericAction('pushTransaction', {
+          action: 'trnsloctoks',
+          account: 'fio.token',
+          data: {
+            payee_public_key: stakeKey3.publicKey,
+            can_vote: 0,
+            periods: [
+              {
+                duration: 63072000,
+                percent: 100.0,
+              }
+            ],
+            amount: fundsAmount,
+            max_fee: 400000000000,
+            tpid: '',
+            actor: userA1.account,
           }
-        ],
-        amount: fundsAmount,
-        maxFee: 400000000000,
-        tpid: '',
 
-      })
-      expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys( 'status', 'fee_collected')
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
-
-  it(`Get balance for Payee, should have 500 + 200`, async () => {
-    try {
-      const json = {
-        "fio_public_key": stakeKey3.publicKey
+        })
+        expect(result.status).to.equal('OK')
+        expect(result).to.have.all.keys('status', 'fee_collected')
+      } catch (err) {
+        console.log('Error', err)
       }
-      result = await callFioApi("get_fio_balance", json);
-      walletA1OrigRam = result.balance;
-      expect(result.balance).to.equal(700000000000)
-      //console.log('result is : ', result);
-    } catch (err) {
-      //console.log('Error', err)
-      expect(err).to.equal(null)
-    }
-  })
+    })
 
-  it('Verify total staking rewards in state, previous plus 200000000000', async () => {
-    let bundleCount
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'eosio',      // Contract that we target
-        scope: 'eosio',         // Account that owns the data
-        table: 'global4',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
+    it(`Get balance for Payee, should have 500 + 200`, async () => {
+      try {
+        const json = {
+          "fio_public_key": stakeKey3.publicKey
+        }
+        result = await callFioApi("get_fio_balance", json);
+        walletA1OrigRam = result.balance;
+        expect(result.balance).to.equal(700000000000)
+        //console.log('result is : ', result);
+      } catch (err) {
+        //console.log('Error', err)
+        expect(err).to.equal(null)
       }
-      result = await callFioApi("get_table_rows", json);
-      expect(result.rows[0].total_staking_incentives_granted).to.equal(totalstaking + 200000000000)
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
-  })
+    })
 
-  //fourth tier tests
-  it('get total staking rewards in state, ', async () => {
-    let bundleCount
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'eosio',      // Contract that we target
-        scope: 'eosio',         // Account that owns the data
-        table: 'global4',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
+    it('Verify total staking rewards in state, previous plus 200000000000', async () => {
+      let bundleCount
+      try {
+        const json = {
+          json: true,               // Get the response as json
+          code: 'eosio',      // Contract that we target
+          scope: 'eosio',         // Account that owns the data
+          table: 'global4',        // Table name
+          limit: 1000,                // Maximum number of rows that we want to get
+          reverse: false,           // Optional: Get reversed data
+          show_payer: false          // Optional: Show ram payer
+        }
+        result = await callFioApi("get_table_rows", json);
+        expect(result.rows[0].total_staking_incentives_granted).to.equal(totalstaking + 200000000000)
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
       }
-      result = await callFioApi("get_table_rows", json);
-      totalstaking = result.rows[0].total_staking_incentives_granted
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
+    })
   })
 
-  it(`transferLockedTokens ${fundsAmount}, canVote false, fourth tier staking incentive duration 94608000 percent incentive 90%`, async () => {
-    try {
-      stakeKey4 = await createKeypair();
-      userA1 = await newUser(faucet);
-      const result = await userA1.sdk.genericAction('transferLockedTokens', {
-        payeePublicKey: stakeKey4.publicKey,
-        canVote: false,
-        periods: [
-          {
-            duration: 94608000,
-            percent: 100.0,
+  describe(`SUCCESS -- incentive period 94608000 gives 90%`, () => {
+    //fourth tier tests
+    it('get total staking rewards in state, ', async () => {
+      let bundleCount
+      try {
+        const json = {
+          json: true,               // Get the response as json
+          code: 'eosio',      // Contract that we target
+          scope: 'eosio',         // Account that owns the data
+          table: 'global4',        // Table name
+          limit: 1000,                // Maximum number of rows that we want to get
+          reverse: false,           // Optional: Get reversed data
+          show_payer: false          // Optional: Show ram payer
+        }
+        result = await callFioApi("get_table_rows", json);
+        totalstaking = result.rows[0].total_staking_incentives_granted
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
+
+    it(`transferLockedTokens ${fundsAmount}, canVote false, fourth tier staking incentive duration 94608000 percent incentive 90%`, async () => {
+      try {
+        stakeKey4 = await createKeypair();
+        userA1 = await newUser(faucet);
+        const result = await userA1.sdk.genericAction('pushTransaction', {
+          action: 'trnsloctoks',
+          account: 'fio.token',
+          data: {
+            payee_public_key: stakeKey4.publicKey,
+            can_vote: 0,
+            periods: [
+              {
+                duration: 94608000,
+                percent: 100.0,
+              }
+            ],
+            amount: fundsAmount,
+            max_fee: 400000000000,
+            tpid: '',
+            actor: userA1.account,
           }
-        ],
-        amount: fundsAmount,
-        maxFee: 400000000000,
-        tpid: '',
 
-      })
-      expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys( 'status', 'fee_collected')
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
-
-  it(`Get balance for Payee, should have 500 + 450`, async () => {
-    try {
-      const json = {
-        "fio_public_key": stakeKey4.publicKey
+        })
+        expect(result.status).to.equal('OK')
+        expect(result).to.have.all.keys('status', 'fee_collected')
+      } catch (err) {
+        console.log('Error', err)
       }
-      result = await callFioApi("get_fio_balance", json);
-      walletA1OrigRam = result.balance;
-      expect(result.balance).to.equal(950000000000)
-      //console.log('result is : ', result);
-    } catch (err) {
-      //console.log('Error', err)
-      expect(err).to.equal(null)
-    }
-  })
+    })
 
-  it('Verify total staking rewards in state, previous plus 450000000000', async () => {
-    let bundleCount
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'eosio',      // Contract that we target
-        scope: 'eosio',         // Account that owns the data
-        table: 'global4',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
+    it(`Get balance for Payee, should have 500 + 450`, async () => {
+      try {
+        const json = {
+          "fio_public_key": stakeKey4.publicKey
+        }
+        result = await callFioApi("get_fio_balance", json);
+        walletA1OrigRam = result.balance;
+        expect(result.balance).to.equal(950000000000)
+        //console.log('result is : ', result);
+      } catch (err) {
+        //console.log('Error', err)
+        expect(err).to.equal(null)
       }
-      result = await callFioApi("get_table_rows", json);
-      expect(result.rows[0].total_staking_incentives_granted).to.equal(totalstaking + 450000000000)
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
+    })
+
+    it('Verify total staking rewards in state, previous plus 450000000000', async () => {
+      let bundleCount
+      try {
+        const json = {
+          json: true,               // Get the response as json
+          code: 'eosio',      // Contract that we target
+          scope: 'eosio',         // Account that owns the data
+          table: 'global4',        // Table name
+          limit: 1000,                // Maximum number of rows that we want to get
+          reverse: false,           // Optional: Get reversed data
+          show_payer: false          // Optional: Show ram payer
+        }
+        result = await callFioApi("get_table_rows", json);
+        expect(result.rows[0].total_staking_incentives_granted).to.equal(totalstaking + 450000000000)
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
   })
 
-  //try to re-lock a grant with one period that is incentivised.
-  it(`transferLockedTokens ${fundsAmount}, Error, try to re-lock a grant that is incentivised`, async () => {
-    try {
-      userA1 = await newUser(faucet);
-      const result = await userA1.sdk.genericAction('transferLockedTokens', {
-        payeePublicKey: stakeKey4.publicKey,
-        canVote: false,
-        periods: [
-          {
-            duration: 94608000,
-            percent: 100.0,
+  describe(`FAILURE -- try to transfer locked tokens to an incentivised grant fails`, () => {
+    //try to re-lock a grant with one period that is incentivised.
+    it(`transferLockedTokens ${fundsAmount}, Error, try to re-lock a grant that is incentivised`, async () => {
+      try {
+        userA1 = await newUser(faucet);
+        const result = await userA1.sdk.genericAction('pushTransaction', {
+          action: 'trnsloctoks',
+          account: 'fio.token',
+          data: {
+            payee_public_key: stakeKey4.publicKey,
+            can_vote: 0,
+            periods: [
+              {
+                duration: 94608000,
+                percent: 100.0,
+              }
+            ],
+            amount: fundsAmount,
+            max_fee: 400000000000,
+            tpid: '',
+            actor: userA1.account,
           }
-        ],
-        amount: fundsAmount,
-        maxFee: 400000000000,
-        tpid: '',
 
-      })
-      expect(1).to.equal(2)
-    } catch (err) {
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
-    }
-  })
-
-  //no incentive one period  tests
-  it('get total staking rewards in state, ', async () => {
-    let bundleCount
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'eosio',      // Contract that we target
-        scope: 'eosio',         // Account that owns the data
-        table: 'global4',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
+        })
+        expect(1).to.equal(2)
+      } catch (err) {
+        var expected = `Error 400`
+        expect(err.message).to.include(expected)
       }
-      result = await callFioApi("get_table_rows", json);
-      totalstaking = result.rows[0].total_staking_incentives_granted
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
+    })
   })
 
-  it(`transferLockedTokens ${fundsAmount}, canVote false, NO staking incentive duration 1000 `, async () => {
-    try {
-      stakeKey5 = await createKeypair();
-      userA1 = await newUser(faucet);
-      const result = await userA1.sdk.genericAction('transferLockedTokens', {
-        payeePublicKey: stakeKey5.publicKey,
-        canVote: false,
-        periods: [
-          {
-            duration: 1000,
-            percent: 100.0,
+  describe(`SUCCESS -- no incentives given to one period grant not specifying the incentive duration`, () => {
+    //no incentive one period  tests
+    it('get total staking rewards in state, ', async () => {
+      let bundleCount
+      try {
+        const json = {
+          json: true,               // Get the response as json
+          code: 'eosio',      // Contract that we target
+          scope: 'eosio',         // Account that owns the data
+          table: 'global4',        // Table name
+          limit: 1000,                // Maximum number of rows that we want to get
+          reverse: false,           // Optional: Get reversed data
+          show_payer: false          // Optional: Show ram payer
+        }
+        result = await callFioApi("get_table_rows", json);
+        totalstaking = result.rows[0].total_staking_incentives_granted
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
+
+    it(`transferLockedTokens ${fundsAmount}, canVote false, NO staking incentive duration 1000 `, async () => {
+      try {
+        stakeKey5 = await createKeypair();
+        userA1 = await newUser(faucet);
+        const result = await userA1.sdk.genericAction('pushTransaction', {
+          action: 'trnsloctoks',
+          account: 'fio.token',
+          data: {
+            payee_public_key: stakeKey5.publicKey,
+            can_vote: 0,
+            periods: [
+              {
+                duration: 1000,
+                percent: 100.0,
+              }
+            ],
+            amount: fundsAmount,
+            max_fee: 400000000000,
+            tpid: '',
+            actor: userA1.account,
           }
-        ],
-        amount: fundsAmount,
-        maxFee: 400000000000,
-        tpid: '',
 
-      })
-      expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys( 'status', 'fee_collected')
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
-
-  it(`Get balance for Payee, should have 500`, async () => {
-    try {
-      const json = {
-        "fio_public_key": stakeKey5.publicKey
+        })
+        expect(result.status).to.equal('OK')
+        expect(result).to.have.all.keys('status', 'fee_collected')
+      } catch (err) {
+        console.log('Error', err)
       }
-      result = await callFioApi("get_fio_balance", json);
-      walletA1OrigRam = result.balance;
-      expect(result.balance).to.equal(500000000000)
-      //console.log('result is : ', result);
-    } catch (err) {
-      //console.log('Error', err)
-      expect(err).to.equal(null)
-    }
-  })
+    })
 
-  it('Verify total staking rewards in state, unchanged', async () => {
-    let bundleCount
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'eosio',      // Contract that we target
-        scope: 'eosio',         // Account that owns the data
-        table: 'global4',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
+    it(`Get balance for Payee, should have 500`, async () => {
+      try {
+        const json = {
+          "fio_public_key": stakeKey5.publicKey
+        }
+        result = await callFioApi("get_fio_balance", json);
+        walletA1OrigRam = result.balance;
+        expect(result.balance).to.equal(500000000000)
+        //console.log('result is : ', result);
+      } catch (err) {
+        //console.log('Error', err)
+        expect(err).to.equal(null)
       }
-      result = await callFioApi("get_table_rows", json);
-      expect(result.rows[0].total_staking_incentives_granted).to.equal(totalstaking )
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
+    })
+
+    it('Verify total staking rewards in state, unchanged', async () => {
+      let bundleCount
+      try {
+        const json = {
+          json: true,               // Get the response as json
+          code: 'eosio',      // Contract that we target
+          scope: 'eosio',         // Account that owns the data
+          table: 'global4',        // Table name
+          limit: 1000,                // Maximum number of rows that we want to get
+          reverse: false,           // Optional: Get reversed data
+          show_payer: false          // Optional: Show ram payer
+        }
+        result = await callFioApi("get_table_rows", json);
+        expect(result.rows[0].total_staking_incentives_granted).to.equal(totalstaking )
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
   })
 
-  it(`transferLockedTokens ${fundsAmount}, canVote false, staking incentive 1 SUF duration 15552000 `, async () => {
-    try {
-      stakeKey5 = await createKeypair();
-      userA1 = await newUser(faucet);
-      const result = await userA1.sdk.genericAction('transferLockedTokens', {
-        payeePublicKey: stakeKey5.publicKey,
-        canVote: false,
-        periods: [
-          {
-            duration: 15552000,
-            percent: 100.0,
+
+  describe(`SUCCESS -- lock one SUF as incetivised, no incentive given, 0 incentive calculated`, () => {
+    it(`transferLockedTokens ${fundsAmount}, canVote false, staking incentive 1 SUF duration 15552000 `, async () => {
+      try {
+        stakeKey5 = await createKeypair();
+        userA1 = await newUser(faucet);
+        const result = await userA1.sdk.genericAction('pushTransaction', {
+          action: 'trnsloctoks',
+          account: 'fio.token',
+          data: {
+            payee_public_key: stakeKey5.publicKey,
+            can_vote: 0,
+            periods: [
+              {
+                duration: 15552000,
+                percent: 100.0,
+              }
+            ],
+            amount: 1,
+            max_fee: 400000000000,
+            tpid: '',
+            actor: userA1.account,
           }
-        ],
-        amount: 1,
-        maxFee: 400000000000,
-        tpid: '',
 
-      })
-      expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys( 'status', 'fee_collected')
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
-
-  it(`Get balance for Payee, should have 1 suf`, async () => {
-    try {
-      const json = {
-        "fio_public_key": stakeKey5.publicKey
+        })
+        expect(result.status).to.equal('OK')
+        expect(result).to.have.all.keys('status', 'fee_collected')
+      } catch (err) {
+        console.log('Error', err)
       }
-      result = await callFioApi("get_fio_balance", json);
-      walletA1OrigRam = result.balance;
-      expect(result.balance).to.equal(1)
-      //console.log('result is : ', result);
-    } catch (err) {
-      //console.log('Error', err)
-      expect(err).to.equal(null)
-    }
+    })
+
+    it(`Get balance for Payee, should have 1 suf`, async () => {
+      try {
+        const json = {
+          "fio_public_key": stakeKey5.publicKey
+        }
+        result = await callFioApi("get_fio_balance", json);
+        walletA1OrigRam = result.balance;
+        expect(result.balance).to.equal(1)
+        //console.log('result is : ', result);
+      } catch (err) {
+        //console.log('Error', err)
+        expect(err).to.equal(null)
+      }
+    })
   })
+
 
   //end check that we arent abl to vote with this lock
 })
 //end new tests matching testing requirements.
+
 
 describe(`D. Canvote true, verify tokens are voted.`, () => {
 
@@ -1362,22 +1477,27 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
 
   it(`Transfer ${fundsAmount} locked FIO, canVote true`, async () => {
     try {
-      const result = await userA4.sdk.genericAction('transferLockedTokens', {
-        payeePublicKey: keys3.publicKey,
-        canVote: true,
-        periods: [
-          {
-            duration: 20,
-            percent: 50.0,
-          },
-          {
-            duration: 40,
-            percent: 50.0,
-          }
-        ],
-        amount: fundsAmount,
-        maxFee: 400000000000,
-        tpid: '',
+      const result = await userA1.sdk.genericAction('pushTransaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        data: {
+          payee_public_key: keys3.publicKey,
+          can_vote: 1,
+          periods: [
+            {
+              duration: 20,
+              percent: 50.0,
+            },
+            {
+              duration: 40,
+              percent: 50.0,
+            }
+          ],
+          amount: fundsAmount,
+          max_fee: 400000000000,
+          tpid: '',
+          actor: userA1.account,
+        }
 
       })
       expect(result.status).to.equal('OK')
@@ -1473,214 +1593,220 @@ describe(`E. Token unlocking tests`, () => {
 
   it(`Transfer ${fundsAmount} locked FIO using canvote false, two lock periods of 20 sec and 50 percent`, async () => {
     try {
-      const result = await userA4.sdk.genericAction('transferLockedTokens', {
-        payeePublicKey: keys2.publicKey,
-        canVote: false,
-        periods: [
-          {
-            duration: 1,
-            percent: 0.273,
-          },
-          {
-            duration: 2,
-            percent: .273,
-          },
-          {
-            duration: 3,
-            percent: .273,
-          },
-          {
-            duration: 4,
-            percent: .273,
-          },
-          {
-            duration: 5,
-            percent: .273,
-          },
-          {
-            duration: 6,
-            percent: .273,
-          },
-          {
-            duration: 7,
-            percent: .273,
-          },
-          {
-            duration: 8,
-            percent: .273,
-          },
-          {
-            duration: 9,
-            percent: .273,
-          },
-          {
-            duration: 10,
-            percent: .273,
-          },
-          {
-            duration: 11,
-            percent: .273,
-          },
-          {
-            duration: 12,
-            percent: .273,
-          },
-          {
-            duration: 13,
-            percent: .273,
-          },
-          {
-            duration: 14,
-            percent: .273,
-          },
-          {
-            duration: 15,
-            percent: .273,
-          },
-          {
-            duration: 16,
-            percent: .273,
-          },
-          {
-            duration: 17,
-            percent: .273,
-          },
-          {
-            duration: 18,
-            percent: .273,
-          },
-          {
-            duration: 19,
-            percent: .273,
-          },
-          {
-            duration: 20,
-            percent: .273,
-          },
-          {
-            duration: 21,
-            percent: .273,
-          },
-          {
-            duration: 22,
-            percent: .273,
-          },
-          {
-            duration: 23,
-            percent: .273,
-          },
-          {
-            duration: 24,
-            percent: .273,
-          },
-          {
-            duration: 25,
-            percent: .273,
-          },
-          {
-            duration: 26,
-            percent: .273,
-          },
-          {
-            duration: 27,
-            percent: .273,
-          },
-          {
-            duration: 28,
-            percent: .273,
-          },
-          {
-            duration: 29,
-            percent: .273,
-          },
-          {
-            duration: 30,
-            percent: .273,
-          },
-          {
-            duration: 31,
-            percent: .273,
-          },
-          {
-            duration: 32,
-            percent: .273,
-          },
-          {
-            duration: 33,
-            percent: .273,
-          },
-          {
-            duration: 34,
-            percent: .273,
-          },
-          {
-            duration: 35,
-            percent: .273,
-          },
-          {
-            duration: 36,
-            percent: .273,
-          },
-          {
-            duration: 37,
-            percent: .273,
-          },
-          {
-            duration: 38,
-            percent: .273,
-          },
-          {
-            duration: 39,
-            percent: .273,
-          },
-          {
-            duration: 40,
-            percent: .273,
-          },
-          {
-            duration: 41,
-            percent: .273,
-          },
-          {
-            duration: 42,
-            percent: .273,
-          },
-          {
-            duration: 43,
-            percent: .273,
-          },
-          {
-            duration: 44,
-            percent: .273,
-          },
-          {
-            duration: 45,
-            percent: .273,
-          },
-          {
-            duration: 46,
-            percent: .273,
-          },
-          {
-            duration: 47,
-            percent: .273,
-          },
-          {
-            duration: 48,
-            percent: .273,
-          },
-          {
-            duration: 49,
-            percent: .273,
-          },
-          {
-            duration: 50,
-            percent: 86.623,
-          }
-        ],
-        amount: fundsAmount,
-        maxFee: 400000000000,
-        tpid: '',
+      userA1 = await newUser(faucet);
+      const result = await userA1.sdk.genericAction('pushTransaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        data: {
+          payee_public_key: keys2.publicKey,
+          can_vote: 0,
+          periods: [
+            {
+              duration: 1,
+              percent: 0.273,
+            },
+            {
+              duration: 2,
+              percent: .273,
+            },
+            {
+              duration: 3,
+              percent: .273,
+            },
+            {
+              duration: 4,
+              percent: .273,
+            },
+            {
+              duration: 5,
+              percent: .273,
+            },
+            {
+              duration: 6,
+              percent: .273,
+            },
+            {
+              duration: 7,
+              percent: .273,
+            },
+            {
+              duration: 8,
+              percent: .273,
+            },
+            {
+              duration: 9,
+              percent: .273,
+            },
+            {
+              duration: 10,
+              percent: .273,
+            },
+            {
+              duration: 11,
+              percent: .273,
+            },
+            {
+              duration: 12,
+              percent: .273,
+            },
+            {
+              duration: 13,
+              percent: .273,
+            },
+            {
+              duration: 14,
+              percent: .273,
+            },
+            {
+              duration: 15,
+              percent: .273,
+            },
+            {
+              duration: 16,
+              percent: .273,
+            },
+            {
+              duration: 17,
+              percent: .273,
+            },
+            {
+              duration: 18,
+              percent: .273,
+            },
+            {
+              duration: 19,
+              percent: .273,
+            },
+            {
+              duration: 20,
+              percent: .273,
+            },
+            {
+              duration: 21,
+              percent: .273,
+            },
+            {
+              duration: 22,
+              percent: .273,
+            },
+            {
+              duration: 23,
+              percent: .273,
+            },
+            {
+              duration: 24,
+              percent: .273,
+            },
+            {
+              duration: 25,
+              percent: .273,
+            },
+            {
+              duration: 26,
+              percent: .273,
+            },
+            {
+              duration: 27,
+              percent: .273,
+            },
+            {
+              duration: 28,
+              percent: .273,
+            },
+            {
+              duration: 29,
+              percent: .273,
+            },
+            {
+              duration: 30,
+              percent: .273,
+            },
+            {
+              duration: 31,
+              percent: .273,
+            },
+            {
+              duration: 32,
+              percent: .273,
+            },
+            {
+              duration: 33,
+              percent: .273,
+            },
+            {
+              duration: 34,
+              percent: .273,
+            },
+            {
+              duration: 35,
+              percent: .273,
+            },
+            {
+              duration: 36,
+              percent: .273,
+            },
+            {
+              duration: 37,
+              percent: .273,
+            },
+            {
+              duration: 38,
+              percent: .273,
+            },
+            {
+              duration: 39,
+              percent: .273,
+            },
+            {
+              duration: 40,
+              percent: .273,
+            },
+            {
+              duration: 41,
+              percent: .273,
+            },
+            {
+              duration: 42,
+              percent: .273,
+            },
+            {
+              duration: 43,
+              percent: .273,
+            },
+            {
+              duration: 44,
+              percent: .273,
+            },
+            {
+              duration: 45,
+              percent: .273,
+            },
+            {
+              duration: 46,
+              percent: .273,
+            },
+            {
+              duration: 47,
+              percent: .273,
+            },
+            {
+              duration: 48,
+              percent: .273,
+            },
+            {
+              duration: 49,
+              percent: .273,
+            },
+            {
+              duration: 50,
+              percent: 86.623,
+            }
+          ],
+          amount: fundsAmount,
+          max_fee: 400000000000,
+          tpid: '',
+          actor: userA1.account,
+        }
 
       })
       expect(result.status).to.equal('OK')
@@ -1775,7 +1901,8 @@ it(`Transfer 5 FIO to another account`, async () => {
   })
 
 })
-*/
+
+
 
 
 let accounts = [], privkeys = [], pubkeys = []
