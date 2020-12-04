@@ -22,6 +22,7 @@ describe('TEST SUITE', () => {
   require('./tests/burn-address.js'); // FIP-7
   //require('./tests/fee-voting-fee-setting.js'); // FIP-10
   //require('./tests/producer-fee-setting.js');  // FIP-10
+  require('./tests/record-obt-data.js'); //FIP-1b testing
 
   require('./tests/transfer-locked-tokens.js');  // FIP-6 locking tests
   require('./tests/transfer-locked-tokens-account-tests.js');  // FIP-6 tests of generic account functionality
