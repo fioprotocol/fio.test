@@ -16,7 +16,7 @@ const config = {
     URL: TESTURL,
     BASE_URL: TESTURL + '/v1/',
     CLIO: DEVTOOLSDIR + '/bin/clio -u ' + TESTURL,
-    WALLETKEY: 'PW5JWKUxcvw2FetP4oMASuPcBfSEdZ33WZucEp8PaJtjdLdEuPfpE', // Unlocks local FIO wallet
+    WALLETKEY: 'PW5JqTyLtZXzmDhVjP6jKK2yJ4tbXA4Gi9zaTepYF9b73U1DZhzmv', // Unlocks local FIO wallet
 
     //use this prod key file after you get a copy of the file from Ed, then you can run the
     //fee-voting-fee-setting.js.

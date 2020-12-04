@@ -141,21 +141,24 @@ describe(`C. Domain`, () => {
 
 })
 
-describe(`D. Address`, () => {
+describe.only(`D. Address`, () => {
     let user1, user2
 
-    let publicAddresses = [
+    let BCHAddress = 
         {
           chain_code: 'BCH',
           token_code: 'BCH',
-          public_address: 'bitcoincash:qg9',
-          },
+          public_address: 'bitcoincashqg9',
+          clioAddress: 'BCH,BCH,bitcoincashqg9'
+          }
+
+    let DASHAddress =
         {
           chain_code: 'DASH',
           token_code: 'DASH',
           public_address: 'XyCyPKzTWvW2XdcYjPaPXGQDCGk946ywEv',
+          clioAddress: 'DASH,DASH,XyCyPKzTWvW2XdcYjPaPXGQDCGk946ywEv'
         }
-      ]
 
     it(`Create users and import private keys`, async () => {
         user1 = await newUser(faucet);
@@ -198,17 +201,32 @@ describe(`D. Address`, () => {
 
     it(`address add_pub. Add BCH address `, async () => {
         try {
-            result = await runClio(`address add_pub -j ${user1.account} ${publicAddresses[0].chain_code} ${publicAddresses[0].token_code} ${publicAddresses[0].public_address} ${user1.address} ${tpid} ${max_fee} --permission ${user1.account}@active`);
+            result = await runClio(`address add_pub -j ${user1.account} ${BCHAddress.clioAddress} ${user1.address} ${tpid} ${max_fee} --permission ${user1.account}@active`);
             console.log('Result: ', JSON.parse(result));
             expect(JSON.parse(result).transaction_id).to.exist
         } catch (err) {
             console.log('Error', err)
         }
     })
+
+    it('confirm BCH address was added', async () => {
+        try {
+          const result = await user1.sdk.genericAction('getPublicAddress', {
+            fioAddress: user1.address,
+            chainCode: "BCH",
+            tokenCode: "BCH"
+          })
+          //console.log('Result', result)
+          expect(result.public_address).to.equal(BCHAddress.public_address)
+        } catch (err) {
+          //console.log('Error', err)
+          expect(err).to.equal(null)
+        }
+      })
 
     it(`address add_pub. Add DASH address `, async () => {
         try {
-            result = await runClio(`address add_pub -j ${user1.account} ${publicAddresses[1].chain_code} ${publicAddresses[1].token_code} ${publicAddresses[1].public_address} ${user1.address} ${tpid} ${max_fee} --permission ${user1.account}@active`);
+            result = await runClio(`address add_pub -j ${user1.account} ${DASHAddress.clioAddress} ${user1.address} ${tpid} ${max_fee} --permission ${user1.account}@active`);
             console.log('Result: ', JSON.parse(result));
             expect(JSON.parse(result).transaction_id).to.exist
         } catch (err) {
@@ -216,9 +234,24 @@ describe(`D. Address`, () => {
         }
     })
 
+    it('confirm DASH address was added', async () => {
+        try {
+          const result = await user1.sdk.genericAction('getPublicAddress', {
+            fioAddress: user1.address,
+            chainCode: "DASH",
+            tokenCode: "DASH"
+          })
+          //console.log('Result', result)
+          expect(result.public_address).to.equal(DASHAddress.public_address)
+        } catch (err) {
+          //console.log('Error', err)
+          expect(err).to.equal(null)
+        }
+      })
+
     it(`address remove_pub for BCH`, async () => {
         try {
-            result = await runClio(`address remove_pub -j ${user1.account} ${publicAddresses[0].chain_code} ${publicAddresses[0].token_code} ${publicAddresses[0].public_address} ${user1.address} ${tpid} ${max_fee} --permission ${user1.account}@active`);
+            result = await runClio(`address remove_pub -j ${user1.account} ${BCHAddress} ${user1.address} ${tpid} ${max_fee} --permission ${user1.account}@active`);
             console.log('Result: ', JSON.parse(result));
             expect(JSON.parse(result).transaction_id).to.exist
         } catch (err) {
@@ -242,7 +275,7 @@ describe(`D. Address`, () => {
 
     it(`Re-add BCH address`, async () => {
         try {
-            result = await runClio(`address add_pub ${user1.account} ${publicAddresses[0].chain_code} ${publicAddresses[0].token_code} ${publicAddresses[0].public_address} ${user1.address} ${tpid} ${max_fee} --permission ${user1.account}@active`);
+            result = await runClio(`address add_pub -j ${user1.account} ${BCHAddress.clioAddress} ${user1.address} ${tpid} ${max_fee} --permission ${user1.account}@active`);
             console.log('Result: ', JSON.parse(result));
             expect(JSON.parse(result).transaction_id).to.exist
         } catch (err) {
@@ -297,7 +330,7 @@ describe(`E. Convert`, () => {
     })
 })
 
-describe.only(`F. Transfer`, () => {
+describe(`F. Transfer`, () => {
     let user1, user2, prevFundsAmount
     const fundsAmount = 10000000000
 
@@ -321,8 +354,8 @@ describe.only(`F. Transfer`, () => {
 
     it(`transfer ${fundsAmount} FIO to user2 FIO public key`, async () => {
         try {
-            result = await runClio(`transfer -j ${user2.publicKey} ${fundsAmount} ${user1.account} ${max_fee} ${tpid} --permission ${user1.account}@active`);
-            console.log('Result: ', JSON.parse(result));
+            result = await runClio(`transfer -j ${user2.publicKey} ${fundsAmount} ${user1.account} ${tpid} ${max_fee} --permission ${user1.account}@active`);
+            //console.log('Result: ', JSON.parse(result));
             expect(JSON.parse(result).transaction_id).to.exist
         } catch (err) {
             console.log('Error', err)
@@ -333,6 +366,26 @@ describe.only(`F. Transfer`, () => {
         const result = await user2.sdk.genericAction('getFioBalance', {})
         //console.log('Result: ', result)
         expect(result.balance).to.equal(fundsAmount + prevFundsAmount)
+    })
+
+})
+
+describe(`G. Vote Producer`, () => {
+    let user1
+
+    it(`Create users and import private keys`, async () => {
+        user1 = await newUser(faucet);
+        result = await runClio('wallet import -n fio --private-key ' + user1.privateKey);
+    })
+
+    it(`userA1 votes for bp@dapixdev`, async () => {
+        try {
+            result = await runClio(`system voteproducer prods -j ${user1.address} ${user1.account} ${max_fee} bp1@dapixdev --permission ${user1.account}@active`);
+            //console.log('Result: ', JSON.parse(result));
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+            console.log('Error', err)
+        }
     })
 
 })
