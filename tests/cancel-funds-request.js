@@ -1,9 +1,11 @@
 require('mocha')
 config = require('../config.js');
 const {expect} = require('chai')
-const {newUser, fetchJson, callFioApi} = require('../utils.js');
+const {newUser, fetchJson, timeout, callFioApi} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/FIOSDK')
 
+/* Need to make this a parameter that is set at runtime*/
+let target = "push"
 
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
@@ -127,20 +129,48 @@ describe(`************************** cancel-funds-request.js *******************
     }
   })
 
-  it(`Call cancel_funds_request to cancel request in pending state`, async () => {
-    try{
-      const result = await userA1.sdk.genericAction('cancelFundsRequest', {
-        fioRequestId: userA1RequestId,
-        maxFee: cancel_funds_request_fee,
-        technologyProviderId: ''
-      })
-      //console.log('Result: ', result);
-      expect(result).to.have.all.keys('status', 'fee_collected')
-      expect(result.status).to.equal('cancelled');
-      expect(result.fee_collected).to.equal(0);
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
+  it(`(sdk) Call cancel_funds_request to cancel request in pending state`, async function() {
+    if (target === 'sdk') {
+      try{
+        const result = await userA1.sdk.genericAction('cancelFundsRequest', {
+          fioRequestId: userA1RequestId,
+          maxFee: cancel_funds_request_fee,
+          technologyProviderId: ''
+        })
+        //console.log('Result: ', result);
+        expect(result).to.have.all.keys('status', 'fee_collected')
+        expect(result.status).to.equal('cancelled');
+        expect(result.fee_collected).to.equal(0);
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    } else {
+      this.skip();
+    }
+  })
+
+  it(`(pushTransaction) Call cancel_funds_request to cancel request in pending state`, async function() {
+    if (target === 'push') {
+      try{
+        const result = await userA1.sdk.genericAction('pushTransaction', {
+          action: 'cancelfndreq',
+          account: 'fio.reqobt',
+          data: {
+            "fio_request_id": userA1RequestId,
+            "max_fee": config.api.cancel_funds_request.fee,
+            "tpid": '',
+            "actor": userA1.account
+          }
+        })
+        //console.log('Result: ', result);
+        expect(result.status).to.equal('cancelled');
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    } else {
+      this.skip();
     }
   })
 
@@ -402,20 +432,48 @@ describe('B. cancel_funds_request with NO bundles remaining', () => {
     }
   })
 
-  it(`Call cancel_funds_request to cancel request in pending state. Verify fee was collected`, async () => {
-    try{
-      const result = await userB1.sdk.genericAction('cancelFundsRequest', {
-        fioRequestId: userB1RequestId,
-        maxFee: cancel_funds_request_fee,
-        technologyProviderId: ''
-      })
-      //console.log('Result: ', result);
-      expect(result).to.have.all.keys('status', 'fee_collected')
-      expect(result.status).to.equal('cancelled');
-      expect(result.fee_collected).to.equal(cancel_funds_request_fee);
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
+  it(`(sdk) Call cancel_funds_request to cancel request in pending state. Verify fee was collected`,  async function() {
+    if (target === 'sdk') {
+      try{
+        const result = await userB1.sdk.genericAction('cancelFundsRequest', {
+          fioRequestId: userB1RequestId,
+          maxFee: cancel_funds_request_fee,
+          technologyProviderId: ''
+        })
+        //console.log('Result: ', result);
+        expect(result).to.have.all.keys('status', 'fee_collected')
+        expect(result.status).to.equal('cancelled');
+        expect(result.fee_collected).to.equal(cancel_funds_request_fee);
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    } else {
+      this.skip();
+    }
+  })
+
+  it(`(pushTransaction) Call cancel_funds_request to cancel request in pending state`, async function() {
+    if (target === 'push') {
+      try{
+        const result = await userB1.sdk.genericAction('pushTransaction', {
+          action: 'cancelfndreq',
+          account: 'fio.reqobt',
+          data: {
+            "fio_request_id": userB1RequestId,
+            "max_fee": config.api.cancel_funds_request.fee,
+            "tpid": '',
+            "actor": userB1.account
+          }
+        })
+        //console.log('Result: ', result);
+        expect(result.status).to.equal('cancelled');
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    } else {
+      this.skip();
     }
   })
 
@@ -781,6 +839,10 @@ describe(`C. Test cancel_funds_request error conditions`, () => {
       //console.log('Error', err)
       expect(err).to.equal(null)
     }
+  })
+
+  it('Wait a few seconds.', async () => {
+    await timeout(3000);
   })
 
   it('Call get_table_rows from fionames to get bundles remaining for userC1. Verify 0 bundles', async () => {

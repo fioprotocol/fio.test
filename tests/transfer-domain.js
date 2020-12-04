@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, generateFioAddress, generateFioDomain, createKeypair, callFioApi, getFees, fetchJson} = require('../utils.js');
+const {newUser, generateFioAddress, generateFioDomain, createKeypair, callFioApi, getFees, timeout, fetchJson} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/FIOSDK')
 config = require('../config.js');
 
@@ -53,6 +53,10 @@ describe('************************** transfer-domain.js ************************
       })
       //console.log('Result: ', result)
       expect(result.status).to.equal('OK')  
+  })
+
+  it('Wait a few seconds.', async () => {
+    await timeout(3000);
   })
 
   it(`getFioNames for walletA1 and confirm it owns 2 domains and that one of them is walletA1.domain2`, async () => {

@@ -41,7 +41,7 @@ describe('************************** fees.js ************************** \n Test 
     }
   })
 
-  it(`Test all fees UPPERCASE`, async () => {
+  it.skip(`Test all fees UPPERCASE`, async () => {
     let fioEndpoint;
     for (fioEndpoint in config.api) {
       try {
