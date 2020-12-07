@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, fetchJson, callFioApi, randStr, timeout} = require('../utils.js');
+const {newUser, fetchJson, callFioApi, timeout} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/FIOSDK')
 config = require('../config.js');
 
@@ -8,18 +8,17 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-describe.only(`************************** fio-request.js ************************** \n A. Send fio request from userA1 to userA2`, () => {
+describe(`************************** fio-request.js ************************** \n A. Send fio request from userA1 to userA2`, () => {
 
-    let userA1, userA2, userA3, requestId
+    let userA1, userA2, requestId
     const payment = 5000000000 // 5 FIO
-    const requestMemo = 'Memo in the initial request ' + randStr(5)
-    const obtMemo = 'Memo in OBT response to request ' + randStr(4)
-    const btcPubAdd = 'btc:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9' + randStr(3)
+    const requestMemo = 'Memo in the initial request'
+    const obtMemo = 'Memo in OBT response to request'
+    const btcPubAdd = 'btc:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9'
 
     it(`Create users`, async () => {
         userA1 = await newUser(faucet);
         userA2 = await newUser(faucet);
-        userA3 = await newUser(faucet);
     })
   
     it(`Add BTC addresses to userA1`, async () => {
@@ -53,30 +52,6 @@ describe.only(`************************** fio-request.js ***********************
           amount: payment,
           chainCode: 'BTC',
           tokenCode: 'BTC',
-          memo: requestMemo,
-          maxFee: config.api.new_funds_request.fee,
-          payerFioPublicKey: userA2.publicKey,
-          technologyProviderId: '',
-          hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
-          offlineUrl: ''
-        })    
-        //console.log('Result: ', result)
-        expect(result.status).to.equal('requested') 
-      } catch (err) {
-        console.log('Error: ', err)
-        expect(err).to.equal(null)
-      }
-    })
-
-    it(`userA1 sends second request to userA2`, async () => {
-      try {
-        const result = await userA1.sdk.genericAction('requestFunds', { 
-          payerFioAddress: userA2.address, 
-          payeeFioAddress: userA1.address,
-          payeeTokenPublicAddress: 'thisispayeetokenpublicaddress2',
-          amount: payment,
-          chainCode: 'ABC',
-          tokenCode: 'ABC',
           memo: requestMemo,
           maxFee: config.api.new_funds_request.fee,
           payerFioPublicKey: userA2.publicKey,
@@ -150,34 +125,6 @@ describe.only(`************************** fio-request.js ***********************
     expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
   })
 
-  it.skip(`Do an initial Record OBT. If you don't do this the get_sent_fio step below fails on the 1st run after a fresh start`, async () => {
-    try {
-      const result = await userA2.sdk.genericAction('recordObtData', {
-        fioRequestId: '',
-        payerFioAddress: userA2.address,
-        payeeFioAddress: userA3.address,
-        payerTokenPublicAddress: userA2.publicKey,
-        payeeTokenPublicAddress: userA3.publicKey,
-        amount: payment,
-        chainCode: "BTC",
-        tokenCode: "BTC",
-        status: '',
-        obtId: '',
-        maxFee: config.api.record_obt_data.fee,
-        technologyProviderId: '',
-        payeeFioPublicKey: userA3.publicKey,
-        memo: obtMemo,
-        hash: '',
-        offLineUrl: ''
-      })
-      //console.log('Result: ', result)
-      expect(result.status).to.equal('sent_to_blockchain')
-    } catch (err) {
-      console.log('Error', err)
-      expect(err).to.equal(null)
-    }
-  })
-
   it(`userA2 does recordObtData previous payment with the fioRequestId`, async () => {
     try {
       const result = await userA2.sdk.genericAction('recordObtData', {
@@ -210,34 +157,19 @@ describe.only(`************************** fio-request.js ***********************
     await timeout(7000);
   })
 
-  it(`get_sent_fio_requests for userA1 using SDK`, async () => {
+  it(`get_sent_fio_requests for userA1`, async () => {
     try {
       const result = await userA1.sdk.genericAction('getSentFioRequests', {
         limit: '',
         offset: ''
       }) 
-      console.log('result: ', result)
+      //console.log('result: ', result)
       //console.log('content: ', result.requests[0].content)
       expect(result.requests[0].content.memo).to.equal(requestMemo)  
       expect(result.requests[0].status).to.equal('sent_to_blockchain')  
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal(null)
-    }
-  })
-
-  it(`get_sent_fio_requests for userA1 using callFioApi`, async () => {
-    try {
-      const json = {
-        fio_public_key: userA1.publicKey,
-        limit: 100,
-        offset: 0
-      }
-      result = await callFioApi("get_sent_fio_requests", json);
-      console.log('Result: ', result);
-    } catch (err) {
-      console.log('Error', err)
-      expect(err.error.message).to.equal(config.error.noFioRequests)
     }
   })
 

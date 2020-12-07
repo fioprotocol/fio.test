@@ -55,37 +55,72 @@ describe.only(`B. Request and OBT Data`, () => {
     })
 
     it(`Request new`, async () => {
-        result = await runClio(`request new -j ${user2.address} ${user1.address} ${content} ${user1.account} ${tpid} ${max_fee} --permission ${user1.account}@active`);
-        //console.log('Result: ', result)
-        fio_request_id = JSON.parse(JSON.parse(result).processed.action_traces[0].receipt.response).fio_request_id
-        //console.log('ID: ', JSON.parse(JSON.parse(result).processed.action_traces[0].receipt.response).fio_request_id)
+        try {
+            result = await runClio(`request new -j ${user2.address} ${user1.address} ${content} ${user1.account} ${tpid} ${max_fee} --permission ${user1.account}@active`);
+            //console.log('Result: ', result)
+            fio_request_id = JSON.parse(JSON.parse(result).processed.action_traces[0].receipt.response).fio_request_id
+            //console.log('ID: ', JSON.parse(JSON.parse(result).processed.action_traces[0].receipt.response).fio_request_id)
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+        console.log('Error', err)
+        expect(err).to.equal(null)
+        }
     })
 
     it(`Request reject`, async () => {
-        result = await runClio(`request reject -j ${fio_request_id} ${user2.account} ${tpid} ${max_fee} --permission ${user2.account}@active`);
-        //console.log('Result: ', result)
+        try {
+            result = await runClio(`request reject -j ${fio_request_id} ${user2.account} ${tpid} ${max_fee} --permission ${user2.account}@active`);
+            //console.log('Result: ', result)
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+            console.log('Error', err)
+            expect(err).to.equal(null)
+        }
     })
 
     it(`Request new`, async () => {
-        result = await runClio(`request new -j ${user1.address} ${user2.address} ${content} ${user2.account} ${tpid} ${max_fee} --permission ${user2.account}@active`);
-        //console.log('Result: ', result)
-        fio_request_id2 = JSON.parse(JSON.parse(result).processed.action_traces[0].receipt.response).fio_request_id
+        try {
+            result = await runClio(`request new -j ${user1.address} ${user2.address} ${content} ${user2.account} ${tpid} ${max_fee} --permission ${user2.account}@active`);
+            //console.log('Result: ', result)
+            fio_request_id2 = JSON.parse(JSON.parse(result).processed.action_traces[0].receipt.response).fio_request_id
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+            console.log('Error', err)
+            expect(err).to.equal(null)
+        }
     })
 
     it(`Request cancel`, async () => {
-        result = await runClio(`request cancel -j ${fio_request_id2} ${user2.account} ${tpid} ${max_fee} --permission ${user2.account}@active`);
-        //console.log('Result: ', result)
+        try {
+            result = await runClio(`request cancel -j ${fio_request_id2} ${user2.account} ${tpid} ${max_fee} --permission ${user2.account}@active`);
+            //console.log('Result: ', result)
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+            console.log('Error', err)
+            expect(err).to.equal(null)
+        }
     })
 
     it(`Request new`, async () => {
-        result = await runClio(`request new -j ${user2.address} ${user1.address} ${content2} ${user1.account} ${tpid} ${max_fee} --permission ${user1.account}@active`);
-        //console.log('Result: ', result)
-        fio_request_id3 = JSON.parse(JSON.parse(result).processed.action_traces[0].receipt.response).fio_request_id
+        try {
+            result = await runClio(`request new -j ${user2.address} ${user1.address} ${content2} ${user1.account} ${tpid} ${max_fee} --permission ${user1.account}@active`);
+            //console.log('Result: ', result)
+            fio_request_id3 = JSON.parse(JSON.parse(result).processed.action_traces[0].receipt.response).fio_request_id
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+            console.log('Error', err)
+            expect(err).to.equal(null)
+        }
     })
 
     it(`Record`, async () => {
-        result = await runClio(`data record -j ${fio_request_id3} ${user2.address} ${user1.address} ${content3} ${user2.account} ${tpid} ${max_fee} --permission ${user2.account}@active`);
-        console.log('Result: ', result)
+        try {
+            result = await runClio(`data record -j ${fio_request_id3} ${user2.address} ${user1.address} ${content3} ${user2.account} ${tpid} ${max_fee} --permission ${user2.account}@active`);
+            console.log('Result: ', result)
+        } catch (err) {
+            console.log('Error', err)
+            expect(err).to.equal(null)
+        }
     })
 
 })
