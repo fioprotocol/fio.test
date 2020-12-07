@@ -16,7 +16,7 @@ const config = {
     URL: TESTURL,
     BASE_URL: TESTURL + '/v1/',
     CLIO: DEVTOOLSDIR + '/bin/clio -u ' + TESTURL,
-    WALLETKEY: 'PW5JLusudXi4eVDJpLUdSQ3pqeUzqvif8263hUhjq8SkC5RTjxkte', // Unlocks local FIO wallet
+    WALLETKEY: 'PW5JqTyLtZXzmDhVjP6jKK2yJ4tbXA4Gi9zaTepYF9b73U1DZhzmv', // Unlocks local FIO wallet
 
     //use this prod key file after you get a copy of the file from Ed, then you can run the
     //fee-voting-fee-setting.js.
@@ -26,7 +26,7 @@ const config = {
     FAUCET_PRIV_KEY: '5KF2B21xT5pE5G3LNA6LKJc6AP2pAd2EnfpAUrJH12SFV8NtvCD',
     FAUCET_PUB_KEY: 'FIO6zwqqzHQcqCc2MB4jpp1F73MXpisEQe2SDghQFSGQKoAPjvQ3H',
 
-    FUNDS: 2000000000000,
+    FUNDS: 9000000000000,
     BILLION: 1000000000,
     maxFee: 800000000000,
 

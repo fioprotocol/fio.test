@@ -28,7 +28,7 @@ describe('TEST SUITE', () => {
 
   //require('./tests/clio.js');  // FIP-6
 
-  //require('./tests/transfer-address.js'); // FIP-1.b in testing
+  //require('./tests/transfer-address.js'); // FIP-1.b
 
   
   //require('./tests/locks.js');  // Depends on local wallet. Need to fix

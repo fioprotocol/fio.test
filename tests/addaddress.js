@@ -594,3 +594,44 @@ describe(`FIP18. Chain-level addressing`, () => {
   })
 
 })
+
+describe(`Remap FIO Address`, () => {
+  let user1
+  let newAddress = "FIOxyz"
+
+  it(`Create users`, async () => {
+    user1 = await newUser(faucet);
+  })
+
+  it(`Remap FIO address to ${newAddress}`, async () => {
+    const result = await user1.sdk.genericAction('addPublicAddresses', {
+        fioAddress: user1.address,
+        publicAddresses: [
+            {
+                chain_code: 'FIO',
+                token_code: 'FIO',
+                public_address: newAddress,
+            }
+        ],
+        maxFee: config.api.add_pub_address.fee,
+        walletFioAddress: ''
+    })
+    //console.log('Result:', result)
+    expect(result.status).to.equal('OK')
+})
+
+  it(`Get all public addresses for user1 FIO Address (get_pub_addresses). Expect public_address to be mapped to: ${newAddress}`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('getPublicAddress', {
+        fioAddress: user1.address,
+        chainCode: "FIO",
+        tokenCode: "FIO"
+    })
+      //console.log('Result', result)
+      expect(result.public_address).to.equal(newAddress)
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+})

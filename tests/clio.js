@@ -8,11 +8,12 @@ const exec = require('child_process').exec;
 const clio = "../fio.devtools/bin/clio";
 const url = config.URL
 
-const max_fee = 80000000000
+const max_fee = 800000000000
 const tpid = 'tpid@testnet'
-const randString = randStr(10)
-const content = `"one ${randString}"`
-const content2 = `"two ${randString}"`
+const randString = randStr(64)  // Content field requires min 64 max 296 size
+const content = `"{"content":"one${randString}"}"`
+const content2 = `"{"content":"two${randString}"}"`
+const content3 = `"{"content":"three${randString}"}"`
 
 async function runClio(parms) {
     return new Promise(function(resolve, reject) {
@@ -43,8 +44,8 @@ describe(`************************** clio.js ************************** \n A. Te
       })
 })
 
-describe(`B. Request and OBT Data`, () => {
-    let fio_request_id, user1, user2
+describe.only(`B. Request and OBT Data`, () => {
+    let fio_request_id, fio_request_id2, fio_request_id3, user1, user2
 
     it(`Create users and import private keys`, async () => {
         user1 = await newUser(faucet);
@@ -54,36 +55,72 @@ describe(`B. Request and OBT Data`, () => {
     })
 
     it(`Request new`, async () => {
-        result = await runClio(`request new ${user1.account} ${user1.address} ${user2.address} ${content} ${tpid} ${max_fee}`);
-        console.log('Result: ', result)
-        //fio_request_id = result.something
+        try {
+            result = await runClio(`request new -j ${user2.address} ${user1.address} ${content} ${user1.account} ${tpid} ${max_fee} --permission ${user1.account}@active`);
+            //console.log('Result: ', result)
+            fio_request_id = JSON.parse(JSON.parse(result).processed.action_traces[0].receipt.response).fio_request_id
+            //console.log('ID: ', JSON.parse(JSON.parse(result).processed.action_traces[0].receipt.response).fio_request_id)
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+        console.log('Error', err)
+        expect(err).to.equal(null)
+        }
     })
 
     it(`Request reject`, async () => {
-        result = await runClio(`request reject ${user2.account} ${fio_request_id} ${tpid} ${max_fee}`);
-        console.log('Result: ', result)
+        try {
+            result = await runClio(`request reject -j ${fio_request_id} ${user2.account} ${tpid} ${max_fee} --permission ${user2.account}@active`);
+            //console.log('Result: ', result)
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+            console.log('Error', err)
+            expect(err).to.equal(null)
+        }
     })
 
     it(`Request new`, async () => {
-        result = await runClio(`request new ${user1.account} ${user1.address} ${user2.address} ${content} ${tpid} ${max_fee}`);
-        console.log('Result: ', result)
-        //fio_request_id = result.something
+        try {
+            result = await runClio(`request new -j ${user1.address} ${user2.address} ${content} ${user2.account} ${tpid} ${max_fee} --permission ${user2.account}@active`);
+            //console.log('Result: ', result)
+            fio_request_id2 = JSON.parse(JSON.parse(result).processed.action_traces[0].receipt.response).fio_request_id
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+            console.log('Error', err)
+            expect(err).to.equal(null)
+        }
     })
 
     it(`Request cancel`, async () => {
-        result = await runClio(`request cancel ${user1.account} ${fio_request_id} ${tpid} ${max_fee}`);
-        console.log('Result: ', result)
+        try {
+            result = await runClio(`request cancel -j ${fio_request_id2} ${user2.account} ${tpid} ${max_fee} --permission ${user2.account}@active`);
+            //console.log('Result: ', result)
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+            console.log('Error', err)
+            expect(err).to.equal(null)
+        }
     })
 
     it(`Request new`, async () => {
-        result = await runClio(`request new ${user1.account} ${user1.address} ${user2.address} ${content} ${tpid} ${max_fee}`);
-        console.log('Result: ', result)
-         //fio_request_id = result.something
+        try {
+            result = await runClio(`request new -j ${user2.address} ${user1.address} ${content2} ${user1.account} ${tpid} ${max_fee} --permission ${user1.account}@active`);
+            //console.log('Result: ', result)
+            fio_request_id3 = JSON.parse(JSON.parse(result).processed.action_traces[0].receipt.response).fio_request_id
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+            console.log('Error', err)
+            expect(err).to.equal(null)
+        }
     })
 
     it(`Record`, async () => {
-        result = await runClio(`data record ${user1.account} ${fio_request_id} ${user1.address} ${user2.address} ${content2} ${tpid} ${max_fee}`);
-        console.log('Result: ', result)
+        try {
+            result = await runClio(`data record -j ${fio_request_id3} ${user2.address} ${user1.address} ${content3} ${user2.account} ${tpid} ${max_fee} --permission ${user2.account}@active`);
+            console.log('Result: ', result)
+        } catch (err) {
+            console.log('Error', err)
+            expect(err).to.equal(null)
+        }
     })
 
 })
@@ -100,23 +137,43 @@ describe(`C. Domain`, () => {
     })
 
     it(`domain register`, async () => {
-        result = await runClio(`domain register ${user1.account} ${user1.domain2} ${user1.publicKey} ${tpid} ${max_fee}`);
-        expect(JSON.parse(result).head_block_num).to.be.a('number')
+        try {
+            result = await runClio(`domain register -j ${user1.domain2} ${user1.account} ${user1.publicKey} ${tpid} ${max_fee} --permission ${user1.account}@active`);
+            //console.log('Result: ', JSON.parse(result));
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+            console.log('Error', err)
+        }
     })
 
     it(`domain renew`, async () => {
-        result = await runClio(`domain renew ${user1.account} ${user1.domain2} ${tpid} ${max_fee}`);
-        expect(JSON.parse(result).head_block_num).to.be.a('number')
-    })
+        try {
+            result = await runClio(`domain renew -j ${user1.account} ${user1.domain2} ${tpid} ${max_fee} --permission ${user1.account}@active`);
+            //console.log('Result: ', JSON.parse(result));
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+            console.log('Error', err)
+        }
+})
 
     it(`domain set_public`, async () => {
-        result = await runClio(`domain set_public ${user1.account} ${user1.domain2} true ${tpid} ${max_fee}`);
-        expect(JSON.parse(result).head_block_num).to.be.a('number')
+        try {
+            result = await runClio(`domain set_public -j ${user1.domain2} true ${user1.account} ${tpid} ${max_fee} --permission ${user1.account}@active`);
+            console.log('Result: ', JSON.parse(result));
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+            console.log('Error', err)
+        }
     })
 
     it(`domain transfer`, async () => {
-        result = await runClio(`domain set_public ${user1.account} ${user1.domain2} ${user2.publicKey} ${tpid} ${max_fee}`);
-        expect(JSON.parse(result).head_block_num).to.be.a('number')
+        try {
+            result = await runClio(`domain transfer -j ${user1.domain2} ${user1.account} ${user2.publicKey} ${tpid} ${max_fee} --permission ${user1.account}@active`);
+            console.log('Result: ', JSON.parse(result));
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+            console.log('Error', err)
+        }
     })
 
 })
@@ -124,18 +181,21 @@ describe(`C. Domain`, () => {
 describe(`D. Address`, () => {
     let user1, user2
 
-    let publicAddresses = [
+    let BCHAddress = 
         {
           chain_code: 'BCH',
           token_code: 'BCH',
-          public_address: 'bitcoincash:qg9',
-          },
+          public_address: 'bitcoincashqg9',
+          clioAddress: 'BCH,BCH,bitcoincashqg9'
+          }
+
+    let DASHAddress =
         {
           chain_code: 'DASH',
           token_code: 'DASH',
           public_address: 'XyCyPKzTWvW2XdcYjPaPXGQDCGk946ywEv',
+          clioAddress: 'DASH,DASH,XyCyPKzTWvW2XdcYjPaPXGQDCGk946ywEv'
         }
-      ]
 
     it(`Create users and import private keys`, async () => {
         user1 = await newUser(faucet);
@@ -147,36 +207,96 @@ describe(`D. Address`, () => {
     })
 
     it(`address register`, async () => {
-        result = await runClio(`address register ${user1.account} ${user1.address2} ${user1.publicKey} ${tpid} ${max_fee}`);
-        expect(JSON.parse(result).head_block_num).to.be.a('number')
+        try {
+            result = await runClio(`address register -j ${user1.address2} ${user1.account} ${user1.publicKey} ${tpid} ${max_fee} --permission ${user1.account}@active`);
+            //console.log('Result: ', JSON.parse(result));
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+            console.log('Error', err)
+        }
     })
 
     it(`address renew`, async () => {
-        result = await runClio(`domain renew ${user1.account} ${user1.address2} ${tpid} ${max_fee}`);
-        expect(JSON.parse(result).head_block_num).to.be.a('number')
+        try {
+            result = await runClio(`address renew -j ${user1.address2} ${user1.account} ${tpid} ${max_fee} --permission ${user1.account}@active`);
+            //console.log('Result: ', JSON.parse(result));
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+            console.log('Error', err)
+        }
     })
 
-    it(`address transfer`, async () => {
-        result = await runClio(`domain set_public ${user1.account} ${user1.address} ${user2.publicKey} ${tpid} ${max_fee}`);
-        expect(JSON.parse(result).head_block_num).to.be.a('number')
+    it.skip(`address transfer`, async () => {
+        try {
+            result = await runClio(`address transfer -j ${user1.account} ${user1.address} ${user2.publicKey} ${tpid} ${max_fee} --permission ${user1.account}@active`);
+            console.log('Result: ', JSON.parse(result));
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+            console.log('Error', err)
+        }
     })
 
-    it(`address add_pub. Add BCH address `, async () => {
-        result = await runClio(`address add_pub ${user1.account} ${publicAddresses[0].chain_code} ${publicAddresses[0].token_code} ${publicAddresses[0].public_address} ${user1.address} ${tpid} ${max_fee}`);
-        expect(JSON.parse(result).head_block_num).to.be.a('number')
+    it.skip(`(Future release) address add_pub. Add BCH address `, async () => {
+        try {
+            result = await runClio(`address add_pub -j ${user1.account} ${BCHAddress.clioAddress} ${user1.address} ${tpid} ${max_fee} --permission ${user1.account}@active`);
+            console.log('Result: ', JSON.parse(result));
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+            console.log('Error', err)
+        }
     })
 
-    it(`address add_pub. Add DASH address `, async () => {
-        result = await runClio(`address add_pub ${user1.account} ${publicAddresses[1].chain_code} ${publicAddresses[1].token_code} ${publicAddresses[1].public_address} ${user1.address} ${tpid} ${max_fee}`);
-        expect(JSON.parse(result).head_block_num).to.be.a('number')
+    it.skip('(Future release) confirm BCH address was added', async () => {
+        try {
+          const result = await user1.sdk.genericAction('getPublicAddress', {
+            fioAddress: user1.address,
+            chainCode: "BCH",
+            tokenCode: "BCH"
+          })
+          //console.log('Result', result)
+          expect(result.public_address).to.equal(BCHAddress.public_address)
+        } catch (err) {
+          //console.log('Error', err)
+          expect(err).to.equal(null)
+        }
+      })
+
+    it.skip(`(Future release) address add_pub. Add DASH address `, async () => {
+        try {
+            result = await runClio(`address add_pub -j ${user1.account} ${DASHAddress.clioAddress} ${user1.address} ${tpid} ${max_fee} --permission ${user1.account}@active`);
+            console.log('Result: ', JSON.parse(result));
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+            console.log('Error', err)
+        }
     })
 
-    it(`address remove_pub for BCH`, async () => {
-        result = await runClio(`address remove_pub ${user1.account} ${publicAddresses[0].chain_code} ${publicAddresses[0].token_code} ${publicAddresses[0].public_address} ${user1.address} ${tpid} ${max_fee}`);
-        expect(JSON.parse(result).head_block_num).to.be.a('number')
+    it.skip('(Future release) confirm DASH address was added', async () => {
+        try {
+          const result = await user1.sdk.genericAction('getPublicAddress', {
+            fioAddress: user1.address,
+            chainCode: "DASH",
+            tokenCode: "DASH"
+          })
+          //console.log('Result', result)
+          expect(result.public_address).to.equal(DASHAddress.public_address)
+        } catch (err) {
+          //console.log('Error', err)
+          expect(err).to.equal(null)
+        }
+      })
+
+    it.skip(`(Future release) address remove_pub for BCH`, async () => {
+        try {
+            result = await runClio(`address remove_pub -j ${user1.account} ${BCHAddress} ${user1.address} ${tpid} ${max_fee} --permission ${user1.account}@active`);
+            console.log('Result: ', JSON.parse(result));
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+            console.log('Error', err)
+        }
     })
 
-    it('confirm BCH address was removed', async () => {
+    it.skip('(Future release) confirm BCH address was removed', async () => {
         try {
           const result = await user1.sdk.genericAction('getPublicAddress', {
             fioAddress: user1.address,
@@ -190,17 +310,27 @@ describe(`D. Address`, () => {
         }
       })
 
-    it(`Re-add BCH address`, async () => {
-        result = await runClio(`address add_pub ${user1.account} ${publicAddresses[0].chain_code} ${publicAddresses[0].token_code} ${publicAddresses[0].public_address} ${user1.address} ${tpid} ${max_fee}`);
-        expect(JSON.parse(result).head_block_num).to.be.a('number')
+    it.skip(`(Future release) Re-add BCH address`, async () => {
+        try {
+            result = await runClio(`address add_pub -j ${user1.account} ${BCHAddress.clioAddress} ${user1.address} ${tpid} ${max_fee} --permission ${user1.account}@active`);
+            console.log('Result: ', JSON.parse(result));
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+            console.log('Error', err)
+        }
     })
 
-    it(`address remove_all_pub`, async () => {
-        result = await runClio(`address remove_all_pub ${user1.account} ${user1.address} ${tpid} ${max_fee}`);
-        expect(JSON.parse(result).head_block_num).to.be.a('number')
+    it.skip(`(Future release) address remove_all_pub`, async () => {
+        try {
+            result = await runClio(`address remove_all_pub ${user1.account} ${user1.address} ${tpid} ${max_fee} --permission ${user1.account}@active`);
+            console.log('Result: ', JSON.parse(result));
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+            console.log('Error', err)
+        }
     })
 
-    it('Get all public addresses for user1 FIO Address (get_pub_addresses). Expect only FIO address to be returned.', async () => {
+    it.skip('(Future release) Get all public addresses for user1 FIO Address (get_pub_addresses). Expect only FIO address to be returned.', async () => {
         try {
             const result = await callFioApi("get_pub_addresses", {
             fio_address: user1.address,
@@ -227,14 +357,19 @@ describe(`E. Convert`, () => {
     })
 
     it(`convert fiokey_to_account`, async () => {
-        result = await runClio(`convert fiokey_to_account ${user1.publicKey}`);
-        expect(JSON.parse(result).head_block_num).to.equal(user1.account)
+        try {
+            result = await runClio(`convert fiokey_to_account ${user1.publicKey}`);
+            //console.log('Result: ', result);
+            expect(result).to.equal(user1.account)
+        } catch (err) {
+            console.log('Error', err)
+        }
     })
 })
 
 describe(`F. Transfer`, () => {
     let user1, user2, prevFundsAmount
-    const fundsAmount = 1000000000000
+    const fundsAmount = 10000000000
 
     it(`Create users and import private keys`, async () => {
         user1 = await newUser(faucet);
@@ -255,14 +390,39 @@ describe(`F. Transfer`, () => {
     })
 
     it(`transfer ${fundsAmount} FIO to user2 FIO public key`, async () => {
-        result = await runClio(`transfer ${user2.publicKey} ${fundsAmount} ${max_fee} ${user1.account} ${tpid}`);
-        expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+        try {
+            result = await runClio(`transfer -j ${user2.publicKey} ${fundsAmount} ${user1.account} ${tpid} ${max_fee} --permission ${user1.account}@active`);
+            //console.log('Result: ', JSON.parse(result));
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+            console.log('Error', err)
+        }
     })
           
     it(`user2's FIO public key has an additional ${fundsAmount} FIO`, async () => {
         const result = await user2.sdk.genericAction('getFioBalance', {})
         //console.log('Result: ', result)
         expect(result.balance).to.equal(fundsAmount + prevFundsAmount)
+    })
+
+})
+
+describe(`G. Vote Producer`, () => {
+    let user1
+
+    it(`Create users and import private keys`, async () => {
+        user1 = await newUser(faucet);
+        result = await runClio('wallet import -n fio --private-key ' + user1.privateKey);
+    })
+
+    it(`userA1 votes for bp@dapixdev`, async () => {
+        try {
+            result = await runClio(`system voteproducer prods -j ${user1.address} ${user1.account} ${max_fee} bp1@dapixdev --permission ${user1.account}@active`);
+            //console.log('Result: ', JSON.parse(result));
+            expect(JSON.parse(result).transaction_id).to.exist
+        } catch (err) {
+            console.log('Error', err)
+        }
     })
 
 })
