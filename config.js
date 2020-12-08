@@ -78,7 +78,9 @@ const config = {
         activeProxy: 'FIO Address is proxy. Unregister first.',
         invalidTpidSdk: 'tpid must match /^(?:(?=.{3,64}$)[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}@[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}$)/gim.',
         invalidTokenCode: 'Invalid token code format',
-        ivalidRejection: 'Only pending requests can be rejected.'
+        ivalidRejection: 'Only pending requests can be rejected.',
+        invalidPayerFioAddress: 'payerFioAddress must match /^(?:(?=.{3,64}$)[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}@[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}$)/gim.',
+        invalidPayeeFioAddress: 'payeeFioAddress must match /^(?:(?=.{3,64}$)[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}@[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}$)/gim.'
     },
 
     error2: {
