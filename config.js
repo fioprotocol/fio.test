@@ -26,7 +26,7 @@ const config = {
     FAUCET_PRIV_KEY: '5KF2B21xT5pE5G3LNA6LKJc6AP2pAd2EnfpAUrJH12SFV8NtvCD',
     FAUCET_PUB_KEY: 'FIO6zwqqzHQcqCc2MB4jpp1F73MXpisEQe2SDghQFSGQKoAPjvQ3H',
 
-    FUNDS: 9000000000000,
+    FUNDS: 3000000000000,
     BILLION: 1000000000,
     maxFee: 800000000000,
 
@@ -78,7 +78,9 @@ const config = {
         activeProxy: 'FIO Address is proxy. Unregister first.',
         invalidTpidSdk: 'tpid must match /^(?:(?=.{3,64}$)[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}@[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}$)/gim.',
         invalidTokenCode: 'Invalid token code format',
-        ivalidRejection: 'Only pending requests can be rejected.'
+        ivalidRejection: 'Only pending requests can be rejected.',
+        invalidPayerFioAddress: 'payerFioAddress must match /^(?:(?=.{3,64}$)[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}@[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}$)/gim.',
+        invalidPayeeFioAddress: 'payeeFioAddress must match /^(?:(?=.{3,64}$)[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}@[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}$)/gim.'
     },
 
     error2: {
