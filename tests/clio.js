@@ -18,7 +18,7 @@ const content3 = `"{"content":"three${randString}"}"`
 async function runClio(parms) {
     return new Promise(function(resolve, reject) {
         command = clio + " -u " + url + " " + parms
-        console.log('command = ', command)
+        //console.log('command = ', command)
         //command = "../fio.devtools/bin/clio -u http://localhost:8889 get info"
         exec(command, (error, stdout, stderr) => {
             if (error) {
@@ -44,7 +44,7 @@ describe(`************************** clio.js ************************** \n A. Te
       })
 })
 
-describe.only(`B. Request and OBT Data`, () => {
+describe(`B. Request and OBT Data`, () => {
     let fio_request_id, fio_request_id2, fio_request_id3, user1, user2
 
     it(`Create users and import private keys`, async () => {
@@ -116,7 +116,7 @@ describe.only(`B. Request and OBT Data`, () => {
     it(`Record`, async () => {
         try {
             result = await runClio(`data record -j ${fio_request_id3} ${user2.address} ${user1.address} ${content3} ${user2.account} ${tpid} ${max_fee} --permission ${user2.account}@active`);
-            console.log('Result: ', result)
+            //console.log('Result: ', result)
         } catch (err) {
             console.log('Error', err)
             expect(err).to.equal(null)
@@ -158,8 +158,8 @@ describe(`C. Domain`, () => {
 
     it(`domain set_public`, async () => {
         try {
-            result = await runClio(`domain set_public -j ${user1.domain2} true ${user1.account} ${tpid} ${max_fee} --permission ${user1.account}@active`);
-            console.log('Result: ', JSON.parse(result));
+            result = await runClio(`domain set_public -j ${user1.domain2} 1 ${user1.account} ${tpid} ${max_fee} --permission ${user1.account}@active`);
+            //console.log('Result: ', JSON.parse(result));
             expect(JSON.parse(result).transaction_id).to.exist
         } catch (err) {
             console.log('Error', err)
@@ -169,7 +169,7 @@ describe(`C. Domain`, () => {
     it(`domain transfer`, async () => {
         try {
             result = await runClio(`domain transfer -j ${user1.domain2} ${user1.account} ${user2.publicKey} ${tpid} ${max_fee} --permission ${user1.account}@active`);
-            console.log('Result: ', JSON.parse(result));
+            //console.log('Result: ', JSON.parse(result));
             expect(JSON.parse(result).transaction_id).to.exist
         } catch (err) {
             console.log('Error', err)
@@ -226,7 +226,7 @@ describe(`D. Address`, () => {
         }
     })
 
-    it.skip(`address transfer`, async () => {
+    it.skip(`(Future release) address transfer`, async () => {
         try {
             result = await runClio(`address transfer -j ${user1.account} ${user1.address} ${user2.publicKey} ${tpid} ${max_fee} --permission ${user1.account}@active`);
             console.log('Result: ', JSON.parse(result));
