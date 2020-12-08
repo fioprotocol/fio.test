@@ -8,7 +8,7 @@ before(async () => {
     faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-describe.only(`*********************** record-obt-data.js *********************** \n`, () => {
+describe(`*********************** record-obt-data.js *********************** \n`, () => {
 
     let userA1, userA2, userA2Balance
     const payment = 5000000000 // 5 FIO
@@ -269,7 +269,7 @@ describe.only(`*********************** record-obt-data.js **********************
     })
 })
 
-describe.only(`******************** Error Check ******************** \n`, () => {
+describe(`******************** Error Check ******************** \n`, () => {
 
     let userA1, userA2, userA3
     const payment = 5000000000 // 5 FIO

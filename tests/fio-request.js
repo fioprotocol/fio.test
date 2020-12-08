@@ -8,7 +8,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-describe.only(`************************** fio-request.js ************************** \n A. Send fio request from userA1 to userA2`, () => {
+describe(`************************** fio-request.js ************************** \n A. Send fio request from userA1 to userA2`, () => {
 
     let userA1, userA2, requestId
     const payment = 5000000000 // 5 FIO
@@ -207,7 +207,7 @@ describe.only(`************************** fio-request.js ***********************
   
 })
 
-describe.only(`B. Test FIO Request error conditions`, () => {
+describe(`B. Test FIO Request error conditions`, () => {
   let userB1, userB2, userB3, userB1RequestId, userB1RequestId2, userB1RequestId3, userB1Balance
   const payment = 5000000000 // 5 FIO
   const requestMemo = 'Memo in the initial request'
@@ -709,7 +709,7 @@ describe.only(`B. Test FIO Request error conditions`, () => {
 
 })
 
-describe.only(`************************** cancel-funds-request ************************** \n A. cancel_funds_request with bundles remaining`, () => {
+describe(`************************** cancel-funds-request ************************** \n A. cancel_funds_request with bundles remaining`, () => {
   let userA1, userA2, userA1RequestId, cancel_funds_request_fee, userA1OrigRam, userA1OrigBundle
   const payment = 5000000000 // 5 FIO
   const requestMemo = 'Memo in the initial request'
@@ -931,7 +931,7 @@ describe.only(`************************** cancel-funds-request *****************
   })
 })
 
-describe.only('B. cancel_funds_request with NO bundles remaining', () => {
+describe('B. cancel_funds_request with NO bundles remaining', () => {
 
   let userB1, userB2, userB1RequestId, cancel_funds_request_fee, userB1OrigRam, userB1OrigBundle
   const payment = 5000000000 // 5 FIO
@@ -1179,7 +1179,7 @@ describe.only('B. cancel_funds_request with NO bundles remaining', () => {
 
 })
 
-describe.only(`C. Test cancel_funds_request error conditions`, () => {
+describe(`C. Test cancel_funds_request error conditions`, () => {
   let userC1, userC2, userC1RequestId, userC1RequestId2, userC1Balance
   const payment = 5000000000 // 5 FIO
   const requestMemo = 'Memo in the initial request'
@@ -1532,7 +1532,7 @@ describe.only(`C. Test cancel_funds_request error conditions`, () => {
 
 })
 
-describe.only(`C. get_cancelled_fio_requests paging: Cancel multiple FIO requests and page through using get_cancelled_fio_requests`, () => {
+describe(`C. get_cancelled_fio_requests paging: Cancel multiple FIO requests and page through using get_cancelled_fio_requests`, () => {
   let userC1, requestID = [], requestCount = 20
 
   it('Create userC1', async () => {
