@@ -25,7 +25,7 @@ before(async () => {
 })
 
 describe(`************************** action-whitelisting.js ************************** \n A. Remove action, add action, action testing `, () => {
-  let userA1
+  let userA1, userA2
   const fundsAmount = 1000000000
 
   it(`Create users`, async () => {
@@ -69,7 +69,7 @@ describe(`************************** action-whitelisting.js ********************
     }
   })
 
-  it(`addaction succeeds.`, async () => {
+  it(`addaction trnsfiopubky.`, async () => {
     try{
       const result = await callFioApiSigned('push_transaction', {
         action: 'addaction',
@@ -90,9 +90,29 @@ describe(`************************** action-whitelisting.js ********************
     }
   })
 
+  it(`confirm success after addaction: Transfer FIO to userA1 FIO public key`, async () => {
+    try{
+      const result = await faucet.genericAction('transferTokens', {
+        payeeFioPublicKey: userA1.publicKey,
+        amount: fundsAmount,
+        maxFee: config.api.transfer_tokens_pub_key.fee,
+        technologyProviderId: ''
+      })
+      //console.log('Result: ', result.status)
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+    //  console.log("err.json ", err.json);
+        expect(err).to.equal(null);
+    }
+  })
+
+  it(`Confirm create users works`, async () => {
+    userA2 = await newUser(faucet);
+  })
+
 })
 
-describe.skip('A.2. Add random action hoses up the SDK session. Non recoverable. So, only run addaction as a separate test.', () => {
+describe('A.2. Add random action hoses up the SDK session. Non recoverable. So, only run addaction as a separate test.', () => {
   let user1, user2, user3, newAction, newContract
 
   it(`Create users`, async () => {
@@ -220,8 +240,8 @@ describe(`B. General addaction testing with random contracts and domains (can be
 
 })
 
-let newAction, newContract, newAction2, newContract2
 describe(`C. Test addaction error conditions`, () => {
+  let newAction, newContract, newAction2, newContract2
 
   it(`Create users`, async () => {
     newAction = generateFioDomain(7);
