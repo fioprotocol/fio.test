@@ -1,7 +1,7 @@
 require('mocha')
 const {expect} = require('chai')
 const {FIOSDK } = require('@fioprotocol/FIOSDK')
-const {fetchJson, timeout, generateFioDomain, generateFioAddress, createKeypair, getTotalVotedFio, getAccountVoteWeight, getProdVoteTotal} = require('../utils.js');
+const {fetchJson, timeout, generateFioDomain, generateFioAddress, createKeypair, getTotalVotedFio, getAccountVoteWeight, getProdVoteTotal, callFioApi} = require('../utils.js');
 config = require('../config.js');
 
 let privateKey, publicKey, privateKey2, publicKey2, account, account2, testFioDomain, testFioAddressName, testFioAddressName2
@@ -45,7 +45,7 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
     console.log('publicKey2: ', publicKey2)
   })
 
-  it(`Create fioSdk account: transferLockedTokens ${lockedFundsAmount}, canvote false, (20,40%) and (40,60%)`, async () => {
+  it.skip(`(API) Create fioSdk account: transferLockedTokens ${lockedFundsAmount}, canvote false, (20,40%) and (40,60%)`, async () => {
     try {
       const result = await fioSdkFaucet.genericAction('transferLockedTokens', {
         payeePublicKey: publicKey,
@@ -72,7 +72,39 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
     }
   })
 
-  it(`Create fioSdk account: transferLockedTokens ${lockedFundsAmount}, canvote false, (20,40%) and (40,60%)`, async () => {
+  it(`(pushTransaction) Create fioSdk account: transferLockedTokens ${lockedFundsAmount}, canvote false, (20,40%) and (40,60%)`, async () => {
+    try {
+      const result = await fioSdkFaucet.genericAction('pushTransaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        data: {
+          payee_public_key: publicKey,
+          can_vote: 0,
+          periods: [
+            {
+              duration: 3600,
+              percent: 40.0,
+            },
+            {
+              duration: 3640,
+              percent: 60.0,
+            }
+          ],
+          amount: lockedFundsAmount,
+          max_fee: 400000000000,
+          tpid: '',
+          actor: fioSdkFaucet.account,
+        }
+
+      })
+      expect(result.status).to.equal('OK')
+      expect(result).to.have.all.keys( 'status', 'fee_collected')
+    } catch (err) {
+      console.log(' Error', err)
+    }
+  })
+
+  it.skip(`(API) Create fioSdk account: transferLockedTokens ${lockedFundsAmount}, canvote false, (20,40%) and (40,60%)`, async () => {
     try {
       const result = await fioSdkFaucet.genericAction('transferLockedTokens', {
         payeePublicKey: publicKey2,
@@ -99,19 +131,123 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
     }
   })
 
-  it(`getFioBalance for fioSdk and confirm 'available' = 0`, async () => {
+  it(`(pushTransaction) Create fioSdk account: transferLockedTokens ${lockedFundsAmount}, canvote false, (20,40%) and (40,60%)`, async () => {
+    try {
+      const result = await fioSdkFaucet.genericAction('pushTransaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        data: {
+          payee_public_key: publicKey2,
+          can_vote: 0,
+          periods: [
+            {
+              duration: 3600,
+              percent: 30.0,
+            },
+            {
+              duration: 3640,
+              percent: 70.0,
+            }
+          ],
+          amount: lockedFundsAmount,
+          max_fee: 400000000000,
+          tpid: '',
+          actor: fioSdkFaucet.account,
+        }
+
+      })
+      expect(result.status).to.equal('OK')
+      expect(result).to.have.all.keys( 'status', 'fee_collected')
+    } catch (err) {
+      console.log(' Error', err)
+    }
+  })
+
+  it.skip(`getFioBalance for fioSdk and confirm 'available' = 0`, async () => {
     const result = await fioSdk.genericAction('getFioBalance', {})
     //console.log('Result: ', result)
     expect(result).to.have.all.keys('balance', 'available')
     expect(result.available).equal(0)
   })
 
-  it(`getFioBalance for fioSdk2 and confirm 'available' = 0`, async () => {
+  it(`Call get_table_rows from locktokens and confirm: lock_amount - remaining_lock_amount = 0`, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio', 
+        scope: 'eosio',   
+        table: 'locktokens',   
+        lower_bound: account,     
+        upper_bound: account,
+        key_type: 'i64',       
+        index_position: '2' 
+      }
+      result = await callFioApi("get_table_rows", json);
+      //console.log('Result: ', result);
+      expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  //try to transfer, fail.
+  it(`FAIL Transfer 1 FIO from locked token account, no funds unlocked`, async () => {
+    try{
+      const result = await fioSdk.genericAction('transferTokens', {
+        payeeFioPublicKey: publicKey2,
+        amount: 1000000000,
+        maxFee: config.api.transfer_tokens_pub_key.fee,
+        technologyProviderId: ''
+      })
+    } catch (err) {
+      var expected = `Error 400`
+      expect(err.message).to.include(expected)
+    }
+  })
+
+  it.skip(`getFioBalance for fioSdk2 and confirm 'available' = 0`, async () => {
     const result = await fioSdk2.genericAction('getFioBalance', {})
     //console.log('Result: ', result)
     expect(result).to.have.all.keys('balance', 'available')
     expect(result.available).equal(0)
   })
+
+  it(`Call get_table_rows from locktokens and confirm: lock_amount - remaining_lock_amount = 0`, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio', 
+        scope: 'eosio',   
+        table: 'locktokens',   
+        lower_bound: account2,     
+        upper_bound: account2,
+        key_type: 'i64',       
+        index_position: '2' 
+      }
+      result = await callFioApi("get_table_rows", json);
+      //console.log('Result: ', result);
+      expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+    //try to transfer, fail.
+    it(`FAIL Transfer 1 FIO from locked token account, no funds unlocked`, async () => {
+      try{
+        const result = await fioSdk2.genericAction('transferTokens', {
+          payeeFioPublicKey: publicKey,
+          amount: 1000000000,
+          maxFee: config.api.transfer_tokens_pub_key.fee,
+          technologyProviderId: ''
+        })
+      } catch (err) {
+        var expected = `Error 400`
+        expect(err.message).to.include(expected)
+      }
+    })
 
   it(`Transfer additional tokens to account for testing`, async () => {
     // Then transfer additional non-locke tokens to the account for the tests
@@ -121,18 +257,63 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
     await timeout(receiveTransferTimout)
   })
 
-  it(`getFioBalance for fioSdk and confirm 'available' > 0`, async () => {
+  let balance1, balance2;
+  it(`[Fix for Bahamas release] getFioBalance for fioSdk and confirm 'available' > 0`, async () => {
     const result = await fioSdk.genericAction('getFioBalance', {})
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('balance', 'available')
-    expect(result.available).is.greaterThan(0)
+    balance1 = result.balance;
+    // Add back: expect(result).to.have.all.keys('balance', 'available')
+    //expect(result.available).is.greaterThan(0)
   })
 
-  it(`getFioBalance for fioSdk2 and confirm 'available' > 0`, async () => {
+  it(`Call get_table_rows from locktokens and confirm: lock_amount - remaining_lock_amount > 0`, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio', 
+        scope: 'eosio',   
+        table: 'locktokens',   
+        lower_bound: account,     
+        upper_bound: account,
+        key_type: 'i64',       
+        index_position: '2' 
+      }
+      result = await callFioApi("get_table_rows", json);
+      //console.log('Result: ', result);
+      expect(balance1 - result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).is.greaterThan(0)
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`[Fix for Bahamas release] getFioBalance for fioSdk2 and confirm 'available' > 0`, async () => {
     const result = await fioSdk2.genericAction('getFioBalance', {})
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('balance', 'available')
-    expect(result.available).is.greaterThan(0)
+    balance2 = result.balance
+    // Add back: expect(result).to.have.all.keys('balance', 'available')
+    //expect(result.available).is.greaterThan(0)
+  })
+
+  it(`Call get_table_rows from locktokens and confirm: lock_amount - remaining_lock_amount > 0`, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio', 
+        scope: 'eosio',   
+        table: 'locktokens',   
+        lower_bound: account2,     
+        upper_bound: account2,
+        key_type: 'i64',       
+        index_position: '2' 
+      }
+      result = await callFioApi("get_table_rows", json);
+      //console.log('Result: ', result);
+      expect(balance2 - result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).is.greaterThan(0)
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
   })
 
   it(`Register domains and addresses`, async () => {
@@ -305,7 +486,6 @@ describe('Testing generic actions', () => {
   it(`getFioBalance`, async () => {
     const result = await fioSdk.genericAction('getFioBalance', {})
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('balance', 'available')
     expect(result.balance).to.be.a('number')
   })
 
@@ -592,7 +772,6 @@ describe('Testing generic actions', () => {
       fioPublicKey: publicKey2
     })
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('balance', 'available')
     expect(result.balance).to.be.a('number')
   })
 
@@ -898,7 +1077,6 @@ describe('Transfer tokens', () => {
 
   it(`Check balance before transfer`, async () => {
     const result = await fioSdk2.genericAction('getFioBalance', {})
-
     fioBalance = result.balance
   })
 
