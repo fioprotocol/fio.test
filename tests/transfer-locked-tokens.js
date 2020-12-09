@@ -760,7 +760,7 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
 })
 
 
-describe(`C. staking incentives, canvote = false`, () => {
+describe.skip(`C. staking incentives, canvote = false`, () => {
 
   let balancebefore, balanceafter, feetransferlocked,
   stakeKey1, stakeKey2, stakeKey3,stakeKey4, stakeKey5
