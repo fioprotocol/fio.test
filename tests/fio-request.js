@@ -8,7 +8,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-describe(`************************** fio-request.js ************************** \n A. Send fio request from userA1 to userA2`, () => {
+describe.only(`************************** fio-request.js ************************** \n A. Send fio request from userA1 to userA2`, () => {
 
     let userA1, userA2, requestId
     const payment = 5000000000 // 5 FIO
@@ -165,8 +165,8 @@ describe(`************************** fio-request.js ************************** \
       }) 
       //console.log('result: ', result)
       //console.log('content: ', result.requests[0].content)
-      expect(result.requests[0].content.memo).to.equal(requestMemo)  
-      expect(result.requests[0].status).to.equal('sent_to_blockchain')  
+      expect(result.requests[0].content.memo).to.equal(requestMemo)
+      expect(result.requests[0].status).to.equal('sent_to_blockchain')
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal(null)
@@ -290,7 +290,7 @@ describe(`B. Test FIO Request error conditions`, () => {
       expect(result).to.equal(null);
     } catch (err) {
       //console.log('Error', err);
-      expect(err.json.fields[0].error).to.equal('No such FIO Request ');
+      expect(err.json.fields[0].error).to.equal('No such FIO Request');
       expect(err.errorCode).to.equal(400);
     }
   })
@@ -1532,7 +1532,7 @@ describe(`E. Test cancel_funds_request error conditions`, () => {
 
 })
 
-describe.only(`F. get_cancelled_fio_requests paging: Cancel multiple FIO requests and page through using get_cancelled_fio_requests`, () => {
+describe(`F. get_cancelled_fio_requests paging: Cancel multiple FIO requests and page through using get_cancelled_fio_requests`, () => {
   let userC1, requestID = [], requestCount = 20
 
   it('Create userC1', async () => {
