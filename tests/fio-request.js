@@ -165,8 +165,8 @@ describe(`************************** fio-request.js ************************** \
       }) 
       //console.log('result: ', result)
       //console.log('content: ', result.requests[0].content)
-      expect(result.requests[0].content.memo).to.equal(requestMemo)  
-      expect(result.requests[0].status).to.equal('sent_to_blockchain')  
+      expect(result.requests[0].content.memo).to.equal(requestMemo)
+      expect(result.requests[0].status).to.equal('sent_to_blockchain')
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal(null)
@@ -290,7 +290,7 @@ describe(`B. Test FIO Request error conditions`, () => {
       expect(result).to.equal(null);
     } catch (err) {
       //console.log('Error', err);
-      expect(err.json.fields[0].error).to.equal('No such FIO Request ');
+      expect(err.json.fields[0].error).to.equal('No such FIO Request');
       expect(err.errorCode).to.equal(400);
     }
   })
@@ -709,7 +709,7 @@ describe(`B. Test FIO Request error conditions`, () => {
 
 })
 
-describe(`************************** cancel-funds-request ************************** \n A. cancel_funds_request with bundles remaining`, () => {
+describe(`C. cancel_funds_request with bundles remaining`, () => {
   let userA1, userA2, userA1RequestId, cancel_funds_request_fee, userA1OrigRam, userA1OrigBundle
   const payment = 5000000000 // 5 FIO
   const requestMemo = 'Memo in the initial request'
@@ -870,7 +870,7 @@ describe(`************************** cancel-funds-request **********************
       expect(result).to.equal(null);
     } catch (err) {
       //console.log('Error: ', err.json);
-      expect(err.json.message).to.equal(config.error.noPendingRequests);
+      expect(err.json.message).to.equal(config.error.noFioRequests);
     }
   })
 
@@ -931,7 +931,7 @@ describe(`************************** cancel-funds-request **********************
   })
 })
 
-describe('B. cancel_funds_request with NO bundles remaining', () => {
+describe('D. cancel_funds_request with NO bundles remaining', () => {
 
   let userB1, userB2, userB1RequestId, cancel_funds_request_fee, userB1OrigRam, userB1OrigBundle
   const payment = 5000000000 // 5 FIO
@@ -1144,7 +1144,7 @@ describe('B. cancel_funds_request with NO bundles remaining', () => {
       expect(result).to.equal(null);
     } catch (err) {
       //console.log('Error: ', err.json);
-      expect(err.json.message).to.equal(config.error.noPendingRequests);
+      expect(err.json.message).to.equal(config.error.noFioRequests);
     }
   })
 
@@ -1179,7 +1179,7 @@ describe('B. cancel_funds_request with NO bundles remaining', () => {
 
 })
 
-describe(`C. Test cancel_funds_request error conditions`, () => {
+describe(`E. Test cancel_funds_request error conditions`, () => {
   let userC1, userC2, userC1RequestId, userC1RequestId2, userC1Balance
   const payment = 5000000000 // 5 FIO
   const requestMemo = 'Memo in the initial request'
@@ -1532,7 +1532,8 @@ describe(`C. Test cancel_funds_request error conditions`, () => {
 
 })
 
-describe(`C. get_cancelled_fio_requests paging: Cancel multiple FIO requests and page through using get_cancelled_fio_requests`, () => {
+describe(`F. get_cancelled_fio_requests paging: Cancel multiple FIO requests and page through using get_cancelled_fio_requests`, () => {
+  
   let userC1, requestID = [], requestCount = 20
 
   it('Create userC1', async () => {
@@ -1821,4 +1822,144 @@ describe(`C. get_cancelled_fio_requests paging: Cancel multiple FIO requests and
     }
   })
 
+})
+
+describe.skip(`************************** fio-request.js ************************** \n G. Records Performance Testing`, () => {
+
+  let userA1, userA2, userB1, userB2, userC1, userC2
+  const payment = 5000000000 // 5 FIO
+  const requestMemo = 'Memo in the initial request'
+
+  it(`Create users`, async () => {
+    userA1 = await newUser(faucet);
+    userA2 = await newUser(faucet);
+
+    userB1 = await newUser(faucet);
+    userB2 = await newUser(faucet);
+
+    userC1 = await newUser(faucet);
+    userC2 = await newUser(faucet);
+  })
+
+  it(`userA1 requests funds from userA2 5000 times`, async () => {
+    for (i = 0; i < 1000; i++) {
+      try {
+        const result = await userA1.sdk.genericAction('requestFunds', {
+          payerFioAddress: userA2.address,
+          payeeFioAddress: userA1.address,
+          payeeTokenPublicAddress: userA1.address,
+          amount: payment,
+          chainCode: 'FIO',
+          tokenCode: 'FIO',
+          memo: requestMemo,
+          maxFee: config.api.new_funds_request.fee,
+          payerFioPublicKey: userA2.publicKey,
+          technologyProviderId: '',
+          hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
+          offlineUrl: ''
+        })
+        //console.log('Result: ', result)
+        expect(result.status).to.equal('requested')
+      } catch (err) {
+        console.log('Error', err.json)
+        expect(err).to.equal(null)
+      }
+    }
+
+    for (i = 0; i < 1000; i++) {
+      try {
+        const result = await userA2.sdk.genericAction('requestFunds', {
+          payerFioAddress: userA1.address,
+          payeeFioAddress: userA2.address,
+          payeeTokenPublicAddress: userA1.address,
+          amount: payment,
+          chainCode: 'FIO',
+          tokenCode: 'FIO',
+          memo: requestMemo,
+          maxFee: config.api.new_funds_request.fee,
+          payerFioPublicKey: userA1.publicKey,
+          technologyProviderId: '',
+          hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
+          offlineUrl: ''
+        })
+        //console.log('Result: ', result)
+        expect(result.status).to.equal('requested')
+      } catch (err) {
+        console.log('Error', err.json)
+        expect(err).to.equal(null)
+      }
+    }
+
+    for (i = 0; i < 1000; i++) {
+      try {
+        const result = await userB1.sdk.genericAction('requestFunds', {
+          payerFioAddress: userB2.address,
+          payeeFioAddress: userB1.address,
+          payeeTokenPublicAddress: userA1.address,
+          amount: payment,
+          chainCode: 'FIO',
+          tokenCode: 'FIO',
+          memo: requestMemo,
+          maxFee: config.api.new_funds_request.fee,
+          payerFioPublicKey: userB2.publicKey,
+          technologyProviderId: '',
+          hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
+          offlineUrl: ''
+        })
+        //console.log('Result: ', result)
+        expect(result.status).to.equal('requested')
+      } catch (err) {
+        console.log('Error', err.json)
+        expect(err).to.equal(null)
+      }
+    }
+
+    for (i = 0; i < 1000; i++) {
+      try {
+        const result = await userB2.sdk.genericAction('requestFunds', {
+          payerFioAddress: userB1.address,
+          payeeFioAddress: userB2.address,
+          payeeTokenPublicAddress: userA1.address,
+          amount: payment,
+          chainCode: 'FIO',
+          tokenCode: 'FIO',
+          memo: requestMemo,
+          maxFee: config.api.new_funds_request.fee,
+          payerFioPublicKey: userB1.publicKey,
+          technologyProviderId: '',
+          hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
+          offlineUrl: ''
+        })
+        //console.log('Result: ', result)
+        expect(result.status).to.equal('requested')
+      } catch (err) {
+        console.log('Error', err.json)
+        expect(err).to.equal(null)
+      }
+    }
+
+    for (i = 0; i < 1000; i++) {
+      try {
+        const result = await userC2.sdk.genericAction('requestFunds', {
+          payerFioAddress: userC1.address,
+          payeeFioAddress: userC2.address,
+          payeeTokenPublicAddress: userA1.address,
+          amount: payment,
+          chainCode: 'FIO',
+          tokenCode: 'FIO',
+          memo: requestMemo,
+          maxFee: config.api.new_funds_request.fee,
+          payerFioPublicKey: userC1.publicKey,
+          technologyProviderId: '',
+          hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
+          offlineUrl: ''
+        })
+        //console.log('Result: ', result)
+        expect(result.status).to.equal('requested')
+      } catch (err) {
+        console.log('Error', err.json)
+        expect(err).to.equal(null)
+      }
+    }
+  })
 })

@@ -27,6 +27,6 @@
         "typescript": "^3.8.2"
     },
     "scripts": {
-        "test": "mocha -t 50000 index.js"
+        "test": "mocha -t 5000000 index.js"
     }
 }
