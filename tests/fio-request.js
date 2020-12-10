@@ -8,7 +8,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-describe.only(`************************** fio-request.js ************************** \n A. Send fio request from userA1 to userA2`, () => {
+describe(`************************** fio-request.js ************************** \n A. Send fio request from userA1 to userA2`, () => {
 
     let userA1, userA2, requestId
     const payment = 5000000000 // 5 FIO
@@ -709,7 +709,7 @@ describe(`B. Test FIO Request error conditions`, () => {
 
 })
 
-describe(`************************** cancel-funds-request ************************** \n C. cancel_funds_request with bundles remaining`, () => {
+describe(`C. cancel_funds_request with bundles remaining`, () => {
   let userA1, userA2, userA1RequestId, cancel_funds_request_fee, userA1OrigRam, userA1OrigBundle
   const payment = 5000000000 // 5 FIO
   const requestMemo = 'Memo in the initial request'
@@ -1533,6 +1533,7 @@ describe(`E. Test cancel_funds_request error conditions`, () => {
 })
 
 describe(`F. get_cancelled_fio_requests paging: Cancel multiple FIO requests and page through using get_cancelled_fio_requests`, () => {
+  
   let userC1, requestID = [], requestCount = 20
 
   it('Create userC1', async () => {
