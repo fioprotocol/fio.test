@@ -1,19 +1,19 @@
 require('mocha')
 const {expect} = require('chai')
 const {newUser, fetchJson, callFioApi, callFioApiSigned, generateFioDomain, timeout} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
+const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
 /**
  * Whitelisting does not work with the eosio account
- * 
+ *
 const eosio = {
   account: 'eosio',
   publicKey: 'FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS',
   privateKey: '5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY'
 }
 */
- 
+
 const fiotoken = {
   account: 'fio.token',
   publicKey: 'FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS',
@@ -188,7 +188,7 @@ describe(`B. General addaction testing with random contracts and domains (can be
   it('Call get_actions and confirm action is in table', async () => {
     try {
       const json = {
-        //limit: 100,              
+        //limit: 100,
         //offset: 0
       }
       actionList = await callFioApi("get_actions", json);
@@ -199,7 +199,7 @@ describe(`B. General addaction testing with random contracts and domains (can be
           found = true;
         }
       }
-      expect(found).to.equal(true); 
+      expect(found).to.equal(true);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -500,7 +500,7 @@ describe(`E. get_actions paging tests`, () => {
       const json = { }
       actionList = await callFioApi("get_actions", json);
       currentCount = actionList.actions.length
-      expect(currentCount).to.greaterThan(0); 
+      expect(currentCount).to.greaterThan(0);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -529,7 +529,7 @@ describe(`E. get_actions paging tests`, () => {
       actionList = await callFioApi("get_actions", json);
       oldCount = currentCount;
       currentCount = actionList.actions.length
-      expect(currentCount).to.equal(oldCount + 1); 
+      expect(currentCount).to.equal(oldCount + 1);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -539,7 +539,7 @@ describe(`E. get_actions paging tests`, () => {
   it(`Call (get_actions, limit=1, offset=0). Expect 1 request.`, async () => {
     try {
       const json = {
-        limit: 1,              
+        limit: 1,
         offset: 0
       }
       actionList = await callFioApi("get_actions", json);
@@ -553,7 +553,7 @@ describe(`E. get_actions paging tests`, () => {
   it(`Call (get_actions, limit=2, offset=4). Expect 2 requests.`, async () => {
     try {
       const json = {
-        limit: 2,              
+        limit: 2,
         offset: 4
       }
       actionList = await callFioApi("get_actions", json);
@@ -567,7 +567,7 @@ describe(`E. get_actions paging tests`, () => {
   it(`Call (get_actions, limit=10, offset=15). Expect 10 requests.`, async () => {
     try {
       const json = {
-        limit: 10,              
+        limit: 10,
         offset: 15
       }
       actionList = await callFioApi("get_actions", json);
@@ -581,7 +581,7 @@ describe(`E. get_actions paging tests`, () => {
   it(`Negative offset. Call (get_actions, limit=1, offset=-1). Expect error type 400: ${config.error.invalidOffset}`, async () => {
     try {
       const json = {
-        limit: 1,              
+        limit: 1,
         offset: -1
       }
       actionList = await callFioApi("get_actions", json);
@@ -592,11 +592,11 @@ describe(`E. get_actions paging tests`, () => {
       expect(err.statusCode).to.equal(400);
     }
   })
- 
+
   it(`Negative limit. Call (get_actions, limit=-5, offset=5). Expect error type 400: ${config.error.invalidLimit}`, async () => {
     try {
       const json = {
-        limit: -5,              
+        limit: -5,
         offset: 5
       }
       actionList = await callFioApi("get_actions", json);

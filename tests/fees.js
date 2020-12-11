@@ -1,7 +1,7 @@
 require('mocha')
 const {expect} = require('chai')
 const {newUser, fetchJson} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
+const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
 before(async () => {
@@ -22,7 +22,7 @@ describe('************************** fees.js ************************** \n Test 
         //console.log('bundledEligible: ', config.api[fioEndpoint].bundledEligible)
         if (config.api[fioEndpoint].bundledEligible) {
           const result = await userA1.sdk.genericAction('getFee', {
-            endPoint: fioEndpoint, 
+            endPoint: fioEndpoint,
             fioAddress: userA1.address,
           })
           //console.log('Returned fee: ', result)
@@ -49,7 +49,7 @@ describe('************************** fees.js ************************** \n Test 
         //console.log('bundledEligible: ', config.api[fioEndpoint].bundledEligible)
         if (config.api[fioEndpoint].bundledEligible) {
           const result = await userA1.sdk.genericAction('getFee', {
-            endPoint: fioEndpoint, 
+            endPoint: fioEndpoint,
             fioAddress: userA1.address.toUpperCase(),
           })
           //console.log('Returned fee: ', result)

@@ -1,7 +1,7 @@
 require('mocha')
 const {expect} = require('chai')
 const {newUser, generateFioAddress, callFioApiSigned, callFioApi, getFees, fetchJson} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
+const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
 before(async () => {
@@ -54,7 +54,7 @@ describe('************************** burn-address.js ************************** 
             expect(err).to.equal(null);
         }
     })
-    
+
     it(`Burn walletA1.address2. Expect status = 'OK'. Expect fee_collected = 0`, async () => {
         try {
             const result = await callFioApiSigned('push_transaction', {
@@ -109,7 +109,7 @@ describe('************************** burn-address.js ************************** 
           //console.log('fionames: ', fionames);
           for (name in fionames.rows) {
             if (fionames.rows[name].name == walletA1.address2) {
-              //console.log('fioname: ', fionames.rows[name]); 
+              //console.log('fioname: ', fionames.rows[name]);
               inTable = true;
             }
           }
@@ -165,11 +165,11 @@ describe('************************** burn-address.js ************************** 
           //console.log('fionames: ', fionames);
           for (name in fionames.rows) {
             if (fionames.rows[name].name == walletA1.address) {
-              //console.log('bundleCount: ', fionames.rows[name].bundleeligiblecountdown); 
+              //console.log('bundleCount: ', fionames.rows[name].bundleeligiblecountdown);
               bundleCount = fionames.rows[name].bundleeligiblecountdown;
             }
           }
-          expect(bundleCount).to.equal(0);  
+          expect(bundleCount).to.equal(0);
         } catch (err) {
           console.log('Error', err);
           expect(err).to.equal(null);
@@ -239,7 +239,7 @@ describe('************************** burn-address.js ************************** 
           //console.log('fionames: ', fionames);
           for (name in fionames.rows) {
             if (fionames.rows[name].name == walletA1.address) {
-              //console.log('fioname: ', fionames.rows[name]); 
+              //console.log('fioname: ', fionames.rows[name]);
               inTable = true;
             }
           }
@@ -607,7 +607,7 @@ describe('E. Test burnfioaddress SDK call (uses chain/burn_fio_address endpoint)
             expect(err).to.equal(null);
         }
     })
-    
+
     it(`(SDK) Burn walletA1.address2. Expect status = 'OK'. Expect fee_collected = 0`, async () => {
         try {
             const result = await walletA1.sdk.genericAction('burnFioAddress', {
@@ -655,7 +655,7 @@ describe('E. Test burnfioaddress SDK call (uses chain/burn_fio_address endpoint)
           //console.log('fionames: ', fionames);
           for (name in fionames.rows) {
             if (fionames.rows[name].name == walletA1.address2) {
-              //console.log('fioname: ', fionames.rows[name]); 
+              //console.log('fioname: ', fionames.rows[name]);
               inTable = true;
             }
           }

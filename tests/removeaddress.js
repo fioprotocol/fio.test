@@ -1,7 +1,7 @@
 require('mocha')
 const {expect} = require('chai')
 const {newUser, timeout, fetchJson, callFioApi, callFioApiSigned} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
+const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
 before(async () => {
@@ -29,7 +29,7 @@ describe(`************************** removeaddress.js **************************
       expect(err.list[0].message).to.equal(config.error.fioAddressRequired)
     }
   })
-  
+
 
   it(`(SDK) removePublicAddress Fail, address has no domain. Expect SDK error: ${config.error.fioAddressInvalidChar}`, async () => {
     try {
@@ -897,7 +897,7 @@ describe(`E-2. Add and remove addresses with NO bundles remaining`, () => {
         }
       }
     })
-  
+
     it(`Add public addresses to userA1 to use up one more bundle`, async () => {
       try {
         const result = await userA1.sdk.genericAction('addPublicAddresses', {
@@ -919,12 +919,12 @@ describe(`E-2. Add and remove addresses with NO bundles remaining`, () => {
         expect(err).to.equal(null)
       }
     })
-  
+
     it(`Get balance for userA1`, async () => {
       try {
         const result = await userA1.sdk.genericAction('getFioBalance', {
           fioPublicKey: userA1.publicKey
-        }) 
+        })
         userA1Balance = result.balance
         //console.log('userA1 fio balance', result)
       } catch (err) {
@@ -932,7 +932,7 @@ describe(`E-2. Add and remove addresses with NO bundles remaining`, () => {
         expect(err).to.equal(null)
       }
     })
-   
+
     it('Call get_table_rows from fionames to get bundles remaining for userA1. Verify 0 bundles', async () => {
       let bundleCount
       try {
@@ -949,11 +949,11 @@ describe(`E-2. Add and remove addresses with NO bundles remaining`, () => {
         //console.log('fionames: ', fionames);
         for (name in fionames.rows) {
           if (fionames.rows[name].name == userA1.address) {
-            //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown); 
+            //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown);
             bundleCount = fionames.rows[name].bundleeligiblecountdown;
           }
         }
-        expect(bundleCount).to.equal(0);  
+        expect(bundleCount).to.equal(0);
       } catch (err) {
         console.log('Error', err);
         expect(err).to.equal(null);
@@ -1108,7 +1108,7 @@ describe(`F. Sad - result in error`, () => {
       expect(err).to.equal(null)
     }
   })
-  
+
   it(`Fixed in BD-1955, Remove with invalid FIO Address - Direct API call. Expect error: ${config.error2.invalidFioAddress.message}`, async () => {
     const result = await callFioApiSigned('push_transaction', {
       action: 'remaddress',
@@ -1360,7 +1360,7 @@ describe(`F. Sad - result in error`, () => {
     try {
       const result = await userA1.sdk.genericAction('getFioBalance', {
         fioPublicKey: userA1.publicKey
-      }) 
+      })
       userA1Balance = result.balance
       //console.log('userA1 fio balance', result)
     } catch (err) {
@@ -1382,14 +1382,14 @@ describe(`F. Sad - result in error`, () => {
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it(`Verify balance for userA1 = 0`, async () => {
     try {
       const result = await userA1.sdk.genericAction('getFioBalance', {
         fioPublicKey: userA1.publicKey
-      }) 
+      })
       //console.log('userA1 fio balance', result)
       expect(result.balance).to.equal(0)
     } catch (err) {
@@ -1414,11 +1414,11 @@ describe(`F. Sad - result in error`, () => {
       //console.log('fionames: ', fionames);
       for (name in fionames.rows) {
         if (fionames.rows[name].name == userA1.address) {
-          //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown); 
+          //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown);
           bundleCount = fionames.rows[name].bundleeligiblecountdown;
         }
       }
-      expect(bundleCount).to.equal(0);  
+      expect(bundleCount).to.equal(0);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);

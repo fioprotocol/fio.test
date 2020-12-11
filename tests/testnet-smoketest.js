@@ -1,7 +1,7 @@
 require('mocha')
 const {expect} = require('chai')
 const {newUser, existingUser, callFioApi, generateFioAddress, timeout} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
+const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
 let user1, user2, user3
@@ -24,8 +24,8 @@ describe(`FIO Requests (error conditions only)`, () => {
 
   it(`user1 requests funds from user2`, async () => {
     try {
-      const result = await user1.sdk.genericAction('requestFunds', { 
-        payerFioAddress: user2.address, 
+      const result = await user1.sdk.genericAction('requestFunds', {
+        payerFioAddress: user2.address,
         payeeFioAddress: user1.address,
         payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
         amount: payment,
@@ -37,10 +37,10 @@ describe(`FIO Requests (error conditions only)`, () => {
         technologyProviderId: '',
         hash: '',
         offLineUrl: ''
-      })    
+      })
       //console.log('Result: ', result.fio_request_id)
       user1RequestId = result.fio_request_id
-      expect(result.status).to.equal('requested') 
+      expect(result.status).to.equal('requested')
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal(null)
@@ -173,8 +173,8 @@ describe(`Cancel Funds Request`, () => {
 
   it(`user1 requests funds from user2`, async () => {
     try {
-      const result = await user1.sdk.genericAction('requestFunds', { 
-        payerFioAddress: user2.address, 
+      const result = await user1.sdk.genericAction('requestFunds', {
+        payerFioAddress: user2.address,
         payeeFioAddress: user1.address,
         payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
         amount: payment,
@@ -186,10 +186,10 @@ describe(`Cancel Funds Request`, () => {
         technologyProviderId: '',
         hash: '',
         offLineUrl: ''
-      })    
+      })
       //console.log('Result: ', result)
       user1RequestId = result.fio_request_id
-      expect(result.status).to.equal('requested') 
+      expect(result.status).to.equal('requested')
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal(null)
@@ -205,7 +205,7 @@ describe(`Cancel Funds Request`, () => {
       const result = await user1.sdk.genericAction('getSentFioRequests', {
         limit: '',
         offset: ''
-      }) 
+      })
       //console.log('result: ', result)
       numRequests = result.requests.length;
       expect(result.requests[numRequests-1].fio_request_id).to.equal(user1RequestId);
@@ -221,7 +221,7 @@ describe(`Cancel Funds Request`, () => {
       const result = await user2.sdk.genericAction('getPendingFioRequests', {
         limit: '',
         offset: ''
-      }) 
+      })
       //console.log('result: ', result)
       numRequests = result.requests.length;
       expect(result.requests[numRequests-1].fio_request_id).to.equal(user1RequestId);
@@ -259,7 +259,7 @@ describe(`Cancel Funds Request`, () => {
       const result = await user1.sdk.genericAction('getSentFioRequests', {
         limit: '',
         offset: ''
-      }) 
+      })
       //console.log('result: ', result)
       numRequests = result.requests.length;
       expect(result.requests[numRequests-1].fio_request_id).to.equal(user1RequestId);
@@ -307,10 +307,10 @@ describe('Transfer domain', () => {
     try {
       const result = await user1.sdk.genericAction('getFioNames', {
         fioPublicKey: user1.publicKey
-      }) 
+      })
       //console.log('getFioNames', result)
       for (domain in result.fio_domains) {
-        if (result.fio_domains[domain].fio_domain == user1.domain2) {break} 
+        if (result.fio_domains[domain].fio_domain == user1.domain2) {break}
       }
       expect(result.fio_domains[domain].fio_domain).to.equal(user1.domain2);
     } catch (err) {
@@ -323,7 +323,7 @@ describe('Transfer domain', () => {
     try {
       const result = await user1.sdk.genericAction('getFioBalance', {
         fioPublicKey: user1.publicKey
-      }) 
+      })
       user1OrigBalance = result.balance
       //console.log('user1 fio balance', result)
     } catch (err) {
@@ -346,7 +346,7 @@ describe('Transfer domain', () => {
     } catch (err) {
         console.log('Error: ', err.json.error);
         expect(err).to.equal(null);
-    } 
+    }
   })
 
   it('Confirm proper fee was collected', async () => {
@@ -357,7 +357,7 @@ describe('Transfer domain', () => {
     try {
       const result = await user1.sdk.genericAction('getFioBalance', {
         fioPublicKey: user1.publicKey
-      }) 
+      })
       expect(result.balance).to.equal(user1OrigBalance - transfer_fio_domain_fee);
       //console.log('user1 fio balance', result)
     } catch (err) {
@@ -370,10 +370,10 @@ describe('Transfer domain', () => {
     try {
       const result = await user1.sdk.genericAction('getFioNames', {
         fioPublicKey: user1.publicKey
-      }) 
+      })
       //console.log('getFioNames', result)
       for (address in result.fio_addresses) {
-        if (result.fio_addresses[address].fio_address == user1.address2) {break} 
+        if (result.fio_addresses[address].fio_address == user1.address2) {break}
       }
       expect(result.fio_addresses[address].fio_address).to.equal(user1.address2);
     } catch (err) {
@@ -386,10 +386,10 @@ describe('Transfer domain', () => {
     try {
       const result = await user2.sdk.genericAction('getFioNames', {
         fioPublicKey: user2.publicKey
-      }) 
+      })
       //console.log('getFioNames', result)
       for (domain in result.fio_domains) {
-        if (result.fio_domains[domain].fio_domain == user1.domain2) {break} 
+        if (result.fio_domains[domain].fio_domain == user1.domain2) {break}
       }
       expect(result.fio_domains[domain].fio_domain).to.equal(user1.domain2);
     } catch (err) {
@@ -412,7 +412,7 @@ describe('Transfer domain', () => {
     } catch (err) {
         console.log('Error: ', err.json.error);
         expect(err).to.equal(null);
-    } 
+    }
   })
 
 })
@@ -564,11 +564,11 @@ describe(`Paging - FIO Address`, () => {
     for (i = 0; i < addressCount; i++) {
       try {
         newAddress = i + generateFioAddress(user3.domain, 7)
-        const result = await user3.sdk.genericAction('registerFioAddress', { 
-          fioAddress: newAddress, 
+        const result = await user3.sdk.genericAction('registerFioAddress', {
+          fioAddress: newAddress,
           maxFee: config.api.register_fio_address.fee,
           walletFioAddress: ''
-        })   
+        })
         //console.log('Result: ', result)
         expect(result.status).to.equal('OK')
       } catch (err) {
@@ -636,7 +636,7 @@ describe(`Paging - FIO Address`, () => {
       //console.log('Result: ', result);
       expect(result.fio_addresses.length).to.equal(2);
       expect(result.fio_addresses[0].fio_address.charAt(0)).to.equal('3'); // First character of address = 4 (5th address in list)
-      expect(result.fio_addresses[1].fio_address.charAt(0)).to.equal('4'); 
+      expect(result.fio_addresses[1].fio_address.charAt(0)).to.equal('4');
     } catch (err) {
       console.log('Error', err)
       expect(err).to.equal(null)
@@ -652,9 +652,9 @@ describe(`Paging - FIO Address`, () => {
       }
       result = await callFioApi("get_fio_addresses", json);
       //console.log('Result: ', result);
-      expect(result.fio_addresses[0].fio_address.charAt(0)).to.equal('1'); 
-      expect(result.fio_addresses[0].fio_address.charAt(1)).to.equal('4'); // 15         
-      expect(result.fio_addresses[4].fio_address.charAt(0)).to.equal('1'); 
+      expect(result.fio_addresses[0].fio_address.charAt(0)).to.equal('1');
+      expect(result.fio_addresses[0].fio_address.charAt(1)).to.equal('4'); // 15
+      expect(result.fio_addresses[4].fio_address.charAt(0)).to.equal('1');
       expect(result.fio_addresses[4].fio_address.charAt(1)).to.equal('8'); // 19
     } catch (err) {
       console.log('Error', err)

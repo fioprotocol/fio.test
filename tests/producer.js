@@ -1,7 +1,7 @@
 require('mocha')
 const {expect} = require('chai')
 const {newUser, generateFioAddress, fetchJson} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
+const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
 before(async () => {
@@ -35,13 +35,13 @@ describe('************************** producer.js ************************** \n A
   })
 
   it(`Register userA1 address #2`, async () => {
-    const result = await userA1.sdk.genericAction('registerFioAddress', { 
+    const result = await userA1.sdk.genericAction('registerFioAddress', {
       fioAddress: userA1.address2,
       maxFee: config.api.register_fio_address.fee,
       walletFioAddress: ''
     })
     //console.log('Result: ', result)
-    expect(result.status).to.equal('OK')  
+    expect(result.status).to.equal('OK')
   })
 
   it(`Register prodA1 as producer`, async () => {
@@ -59,10 +59,10 @@ describe('************************** producer.js ************************** \n A
         }
       })
       //console.log('Result: ', result)
-      expect(result.status).to.equal('OK') 
+      expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
-    } 
+    }
   })
 
   it(`userA1 votes for prodA1 using address #1`, async () => {
@@ -80,10 +80,10 @@ describe('************************** producer.js ************************** \n A
         }
       })
       //console.log('Result: ', result)
-      expect(result.status).to.equal('OK') 
+      expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
-    } 
+    }
   })
 
   it(`userA1 votes for prodA1 using address #2`, async () => {
@@ -101,10 +101,10 @@ describe('************************** producer.js ************************** \n A
         }
       })
       //console.log('Result: ', result)
-      expect(result.status).to.equal('OK') 
+      expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
-    } 
+    }
   })
 
   it(`Unregister prodA1 as producer`, async () => {
@@ -119,10 +119,10 @@ describe('************************** producer.js ************************** \n A
         }
       })
       //console.log('Result: ', result)
-      expect(result.status).to.equal('OK') 
+      expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
-    } 
+    }
   })
 
 })

@@ -5,7 +5,7 @@
 require('mocha')
 const {expect} = require('chai')
 const {callFioHistoryApi, existingUser, newUser, generateFioDomain, generateFioAddress, createKeypair, fetchJson} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
+const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
 before(async () => {
@@ -38,7 +38,7 @@ describe('************************** history.js ************************** \n A.
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it(`get_transfers all`, async () => {
@@ -93,7 +93,7 @@ describe('B. get_transfers to non-existent account', () => {
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it('Confirm single, initial trnsfiopubky transfer', async () => {
@@ -110,7 +110,7 @@ describe('B. get_transfers to non-existent account', () => {
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it(`Send ${transferAmount} sufs from userB1 to userB2`, async () => {
@@ -126,7 +126,7 @@ describe('B. get_transfers to non-existent account', () => {
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it(`Confirm there are three transfers (one for transfer and one for fee) and the second is transfer with transfer_amount= ${transferAmount}`, async () => {
@@ -138,7 +138,7 @@ describe('B. get_transfers to non-existent account', () => {
       }
       result = await callFioHistoryApi("get_transfers", json);
       //console.log('Result: ', result)
-      expect(result.transfers.length).to.equal(3); 
+      expect(result.transfers.length).to.equal(3);
       expect(result.transfers[1].action).to.equal('trnsfiopubky');
       expect(result.transfers[1].transfer_amount).to.equal(transferAmount);
       expect(result.transfers[2].action).to.equal('transfer');
@@ -146,13 +146,13 @@ describe('B. get_transfers to non-existent account', () => {
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it('userB1 registerFioDomain', async () => {
     try {
-      const result = await userB1.genericAction('registerFioDomain', { 
-        fioDomain: userB1.domain, 
+      const result = await userB1.genericAction('registerFioDomain', {
+        fioDomain: userB1.domain,
         maxFee: config.api.register_fio_domain.fee,
         walletFioAddress: ''
       })
@@ -161,7 +161,7 @@ describe('B. get_transfers to non-existent account', () => {
     } catch (err) {
       console.log('Error: ', err.json);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it(`Confirm there are four transfers and the fourth is transfer is a ${config.api.register_fio_domain.fee} fee for domain registration`, async () => {
@@ -173,23 +173,23 @@ describe('B. get_transfers to non-existent account', () => {
       }
       result = await callFioHistoryApi("get_transfers", json);
       //console.log('Result: ', result)
-      expect(result.transfers.length).to.equal(4); 
+      expect(result.transfers.length).to.equal(4);
       expect(result.transfers[3].action).to.equal('transfer');
       expect(result.transfers[3].fee_amount).to.equal(config.api.register_fio_domain.fee);
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
-    } 
+    }
   })
-  
+
   it('userB1 registerFioAddress', async () => {
-    const result = await userB1.genericAction('registerFioAddress', { 
+    const result = await userB1.genericAction('registerFioAddress', {
       fioAddress: userB1.address,
       maxFee: config.api.register_fio_address.fee,
       walletFioAddress: ''
     })
     //console.log('Result: ', result)
-    expect(result.status).to.equal('OK')  
+    expect(result.status).to.equal('OK')
   })
 
   it(`Confirm there are five transfers and the fifth is a ${config.api.register_fio_address.fee} fee for address registration`, async () => {
@@ -201,13 +201,13 @@ describe('B. get_transfers to non-existent account', () => {
       }
       result = await callFioHistoryApi("get_transfers", json);
       //console.log('Result: ', result)
-      expect(result.transfers.length).to.equal(5); 
+      expect(result.transfers.length).to.equal(5);
       expect(result.transfers[4].action).to.equal('transfer');
       expect(result.transfers[4].fee_amount).to.equal(config.api.register_fio_address.fee);
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
 
