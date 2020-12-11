@@ -239,7 +239,7 @@ describe(`************************** bravo-migr-test.js.js *********************
     })
 })
 
-describe(`Perform single migrtrx`, () => {
+describe.only(`Perform single migrtrx`, () => {
     it(`Call single migrtrx (bp1) and confirm you can still do Requests and OBTs`, async () => {
         try {
             const result = await callFioApiSigned('push_transaction', {
@@ -248,7 +248,7 @@ describe(`Perform single migrtrx`, () => {
                 actor: bp1.account,
                 privKey: bp1.privateKey,
                 data: {
-                    amount: 2,
+                    amount: 5,
                     actor: bp1.account
                 }
             })
