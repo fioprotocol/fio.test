@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
+const {FIOSDK } = require('@fioprotocol/fiosdk')
 const {fetchJson, timeout, generateFioDomain, generateFioAddress, createKeypair, getTotalVotedFio, getAccountVoteWeight, getProdVoteTotal} = require('../utils.js');
 config = require('../config.js');
 
