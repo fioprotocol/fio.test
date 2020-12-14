@@ -1,15 +1,15 @@
 //require('mocha')
 //const { expect } = require('chai')
-//const {FIOSDK } = require('@fioprotocol/FIOSDK')
+//const {FIOSDK } = require('@fioprotocol/fiosdk')
 //const fioData = require('./serverResponses');
 //const fiojs = require("@fioprotocol/fiojs");
-//const Transactions_2 = require("@fioprotocol/FIOSDK/lib/transactions/Transactions")
+//const Transactions_2 = require("@fioprotocol/fiosdk/lib/transactions/Transactions")
 //let transaction = new Transactions_2.Transactions
 
 require('mocha')
 const {expect} = require('chai')
 const {newUser, getProdVoteTotal, importPrivKey, unlockWallet, addLock, getAccountVoteWeight, getTotalVotedFio, fetchJson} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
+const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
 before(async () => {

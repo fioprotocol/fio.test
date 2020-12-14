@@ -4,7 +4,7 @@ const {performance} = require('perf_hooks');
 config = require('../../config.js');
 const {expect} = require('chai')
 const {newUser, fetchJson, generateFioDomain, generateFioAddress, createKeypair, callFioApi} = require('../../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
+const {FIOSDK } = require('@fioprotocol/fiosdk')
 
 
 before(async () => {

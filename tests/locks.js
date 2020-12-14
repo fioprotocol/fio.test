@@ -1,7 +1,7 @@
 require('mocha')
 const {expect} = require('chai')
 const {newUser, unlockWallet, generateFioDomain, addLock, timeout, fetchJson} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
+const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
 let total_voted_fio

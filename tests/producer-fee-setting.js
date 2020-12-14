@@ -1,7 +1,7 @@
 require('mocha')
 const {expect} = require('chai')
 const {getBlock, readProdFile, getTopprods, getTable, timeout, callFioApi, callFioApiSigned, getFees, newUser, existingUser, fetchJson} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
+const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
 let producersList = [], producers = [], submit_fee_ratios_fee, submit_fee_multiplier_fee
