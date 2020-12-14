@@ -265,7 +265,7 @@ describe('************************** fee-voting-fee-setting.js *****************
         }
       })
       console.log("regproducer")
-      
+
       result = await prodA1.sdk.genericAction('pushTransaction', {
         action: 'voteproducer',
         account: 'eosio',

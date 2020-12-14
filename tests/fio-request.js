@@ -20,7 +20,7 @@ describe(`************************** fio-request.js ************************** \
         userA1 = await newUser(faucet);
         userA2 = await newUser(faucet);
     })
-  
+
     it(`Add BTC addresses to userA1`, async () => {
       try {
         const result = await userA1.sdk.genericAction('addPublicAddresses', {
@@ -36,17 +36,17 @@ describe(`************************** fio-request.js ************************** \
           technologyProviderId: ''
         })
         //console.log('Result:', result)
-        expect(result.status).to.equal('OK') 
+        expect(result.status).to.equal('OK')
       } catch (err) {
         console.log('Error', err)
         //expect(err).to.equal(null)
-      }      
+      }
     })
 
     it(`userA1 requests funds from userA2`, async () => {
       try {
-        const result = await userA1.sdk.genericAction('requestFunds', { 
-          payerFioAddress: userA2.address, 
+        const result = await userA1.sdk.genericAction('requestFunds', {
+          payerFioAddress: userA2.address,
           payeeFioAddress: userA1.address,
           payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
           amount: payment,
@@ -58,9 +58,9 @@ describe(`************************** fio-request.js ************************** \
           technologyProviderId: '',
           hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
           offlineUrl: ''
-        })    
+        })
         //console.log('Result: ', result)
-        expect(result.status).to.equal('requested') 
+        expect(result.status).to.equal('requested')
       } catch (err) {
         console.log('Error: ', err)
         expect(err).to.equal(null)
@@ -72,11 +72,11 @@ describe(`************************** fio-request.js ************************** \
         const result = await userA1.sdk.genericAction('getSentFioRequests', {
           limit: '',
           offset: ''
-        }) 
+        })
         //console.log('result: ', result)
         //console.log('content: ', result.requests[0].content)
         requestId = result.requests[0].fio_request_id
-        expect(result.requests[0].content.memo).to.equal(requestMemo)  
+        expect(result.requests[0].content.memo).to.equal(requestMemo)
       } catch (err) {
         console.log('Error: ', err)
         expect(err).to.equal(null)
@@ -88,11 +88,11 @@ describe(`************************** fio-request.js ************************** \
         const result = await userA2.sdk.genericAction('getPendingFioRequests', {
           limit: '',
           offset: ''
-        }) 
+        })
         //console.log('result: ', result)
         //console.log('content: ', result.requests[0].content)
-        expect(result.requests[0].fio_request_id).to.equal(requestId)  
-        expect(result.requests[0].content.memo).to.equal(requestMemo)  
+        expect(result.requests[0].fio_request_id).to.equal(requestId)
+        expect(result.requests[0].content.memo).to.equal(requestMemo)
       } catch (err) {
         console.log('Error: ', err)
         expect(err).to.equal(null)
@@ -105,9 +105,9 @@ describe(`************************** fio-request.js ************************** \
           fioAddress: userA1.address,
           chainCode: "BTC",
           tokenCode: "BTC"
-        })  
+        })
         //console.log('Result', result)
-        expect(result.public_address).to.equal(btcPubAdd)  
+        expect(result.public_address).to.equal(btcPubAdd)
       } catch (err) {
         console.log('Error', err)
         expect(err).to.equal(null)
@@ -162,11 +162,11 @@ describe(`************************** fio-request.js ************************** \
       const result = await userA1.sdk.genericAction('getSentFioRequests', {
         limit: '',
         offset: ''
-      }) 
+      })
       //console.log('result: ', result)
       //console.log('content: ', result.requests[0].content)
-      expect(result.requests[0].content.memo).to.equal(requestMemo)  
-      expect(result.requests[0].status).to.equal('sent_to_blockchain')  
+      expect(result.requests[0].content.memo).to.equal(requestMemo)
+      expect(result.requests[0].status).to.equal('sent_to_blockchain')
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal(null)
@@ -179,10 +179,10 @@ describe(`************************** fio-request.js ************************** \
         limit: '',
         offset: '',
         tokenCode: 'BTC'
-      }) 
+      })
       //console.log('result: ', result)
       //console.log('content: ', result.obt_data_records[0].content)
-      expect(result.obt_data_records[0].content.memo).to.equal(obtMemo)  
+      expect(result.obt_data_records[0].content.memo).to.equal(obtMemo)
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal(null)
@@ -195,16 +195,16 @@ describe(`************************** fio-request.js ************************** \
         limit: '',
         offset: '',
         tokenCode: 'BTC'
-      }) 
+      })
       //console.log('result: ', result)
       //console.log('content: ', result.obt_data_records[0].content)
-      expect(result.obt_data_records[0].content.memo).to.equal(obtMemo)  
+      expect(result.obt_data_records[0].content.memo).to.equal(obtMemo)
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal(null)
     }
   })
-  
+
 })
 
 describe(`B. Test FIO Request error conditions`, () => {
@@ -218,7 +218,7 @@ describe(`B. Test FIO Request error conditions`, () => {
     userB2 = await newUser(faucet);
     userB3 = await newUser(faucet);
   })
-  
+
   it(`Add BTC address to userB1`, async () => {
     try {
       const result = await userB1.sdk.genericAction('addPublicAddresses', {
@@ -234,17 +234,17 @@ describe(`B. Test FIO Request error conditions`, () => {
         technologyProviderId: ''
       })
       //console.log('Result:', result)
-      expect(result.status).to.equal('OK') 
+      expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error', err)
       //expect(err).to.equal(null)
-    }      
+    }
   })
 
   it(`userB1 requests funds from userB2`, async () => {
     try {
-      const result = await userB1.sdk.genericAction('requestFunds', { 
-        payerFioAddress: userB2.address, 
+      const result = await userB1.sdk.genericAction('requestFunds', {
+        payerFioAddress: userB2.address,
         payeeFioAddress: userB1.address,
         payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
         amount: payment,
@@ -256,10 +256,10 @@ describe(`B. Test FIO Request error conditions`, () => {
         technologyProviderId: '',
         hash: '',
         offLineUrl: ''
-      })    
+      })
       //console.log('Result: ', result.fio_request_id)
       userB1RequestId = result.fio_request_id
-      expect(result.status).to.equal('requested') 
+      expect(result.status).to.equal('requested')
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal(null)
@@ -488,17 +488,17 @@ describe(`B. Test FIO Request error conditions`, () => {
         technologyProviderId: ''
       })
       //console.log('Result:', result)
-      expect(result.status).to.equal('OK') 
+      expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error', err)
       expect(err).to.equal(null)
-    }      
+    }
   })
 
   it(`userB1 request #2 from userB2`, async () => {
     try {
-      const result = await userB1.sdk.genericAction('requestFunds', { 
-        payerFioAddress: userB2.address, 
+      const result = await userB1.sdk.genericAction('requestFunds', {
+        payerFioAddress: userB2.address,
         payeeFioAddress: userB1.address,
         payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
         amount: payment,
@@ -510,10 +510,10 @@ describe(`B. Test FIO Request error conditions`, () => {
         technologyProviderId: '',
         hash: '',
         offLineUrl: ''
-      })    
+      })
       //console.log('Result: ', result)
       userB1RequestId2 = result.fio_request_id
-      expect(result.status).to.equal('requested') 
+      expect(result.status).to.equal('requested')
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal(null)
@@ -553,7 +553,7 @@ describe(`B. Test FIO Request error conditions`, () => {
     try {
       const result = await userB1.sdk.genericAction('getFioBalance', {
         fioPublicKey: userB1.publicKey
-      }) 
+      })
       userB1Balance = result.balance
       //console.log('userB1 fio balance', result)
     } catch (err) {
@@ -575,14 +575,14 @@ describe(`B. Test FIO Request error conditions`, () => {
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it(`Verify balance for userB1 = 0`, async () => {
     try {
       const result = await userB1.sdk.genericAction('getFioBalance', {
         fioPublicKey: userB1.publicKey
-      }) 
+      })
       //console.log('userB1 fio balance', result)
       expect(result.balance).to.equal(0)
     } catch (err) {
@@ -607,11 +607,11 @@ describe(`B. Test FIO Request error conditions`, () => {
       //console.log('fionames: ', fionames);
       for (name in fionames.rows) {
         if (fionames.rows[name].name == userB1.address) {
-          //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown); 
+          //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown);
           bundleCount = fionames.rows[name].bundleeligiblecountdown;
         }
       }
-      expect(bundleCount).to.equal(0);  
+      expect(bundleCount).to.equal(0);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -640,8 +640,8 @@ describe(`B. Test FIO Request error conditions`, () => {
 
   it(`userB2 requests funds from userB3`, async () => {
     try {
-      const result = await userB2.sdk.genericAction('requestFunds', { 
-        payerFioAddress: userB3.address, 
+      const result = await userB2.sdk.genericAction('requestFunds', {
+        payerFioAddress: userB3.address,
         payeeFioAddress: userB2.address,
         payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
         amount: payment,
@@ -653,10 +653,10 @@ describe(`B. Test FIO Request error conditions`, () => {
         technologyProviderId: '',
         hash: '',
         offLineUrl: ''
-      })    
+      })
       //console.log('Result: ', result)
       userB1RequestId3 = result.fio_request_id
-      expect(result.status).to.equal('requested') 
+      expect(result.status).to.equal('requested')
     } catch (err) {
       console.log('Error: ', err.json)
       expect(err).to.equal(null)
@@ -676,7 +676,7 @@ describe(`B. Test FIO Request error conditions`, () => {
         }
       })
       //console.log('Result:', result)
-      expect(result.status).to.equal('request_rejected') 
+      expect(result.status).to.equal('request_rejected')
     } catch (err) {
       console.log('Error', err)
       expect(err).to.equal(null)

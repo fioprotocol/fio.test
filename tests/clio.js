@@ -181,7 +181,7 @@ describe(`C. Domain`, () => {
 describe(`D. Address`, () => {
     let user1, user2
 
-    let BCHAddress = 
+    let BCHAddress =
         {
           chain_code: 'BCH',
           token_code: 'BCH',
@@ -341,7 +341,7 @@ describe(`D. Address`, () => {
           expect(result.public_addresses[0].token_code).to.equal("FIO")
           expect(result.public_addresses[0].chain_code).to.equal("FIO")
           expect(result.public_addresses.length).to.equal(1)
-  
+
         } catch (err) {
           console.log('Error', err)
           expect(err).to.equal(null)
@@ -381,12 +381,12 @@ describe(`F. Transfer`, () => {
 
     it(`getFioBalance for user2`, async () => {
         try {
-          const result = await user2.sdk.genericAction('getFioBalance', { }) 
+          const result = await user2.sdk.genericAction('getFioBalance', { })
           //console.log('Result: ', result)
           prevFundsAmount = result.balance
         } catch (err) {
           expect(err.json.message).to.equal(null)
-        } 
+        }
     })
 
     it(`transfer ${fundsAmount} FIO to user2 FIO public key`, async () => {
@@ -398,7 +398,7 @@ describe(`F. Transfer`, () => {
             console.log('Error', err)
         }
     })
-          
+
     it(`user2's FIO public key has an additional ${fundsAmount} FIO`, async () => {
         const result = await user2.sdk.genericAction('getFioBalance', {})
         //console.log('Result: ', result)

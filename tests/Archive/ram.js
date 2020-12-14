@@ -31,7 +31,7 @@ describe('Test RAM Consumption', () => {
     //console.log('ramuserPublicKey: ', user1.publicKey)
     //console.log('ramuserPrivateKey: ', user1.privateKey)
     //user1Ram = new Ram(user1.account);
-    
+
   })
 
   it(`Transfer FIO to ramuserPublicKey to fund account. Test: INITIALACCOUNTRAM`, async () => {
@@ -39,7 +39,7 @@ describe('Test RAM Consumption', () => {
       payeeFioPublicKey: user1.publicKey,
       amount: 2000000000000,
       maxFee: config.api.transfer_tokens_pub_key.fee,
-    })  
+    })
     //console.log('Result', result)
     expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
   })
@@ -48,10 +48,10 @@ describe('Test RAM Consumption', () => {
     const result = await user1Ram.setRamData('INITIALACCOUNTRAM', user1)
     expect(result.txnQuota).to.equal(config.RAM.INITIALACCOUNTRAM)
   })
-  
+
   it(`Test: REGDOMAINRAM`, async () => {
-    const result = await user1sdk.genericAction('registerFioDomain', { 
-      fioDomain: user1Domain, 
+    const result = await user1sdk.genericAction('registerFioDomain', {
+      fioDomain: user1Domain,
       maxFee: config.api.register_fio_domain.fee ,
       walletFioAddress: ''
     })
@@ -63,15 +63,15 @@ describe('Test RAM Consumption', () => {
     const result = await user1Ram.setRamData('REGDOMAINRAM', user1)
     expect(result.txnQuota).to.be.greaterThan(0)
   })
-  
+
   it(`Test: REGADDRESSRAM`, async () => {
-    const result = await user1sdk.genericAction('registerFioAddress', { 
+    const result = await user1sdk.genericAction('registerFioAddress', {
       fioAddress: user1Address,
       maxFee: config.api.register_fio_address.fee,
       walletFioAddress: ''
     })
     //console.log('Result: ', result)
-    expect(result.status).to.equal('OK')  
+    expect(result.status).to.equal('OK')
   })
 
   it(`Set RAM info`, async () => {
@@ -132,8 +132,8 @@ describe('Test RAM Consumption', () => {
 
   it(`Test: NEWFUNDSREQUESTRAM`, async () => {
     try {
-      const result = await user1sdk.genericAction('requestFunds', { 
-        payerFioAddress: user1Address, 
+      const result = await user1sdk.genericAction('requestFunds', {
+        payerFioAddress: user1Address,
         payeeFioAddress: user1Address,
         maxFee: config.api.new_funds_request.fee,
         walletFioAddress: user1Address,
@@ -144,7 +144,7 @@ describe('Test RAM Consumption', () => {
         memo: randStr(15),
         hash: ramuser.account,
         offlineUrl: randStr(10)
-      })    
+      })
       //console.log('Result: ', result)
       expect(result).to.have.all.keys('status', 'fio_request_id', 'fee_collected')
     } catch (err) {
@@ -196,15 +196,15 @@ describe('Test RAM Consumption', () => {
         SETDOMAINPUBRAM: 256,
         BURNEXPIREDRAM: 0,
         RECORDOBTRAM: 1024,
-        RENEWADDRESSRAM: 256, 
-        RENEWDOMAINRAM: 256, 
+        RENEWADDRESSRAM: 256,
+        RENEWDOMAINRAM: 256,
         TPIDCLAIMRAM: 0,
-        BPCLAIMRAM: 0, 
-        TRANSFERRAM: 0, 
-        TRANSFERPUBKEYRAM: 2560, 
-        REJECTFUNDSRAM: 512, 
-        UPDATEFEESRAM: 0, 
-        SETFEEVOTERAM: 512, 
+        BPCLAIMRAM: 0,
+        TRANSFERRAM: 0,
+        TRANSFERPUBKEYRAM: 2560,
+        REJECTFUNDSRAM: 512,
+        UPDATEFEESRAM: 0,
+        SETFEEVOTERAM: 512,
         SETFEEMULTRAM: 0
         */
 
@@ -223,9 +223,9 @@ describe('Test add_pub_address RAM Consumption', () => {
         payeeFioPublicKey: user2.publicKey,
         amount: 2000000000000,
         maxFee: config.api.transfer_tokens_pub_key.fee,
-      })  
+      })
       console.log('Result', result)
-      expect(result.status).to.equal('OK')  
+      expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('user2Domain', user2Domain)
       console.log('user2.publicKey', user2.publicKey)
@@ -235,8 +235,8 @@ describe('Test add_pub_address RAM Consumption', () => {
   })
 
   it(`Register domain: user2Domain`, async () => {
-    const result = await user2sdk.genericAction('registerFioDomain', { 
-      fioDomain: user2Domain, 
+    const result = await user2sdk.genericAction('registerFioDomain', {
+      fioDomain: user2Domain,
       maxFee: config.api.register_fio_domain.fee ,
       walletFioAddress: ''
     })
@@ -245,30 +245,30 @@ describe('Test add_pub_address RAM Consumption', () => {
   })
 
   it(`Register address: user2Address`, async () => {
-    const result = await user2sdk.genericAction('registerFioAddress', { 
+    const result = await user2sdk.genericAction('registerFioAddress', {
       fioAddress: user2Address,
       maxFee: config.api.register_fio_address.fee,
       walletFioAddress: ''
     })
     //console.log('Result: ', result)
-    expect(result.status).to.equal('OK')  
+    expect(result.status).to.equal('OK')
   })
 
   it(`Register address: user2Address2`, async () => {
-    const result = await user2sdk.genericAction('registerFioAddress', { 
+    const result = await user2sdk.genericAction('registerFioAddress', {
       fioAddress: user2Address2,
       maxFee: config.api.register_fio_address.fee,
       walletFioAddress: ''
     })
     //console.log('Result: ', result)
-    expect(result.status).to.equal('OK')  
+    expect(result.status).to.equal('OK')
   })
 
   it(`do 30 request funds`, async () => {
     for (i = 0; i < 30; i++) {
       try {
-        const result = await user2sdk.genericAction('requestFunds', { 
-          payerFioAddress: user2Address, 
+        const result = await user2sdk.genericAction('requestFunds', {
+          payerFioAddress: user2Address,
           payeeFioAddress: user2Address,
           maxFee: config.api.new_funds_request.fee,
           walletFioAddress: user2Address,
@@ -279,7 +279,7 @@ describe('Test add_pub_address RAM Consumption', () => {
           memo: randStr(15),
           hash: ramuser.account,
           offlineUrl: randStr(10)
-        })    
+        })
         //console.log('Result: ', result)
         const result2 = await user2Ram.setRamData('NEWFUNDSREQUESTRAM', result.fee_collected, user2)
         //console.log(i + '. fee collected: ', result.fee_collected)
@@ -338,8 +338,8 @@ describe('Test add_pub_address RAM Consumption', () => {
   it(`Use up most of the bundles with requestFunds`, async () => {
     for (i = 0; i < 15; i++) {
       try {
-        const result = await user2sdk.genericAction('requestFunds', { 
-          payerFioAddress: user2Address, 
+        const result = await user2sdk.genericAction('requestFunds', {
+          payerFioAddress: user2Address,
           payeeFioAddress: user2Address,
           maxFee: config.api.new_funds_request.fee,
           walletFioAddress: user2Address,
@@ -350,7 +350,7 @@ describe('Test add_pub_address RAM Consumption', () => {
           memo: randStr(15),
           hash: ramuser.account,
           offlineUrl: randStr(10)
-        })    
+        })
         //console.log('Result: ', result)
         const result2 = await user2Ram.setRamData('NEWFUNDSREQUESTRAM', result.fee_collected, user2)
         //console.log(i + '. fee collected: ', result.fee_collected)
@@ -409,8 +409,8 @@ describe('Test add_pub_address RAM Consumption', () => {
   it.skip(`See what happens when request funds continues after the zero addaddress`, async () => {
     for (i = 0; i < 6; i++) {
       try {
-        const result = await user2sdk.genericAction('requestFunds', { 
-          payerFioAddress: user2Address, 
+        const result = await user2sdk.genericAction('requestFunds', {
+          payerFioAddress: user2Address,
           payeeFioAddress: user2Address,
           maxFee: config.api.new_funds_request.fee,
           walletFioAddress: user2Address,
@@ -421,7 +421,7 @@ describe('Test add_pub_address RAM Consumption', () => {
           memo: randStr(15),
           hash: ramuser.account,
           offlineUrl: randStr(10)
-        })    
+        })
         //console.log('Result: ', result)
         const result2 = await user2Ram.setRamData('NEWFUNDSREQUESTRAM', result.fee_collected, user2)
         //console.log(i + '. fee collected: ', result.fee_collected)

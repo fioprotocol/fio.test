@@ -17,12 +17,12 @@ describe.skip(`************************** pub_k1.js ************************** \
         userA1 = await newUser(faucet);
         userA1.publicKeyK1 = convertToK1(userA1.publicKey)
     })
-  
+
     it(`get_fio_balance with "FIO" key`, async () => {
       try {
         const result = await userA1.sdk.genericAction('getFioBalance', {
           fioPublicKey: userA1.publicKey
-        }) 
+        })
         //console.log('result: ', result)
         balance = result.balance
         expect(result.balance).to.be.greaterThan(0)
@@ -35,9 +35,9 @@ describe.skip(`************************** pub_k1.js ************************** \
       try {
         const result = await userA1.sdk.genericAction('getFioBalance', {
           fioPublicKey: userA1.publicKeyK1
-        }) 
+        })
         //console.log('result: ', result)
-        expect(result.balance).to.equal(balance) 
+        expect(result.balance).to.equal(balance)
       } catch (err) {
         console.log('Error: ', err)
       }
@@ -48,7 +48,7 @@ describe.skip(`************************** pub_k1.js ************************** \
         const result = await userA1.sdk.genericAction('getPendingFioRequests', {
           limit: '',
           offset: ''
-        }) 
+        })
         //console.log('result: ', result)
         balance = result.balance
         expect(result.balance).to.be.greaterThan(0)
@@ -62,9 +62,9 @@ describe.skip(`************************** pub_k1.js ************************** \
         const result = await userA1.sdk.genericAction('getPendingFioRequests', {
           limit: '',
           offset: ''
-        }) 
+        })
         //console.log('result: ', result)
-        expect(result.balance).to.equal(balance) 
+        expect(result.balance).to.equal(balance)
       } catch (err) {
         console.log('Error: ', err)
       }

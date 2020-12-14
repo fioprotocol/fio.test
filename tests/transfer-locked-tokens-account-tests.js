@@ -139,19 +139,19 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
     testFioDomain = generateFioDomain(8)
     testFioAddressName = generateFioAddress(testFioDomain, 7)
     testFioAddressName2 = generateFioAddress(testFioDomain, 5)
-  
+
     try {
       await fioSdkFaucet.genericAction('registerFioDomain', {
         fioDomain: testFioDomain,
         maxFee: defaultFee
       })
-  
+
       await fioSdkFaucet.genericAction('setFioDomainVisibility', {
         fioDomain: testFioDomain,
         isPublic: true,
         maxFee: defaultFee
       })
-  
+
       const isAvailableResult = await fioSdk.genericAction('isAvailable', {
         fioName: testFioAddressName
       })
@@ -161,7 +161,7 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
           maxFee: defaultFee
         })
       }
-  
+
       const isAvailableResult2 = await fioSdk2.genericAction('isAvailable', {
         fioName: testFioAddressName2
       })
@@ -171,7 +171,7 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
           maxFee: defaultFee
         })
       }
-  
+
     } catch (e) {
       console.log(e);
     }

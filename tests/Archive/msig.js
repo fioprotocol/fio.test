@@ -47,8 +47,8 @@ describe('Create BP setcode msig', () => {
       prodsTable = result.rows;
       prodList = "";
       prodCount = 0
-      for (prod in prodsTable) { 
-        if (prodCount != 0) { prodList = prodList + ',' } 
+      for (prod in prodsTable) {
+        if (prodCount != 0) { prodList = prodList + ',' }
         nextprod = '{"actor":"' + prodsTable[prod].owner + '","permission":"active"}'
         prodList = prodList + nextprod
         prodCount++;

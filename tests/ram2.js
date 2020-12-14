@@ -26,7 +26,7 @@ describe('************************** ram2.js ************************** \n A. Te
     user1Domain = generateFioDomain(15)
     user1Address = generateFioAddress(user1Domain, 15)
     user1Domain2 = generateFioDomain(15)
-    user1Address2 = generateFioAddress(user1Domain, 15)   
+    user1Address2 = generateFioAddress(user1Domain, 15)
   })
 
   it(`Transfer FIO to ramuserPublicKey to fund account. Test: INITIALACCOUNTRAM`, async () => {
@@ -34,31 +34,31 @@ describe('************************** ram2.js ************************** \n A. Te
       payeeFioPublicKey: user1.publicKey,
       amount: 2000000000000,
       maxFee: config.api.transfer_tokens_pub_key.fee,
-    })  
+    })
     //console.log('Result', result)
     expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
     await setRam(user1, 'INITIALACCOUNTRAM', 0)
   })
 
   it(`Test: REGDOMAINRAM`, async () => {
-    const result = await user1sdk.genericAction('registerFioDomain', { 
-      fioDomain: user1Domain, 
+    const result = await user1sdk.genericAction('registerFioDomain', {
+      fioDomain: user1Domain,
       maxFee: config.api.register_fio_domain.fee ,
       walletFioAddress: ''
     })
     //console.log('Result', result)
-    expect(result.status).to.equal('OK')  
+    expect(result.status).to.equal('OK')
     await setRam(user1, 'REGDOMAINRAM', result.fee_collected)
   })
- 
+
   it(`Test: REGADDRESSRAM`, async () => {
-    const result = await user1sdk.genericAction('registerFioAddress', { 
+    const result = await user1sdk.genericAction('registerFioAddress', {
       fioAddress: user1Address,
       maxFee: config.api.register_fio_address.fee,
       walletFioAddress: ''
     })
     //console.log('Result: ', result)
-    expect(result.status).to.equal('OK')  
+    expect(result.status).to.equal('OK')
     await setRam(user1, 'REGADDRESSRAM', result.fee_collected)
   })
 
@@ -80,7 +80,7 @@ describe('************************** ram2.js ************************** \n A. Te
       maxFee: config.api.add_pub_address.fee,
       walletFioAddress: ''
     })
-    expect(result.status).to.equal('OK')  
+    expect(result.status).to.equal('OK')
     await setRam(user1, 'ADDADDRESSRAM', result.fee_collected)
   })
 
@@ -97,7 +97,7 @@ describe('************************** ram2.js ************************** \n A. Te
         }
       })
       //console.log('Result: ', result)
-      expect(result.status).to.equal('OK')  
+      expect(result.status).to.equal('OK')
       await setRam(user1, 'REGDOMAINRAM', result.fee_collected)
     } catch (err) {
       console.log('Error: ', err)
@@ -105,20 +105,20 @@ describe('************************** ram2.js ************************** \n A. Te
   })
 
   it(`Register user1Address2`, async () => {
-    const result = await user1sdk.genericAction('registerFioAddress', { 
+    const result = await user1sdk.genericAction('registerFioAddress', {
       fioAddress: user1Address2,
       maxFee: config.api.register_fio_address.fee,
       walletFioAddress: ''
     })
     //console.log('Result: ', result)
-    expect(result.status).to.equal('OK')  
+    expect(result.status).to.equal('OK')
     await setRam(user1, 'REGADDRESSRAM', result.fee_collected)
   })
 
   it(`Test: NEWFUNDSREQUESTRAM`, async () => {
     try {
-      const result = await user1sdk.genericAction('requestFunds', { 
-        payerFioAddress: user1Address2, 
+      const result = await user1sdk.genericAction('requestFunds', {
+        payerFioAddress: user1Address2,
         payeeFioAddress: user1Address,
         maxFee: config.api.new_funds_request.fee,
         walletFioAddress: '',
@@ -129,9 +129,9 @@ describe('************************** ram2.js ************************** \n A. Te
         memo: randStr(15),
         hash: user1.account,
         offlineUrl: randStr(10)
-      })    
+      })
       //console.log('Result: ', result)
-      expect(result.status).to.equal('requested')  
+      expect(result.status).to.equal('requested')
       await setRam(user1, 'NEWFUNDSREQUESTRAM', result.fee_collected)
     } catch (err) {
       console.log('Error: ', err)
@@ -175,9 +175,9 @@ describe('B. Test add_pub_address RAM Consumption', () => {
         payeeFioPublicKey: user2.publicKey,
         amount: 2000000000000,
         maxFee: config.api.transfer_tokens_pub_key.fee,
-      })  
+      })
       //console.log('Result', result)
-      expect(result.status).to.equal('OK')  
+      expect(result.status).to.equal('OK')
       await setRam(user2, 'INITIALACCOUNTRAM', 0)
     } catch (err) {
       console.log('user2Domain', user2Domain)
@@ -188,13 +188,13 @@ describe('B. Test add_pub_address RAM Consumption', () => {
 
   it(`Register domain: user2Domain`, async () => {
     try{
-      const result = await user2sdk.genericAction('registerFioDomain', { 
-        fioDomain: user2Domain, 
+      const result = await user2sdk.genericAction('registerFioDomain', {
+        fioDomain: user2Domain,
         maxFee: config.api.register_fio_domain.fee ,
         walletFioAddress: ''
       })
       //console.log('Result', result)
-      expect(result.status).to.equal('OK')  
+      expect(result.status).to.equal('OK')
       await setRam(user2, 'REGDOMAINRAM', result.fee_collected)
     } catch (err) {
       console.log('Error: ', err)
@@ -202,32 +202,32 @@ describe('B. Test add_pub_address RAM Consumption', () => {
   })
 
   it(`Register address: user2Address`, async () => {
-    const result = await user2sdk.genericAction('registerFioAddress', { 
+    const result = await user2sdk.genericAction('registerFioAddress', {
       fioAddress: user2Address,
       maxFee: config.api.register_fio_address.fee,
       walletFioAddress: ''
     })
     //console.log('Result: ', result)
-    expect(result.status).to.equal('OK')  
+    expect(result.status).to.equal('OK')
     await setRam(user2, 'REGADDRESSRAM', result.fee_collected)
   })
 
   it(`Register address: user2Address2`, async () => {
-    const result = await user2sdk.genericAction('registerFioAddress', { 
+    const result = await user2sdk.genericAction('registerFioAddress', {
       fioAddress: user2Address2,
       maxFee: config.api.register_fio_address.fee,
       walletFioAddress: ''
     })
     //console.log('Result: ', result)
-    expect(result.status).to.equal('OK')  
+    expect(result.status).to.equal('OK')
     await setRam(user2, 'REGADDRESSRAM', result.fee_collected)
   })
 
   it(`Do 30 request funds`, async () => {
     for (i = 0; i < 30; i++) {
       try {
-        const result = await user2sdk.genericAction('requestFunds', { 
-          payerFioAddress: user2Address, 
+        const result = await user2sdk.genericAction('requestFunds', {
+          payerFioAddress: user2Address,
           payeeFioAddress: user2Address,
           maxFee: config.api.new_funds_request.fee,
           walletFioAddress: user2Address,
@@ -238,9 +238,9 @@ describe('B. Test add_pub_address RAM Consumption', () => {
           memo: randStr(15),
           hash: user2.account,
           offlineUrl: randStr(10)
-        })    
+        })
         //console.log('Result: ', result)
-        expect(result.status).to.equal('requested')  
+        expect(result.status).to.equal('requested')
         await setRam(user2, 'NEWFUNDSREQUESTRAM', result.fee_collected)
       } catch (err) {
         console.log('Error: ', err)
@@ -283,7 +283,7 @@ describe('B. Test add_pub_address RAM Consumption', () => {
           maxFee: config.api.add_pub_address.fee,
           walletFioAddress: ''
         })
-        expect(result.status).to.equal('OK')  
+        expect(result.status).to.equal('OK')
         await setRam(user2, 'ADDADDRESSRAM', result.fee_collected)
       } catch (err) {
         console.log('Error: ', err.json)
@@ -296,8 +296,8 @@ describe('B. Test add_pub_address RAM Consumption', () => {
   it(`Use up most of the bundles with requestFunds`, async () => {
     for (i = 0; i < 15; i++) {
       try {
-        const result = await user2sdk.genericAction('requestFunds', { 
-          payerFioAddress: user2Address, 
+        const result = await user2sdk.genericAction('requestFunds', {
+          payerFioAddress: user2Address,
           payeeFioAddress: user2Address,
           maxFee: config.api.new_funds_request.fee,
           walletFioAddress: user2Address,
@@ -308,9 +308,9 @@ describe('B. Test add_pub_address RAM Consumption', () => {
           memo: randStr(15),
           hash: user2.account,
           offlineUrl: randStr(10)
-        })    
+        })
         //console.log('Result: ', result)
-        expect(result.status).to.equal('requested')  
+        expect(result.status).to.equal('requested')
         await setRam(user2, 'NEWFUNDSREQUESTRAM', result.fee_collected)
       } catch (err) {
         console.log('Error: ', err.json)
@@ -353,7 +353,7 @@ describe('B. Test add_pub_address RAM Consumption', () => {
           maxFee: config.api.add_pub_address.fee,
           walletFioAddress: ''
         })
-        expect(result.status).to.equal('OK')  
+        expect(result.status).to.equal('OK')
         await setRam(user2, 'ADDADDRESSRAM', result.fee_collected)
       } catch (err) {
         console.log('Error: ', err.json)
@@ -366,8 +366,8 @@ describe('B. Test add_pub_address RAM Consumption', () => {
   it(`See what happens when request funds continues after the zero addaddress`, async () => {
     for (i = 0; i < 6; i++) {
       try {
-        const result = await user2sdk.genericAction('requestFunds', { 
-          payerFioAddress: user2Address, 
+        const result = await user2sdk.genericAction('requestFunds', {
+          payerFioAddress: user2Address,
           payeeFioAddress: user2Address,
           maxFee: config.api.new_funds_request.fee,
           walletFioAddress: user2Address,
@@ -378,9 +378,9 @@ describe('B. Test add_pub_address RAM Consumption', () => {
           memo: randStr(15),
           hash: user2.account,
           offlineUrl: randStr(10)
-        })    
+        })
         //console.log('Result: ', result)
-        expect(result.status).to.equal('requested')  
+        expect(result.status).to.equal('requested')
         await setRam(user2, 'NEWFUNDSREQUESTRAM', result.fee_collected)
       } catch (err) {
         console.log('Error: ', err.json)
@@ -425,7 +425,7 @@ describe('B. Test add_pub_address RAM Consumption', () => {
           maxFee: config.api.add_pub_address.fee,
           walletFioAddress: ''
         })
-        expect(result.status).to.equal('OK')  
+        expect(result.status).to.equal('OK')
         await setRam(user2, 'ADDADDRESSRAM', result.fee_collected)
       } catch (err) {
         console.log('Error: ', err.json)

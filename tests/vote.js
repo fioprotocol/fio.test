@@ -994,8 +994,8 @@ describe.skip('NOT WORKING D. Proxy voting with proxy and voter having some Type
         actor: 'eosio',
         privKey: eosio.privateKey,
         data: {
-          owner: proxyD1.account, 
-          amount: 300000000000, 
+          owner: proxyD1.account,
+          amount: 300000000000,
           locktype: 1,
         }
       })
@@ -1003,7 +1003,7 @@ describe.skip('NOT WORKING D. Proxy voting with proxy and voter having some Type
       //expect(result.processed.receipt.status).to.equal('executed');
     } catch (err) {
       console.log('Error: ', err.json)
-    } 
+    }
   })
 
   it(`Register proxyD1 as a proxy`, async () => {
@@ -1157,9 +1157,9 @@ describe('E. Test proxying to a user who is also proxying (should fail)', () => 
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal(null)
-    } 
+    }
   })
-  
+
   it(`proxyE1 votes for bp1@dapixdev`, async () => {
     try {
       const result = await proxyE1.sdk.genericAction('pushTransaction', {
@@ -2067,7 +2067,7 @@ describe('FIP-9: G.2 Test vote_producer with and without FIO Address', () => {
 
 describe('FIP-9: G.3 Test proxy_vote with and without FIO Address', () => {
   let proxyG1, voterG7, voterG8, voterG9, voterG10, total_bp_votes, bundleCount, balance
- 
+
   it(`Create users`, async () => {
     proxyG1 = await newUser(faucet);
 

@@ -8,7 +8,7 @@ let user1
 
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
-  
+
   await timeout(1000)
   keys = await createKeypair();
   user1 = new user(keys.account, keys.privateKey, keys.publicKey)
@@ -41,7 +41,7 @@ describe('Test register as proxy after proxying your own vote.', () => {
 
     console.log('user1 Account: ', user1.account)
     console.log('user1 PublicKey: ', user1.publicKey)
-    console.log('user1 PrivateKey: ', user1.privateKey)    
+    console.log('user1 PrivateKey: ', user1.privateKey)
   })
 
   it(`Get initial total_voted_fio`, async () => {
@@ -54,51 +54,51 @@ describe('Test register as proxy after proxying your own vote.', () => {
       payeeFioPublicKey: user1.publicKey,
       amount: config.FUNDS,
       maxFee: config.api.transfer_tokens_pub_key.fee,
-    })  
+    })
     //console.log('Result', result)
-    expect(result.status).to.equal('OK')  
+    expect(result.status).to.equal('OK')
     await setRam(user1, 'INITIALACCOUNTRAM', 0)
   })
 
   it(`Register user1 domain`, async () => {
-    const result = await user1sdk.genericAction('registerFioDomain', { 
-      fioDomain: user1Domain, 
+    const result = await user1sdk.genericAction('registerFioDomain', {
+      fioDomain: user1Domain,
       maxFee: config.api.register_fio_domain.fee ,
       walletFioAddress: ''
     })
     //console.log('Result', result)
-    expect(result.status).to.equal('OK')  
+    expect(result.status).to.equal('OK')
     await setRam(user1, 'REGDOMAINRAM', result.fee_collected)
   })
-  
+
   it(`Register user1 address #1`, async () => {
     try {
-      const result = await user1sdk.genericAction('registerFioAddress', { 
+      const result = await user1sdk.genericAction('registerFioAddress', {
         fioAddress: user1Address,
         maxFee: config.api.register_fio_address.fee,
         walletFioAddress: ''
       })
       //console.log('Result: ', result)
-      expect(result.status).to.equal('OK')  
+      expect(result.status).to.equal('OK')
       await setRam(user1, 'REGADDRESSRAM', result.fee_collected)
     } catch (err) {
       console.log('Error: ', err.json)
-    }  
+    }
   })
 
   it(`Register user1 address #2`, async () => {
     try {
-      const result = await user1sdk.genericAction('registerFioAddress', { 
+      const result = await user1sdk.genericAction('registerFioAddress', {
         fioAddress: user1Address2,
         maxFee: config.api.register_fio_address.fee,
         walletFioAddress: ''
       })
       //console.log('Result: ', result)
-      expect(result.status).to.equal('OK')  
+      expect(result.status).to.equal('OK')
       await setRam(user1, 'REGADDRESSRAM', result.fee_collected)
     } catch (err) {
       console.log('Error: ', err.json)
-    }  
+    }
   })
 
 
@@ -111,32 +111,32 @@ describe('Test register as proxy after proxying your own vote.', () => {
       payeeFioPublicKey: prod.publicKey,
       amount: config.FUNDS,
       maxFee: config.api.transfer_tokens_pub_key.fee,
-    })  
+    })
     //console.log('Result', result)
     expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
-    expect(result.status).to.equal('OK')  
+    expect(result.status).to.equal('OK')
     await setRam(prod, 'INITIALACCOUNTRAM', 0)
   })
 
   it(`Register domain`, async () => {
-    const result = await prodsdk.genericAction('registerFioDomain', { 
-      fioDomain: prodDomain, 
+    const result = await prodsdk.genericAction('registerFioDomain', {
+      fioDomain: prodDomain,
       maxFee: config.api.register_fio_domain.fee ,
       walletFioAddress: walletAddress64
     })
     //console.log('Result', result)
-    expect(result.status).to.equal('OK')  
+    expect(result.status).to.equal('OK')
     await setRam(prod, 'REGDOMAINRAM', result.fee_collected)
   })
-  
+
   it(`Register address`, async () => {
-    const result = await prodsdk.genericAction('registerFioAddress', { 
+    const result = await prodsdk.genericAction('registerFioAddress', {
       fioAddress: prodAddress,
       maxFee: config.api.register_fio_address.fee,
       walletFioAddress: walletAddress64
     })
     //console.log('Result: ', result)
-    expect(result.status).to.equal('OK')  
+    expect(result.status).to.equal('OK')
     await setRam(prod, 'REGADDRESSRAM', result.fee_collected)
   })
 
@@ -155,11 +155,11 @@ describe('Test register as proxy after proxying your own vote.', () => {
         }
       })
       //console.log('Result: ', result)
-      expect(result.status).to.equal('OK') 
+      expect(result.status).to.equal('OK')
       await setRam(prod, 'REGPRODUCERRAM', result.fee_collected)
     } catch (err) {
       console.log('Error: ', err.json)
-    } 
+    }
   })
 */
 
@@ -184,11 +184,11 @@ describe('Test register as proxy after proxying your own vote.', () => {
         }
       })
       //console.log('Result: ', result)
-      expect(result.status).to.equal('OK') 
+      expect(result.status).to.equal('OK')
       await setRam(user1,'VOTEPRODUCERRAM', result.fee_collected)
     } catch (err) {
       console.log('Error: ', err.json)
-    } 
+    }
   })
 
   it(`Get user1 last_vote_weight`, async () => {
@@ -198,14 +198,14 @@ describe('Test register as proxy after proxying your own vote.', () => {
       user1.last_vote_weight = Math.floor(last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
-    } 
+    }
   })
 
   it(`User1 FIO balance same as last_vote_weight`, async () => {
       try {
         const result = await user1sdk.genericAction('getFioBalance', {
           fioPublicKey: user1.publicKey
-        }) 
+        })
         console.log('User 1 fio balance', result)
         expect(result.balance).to.equal(user1.last_vote_weight)
       } catch (err) {
@@ -239,11 +239,11 @@ describe('Test register as proxy after proxying your own vote.', () => {
         }
       })
       //console.log('Result: ', result)
-      expect(result.status).to.equal('OK') 
+      expect(result.status).to.equal('OK')
       await setRam(user1,'VOTEPRODUCERRAM', result.fee_collected)
     } catch (err) {
       console.log('Error: ', err.json)
-    } 
+    }
   })
 
   // Not true, this is bundled. Update for post bundle.
@@ -255,7 +255,7 @@ describe('Test register as proxy after proxying your own vote.', () => {
       //user1.last_vote_weight = Math.floor(last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
-    } 
+    }
   })
 
 
@@ -263,7 +263,7 @@ describe('Test register as proxy after proxying your own vote.', () => {
     try {
       const result = await user1sdk.genericAction('getFioBalance', {
         fioPublicKey: user1.publicKey
-      }) 
+      })
       console.log('User 1 fio balance', result)
       expect(result.balance).to.equal(user1.last_vote_weight)
     } catch (err) {
@@ -279,7 +279,7 @@ describe('Test register as proxy after proxying your own vote.', () => {
       user1.last_vote_weight = Math.floor(last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
-    } 
+    }
   })
 
   it(`Expect total_voted_fio to stay the same. But, the votes are still in the voters table`, async () => {
@@ -309,11 +309,11 @@ describe('Test register as proxy after proxying your own vote.', () => {
         }
       })
       //console.log('Result: ', result)
-      expect(result.status).to.equal('OK') 
+      expect(result.status).to.equal('OK')
       await setRam(user1,'VOTEPRODUCERRAM', result.fee_collected)
     } catch (err) {
       console.log('Error: ', err.json)
-    } 
+    }
   })
 */
 
@@ -330,13 +330,13 @@ describe('Test register as proxy after proxying your own vote.', () => {
         }
       })
       //console.log('Result: ', result)
-      expect(result.status).to.equal('OK') 
+      expect(result.status).to.equal('OK')
       await setRam(user1, 'REGPROXYRAM', result.fee_collected)
     } catch (err) {
       console.log('actor', user1.account)
       console.log('fio_address', user1Address)
       console.log('Error: ', err.json)
-    } 
+    }
   })
 
   it(`Transfer FIO to user2 to fund account`, async () => {
@@ -344,28 +344,28 @@ describe('Test register as proxy after proxying your own vote.', () => {
       payeeFioPublicKey: user2.publicKey,
       amount: config.FUNDS,
       maxFee: config.api.transfer_tokens_pub_key.fee,
-    })  
+    })
     //console.log('Result', result)
     expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
-    expect(result.status).to.equal('OK')  
+    expect(result.status).to.equal('OK')
     await setRam(user2, 'INITIALACCOUNTRAM', 0)
   })
 
   it(`Register user2 domain`, async () => {
-    const result = await user2sdk.genericAction('registerFioDomain', { 
-      fioDomain: user2Domain, 
+    const result = await user2sdk.genericAction('registerFioDomain', {
+      fioDomain: user2Domain,
       maxFee: config.api.register_fio_domain.fee ,
       walletFioAddress: ''
     })
     //console.log('Result', result)
     expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
-    expect(result.status).to.equal('OK')  
+    expect(result.status).to.equal('OK')
     await setRam(user2, 'REGDOMAINRAM', result.fee_collected)
   })
-  
+
   it(`Register user2 address`, async () => {
     try {
-      const result = await user2sdk.genericAction('registerFioAddress', { 
+      const result = await user2sdk.genericAction('registerFioAddress', {
         fioAddress: user2Address,
         maxFee: config.api.register_fio_address.fee,
         walletFioAddress: ''
@@ -375,7 +375,7 @@ describe('Test register as proxy after proxying your own vote.', () => {
       await setRam(user2, 'REGADDRESSRAM', result.fee_collected)
     } catch (err) {
       console.log('Error: ', err.json)
-    }  
+    }
   })
 
   it('Get total_voted_fio', async () => {
@@ -401,10 +401,10 @@ describe('Test register as proxy after proxying your own vote.', () => {
       })
       //console.log('Result: ', result)
       //console.log('Proxy user2 votes to: ', user1Address)
-      expect(result.status).to.equal('OK') 
+      expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
-    } 
+    }
   })
 
   it('Get total_voted_fio', async () => {
@@ -423,7 +423,7 @@ describe('Test register as proxy after proxying your own vote.', () => {
       user2.last_vote_weight = Math.floor(last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
-    } 
+    }
   })
 
   it(`total_voted_fio increased by user2 last_vote_weight after proxying votes`, async () => {
@@ -452,13 +452,13 @@ describe('Test register as proxy after proxying your own vote.', () => {
         }
       })
       //console.log('Result: ', result)
-      expect(result.status).to.equal('OK') 
+      expect(result.status).to.equal('OK')
       await setRam(user1, 'UNREGPROXYRAM', result.fee_collected)
     } catch (err) {
       console.log('actor', user1.account)
       console.log('fio_address', user1Address)
       console.log('Error: ', err.json)
-    } 
+    }
   })
 
   it.skip(`TODO: check to make sure the voters table is correct`, async () => {
@@ -476,11 +476,11 @@ describe('Test register as proxy after proxying your own vote.', () => {
         }
       })
       //console.log('Result: ', result)
-      expect(result.status).to.equal('OK') 
+      expect(result.status).to.equal('OK')
       await setRam(prod, 'UNREGPRODUCERRAM', result.fee_collected)
     } catch (err) {
       console.log('Error: ', err.json)
-    } 
+    }
   })
 
   it(`Reset total_voted_fio`, async () => {
@@ -489,7 +489,7 @@ describe('Test register as proxy after proxying your own vote.', () => {
       console.log('Reset total_voted_fio: ', total_voted_fio)
     } catch (err) {
       console.log('Error: ', err.json)
-    } 
+    }
   })
 
   it(`Reset user1 last_vote_weight`, async () => {
@@ -499,7 +499,7 @@ describe('Test register as proxy after proxying your own vote.', () => {
       console.log('user1.last_vote_weight: ', user1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
-    } 
+    }
   })
 
   it(`Transfer 10000000000 to user1`, async () => {
@@ -507,9 +507,9 @@ describe('Test register as proxy after proxying your own vote.', () => {
       payeeFioPublicKey: user1.publicKey,
       amount: 100000000000,
       maxFee: config.api.transfer_tokens_pub_key.fee,
-    })  
+    })
     //console.log('Result', result)
-    expect(result.status).to.equal('OK')  
+    expect(result.status).to.equal('OK')
   })
 
   it(`Print new user1 last_vote_weight`, async () => {
@@ -520,7 +520,7 @@ describe('Test register as proxy after proxying your own vote.', () => {
       console.log('new user1 last_vote_weight: ', last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
-    } 
+    }
   })
 
   it(`Confirm user1 last_vote_weight increases by 100000000000`, async () => {
@@ -531,7 +531,7 @@ describe('Test register as proxy after proxying your own vote.', () => {
       user1.last_vote_weight = last_vote_weight
     } catch (err) {
       console.log('Error: ', err)
-    } 
+    }
   })
 
   it(`total_voted_fio increased by user1 100000000000`, async () => {
@@ -553,7 +553,7 @@ describe('Test register as proxy after proxying your own vote.', () => {
       console.log('Reset total_voted_fio: ', total_voted_fio)
     } catch (err) {
       console.log('Error: ', err.json)
-    } 
+    }
   })
 
   it(`Reset user2 last_vote_weight`, async () => {
@@ -563,7 +563,7 @@ describe('Test register as proxy after proxying your own vote.', () => {
       console.log('Reset user2.last_vote_weight: ', user2.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
-    } 
+    }
   })
 
   it(`Transfer 30000000000 to user2`, async () => {
@@ -571,9 +571,9 @@ describe('Test register as proxy after proxying your own vote.', () => {
       payeeFioPublicKey: user2.publicKey,
       amount: 300000000000,
       maxFee: config.api.transfer_tokens_pub_key.fee,
-    })  
+    })
     console.log('Result', result)
-    expect(result.status).to.equal('OK')  
+    expect(result.status).to.equal('OK')
   })
 
   it(`Print new user2 last_vote_weight`, async () => {
@@ -584,7 +584,7 @@ describe('Test register as proxy after proxying your own vote.', () => {
       console.log('New user2 last_vote_weight: ', last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
-    } 
+    }
   })
 
   it(`Confirm user2 last_vote_weight increases by 300000000000`, async () => {
@@ -595,7 +595,7 @@ describe('Test register as proxy after proxying your own vote.', () => {
       user2.last_vote_weight = last_vote_weight
     } catch (err) {
       console.log('Error: ', err)
-    } 
+    }
   })
 
   it(`total_voted_fio increased by user2 300000000000`, async () => {

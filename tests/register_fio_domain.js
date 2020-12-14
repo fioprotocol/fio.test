@@ -25,16 +25,16 @@ describe(`************************** register_fio_domain.js ********************
     it(`Create users and domains`, async () => {
         userA1 = await newUser(faucet);
     })
-    
+
     it(`Transfer in additional funds for domain registration`, async () => {
       try {
         const result = await faucet.genericAction('transferTokens', {
           payeeFioPublicKey: userA1.publicKey,
           amount: 8000000000000,
           maxFee: config.api.transfer_tokens_pub_key.fee,
-        })  
+        })
         //console.log('Result', result)
-        expect(result.status).to.equal('OK')  
+        expect(result.status).to.equal('OK')
       } catch (err) {
         //console.log('Error', err)
         expect(err).to.equal(null)
@@ -45,18 +45,18 @@ describe(`************************** register_fio_domain.js ********************
       try {
         const result = await userA1.sdk.genericAction('getFioBalance', {
           fioPublicKey: userA1.publicKey
-        }) 
+        })
         //console.log('userA1 fio balance', result)
       } catch (err) {
         //console.log('Error', err)
         expect(err).to.equal(null)
       }
   })
-     
+
     it(`Register domain of length 0 returns ${config.error.fioDomainRequired}`, async () => {
         try {
-          const result = await userA1.sdk.genericAction('registerFioDomain', { 
-              fioDomain: domain0Bad, 
+          const result = await userA1.sdk.genericAction('registerFioDomain', {
+              fioDomain: domain0Bad,
               maxFee: config.api.register_fio_domain.fee,
               technologyProviderId: ''
         })
@@ -64,23 +64,23 @@ describe(`************************** register_fio_domain.js ********************
         } catch (err) {
           //console.log('Error: ', err.list[0].message)
           expect(err.list[0].message).to.equal(config.error.fioDomainRequired)
-        } 
+        }
     })
-    
+
     it(`Register domain of length 1 succeeds: ${domain1Good}`, async () => {
-        const result = await userA1.sdk.genericAction('registerFioDomain', { 
-          fioDomain: domain1Good, 
+        const result = await userA1.sdk.genericAction('registerFioDomain', {
+          fioDomain: domain1Good,
           maxFee: config.api.register_fio_domain.fee,
           technologyProviderId: ''
         })
         //console.log('Result: ', result)
         expect(result.status).to.equal('OK')
     })
-    
+
     it(`Register domain of length 2 succeeds: ${domain2Good}`, async () => {
       try {
-        const result = await userA1.sdk.genericAction('registerFioDomain', { 
-          fioDomain: domain2Good, 
+        const result = await userA1.sdk.genericAction('registerFioDomain', {
+          fioDomain: domain2Good,
           maxFee: config.api.register_fio_domain.fee,
           technologyProviderId: ''
         })
@@ -89,13 +89,13 @@ describe(`************************** register_fio_domain.js ********************
       } catch (err) {
         console.log('Error: ', err.json.fields[0].error)
         expect(err).to.equal(null)
-      } 
+      }
     })
-    
+
     it(`Register domain of length 62 succeeds: ${domain62Good}`, async () => {
       try {
-        const result = await userA1.sdk.genericAction('registerFioDomain', { 
-          fioDomain: domain62Good, 
+        const result = await userA1.sdk.genericAction('registerFioDomain', {
+          fioDomain: domain62Good,
           maxFee: config.api.register_fio_domain.fee,
           technologyProviderId: ''
         })
@@ -104,13 +104,13 @@ describe(`************************** register_fio_domain.js ********************
       } catch (err) {
         console.log('Error: ', err.json.fields[0].error)
         expect(err).to.equal(null)
-      } 
+      }
     })
-    
+
     it(`Register domain of length 63 fails: ${domain63Bad}`, async () => {
       try {
-        const result = await userA1.sdk.genericAction('registerFioDomain', { 
-          fioDomain: domain63Bad, 
+        const result = await userA1.sdk.genericAction('registerFioDomain', {
+          fioDomain: domain63Bad,
           maxFee: config.api.register_fio_domain.fee,
           technologyProviderId: ''
         })
@@ -119,13 +119,13 @@ describe(`************************** register_fio_domain.js ********************
       } catch (err) {
         //console.log('Error: ', err.list[0].message)
         expect(err.list[0].message).to.equal(config.error.fioDomainLengthErr)
-      } 
+      }
     })
-    
+
     it(`Register domain of fails: "##asdf#"`, async () => {
       try {
-        const result = await userA1.sdk.genericAction('registerFioDomain', { 
-            fioDomain: "##asdf#", 
+        const result = await userA1.sdk.genericAction('registerFioDomain', {
+            fioDomain: "##asdf#",
             maxFee: config.api.register_fio_domain.fee,
             technologyProviderId: ''
         })
@@ -133,9 +133,9 @@ describe(`************************** register_fio_domain.js ********************
       } catch (err) {
         //console.log('Error: ', err.list[0].message)
         expect(err.list[0].message).to.equal(config.error.fioDomainInvalidChar)
-      } 
+      }
     })
-    
+
     it(`Register address length 1@62 succeeds: ${address1at62Good} (fixed in 1.1.0)`, async () => {
       try {
         const result = await userA1.sdk.genericAction('registerFioAddress', {
@@ -148,9 +148,9 @@ describe(`************************** register_fio_domain.js ********************
       } catch (err) {
         console.log('Error: ', err.list[0])
         expect(err).to.equal(null)
-      } 
+      }
     })
-    
+
     it(`Register address length 2@62 fails: ${address2at62Bad}`, async () => {
       try {
         const result = await userA1.sdk.genericAction('registerFioAddress', {
@@ -163,9 +163,9 @@ describe(`************************** register_fio_domain.js ********************
       } catch (err) {
         //console.log('Error: ', err.list[0])
         expect(err.list[0].message).to.equal(config.error.fioAddressLengthErr)
-      } 
+      }
     })
-    
+
     it(`Register address length 62@1 succeeds: ${address62at1Good} (fixed in 1.1.0)`, async () => {
       try {
         const result = await userA1.sdk.genericAction('registerFioAddress', {
@@ -178,9 +178,9 @@ describe(`************************** register_fio_domain.js ********************
       } catch (err) {
         console.log('Error: ', err.list[0])
         expect(err).to.equal(null)
-      } 
+      }
     })
-    
+
     it(`Register address length 62@2 fails: ${address62at2Bad}`, async () => {
       try {
         const result = await userA1.sdk.genericAction('registerFioAddress', {
@@ -193,19 +193,19 @@ describe(`************************** register_fio_domain.js ********************
       } catch (err) {
         //console.log('Error: ', err.list[0])
         expect(err.list[0].message).to.equal(config.error.fioAddressLengthErr)
-      } 
+      }
     })
-    
+
 })
-    
+
 describe('B. Test isAvailable using bad FIO addresses', () => {
     let userB1
-    const badFioAddresses = ["-dash@notatstart", "two@at@isinvalid", "old:shouldntwork", "dash@notending-"]    
+    const badFioAddresses = ["-dash@notatstart", "two@at@isinvalid", "old:shouldntwork", "dash@notending-"]
 
     it(`Create users`, async () => {
         userB1 = await newUser(faucet)
     })
-    
+
     it(`isAvailable for address randomgoodaddress@randomdomain succeeds`, async () => {
       try {
           const result = await userB1.sdk.genericAction('isAvailable', {
@@ -216,9 +216,9 @@ describe('B. Test isAvailable using bad FIO addresses', () => {
       } catch (err) {
           //console.log('Error: ', err.json)
           expect(err.json.fields[0].error).to.equal(null)
-      } 
+      }
   })
-    
+
     badFioAddresses.forEach(function (fioAddress, index) {
         it(`isAvailable for address ${fioAddress} fails`, async () => {
             try {
@@ -230,10 +230,10 @@ describe('B. Test isAvailable using bad FIO addresses', () => {
             } catch (err) {
                 //console.log('Error: ', err.json.fields[0].error)
                 expect(err.json.fields[0].error).to.equal(config.error.invalidFioName)
-            } 
+            }
         })
     })
-    
+
 })
 
 
@@ -246,7 +246,7 @@ describe('C. Register domain for other user', () => {
 
     newFioDomain = generateFioDomain(15)
   })
-  
+
   it(`userC1 registers domain ${newFioDomain} for userC2`, async () => {
     const result = await userC1.sdk.genericAction('pushTransaction', {
       action: 'regdomain',
@@ -289,8 +289,8 @@ describe('D. Try to re-register the same domain using different case', () => {
   })
 
   it(`Register domain: ${domainLowerCase} succeeds`, async () => {
-    const result = await userD1.sdk.genericAction('registerFioDomain', { 
-      fioDomain: domainLowerCase, 
+    const result = await userD1.sdk.genericAction('registerFioDomain', {
+      fioDomain: domainLowerCase,
       maxFee: config.api.register_fio_domain.fee ,
       technologyProviderId: ''
     })
@@ -298,12 +298,12 @@ describe('D. Try to re-register the same domain using different case', () => {
     expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
   })
 
-  
+
   it(`Register same domain with uppercase first letter: ${domainUpperCase} returns: ${config.error.domainRegistered}`, async () => {
     await timeout(2000) //To avoid this getting flagged as duplicate transaction
     try {
-      const result = await userD1.sdk.genericAction('registerFioDomain', { 
-        fioDomain: domainUpperCase, 
+      const result = await userD1.sdk.genericAction('registerFioDomain', {
+        fioDomain: domainUpperCase,
         maxFee: config.api.register_fio_domain.fee ,
         technologyProviderId: ''
       })
@@ -311,7 +311,7 @@ describe('D. Try to re-register the same domain using different case', () => {
     } catch (err) {
       //console.log('Error: ', err)
       expect(err.json.fields[0].error).to.equal(config.error.domainRegistered)
-    } 
+    }
   })
 
 })

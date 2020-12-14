@@ -17,7 +17,7 @@ const Transactions_2 = require("@fioprotocol/fiosdk/lib/transactions/Transaction
 let transaction = new Transactions_2.Transactions
 
 function randStr(len) {
-    var charset = "abcdefghijklmnopqrstuvwxyz"; 
+    var charset = "abcdefghijklmnopqrstuvwxyz";
     result="";
     for( var i=0; i < len; i++ )
         result += charset[Math.floor(Math.random() * charset.length)];
@@ -112,57 +112,57 @@ async function newUser(faucet, newAccount=null, newPrivateKey=null, newPublicKey
             payeeFioPublicKey: this.publicKey,
             amount: config.FUNDS,
             maxFee: config.api.transfer_tokens_pub_key.fee,
-        })  
+        })
         //console.log('Result', result)
-        //expect(result.status).to.equal('OK')  
+        //expect(result.status).to.equal('OK')
     } catch (err) {
         console.log('Transfer tokens error: ', err.json)
         return(err);
-    }  
+    }
 
     try {
         const result1 = await this.sdk.genericAction('isAvailable', {fioName: this.domain})
         if ( ! result1.is_registered ) {
-            const result = await this.sdk.genericAction('registerFioDomain', { 
-                fioDomain: this.domain, 
+            const result = await this.sdk.genericAction('registerFioDomain', {
+                fioDomain: this.domain,
                 maxFee: config.api.register_fio_domain.fee ,
                 walletFioAddress: ''
               })
               //console.log('Result', result)
-              //expect(result.status).to.equal('OK') 
+              //expect(result.status).to.equal('OK')
         }
     } catch (err) {
         console.log('registerFioDomain error: ', err.json)
         return(err);
-    } 
+    }
 
     try {
         const result1 = await this.sdk.genericAction('isAvailable', {fioName: this.address})
         if ( ! result1.is_registered ) {
-            const result = await this.sdk.genericAction('registerFioAddress', { 
+            const result = await this.sdk.genericAction('registerFioAddress', {
                 fioAddress: this.address,
                 maxFee: config.api.register_fio_address.fee,
                 walletFioAddress: ''
             })
             //console.log('Result: ', result)
-            //expect(result.status).to.equal('OK')  
+            //expect(result.status).to.equal('OK')
         }
     } catch (err) {
         console.log('registerFioAddress error: ', err.json)
         return(err);
-    } 
+    }
 
     try {
         const result = await this.sdk.genericAction('getFioBalance', {
           fioPublicKey: this.publicKey
-        }) 
+        })
         this.fioBalance = result.balance;
         //console.log('foundationA1 fio balance', result)
         //expect(result.balance).to.equal(proxyA1.last_vote_weight)
       } catch (err) {
         console.log('getFioBalance Error', err);
       }
-   
+
     return {
         privateKey: this.privateKey,
         publicKey: this.publicKey,
@@ -191,8 +191,8 @@ async function existingUser(caccount, cprivateKey, cpublicKey, cdomain=null, cad
 
     try {
         if (cdomain == null) {
-            const result = await this.sdk.genericAction('registerFioDomain', { 
-                fioDomain: this.domain, 
+            const result = await this.sdk.genericAction('registerFioDomain', {
+                fioDomain: this.domain,
                 maxFee: config.api.register_fio_domain.fee ,
                 walletFioAddress: ''
               })
@@ -200,11 +200,11 @@ async function existingUser(caccount, cprivateKey, cpublicKey, cdomain=null, cad
     } catch (err) {
         console.log('Register domain error: ', err.json)
         return(err);
-    } 
+    }
 
     try {
         if (caddress == null) {
-            const result = await this.sdk.genericAction('registerFioAddress', { 
+            const result = await this.sdk.genericAction('registerFioAddress', {
                 fioAddress: this.address,
                 maxFee: config.api.register_fio_address.fee,
                 walletFioAddress: ''
@@ -213,19 +213,19 @@ async function existingUser(caccount, cprivateKey, cpublicKey, cdomain=null, cad
     } catch (err) {
         console.log('Register address error: ', err.json)
         return(err);
-    } 
+    }
 
     try {
         const result = await this.sdk.genericAction('getFioBalance', {
           fioPublicKey: this.publicKey
-        }) 
+        })
         this.fioBalance = result.balance;
         //console.log('foundationA1 fio balance', result)
         //expect(result.balance).to.equal(proxyA1.last_vote_weight)
       } catch (err) {
         console.log('Error', err);
       }
-   
+
     return {
         privateKey: this.privateKey,
         publicKey: this.publicKey,
@@ -273,7 +273,7 @@ const callFioApiSigned = async (endPoint, txn) => {
     const timePlusTen = currentDate.getTime() + 10000;
     const timeInISOString = (new Date(timePlusTen)).toISOString();
     const expiration = timeInISOString.substr(0, timeInISOString.length - 1);
-    
+
     const transaction = {
        expiration,
        ref_block_num: blockInfo.block_num & 0xffff,
@@ -288,13 +288,13 @@ const callFioApiSigned = async (endPoint, txn) => {
            data: txn.data,
        }]
     };
-  
+
     const abiMap = new Map()
     const tokenRawAbi = await (await fetch(fiourl + 'get_raw_abi', {body: '{"account_name": "' + txn.account + '"}', method: 'POST'})).json()
     abiMap.set(txn.account, tokenRawAbi)
-   
+
     var privateKeys = [txn.privKey];
-    
+
     const tx = await Fio.prepareTransaction({
       transaction,
       chainId,
@@ -303,12 +303,12 @@ const callFioApiSigned = async (endPoint, txn) => {
       textDecoder: new TextDecoder(),
       textEncoder: new TextEncoder()
     });
-  
+
     const pushResult = await fetch(fiourl + endPoint, {
         body: JSON.stringify(tx),
         method: 'POST',
     });
-  
+
     const json = await pushResult.json()
     return json;
   };
@@ -350,7 +350,7 @@ async function getFees() {
         let fees = [];
         const json = {
             json: true,
-            code: 'fio.fee', 
+            code: 'fio.fee',
             scope: 'fio.fee',
             table: 'fiofees',
             limit: 1000,
@@ -358,7 +358,7 @@ async function getFees() {
             show_payer: false
         }
         callFioApi("get_table_rows", json)
-        .then(result => { 
+        .then(result => {
             var i;
             for (i = 0; i < result.rows.length; i++) {
                 fees[result.rows[i].end_point] = result.rows[i].suf_amount
@@ -378,13 +378,13 @@ async function setRam(user, txnType, fee) {
             account_name: user.account,
         }
         callFioApi("get_account", json)
-        .then(result => { 
+        .then(result => {
             ramEntry = {
                 txnType: txnType,
                 fee: fee,
                 txnQuota: config.RAM[txnType],
-                actualRamUsage: result.ram_usage, 
-                actualRamQuota: result.ram_quota, 
+                actualRamUsage: result.ram_usage,
+                actualRamQuota: result.ram_quota,
                 expectedRamQuota: config.RAM[txnType]
             }
             user.ramUsage.push(ramEntry);
@@ -393,14 +393,14 @@ async function setRam(user, txnType, fee) {
             console.log('Error: ', error)
             reject(error)
         });
-        
+
     });
 }
 
 async function printUserRam(user) {
     let entry, fee, type, txnQuota, actualRamQuota, deltaRamQuota, actualRamUsage, deltaActualRamUsage
 
-    console.log('RAM Usage for: ', user.account)    
+    console.log('RAM Usage for: ', user.account)
     console.log('type' + '\t' + 'feeCollected' + '\t' + 'txnQuota' + '\t' + 'actualRamQuota' + '\t' + 'deltaRamQuota' + '\t' + 'actualRAMUsage' + '\t' + 'deltaActualRAMUsage')
 
     for (entry in user.ramUsage) {
@@ -424,7 +424,7 @@ async function getTotalVotedFio() {
 
         const json = {
             json: true,
-            code: 'eosio', 
+            code: 'eosio',
             scope: 'eosio',
             table: 'global',
             limit: 1000,
@@ -432,7 +432,7 @@ async function getTotalVotedFio() {
             show_payer: false
         }
         callFioApi("get_table_rows", json)
-        .then(result => { 
+        .then(result => {
             resolve(result.rows[0].total_voted_fio)
         }).catch(error => {
             console.log('Error: ', error)
@@ -445,7 +445,7 @@ async function getProdVoteTotal(producer) {
     return new Promise(function(resolve, reject) {
         const json = {
             json: true,
-            code: 'eosio', 
+            code: 'eosio',
             scope: 'eosio',
             table: 'producers',
             limit: 1000,
@@ -453,11 +453,11 @@ async function getProdVoteTotal(producer) {
             show_payer: false
         }
         callFioApi("get_table_rows", json)
-        .then(result => { 
+        .then(result => {
             for (prod in result.rows) {
-                 if (result.rows[prod].fio_address == producer) { 
+                 if (result.rows[prod].fio_address == producer) {
                     resolve(Math.floor(result.rows[prod].total_votes))
-                    break; 
+                    break;
                 }
             }
             resolve(null)
@@ -472,7 +472,7 @@ async function getAccountVoteWeight(account) {
     return new Promise(function(resolve, reject) {
         const json = {
             json: true,
-            code: 'eosio', 
+            code: 'eosio',
             scope: 'eosio',
             table: 'voters',
             limit: 1000,
@@ -480,11 +480,11 @@ async function getAccountVoteWeight(account) {
             show_payer: false
         }
         callFioApi("get_table_rows", json)
-        .then(result => { 
+        .then(result => {
             for (voterID in result.rows) {
-                 if (result.rows[voterID].owner == account) { 
+                 if (result.rows[voterID].owner == account) {
                     resolve(Math.floor(result.rows[voterID].last_vote_weight))
-                    break; 
+                    break;
                 }
             }
             resolve(null)
@@ -531,7 +531,7 @@ async function addLock(account, amount, lock) {
         var text = {owner: account, amount: amount, locktype: lock}
         text = JSON.stringify(text)
         runCmd(config.CLIO + " push action -j eosio addlocked '" + text + "' -p eosio@active")
-         .then(result => { 
+         .then(result => {
             let jResult = JSON.parse(result);
             account.lockAmount = amount;
             account.lockType = lock;
@@ -546,11 +546,11 @@ async function addLock(account, amount, lock) {
 async function unlockWallet(wallet) {
     return new Promise(function(resolve, reject) {
         runCmd(config.CLIO + " wallet list")
-        .then(result => { 
-            let walletLock = result.indexOf(wallet + " *")          
+        .then(result => {
+            let walletLock = result.indexOf(wallet + " *")
             if (walletLock == -1 ) {  // Wallet is not unlocked
                 runCmd(config.CLIO + " wallet unlock -n " + wallet + " --password " + config.WALLETKEY)
-            } 
+            }
             resolve()
         }).catch(error => {
             console.log('Error: ', error)
@@ -576,8 +576,8 @@ function runCmd(command) {
 async function getTopprods() {
     return new Promise(function(resolve, reject) {
         runCmd(config.CLIO + " get table -l -1 eosio eosio topprods")
-        .then(result => { 
-            let jresult = JSON.parse(result) 
+        .then(result => {
+            let jresult = JSON.parse(result)
             //console.log("jresult", jresult.rows[0])
             resolve(jresult)
         }).catch(error => {
@@ -611,7 +611,7 @@ async function readProdFile(prodFile) {
         } catch (err) {
             console.log('Error: ', err);
             reject(err);
-        } 
+        }
     });
 }
 
@@ -625,8 +625,8 @@ async function getVoteShares() {
     return new Promise(function(resolve, reject) {
         //console.log('in getAccountVoteWeight')
         runCmd(config.CLIO + " get table -l -1 fio.treasury fio.treasury voteshares")
-        .then(result => { 
-            let jresult = JSON.parse(result) 
+        .then(result => {
+            let jresult = JSON.parse(result)
             console.log("jresult", jresult.rows[0])
             resolve(jresult)
         }).catch(error => {
@@ -639,8 +639,8 @@ async function getVoteShares() {
 async function getFeevoters() {
     return new Promise(function(resolve, reject) {
         runCmd(config.CLIO + " get table -l -1 fio.fee fio.fee feevoters")
-        .then(result => { 
-            let jresult = JSON.parse(result) 
+        .then(result => {
+            let jresult = JSON.parse(result)
             console.log("jresult", jresult.rows[0])
             resolve(jresult)
         }).catch(error => {
@@ -653,8 +653,8 @@ async function getFeevoters() {
 async function getTopprods() {
     return new Promise(function(resolve, reject) {
         runCmd(config.CLIO + " get table -l -1 eosio eosio topprods")
-        .then(result => { 
-            let jresult = JSON.parse(result) 
+        .then(result => {
+            let jresult = JSON.parse(result)
             //console.log("jresult", jresult.rows[0])
             resolve(jresult)
         }).catch(error => {
@@ -668,8 +668,8 @@ async function getTopprods() {
 async function getBlock(number) {
     return new Promise(function(resolve, reject) {
         runCmd(config.CLIO + " get block " + number)
-        .then(result => { 
-            let jresult = JSON.parse(result) 
+        .then(result => {
+            let jresult = JSON.parse(result)
             //console.log("jresult", jresult)
             resolve(jresult)
         }).catch(error => {
@@ -689,8 +689,8 @@ function getBlock2(number) {
 async function getTable(account, table) {
     return new Promise(function(resolve, reject) {
         runCmd(config.CLIO + " get table -l -1 " + account + " " + account + " " + table)
-        .then(result => { 
-            let jresult = JSON.parse(result) 
+        .then(result => {
+            let jresult = JSON.parse(result)
             //console.log("jresult", jresult.rows[0])
             resolve(jresult)
         }).catch(error => {
@@ -713,8 +713,8 @@ async function getTable(account, table) {
 async function pushAction(account, action, json, permission) {
     return new Promise(function(resolve, reject) {
         runCmd(config.CLIO + " push action " + account + " " + action + " '" + json + "' --permission " + permission + " --json")
-        .then(result => { 
-            let jresult = JSON.parse(result) 
+        .then(result => {
+            let jresult = JSON.parse(result)
             console.log("jresult", jresult)
             resolve(jresult)
         }).catch(error => {
@@ -735,8 +735,8 @@ async function pushAction(account, action, json, permission) {
 async function getActions(account, pos, offset) {
     return new Promise(function(resolve, reject) {
         runCmd(config.CLIO + " get actions " + account + " " + pos + " " + offset)
-        .then(result => { 
-            let jresult = JSON.parse(result) 
+        .then(result => {
+            let jresult = JSON.parse(result)
             //console.log("jresult", jresult.rows)
             resolve(jresult)
         }).catch(error => {
@@ -795,8 +795,8 @@ function runClio2(parms) {
 async function runClio(parms) {
     return new Promise(function(resolve, reject) {
         runCmd(config.CLIO + " " + parms)
-        .then(result => { 
-            let jresult = JSON.parse(result) 
+        .then(result => {
+            let jresult = JSON.parse(result)
             console.log("jresult", jresult)
             resolve(jresult)
         }).catch(error => {
@@ -810,12 +810,12 @@ async function runClio(parms) {
 async function importPrivKey(pubkey, privkey) {
     return new Promise(function(resolve, reject) {
         runCmd(config.CLIO + " wallet keys")
-        .then(result => { 
-            let keyexists = result.indexOf(pubkey)  
-            console.log('keyexists: ', keyexists)        
+        .then(result => {
+            let keyexists = result.indexOf(pubkey)
+            console.log('keyexists: ', keyexists)
             if (keyexists == -1 ) {  // Pub Key not found
                 //runCmd(config.CLIO + " wallet import --private-key " + privkey + " -n fio")
-            } 
+            }
             resolve()
         }).catch(error => {
             console.log('Error: ', error)
@@ -829,8 +829,8 @@ async function getPermissions(publicKey) {
     return new Promise(function(resolve, reject) {
         account = transaction.getActor(publicKey)
         runCmd(config.CLIO + " get account " + account + " -j")
-        .then(result => { 
-            let jresult = JSON.parse(result) 
+        .then(result => {
+            let jresult = JSON.parse(result)
             console.log("jresult", jresult.permissions[1])
             permissions = {
                 active: jresult.permissions[0],
@@ -850,9 +850,9 @@ async function getRam(account) {
         let ramUse
         runCmd(config.CLIO + " get account " + account + " -j")
         .then(result => { //console.log("prev result", result)
-            let jResult = JSON.parse(result) 
+            let jResult = JSON.parse(result)
             ramUse = {
-                actualRamUsage: jResult.ram_usage, 
+                actualRamUsage: jResult.ram_usage,
                 actualRamQuota: jResult.ram_quota
             }
             //ramLog.ramUsage.push(ramEntry);
@@ -870,14 +870,14 @@ async function getRam(account) {
 async function updateAuth(account, ) {
     return new Promise(function(resolve, reject) {
         //#Create msig for 2lqw5qowwhin. This account will require kkpvib4wwhif (weight=1) and rkrpwdp3ismx (weight=1)
-        //./clio -u http://localhost:8889 push action eosio updateauth 
+        //./clio -u http://localhost:8889 push action eosio updateauth
         var text = {
-            account: "2lqw5qowwhin", 
-            permission: "active",  
-            parent: "owner", 
-            auth: { 
-                threshold: 2, 
-                keys: [], 
+            account: "2lqw5qowwhin",
+            permission: "active",
+            parent: "owner",
+            auth: {
+                threshold: 2,
+                keys: [],
                 waits: [],
                 accounts: [{
                     permission: {
@@ -892,17 +892,17 @@ async function updateAuth(account, ) {
                         permission: "active"
                     },
                     weight: 1
-                }] 
-            }, 
-            max_fee: 4000000000 
+                }]
+            },
+            max_fee: 4000000000
         }
             //' -p 2lqw5qowwhin@active
         text = JSON.stringify(text)
 
         //console.log('in getAccountVoteWeight')
         runCmd(config.CLIO + " get table -l -1 fio.treasury fio.treasury voteshares")
-        .then(result => { 
-            let jresult = JSON.parse(result) 
+        .then(result => {
+            let jresult = JSON.parse(result)
             console.log("jresult", jresult.rows[0])
             resolve(jresult)
         }).catch(error => {
@@ -923,8 +923,8 @@ async function msigPropose() {
 
         //console.log('in getAccountVoteWeight')
         runCmd(config.CLIO + " get table -l -1 fio.treasury fio.treasury voteshares")
-        .then(result => { 
-            let jresult = JSON.parse(result) 
+        .then(result => {
+            let jresult = JSON.parse(result)
             console.log("jresult", jresult.rows[0])
             resolve(jresult)
         }).catch(error => {
@@ -942,8 +942,8 @@ async function msigApprove() {
 
         //console.log('in getAccountVoteWeight')
         runCmd(config.CLIO + " get table -l -1 fio.treasury fio.treasury voteshares")
-        .then(result => { 
-            let jresult = JSON.parse(result) 
+        .then(result => {
+            let jresult = JSON.parse(result)
             console.log("jresult", jresult.rows[0])
             resolve(jresult)
         }).catch(error => {
@@ -967,13 +967,13 @@ class Ram {
             let ramEntry
             runCmd(config.CLIO + " get account " + ramLog.account + " -j")
             .then(result => { //console.log("prev result", result)
-                let jResult = JSON.parse(result) 
+                let jResult = JSON.parse(result)
                 ramEntry = {
                     txnType: txnType,
                     fee: fee,
                     txnQuota: config.RAM[txnType],
-                    actualRamUsage: jResult.ram_usage, 
-                    actualRamQuota: jResult.ram_quota, 
+                    actualRamUsage: jResult.ram_usage,
+                    actualRamQuota: jResult.ram_quota,
                     expectedRamQuota: config.RAM[txnType]
                 }
                 ramLog.ramUsage.push(ramEntry);
@@ -983,7 +983,7 @@ class Ram {
                 console.log('Error: ', error)
                 reject(error)
             });
-            
+
         });
     }
 

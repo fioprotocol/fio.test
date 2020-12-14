@@ -18,12 +18,12 @@ describe('************************** txn-resubmit.js ************************** 
         userA1 = await newUser(faucet);
         userA2 = await newUser(faucet);
     })
-  
+
     it(`userA1 requests funds from userA2`, async () => {
       try {
         userA1.sdk.setSignedTrxReturnOption(true)
-        preparedTrx = await userA1.sdk.genericAction('requestFunds', { 
-          payerFioAddress: userA2.address, 
+        preparedTrx = await userA1.sdk.genericAction('requestFunds', {
+          payerFioAddress: userA2.address,
           payeeFioAddress: userA1.address,
           payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
           amount: payment,
@@ -35,7 +35,7 @@ describe('************************** txn-resubmit.js ************************** 
           technologyProviderId: '',
           hash: '',
           offLineUrl: ''
-        })    
+        })
         userA1.sdk.setSignedTrxReturnOption(false)
       } catch (err) {
         console.log('Error: ', err)
@@ -61,7 +61,7 @@ describe('************************** txn-resubmit.js ************************** 
           const result = await userA1.sdk.genericAction('getSentFioRequests', {
             limit: '',
             offset: ''
-          }) 
+          })
           //console.log('result: ', result)
           expect(result.requests[0].fio_request_id).to.equal(userA1RequestId);
           expect(result.requests[0].content.memo).to.equal(requestMemo);
@@ -70,13 +70,13 @@ describe('************************** txn-resubmit.js ************************** 
           expect(err).to.equal(null);
         }
       })
-    
+
       it(`get_pending_fio_requests for userA2`, async () => {
         try {
           const result = await userA2.sdk.genericAction('getPendingFioRequests', {
             limit: '',
             offset: ''
-          }) 
+          })
           //console.log('result: ', result)
           expect(result.requests[0].fio_request_id).to.equal(userA1RequestId);
           expect(result.requests[0].content.memo).to.equal(requestMemo);
@@ -105,7 +105,7 @@ describe('************************** txn-resubmit.js ************************** 
         const result = await fetch(fiourl + endPoint, {
           body: JSON.stringify(preparedTrx),
           method: 'POST',
-        }); 
+        });
         const json = await result.json()
         //console.log('result: ', result)
         expect(json.error.what).to.equal('Duplicate transaction')

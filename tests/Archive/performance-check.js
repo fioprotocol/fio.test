@@ -54,7 +54,7 @@ describe(`************************** performance-check.js **********************
           method: "POST",
           uri: servers[server] + "chain/" + apiCall,
           body: json,
-          json: true 
+          json: true
         };
         console.log("uri: " + options.uri);
         //console.log("\nWith stringified JSON: \n")
