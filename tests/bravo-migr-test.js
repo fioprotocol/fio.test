@@ -9,7 +9,7 @@
 require('mocha')
 const {expect} = require('chai')
 const {newUser, fetchJson, existingUser, callFioApiSigned, callFioApi, timeout} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
+const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
 /*
@@ -280,7 +280,7 @@ describe(`Perform single migrtrx to initialize migration`, () => {
     })
 })
 
-describe.only(`Confirm the number of records in old tables alignts with `, () => {
+describe.skip(`Confirm the number of records in old tables aligns with `, () => {
   let obtCount = 0
 
   it('Get the number of OBT records in recordobts', async () => {
