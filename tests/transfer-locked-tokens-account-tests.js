@@ -45,7 +45,7 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
     console.log('publicKey2: ', publicKey2)
   })
 
-  it.skip(`(API) Create fioSdk account: transferLockedTokens ${lockedFundsAmount}, canvote false, (20,40%) and (40,60%)`, async () => {
+  it(`(API) Create fioSdk account: transferLockedTokens ${lockedFundsAmount}, canvote false, (20,40%) and (40,60%)`, async () => {
     try {
       const result = await fioSdkFaucet.genericAction('transferLockedTokens', {
         payeePublicKey: publicKey,
@@ -72,7 +72,7 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
     }
   })
 
-  it(`(pushTransaction) Create fioSdk account: transferLockedTokens ${lockedFundsAmount}, canvote false, (20,40%) and (40,60%)`, async () => {
+  it.skip(`(pushTransaction) Create fioSdk account: transferLockedTokens ${lockedFundsAmount}, canvote false, (20,40%) and (40,60%)`, async () => {
     try {
       const result = await fioSdkFaucet.genericAction('pushTransaction', {
         action: 'trnsloctoks',
@@ -104,7 +104,7 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
     }
   })
 
-  it.skip(`(API) Create fioSdk account: transferLockedTokens ${lockedFundsAmount}, canvote false, (20,40%) and (40,60%)`, async () => {
+  it(`(API) Create fioSdk account: transferLockedTokens ${lockedFundsAmount}, canvote false, (20,40%) and (40,60%)`, async () => {
     try {
       const result = await fioSdkFaucet.genericAction('transferLockedTokens', {
         payeePublicKey: publicKey2,
@@ -131,7 +131,7 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
     }
   })
 
-  it(`(pushTransaction) Create fioSdk account: transferLockedTokens ${lockedFundsAmount}, canvote false, (20,40%) and (40,60%)`, async () => {
+  it.skip(`(pushTransaction) Create fioSdk account: transferLockedTokens ${lockedFundsAmount}, canvote false, (20,40%) and (40,60%)`, async () => {
     try {
       const result = await fioSdkFaucet.genericAction('pushTransaction', {
         action: 'trnsloctoks',

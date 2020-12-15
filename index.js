@@ -23,12 +23,12 @@ describe('TEST SUITE', () => {
   require('./tests/burn-address.js'); // FIP-7
   //require('./tests/fee-voting-fee-setting.js'); // FIP-10
   //require('./tests/producer-fee-setting.js');  // FIP-10
-  require('./tests/record-obt-data-old.js'); //FIP-1.b testing
+  require('./tests/record-obt-data.js'); //FIP-1.b testing
   //require('./tests/transfer-address.js'); // FIP-1.b
   require('./tests/transfer-locked-tokens.js');  // FIP-6 locking tests
-  require('./tests/transfer-locked-tokens-account-tests-old.js');  // FIP-6 tests of generic account functionality
+  require('./tests/transfer-locked-tokens-account-tests.js');  // FIP-6 tests of generic account functionality
   //require('./tests/clio.js');  // FIP-16
-  
+
   //require('./tests/locks.js');  // Depends on local wallet. Need to fix
   //require('./tests/testnet-smoketest.js'); // In development
   //require('./tests/pub_k1.js');  // Moved to later release
