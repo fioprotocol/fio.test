@@ -870,7 +870,7 @@ describe(`C. cancel_funds_request with bundles remaining`, () => {
       expect(result).to.equal(null);
     } catch (err) {
       //console.log('Error: ', err.json);
-      expect(err.json.message).to.equal(config.error.noFioRequests);
+      expect(err.json.message).to.equal(config.error.noPendingRequests);
     }
   })
 
@@ -1144,7 +1144,7 @@ describe('D. cancel_funds_request with NO bundles remaining', () => {
       expect(result).to.equal(null);
     } catch (err) {
       //console.log('Error: ', err.json);
-      expect(err.json.message).to.equal(config.error.noFioRequests);
+      expect(err.json.message).to.equal(config.error.noPendingRequests);
     }
   })
 
