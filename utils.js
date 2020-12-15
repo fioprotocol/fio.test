@@ -56,13 +56,14 @@ function generateFioDomain(size) {
 }
 
 function generateFioAddress(customDomain = config.DEFAULT_DOMAIN, size) {
+    let fioname;
     try {
         if (size + customDomain.length < config.paramMax.fio_address) {
-            name = randStr(size)
+            fioname = randStr(size)
         } else {
-            name = randStr(config.paramMax.fio_address - customDomain.length - 1)
+            fioname = randStr(config.paramMax.fio_address - customDomain.length - 1)
         }
-        return name + '@' + customDomain
+        return fioname + '@' + customDomain
     } catch (err) {
         console.log('Error: ', err)
     }
