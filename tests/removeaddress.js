@@ -947,10 +947,10 @@ describe(`E-2. Add and remove addresses with NO bundles remaining`, () => {
         }
         fionames = await callFioApi("get_table_rows", json);
         //console.log('fionames: ', fionames);
-        for (name in fionames.rows) {
-          if (fionames.rows[name].name == userA1.address) {
-            //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown);
-            bundleCount = fionames.rows[name].bundleeligiblecountdown;
+        for (fioname in fionames.rows) {
+          if (fionames.rows[fioname].name == userA1.address) {
+            //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
+            bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
           }
         }
         expect(bundleCount).to.equal(0);
@@ -1412,10 +1412,10 @@ describe(`F. Sad - result in error`, () => {
       }
       fionames = await callFioApi("get_table_rows", json);
       //console.log('fionames: ', fionames);
-      for (name in fionames.rows) {
-        if (fionames.rows[name].name == userA1.address) {
-          //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown);
-          bundleCount = fionames.rows[name].bundleeligiblecountdown;
+      for (fioname in fionames.rows) {
+        if (fionames.rows[fioname].name == userA1.address) {
+          //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
+          bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
         }
       }
       expect(bundleCount).to.equal(0);
