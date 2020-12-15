@@ -860,7 +860,7 @@ describe(`C. cancel_funds_request with bundles remaining`, () => {
     }
   })
 
-  it(`Verify request was cancelled: get_pending_fio_requests for userA2 returns: ${config.error.noPendingRequests}`, async () => {
+  it(`Verify request was cancelled: get_pending_fio_requests for userA2 returns: ${config.error.noFioRequests}`, async () => {
     try {
       const result = await userA2.sdk.genericAction('getPendingFioRequests', {
         limit: '',
@@ -870,7 +870,7 @@ describe(`C. cancel_funds_request with bundles remaining`, () => {
       expect(result).to.equal(null);
     } catch (err) {
       //console.log('Error: ', err.json);
-      expect(err.json.message).to.equal(config.error.noPendingRequests);
+      expect(err.json.message).to.equal(config.error.noFioRequests);
     }
   })
 
@@ -1134,7 +1134,7 @@ describe('D. cancel_funds_request with NO bundles remaining', () => {
     }
   })
 
-  it(`Verify request was cancelled: get_pending_fio_requests for userB2 returns: ${config.error.noPendingRequests}`, async () => {
+  it(`Verify request was cancelled: get_pending_fio_requests for userB2 returns: ${config.error.noFioRequests}`, async () => {
     try {
       const result = await userB2.sdk.genericAction('getPendingFioRequests', {
         limit: '',
@@ -1144,7 +1144,7 @@ describe('D. cancel_funds_request with NO bundles remaining', () => {
       expect(result).to.equal(null);
     } catch (err) {
       //console.log('Error: ', err.json);
-      expect(err.json.message).to.equal(config.error.noPendingRequests);
+      expect(err.json.message).to.equal(config.error.noFioRequests);
     }
   })
 

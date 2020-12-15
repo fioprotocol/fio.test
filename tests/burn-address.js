@@ -163,7 +163,7 @@ describe('************************** burn-address.js ************************** 
           }
           fionames = await callFioApi("get_table_rows", json);
           //console.log('fionames: ', fionames);
-          for (name in fionames.rows) {
+          for (fioname in fionames.rows) {
             if (fionames.rows[fioname].name == walletA1.address) {
               //console.log('bundleCount: ', fionames.rows[fioname].bundleeligiblecountdown);
               bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
