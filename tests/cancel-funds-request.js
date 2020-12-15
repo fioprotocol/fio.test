@@ -100,10 +100,10 @@ describe(`************************** cancel-funds-request.js *******************
       }
       fionames = await callFioApi("get_table_rows", json);
       //console.log('fionames: ', fionames);
-      for (name in fionames.rows) {
-        if (fionames.rows[name].name == userA1.address) {
-          //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown); 
-          userA1OrigBundle = fionames.rows[name].bundleeligiblecountdown;
+      for (fioname in fionames.rows) {
+        if (fionames.rows[fioname].name == userA1.address) {
+          //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown); 
+          userA1OrigBundle = fionames.rows[fioname].bundleeligiblecountdown;
         }
       }
       expect(userA1OrigBundle).to.equal(98);  // 2 for new_funds_request
@@ -203,10 +203,10 @@ describe(`************************** cancel-funds-request.js *******************
       }
       fionames = await callFioApi("get_table_rows", json);
       //console.log('fionames: ', fionames);
-      for (name in fionames.rows) {
-        if (fionames.rows[name].name == userA1.address) {
-          //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown); 
-          bundleCount = fionames.rows[name].bundleeligiblecountdown;
+      for (fioname in fionames.rows) {
+        if (fionames.rows[fioname].name == userA1.address) {
+          //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown); 
+          bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
         }
       }
       expect(bundleCount).to.equal(userA1OrigBundle - 1);  // 1 bundle for cancel_funds_request
@@ -375,10 +375,10 @@ describe('B. cancel_funds_request with NO bundles remaining', () => {
       }
       fionames = await callFioApi("get_table_rows", json);
       //console.log('fionames: ', fionames);
-      for (name in fionames.rows) {
-        if (fionames.rows[name].name == userB1.address) {
-          //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown); 
-          userB1OrigBundle = fionames.rows[name].bundleeligiblecountdown;
+      for (fioname in fionames.rows) {
+        if (fionames.rows[fioname].name == userB1.address) {
+          //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown); 
+          userB1OrigBundle = fionames.rows[fioname].bundleeligiblecountdown;
         }
       }
       expect(userB1OrigBundle).to.equal(0);  
@@ -480,7 +480,7 @@ describe('B. cancel_funds_request with NO bundles remaining', () => {
 
 })
 
-describe(`C. Test cancel_funds_request error conditions`, () => {
+describe.only(`C. Test cancel_funds_request error conditions`, () => {
   let userC1, userC2, userC1RequestId, userC1RequestId2, userC1Balance
   const payment = 5000000000 // 5 FIO
   const requestMemo = 'Memo in the initial request'
@@ -797,10 +797,10 @@ describe(`C. Test cancel_funds_request error conditions`, () => {
       }
       fionames = await callFioApi("get_table_rows", json);
       //console.log('fionames: ', fionames);
-      for (name in fionames.rows) {
-        if (fionames.rows[name].name == userC1.address) {
-          //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown); 
-          bundleCount = fionames.rows[name].bundleeligiblecountdown;
+      for (fioname in fionames.rows) {
+        if (fionames.rows[fioname].name == userC1.address) {
+          //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown); 
+          bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
         }
       }
       expect(bundleCount).to.equal(0);  

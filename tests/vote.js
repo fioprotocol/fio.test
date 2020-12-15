@@ -1651,10 +1651,10 @@ describe('FIP-9: G.2 Test vote_producer with and without FIO Address', () => {
         }
         fionames = await callFioApi("get_table_rows", json);
         //console.log('fionames: ', fionames);
-        for (name in fionames.rows) {
-            if (fionames.rows[name].name == voterG3.address) {
-                //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown);
-                bundleCount = fionames.rows[name].bundleeligiblecountdown;
+        for (fioname in fionames.rows) {
+            if (fionames.rows[fioname].name == voterG3.address) {
+                //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
+                bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
             }
         }
         expect(bundleCount).to.be.greaterThan(0);
@@ -1700,10 +1700,10 @@ describe('FIP-9: G.2 Test vote_producer with and without FIO Address', () => {
         }
         fionames = await callFioApi("get_table_rows", json);
         //console.log('fionames: ', fionames);
-        for (name in fionames.rows) {
-            if (fionames.rows[name].name == voterG3.address) {
-                //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown);
-                bundleCount = fionames.rows[name].bundleeligiblecountdown;
+        for (fioname in fionames.rows) {
+            if (fionames.rows[fioname].name == voterG3.address) {
+                //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
+                bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
             }
         }
         expect(bundleCount).to.equal(prevBundleCount - 1);
@@ -2065,7 +2065,7 @@ describe('FIP-9: G.2 Test vote_producer with and without FIO Address', () => {
 
 })
 
-describe('FIP-9: G.3 Test proxy_vote with and without FIO Address', () => {
+describe.only('FIP-9: G.3 Test proxy_vote with and without FIO Address', () => {
   let proxyG1, voterG7, voterG8, voterG9, voterG10, total_bp_votes, bundleCount, balance
  
   it(`Create users`, async () => {
@@ -2169,10 +2169,10 @@ describe('FIP-9: G.3 Test proxy_vote with and without FIO Address', () => {
         }
         fionames = await callFioApi("get_table_rows", json);
         //console.log('fionames: ', fionames);
-        for (name in fionames.rows) {
-            if (fionames.rows[name].name == voterG7.address) {
-                //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown);
-                bundleCount = fionames.rows[name].bundleeligiblecountdown;
+        for (fioname in fionames.rows) {
+            if (fionames.rows[fioname].name == voterG7.address) {
+                //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
+                bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
             }
         }
         expect(bundleCount).to.be.greaterThan(0);
@@ -2193,7 +2193,11 @@ describe('FIP-9: G.3 Test proxy_vote with and without FIO Address', () => {
         //console.log('Error', err)
         expect(err).to.equal(null)
     }
-})
+  })
+
+  it('Wait a few seconds.', async () => {
+    await timeout(3000);
+  })
 
   it(`Execute proxy_vote WITH FIO Address (with bundled tx left), expect fee = 0`, async () => {
     try {
@@ -2243,10 +2247,10 @@ describe('FIP-9: G.3 Test proxy_vote with and without FIO Address', () => {
         }
         fionames = await callFioApi("get_table_rows", json);
         //console.log('fionames: ', fionames);
-        for (name in fionames.rows) {
-            if (fionames.rows[name].name == voterG7.address) {
-                //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown);
-                bundleCount = fionames.rows[name].bundleeligiblecountdown;
+        for (fioname in fionames.rows) {
+            if (fionames.rows[fioname].name == voterG7.address) {
+                //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
+                bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
             }
         }
         expect(bundleCount).to.equal(prevBundleCount - 1);
@@ -2273,6 +2277,10 @@ describe('FIP-9: G.3 Test proxy_vote with and without FIO Address', () => {
     } catch (err) {
       console.log('Error: ', err)
     }
+  })
+
+  it('Wait a few seconds.', async () => {
+    await timeout(3000);
   })
 
   it(`Use up all of voterG8's bundles with 51 record_obt_data transactions`, async () => {
@@ -2303,6 +2311,7 @@ describe('FIP-9: G.3 Test proxy_vote with and without FIO Address', () => {
       }
     }
   })
+
 
   it(`Add public addresses to voterG8 to use up one more bundle`, async () => {
     try {
@@ -2596,9 +2605,14 @@ describe('FIP-9: G.3 Test proxy_vote with and without FIO Address', () => {
   it(`Get voterG10 last_vote_weight`, async () => {
     try {
       voterG10.last_vote_weight = await getAccountVoteWeight(voterG10.account);
+      //console.log('voterG10.last_vote_weight: ', voterG10.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
+  })
+
+  it('Wait a few seconds.', async () => {
+    await timeout(3000);
   })
 
   it(`Confirm bp1@dapixdev total_votes increased by voterG10 last_vote_weight`, async () => {

@@ -704,10 +704,10 @@ describe('D. transferFioAddress Error testing', () => {
             }
             fionames = await callFioApi("get_table_rows", json);
             //console.log('fionames: ', fionames);
-            for (name in fionames.rows) {
-                if (fionames.rows[name].name == userD3.address) {
-                    //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown);
-                    bundleCount = fionames.rows[name].bundleeligiblecountdown;
+            for (fioname in fionames.rows) {
+                if (fionames.rows[fioname].name == userD3.address) {
+                    //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
+                    bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
                 }
             }
             expect(bundleCount).to.equal(0);
