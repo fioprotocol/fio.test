@@ -475,7 +475,7 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
   it(`getFioBalance before `, async () => {
     const result = await userA1.sdk.genericAction('getFioBalance', {})
 
-    expect(result).to.have.all.keys('balance')
+    expect(result).to.have.all.keys('balance','available')
     balancebefore = result.balance;
   })
 
@@ -514,7 +514,7 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
   it(`getFioBalance after, verify Fee transfer_locked_tokens was collected`, async () => {
     const result = await userA1.sdk.genericAction('getFioBalance', {})
 
-    expect(result).to.have.all.keys('balance')
+    expect(result).to.have.all.keys('balance', 'available')
     balanceafter = result.balance;
     const result1 = await userA1.sdk.genericAction('getFee', {
       endPoint: 'transfer_locked_tokens',
@@ -527,7 +527,7 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
 
   })
 
-  it.skip(`Verify locks were set with get_locks`, async () => {
+  it(`Verify locks were set with get_locks`, async () => {
     try{
     const result = await locksdk.genericAction('getLocks', {fioPublicKey:keys.publicKey})
 
@@ -546,7 +546,7 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
   it(`verify get balance results for locked funds`, async () => {
     const result = await locksdk.genericAction('getFioBalance', {})
 
-    expect(result).to.have.all.keys('balance')
+    expect(result).to.have.all.keys('balance','available')
     expect(result.balance).to.be.a('number')
     expect(result.balance).to.equal(500000000000)
 
@@ -721,7 +721,7 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
     }
   })
 
-  it(`Register domain:  succeeds`, async () => {
+  it(`[BD-2244] Register domain:  succeeds`, async () => {
     try {
     domsdk = new FIOSDK(transferdomainkey.privateKey, transferdomainkey.publicKey, config.BASE_URL, fetchJson);
     domsdk.domain2 = generateFioDomain(8)
@@ -760,7 +760,7 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
 })
 
 
-describe(`C. staking incentives, canvote = false`, () => {
+describe.skip(`C. staking incentives, canvote = false`, () => {
 
   let balancebefore, balanceafter, feetransferlocked,
   stakeKey1, stakeKey2, stakeKey3,stakeKey4, stakeKey5

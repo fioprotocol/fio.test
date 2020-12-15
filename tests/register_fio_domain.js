@@ -236,7 +236,6 @@ describe('B. Test isAvailable using bad FIO addresses', () => {
 
 })
 
-
 describe('C. Register domain for other user', () => {
   let userC1, userC2, newFioDomain
 
@@ -313,5 +312,114 @@ describe('D. Try to re-register the same domain using different case', () => {
       expect(err.json.fields[0].error).to.equal(config.error.domainRegistered)
     }
   })
+
+})
+
+describe('E. Test set_fio_domain_public', () => {
+  let user1, register_fio_domain_fee, set_fio_domain_public_fee, user1Balance
+
+  it(`Create users`, async () => {
+    user1 = await newUser(faucet)
+    user1.domain2 = generateFioDomain(15)
+  })
+
+  it('Get register_fio_domain fee', async () => {
+    try {
+        result = await user1.sdk.getFee('register_fio_domain');
+        register_fio_domain_fee = result.fee;
+        //console.log('Domain Fee: ', register_fio_domain_fee)
+    } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+    }
+  })
+
+  it('Get set_fio_domain_public fee', async () => {
+    try {
+        result = await user1.sdk.getFee('set_fio_domain_public');
+        set_fio_domain_public_fee = result.fee;
+        //console.log('set_fio_domain_public Fee: ', set_fio_domain_public_fee)
+    } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+    }
+  })
+
+  it(`Get balance for user1`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('getFioBalance', {
+        fioPublicKey: user1.publicKey
+      })
+      user1Balance = result.balance
+      console.log('user1 fio balance', result.balance)
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Confirm domain2 is not registered`, async () => {
+    const result = await user1.sdk.genericAction('isAvailable', {
+      fioName: user1.domain2,
+    })
+    //console.log('Result: ', result)
+    expect(result.is_registered).to.equal(0)
+  })
+
+  it(`Register domain2 succeeds`, async () => {
+    const result = await user1.sdk.genericAction('registerFioDomain', { 
+      fioDomain: user1.domain2, 
+      maxFee: register_fio_domain_fee,
+      technologyProviderId: ''
+    })
+    //console.log('Result: ', result)
+    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+  })
+
+  it(`Verify balance for user1 = prev_balance - reg_domain_fee`, async () => {
+    let prevBalance = user1Balance;
+    try {
+      const result = await user1.sdk.genericAction('getFioBalance', {
+        fioPublicKey: user1.publicKey
+      })
+      user1Balance = result.balance
+      //console.log('user1 fio balance', result.balance)
+      expect(user1Balance).to.equal(prevBalance - register_fio_domain_fee)
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`set_fio_domain_public for user1 Domain`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('setFioDomainVisibility', {
+        fioDomain: user1.domain2,
+        isPublic: true,
+        maxFee: set_fio_domain_public_fee,
+        technologyProviderId: ''
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err)
+    }
+  })
+
+  it(`Verify balance for user1 = prev_balance - set_fio_domain_public_fee`, async () => {
+    let prevBalance = user1Balance;
+    try {
+    const result = await user1.sdk.genericAction('getFioBalance', {
+        fioPublicKey: user1.publicKey
+    })
+    user1Balance = result.balance
+    //console.log('user1 fio balance', result.balance)
+    expect(user1Balance).to.equal(prevBalance - set_fio_domain_public_fee)
+    } catch (err) {
+    //console.log('Error', err)
+    expect(err).to.equal(null)
+    }
+})
+
 
 })
