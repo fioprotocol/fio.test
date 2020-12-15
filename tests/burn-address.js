@@ -107,9 +107,9 @@ describe('************************** burn-address.js ************************** 
           }
           fionames = await callFioApi("get_table_rows", json);
           //console.log('fionames: ', fionames);
-          for (name in fionames.rows) {
-            if (fionames.rows[name].name == walletA1.address2) {
-              //console.log('fioname: ', fionames.rows[name]);
+          for (fioname in fionames.rows) {
+            if (fionames.rows[fioname].name == walletA1.address2) {
+              //console.log('fioname: ', fionames.rows[fioname]);
               inTable = true;
             }
           }
@@ -164,9 +164,9 @@ describe('************************** burn-address.js ************************** 
           fionames = await callFioApi("get_table_rows", json);
           //console.log('fionames: ', fionames);
           for (name in fionames.rows) {
-            if (fionames.rows[name].name == walletA1.address) {
-              //console.log('bundleCount: ', fionames.rows[name].bundleeligiblecountdown);
-              bundleCount = fionames.rows[name].bundleeligiblecountdown;
+            if (fionames.rows[fioname].name == walletA1.address) {
+              //console.log('bundleCount: ', fionames.rows[fioname].bundleeligiblecountdown);
+              bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
             }
           }
           expect(bundleCount).to.equal(0);
@@ -237,9 +237,9 @@ describe('************************** burn-address.js ************************** 
           }
           fionames = await callFioApi("get_table_rows", json);
           //console.log('fionames: ', fionames);
-          for (name in fionames.rows) {
-            if (fionames.rows[name].name == walletA1.address) {
-              //console.log('fioname: ', fionames.rows[name]);
+          for (fioname in fionames.rows) {
+            if (fionames.rows[fioname].name == walletA1.address) {
+              //console.log('fioname: ', fionames.rows[fioname]);
               inTable = true;
             }
           }
@@ -524,10 +524,10 @@ describe('D. burnFioAddress Error testing', () => {
             }
             fionames = await callFioApi("get_table_rows", json);
             //console.log('fionames: ', fionames);
-            for (name in fionames.rows) {
-                if (fionames.rows[name].name == userD1.address) {
-                    //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown);
-                    bundleCount = fionames.rows[name].bundleeligiblecountdown;
+            for (fioname in fionames.rows) {
+                if (fionames.rows[fioname].name == userD1.address) {
+                    //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
+                    bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
                 }
             }
             expect(bundleCount).to.equal(0);
@@ -653,9 +653,9 @@ describe('E. Test burnfioaddress SDK call (uses chain/burn_fio_address endpoint)
           }
           fionames = await callFioApi("get_table_rows", json);
           //console.log('fionames: ', fionames);
-          for (name in fionames.rows) {
-            if (fionames.rows[name].name == walletA1.address2) {
-              //console.log('fioname: ', fionames.rows[name]);
+          for (fioname in fionames.rows) {
+            if (fionames.rows[fioname].name == walletA1.address2) {
+              //console.log('fioname: ', fionames.rows[fioname]);
               inTable = true;
             }
           }

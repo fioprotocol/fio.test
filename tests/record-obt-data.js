@@ -76,10 +76,10 @@ describe(`*********************** record-obt-data.js *********************** \n`
             }
             fionames = await callFioApi("get_table_rows", json);
             //console.log('fionames: ', fionames);
-            for (name in fionames.rows) {
-                if (fionames.rows[name].name == userA2.address) {
-                    //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown);
-                    bundleCount = fionames.rows[name].bundleeligiblecountdown;
+            for (fioname in fionames.rows) {
+                if (fionames.rows[fioname].name == userA2.address) {
+                    //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
+                    bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
                 }
             }
             expect(bundleCount).to.equal(100);
@@ -103,10 +103,10 @@ describe(`*********************** record-obt-data.js *********************** \n`
             }
             fionames = await callFioApi("get_table_rows", json);
             //console.log('fionames: ', fionames);
-            for (name in fionames.rows) {
-                if (fionames.rows[name].name == userA1.address) {
-                    //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown);
-                    bundleCount = fionames.rows[name].bundleeligiblecountdown;
+            for (fioname in fionames.rows) {
+                if (fionames.rows[fioname].name == userA1.address) {
+                    //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
+                    bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
                 }
             }
             expect(bundleCount).to.equal(98);
@@ -159,10 +159,10 @@ describe(`*********************** record-obt-data.js *********************** \n`
             }
             fionames = await callFioApi("get_table_rows", json);
             //console.log('fionames: ', fionames);
-            for (name in fionames.rows) {
-                if (fionames.rows[name].name == userA2.address) {
-                    //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown);
-                    bundleCount = fionames.rows[name].bundleeligiblecountdown;
+            for (fioname in fionames.rows) {
+                if (fionames.rows[fioname].name == userA2.address) {
+                    //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
+                    bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
                 }
             }
             expect(bundleCount).to.equal(0);

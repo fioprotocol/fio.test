@@ -605,10 +605,10 @@ describe(`B. Test FIO Request error conditions`, () => {
       }
       fionames = await callFioApi("get_table_rows", json);
       //console.log('fionames: ', fionames);
-      for (name in fionames.rows) {
-        if (fionames.rows[name].name == userB1.address) {
-          //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown);
-          bundleCount = fionames.rows[name].bundleeligiblecountdown;
+      for (fioname in fionames.rows) {
+        if (fionames.rows[fioname].name == userB1.address) {
+          //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
+          bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
         }
       }
       expect(bundleCount).to.equal(0);
@@ -800,10 +800,10 @@ describe(`C. cancel_funds_request with bundles remaining`, () => {
       }
       fionames = await callFioApi("get_table_rows", json);
       //console.log('fionames: ', fionames);
-      for (name in fionames.rows) {
-        if (fionames.rows[name].name == userA1.address) {
-          //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown);
-          userA1OrigBundle = fionames.rows[name].bundleeligiblecountdown;
+      for (fioname in fionames.rows) {
+        if (fionames.rows[fioname].name == userA1.address) {
+          //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
+          userA1OrigBundle = fionames.rows[fioname].bundleeligiblecountdown;
         }
       }
       expect(userA1OrigBundle).to.equal(98);  // 2 for new_funds_request
@@ -903,10 +903,10 @@ describe(`C. cancel_funds_request with bundles remaining`, () => {
       }
       fionames = await callFioApi("get_table_rows", json);
       //console.log('fionames: ', fionames);
-      for (name in fionames.rows) {
-        if (fionames.rows[name].name == userA1.address) {
-          //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown);
-          bundleCount = fionames.rows[name].bundleeligiblecountdown;
+      for (fioname in fionames.rows) {
+        if (fionames.rows[fioname].name == userA1.address) {
+          //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
+          bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
         }
       }
       expect(bundleCount).to.equal(userA1OrigBundle - 1);  // 1 bundle for cancel_funds_request
@@ -1074,10 +1074,10 @@ describe('D. cancel_funds_request with NO bundles remaining', () => {
       }
       fionames = await callFioApi("get_table_rows", json);
       //console.log('fionames: ', fionames);
-      for (name in fionames.rows) {
-        if (fionames.rows[name].name == userB1.address) {
-          //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown);
-          userB1OrigBundle = fionames.rows[name].bundleeligiblecountdown;
+      for (fioname in fionames.rows) {
+        if (fionames.rows[fioname].name == userB1.address) {
+          //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
+          userB1OrigBundle = fionames.rows[fioname].bundleeligiblecountdown;
         }
       }
       expect(userB1OrigBundle).to.equal(0);
@@ -1496,10 +1496,10 @@ describe(`E. Test cancel_funds_request error conditions`, () => {
       }
       fionames = await callFioApi("get_table_rows", json);
       //console.log('fionames: ', fionames);
-      for (name in fionames.rows) {
-        if (fionames.rows[name].name == userC1.address) {
-          //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown);
-          bundleCount = fionames.rows[name].bundleeligiblecountdown;
+      for (fioname in fionames.rows) {
+        if (fionames.rows[fioname].name == userC1.address) {
+          //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
+          bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
         }
       }
       expect(bundleCount).to.equal(0);
