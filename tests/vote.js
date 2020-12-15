@@ -1386,6 +1386,10 @@ describe('G. Test multiple users proxying and unproxying votes to same proxy', (
     }
   })
 
+  it('Wait a few seconds.', async () => {
+    await timeout(3000);
+  })
+
   it(`bp1@dapixdev total_votes increased by proxyG1 last_vote_weight`, async () => {
     try {
       prev_total_bp_votes = total_bp_votes;
@@ -2326,6 +2330,10 @@ describe('FIP-9: G.3 Test proxy_vote with and without FIO Address', () => {
     }
   })
 
+  it('Wait a few seconds.', async () => {
+    await timeout(3000);
+  })
+
   it(`Confirm proxy_vote fee for voterG8 = ${config.api.proxy_vote.fee}`, async () => {
     try {
       result = await voterG8.sdk.getFee('proxy_vote', voterG8.address);
@@ -2532,6 +2540,10 @@ describe('FIP-9: G.3 Test proxy_vote with and without FIO Address', () => {
       console.log('Error', err);
       expect(err).to.equal(null);
     }
+  })
+
+  it('Wait a few seconds.', async () => {
+    await timeout(3000);
   })
 
   it(`Confirm proxy_vote fee for voterG10 = ${config.api.proxy_vote.fee}`, async () => {
