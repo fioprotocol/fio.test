@@ -55,6 +55,8 @@ describe('************************** transfer-domain.js ************************
       expect(result.status).to.equal('OK')
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
   it(`getFioNames for walletA1 and confirm it owns 2 domains and that one of them is walletA1.domain2`, async () => {
       try {
         const result = await walletA1.sdk.genericAction('getFioNames', {
@@ -145,6 +147,8 @@ describe('************************** transfer-domain.js ************************
         expect(err).to.equal(null);
     }
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it('Confirm proper fee was collected', async () => {
     expect(feeCollected).to.equal(transfer_fio_domain_fee)

@@ -249,6 +249,7 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     }
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`Get initial total_voted_fio`, async () => {
     total_voted_fio = await getTotalVotedFio();
@@ -2645,6 +2646,8 @@ describe('Fixed in Gemini: H. When a user proxies their vote, the total_voted_fi
       console.log('Error: ', err.json)
     }
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`proxyH1 votes for bp1@dapixdev`, async () => {
     try {

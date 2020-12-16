@@ -603,6 +603,8 @@ describe(`Remap FIO Address`, () => {
     user1 = await newUser(faucet);
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
   it(`Remap FIO address to ${newAddress}`, async () => {
     const result = await user1.sdk.genericAction('addPublicAddresses', {
         fioAddress: user1.address,
