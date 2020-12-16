@@ -8,7 +8,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-describe.only(`************************** fio-request.js ************************** \n A. Send fio request from userA1 to userA2`, () => {
+describe(`************************** fio-request.js ************************** \n A. Send fio request from userA1 to userA2`, () => {
 
     let userA1, userA2, requestId
     const payment = 5000000000 // 5 FIO
