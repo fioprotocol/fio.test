@@ -3,7 +3,7 @@ const {expect} = require('chai')
 
 describe('TEST SUITE', () => {
 
-  require('./tests/bravo-migr-test.js'); 
+  //require('./tests/bravo-migr-test.js'); 
 
   //require('./tests/history.js'); // Only run against history node.
   require('./tests/addaddress.js'); // v1.0.x  Also includes FIP-13 tests.
