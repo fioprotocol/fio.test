@@ -125,6 +125,8 @@ describe(`************************** fio-request.js ************************** \
     expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
   it(`userA2 does recordObtData previous payment with the fioRequestId`, async () => {
     try {
       const result = await userA2.sdk.genericAction('recordObtData', {
@@ -345,7 +347,7 @@ describe(`B. Test FIO Request error conditions`, () => {
         hash: '',
         offLineUrl: ''
       })
-      console.log('Result: ', result);
+      //console.log('Result: ', result);
       expect(result).to.equal(null);
     } catch (err) {
       //console.log('Error', err);
