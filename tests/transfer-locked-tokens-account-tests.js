@@ -861,6 +861,8 @@ describe('Request funds, approve and send', () => {
     }
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
   it(`getPendingFioRequests`, async () => {
     await timeout(4000)
     const result = await fioSdk.genericAction('getPendingFioRequests', {})
@@ -969,6 +971,8 @@ describe('Request funds, cancel funds request', () => {
     expect(result.fee_collected).to.be.a('number')
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
   it(`cancel request`, async () => {
     try{
       const result = await fioSdk2.genericAction('cancelFundsRequest', {
@@ -1030,6 +1034,8 @@ describe('Request funds, reject', () => {
     expect(result.status).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`getPendingFioRequests`, async () => {
     await timeout(4000)
@@ -1133,6 +1139,8 @@ describe('Record obt data, check', () => {
     expect(result.status).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`Payer getObtData`, async () => {
     await timeout(4000)
@@ -1288,6 +1296,8 @@ describe(`Test locked token accounts with proxy voting`, () => {
     }
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
   it('Transfer additional 500 FIO from faucet to fioSdk', async () => {
     const result = await fioSdkFaucet.genericAction('transferTokens', {
       payeeFioPublicKey: publicKey,
@@ -1340,6 +1350,8 @@ describe(`Test locked token accounts with proxy voting`, () => {
     //console.log('Result', result)
     expect(result.status).to.equal('OK')
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`Get fioSdk last_vote_weight (should be 200 + 2 fee = 202 less)`, async () => {
     try {
