@@ -30,6 +30,8 @@ describe(`************************** vote.js ************************** \n A. Te
     proxyA1 = await newUser(faucet);
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
   it(`Get initial total_voted_fio`, async () => {
     total_voted_fio = await getTotalVotedFio();
     //console.log('total_voted_fio:', total_voted_fio)
@@ -74,6 +76,8 @@ describe(`************************** vote.js ************************** \n A. Te
     }
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
   it(`Get total_voted_fio before proxyA1 votes`, async () => {
     total_voted_fio = await getTotalVotedFio();
     //console.log('total_voted_fio:', total_voted_fio)
@@ -100,6 +104,8 @@ describe(`************************** vote.js ************************** \n A. Te
       expect(err).to.equal('null')
     }
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`Get proxyA1 last_vote_weight`, async () => {
     try {
@@ -305,6 +311,8 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
       console.log('Error: ', err.json)
     }
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`voterB1 proxy votes to proxyB1`, async () => {
     try {
@@ -1359,6 +1367,8 @@ describe('G. Test multiple users proxying and unproxying votes to same proxy', (
     }
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
   it(`Register proxyG1 as a proxy`, async () => {
     try {
       const result = await proxyG1.sdk.genericAction('pushTransaction', {
@@ -1376,6 +1386,8 @@ describe('G. Test multiple users proxying and unproxying votes to same proxy', (
       console.log('Error: ', err)
     }
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`Get proxyG1 last_vote_weight`, async () => {
     try {
@@ -1415,6 +1427,8 @@ describe('G. Test multiple users proxying and unproxying votes to same proxy', (
       console.log('Error: ', err)
     }
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`Fixed in Gemini: Get voterG1 last_vote_weight`, async () => {
     try {
@@ -1466,6 +1480,8 @@ describe('G. Test multiple users proxying and unproxying votes to same proxy', (
     }
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
   it(`Get voterG2 last_vote_weight`, async () => {
     try {
       voterG2.last_vote_weight = await getAccountVoteWeight(voterG2.account);
@@ -1515,6 +1531,8 @@ describe('G. Test multiple users proxying and unproxying votes to same proxy', (
       console.log('Error: ', err)
     }
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`Get voterG3 last_vote_weight`, async () => {
     try {
@@ -1567,6 +1585,8 @@ describe('G. Test multiple users proxying and unproxying votes to same proxy', (
       console.log('Error: ', err)
     }
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`Fixed in Gemini: bp1@dapixdev does not change`, async () => {
     try {
@@ -2741,12 +2761,14 @@ describe('Fixed in Gemini: H. When a user proxies their vote, the total_voted_fi
 
 })
 
-describe('v1.2.0 release only. H. Confirm voter data is returned with get_account', () => {
+describe.skip('Bahamas release only. H. Confirm voter data is returned with get_account', () => {
   let voterH1
 
   it(`Create users`, async () => {
     voterH1 = await newUser(faucet);
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`Get account info for voterH1`, async () => {
     try {
