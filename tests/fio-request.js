@@ -1826,7 +1826,7 @@ describe(`F. get_cancelled_fio_requests paging: Cancel multiple FIO requests and
 
 })
 
-describe.skip(`************************** fio-request.js ************************** \n G. Records Performance Testing`, () => {
+describe.skip(`G. Records Performance Testing`, () => {
 
   let userA1, userA2, userB1, userB2, userC1, userC2
   const payment = 5000000000 // 5 FIO
