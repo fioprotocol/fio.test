@@ -43,7 +43,7 @@ describe(`************************** addaddress.js ************************** \n
       }
     })
 
-    //it(`Wait to avoid timing errors.`, async () => { await timeout(1000) })
+    it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
     it('getPublicAddress for DASH', async () => {
       try {
@@ -602,6 +602,8 @@ describe(`Remap FIO Address`, () => {
   it(`Create users`, async () => {
     user1 = await newUser(faucet);
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`Remap FIO address to ${newAddress}`, async () => {
     const result = await user1.sdk.genericAction('addPublicAddresses', {

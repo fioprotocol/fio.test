@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, generateFioAddress, generateFioDomain, createKeypair, callFioApi, getFees, fetchJson} = require('../utils.js');
+const {newUser, generateFioAddress, generateFioDomain, createKeypair, callFioApi, getFees, timeout, fetchJson} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
@@ -54,6 +54,8 @@ describe('************************** transfer-domain.js ************************
       //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`getFioNames for walletA1 and confirm it owns 2 domains and that one of them is walletA1.domain2`, async () => {
       try {
@@ -145,6 +147,8 @@ describe('************************** transfer-domain.js ************************
         expect(err).to.equal(null);
     }
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it('Confirm proper fee was collected', async () => {
     expect(feeCollected).to.equal(transfer_fio_domain_fee)
@@ -394,6 +398,8 @@ describe('B. Transfer a domain to FIO Public Key which does not map to existing 
         expect(err).to.equal(null)
     }
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it('Confirm proper fee was collected', async () => {
     expect(feeCollected).to.equal(transfer_fio_domain_fee)
@@ -721,6 +727,8 @@ describe('D. transferFioDomain Error testing', () => {
     }
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
   it(`Use up all of userD3's bundles with 51 record_obt_data transactions`, async () => {
     for (i = 0; i < 51; i++) {
       try {
@@ -778,6 +786,8 @@ describe('D. transferFioDomain Error testing', () => {
       expect(err).to.equal(null);
     }
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`Verify balance for userD3 = 0`, async () => {
     try {

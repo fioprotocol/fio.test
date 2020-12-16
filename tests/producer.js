@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, generateFioAddress, fetchJson} = require('../utils.js');
+const {newUser, generateFioAddress, timeout, fetchJson} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
@@ -64,6 +64,8 @@ describe('************************** producer.js ************************** \n A
       console.log('Error: ', err.json)
     }
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`userA1 votes for prodA1 using address #1`, async () => {
     try {
