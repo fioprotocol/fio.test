@@ -751,7 +751,7 @@ describe.skip(`Migrate remaining requests and OBTs`, () => {
     }
   })
 
-  it(`Call migrtrx (bp1) with amount = 5 until migrledgers isFinished = 1`, async () => {
+  it(`Call migrtrx (bp1) with amount = 3 until migrledgers isFinished = 1`, async () => {
     while (!isFinished) {
       try {
           const result = await callFioApiSigned('push_transaction', {
@@ -760,7 +760,7 @@ describe.skip(`Migrate remaining requests and OBTs`, () => {
               actor: bp1.account,
               privKey: bp1.privateKey,
               data: {
-                  amount: 5,
+                  amount: 3,
                   actor: bp1.account
               }
           })
@@ -812,7 +812,7 @@ describe.skip(`Migrate remaining requests and OBTs`, () => {
 
 })
 
-describe.skip(`Go through recordobts (old table) and confirm each entry is in fiotrxts (NEW table)`, () => {
+describe(`Go through recordobts (old table) and confirm each entry is in fiotrxts (NEW table)`, () => {
   let obtCount = 0
   let obtRecords;
 
@@ -859,17 +859,6 @@ describe.skip(`Go through recordobts (old table) and confirm each entry is in fi
       //console.log('obts: ', obts);
       console.log('Number of records in recordobts: ', obtCount);
       for (obt in obts.rows) {
-      /*  obtRecord = {
-          id: obts.rows[obt].id,
-          payer_fio_addr: obts.rows[obt].payer_fio_addr,
-          payee_fio_addr: obts.rows[obt].payee_fio_addr,
-          payer_key: obts.rows[obt].payer_key,
-          payee_key: obts.rows[obt].payee_key,
-          time_stamp: obts.rows[obt].time_stamp
-        }
-        obtRecords.push(obtRecord);
-        */
-
         // Call get_table_rows from fiotrxts (NEW table) and confirm request is in table
         try {
           const json = {
@@ -892,7 +881,7 @@ describe.skip(`Go through recordobts (old table) and confirm each entry is in fi
               console.log('payee_fio_addr: ', obts.rows[obt].payee_fio_addr); 
               console.log('fiotrxts:')
               console.log('id: ', newRequests.rows[newRequest].id);
-              onsole.log('fio_request_id: ', newRequests.rows[newRequest].fio_request_id);
+              console.log('fio_request_id: ', newRequests.rows[newRequest].fio_request_id);
               console.log('payer_fio_addr: ', newRequests.rows[newRequest].payer_fio_addr); 
               console.log('payee_fio_addr: ', newRequests.rows[newRequest].payee_fio_addr); 
 
@@ -901,8 +890,8 @@ describe.skip(`Go through recordobts (old table) and confirm each entry is in fi
               expect(obts.rows[obt].payer_key).to.equal(newRequests.rows[newRequest].payer_key);
               expect(obts.rows[obt].payee_key).to.equal(newRequests.rows[newRequest].payee_key);
               //expect(obts.rows[obt].time_stamp).to.equal(newRequests.rows[newRequest].init_time); //Time stamps different?
-              expect(newRequests.rows[newRequest].fio_request_id).to.equal(0);
-              expect(newRequests.rows[newRequest].fio_data_type).to.equal(4);
+              //expect(newRequests.rows[newRequest].fio_request_id).to.equal(0);
+              //expect(newRequests.rows[newRequest].fio_data_type).to.equal(4);
               break;
             }
           }
@@ -1001,12 +990,13 @@ describe.skip(`Go through recordobts (old table) and confirm each entry is in fi
 
 })
 
-describe.skip(`Go through fioreqctxts (old table) and confirm each entry is in fiotrxts (NEW table)`, () => {
+describe(`Go through fioreqctxts (old table) and confirm each entry is in fiotrxts (NEW table)`, () => {
   let reqCount = 0
   let reqs;
 
-  it('Step through recordobts and confirm every entry is found on the new table.', async () => {
+  it('Step through fioreqctxts and confirm every entry is found on the new table.', async () => {
     let count = 0;
+    let currentReqStatus;
 
     try {
       const json = {
@@ -1023,18 +1013,40 @@ describe.skip(`Go through fioreqctxts (old table) and confirm each entry is in f
       //console.log('reqs: ', reqs);
       console.log('Number of records in fioreqctxts: ', reqCount);
       for (req in reqs.rows) {
-      /*  obtRecord = {
-          id: reqCount.rows[obt].id,
-          payer_fio_addr: reqCount.rows[req].payer_fio_addr,
-          payee_fio_addr: reqCount.rows[req].payee_fio_addr,
-          payer_key: reqCount.rows[req].payer_key,
-          payee_key: reqCount.rows[req].payee_key,
-          time_stamp: reqCount.rows[req].time_stamp
+        // First, get the status of the request
+        try {
+          const json = {
+            json: true,               // Get the response as json
+            code: 'fio.reqobt',      // Contract that we target
+            scope: 'fio.reqobt',         // Account that owns the data
+            table: 'fioreqstss',        // Table name
+            limit: 1000,                // Maximum number of rows that we want to get
+            reverse: false,           // Optional: Get reversed data
+            show_payer: false          // Optional: Show ram payer
+          }
+          fioReqSts = await callFioApi("get_table_rows", json);
+          //console.log('fioReqSts: ', fioReqSts);
+          currentReqStatus = 0; //Initialize to 0 since that will be the status in the new table if the record's fio_request_id is not found in fioreqstss
+          for (fioReqStatus in fioReqSts.rows) {
+            //console.log('reqs.rows[req].fio_request_id', reqs.rows[req].fio_request_id)
+            //console.log('fioReqStatus: ', fioReqSts.rows[fioReqStatus]);
+            //console.log ('currentReqStatus', fioReqSts.rows[fioReqStatus].status);
+            if (fioReqSts.rows[fioReqStatus].fio_request_id == reqs.rows[req].fio_request_id) {
+              currentReqStatus = fioReqSts.rows[fioReqStatus].status;
+              //console.log('id: ', fioReqSts.rows[fioReqStatus].id);
+              //console.log('fio_request_id: ', fioReqSts.rows[fioReqStatus].fio_request_id);
+              //console.log('status: ', fioReqSts.rows[fioReqStatus].status);
+              //console.log('payer_fio_addr: ', fioReqSts.rows[fioReqStatus].time_stamp); 
+              expect(reqs.rows[req].fio_request_id).to.equal(fioReqSts.rows[fioReqStatus].fio_request_id);
+              break;
+            }
+          }
+        } catch (err) {
+          console.log('Error', err);
+          expect(err).to.equal(null);
         }
-        obtRecords.push(obtRecord);
-        */
 
-        // Call get_table_rows from fiotrxts (NEW table) and confirm request is in table
+        // Next, all get_table_rows from fiotrxts (NEW table) and confirm request is in table
         try {
           const json = {
             json: true,               // Get the response as json
@@ -1054,11 +1066,14 @@ describe.skip(`Go through fioreqctxts (old table) and confirm each entry is in f
               console.log('fio_request_id: ', reqs.rows[req].fio_request_id);
               console.log('payer_fio_addr: ', reqs.rows[req].payer_fio_addr); 
               console.log('payee_fio_addr: ', reqs.rows[req].payee_fio_addr); 
+              console.log('fioreqstss:')
+              console.log('status (0 = not found): ', currentReqStatus);
               console.log('fiotrxts:')
               console.log('id: ', newRequests.rows[newRequest].id);
               console.log('fio_request_id: ', newRequests.rows[newRequest].fio_request_id);
               console.log('payer_fio_addr: ', newRequests.rows[newRequest].payer_fio_addr); 
               console.log('payee_fio_addr: ', newRequests.rows[newRequest].payee_fio_addr); 
+              console.log('fio_data_type: ', newRequests.rows[newRequest].fio_data_type); 
 
               expect(reqs.rows[req].payer_fio_addr).to.equal(newRequests.rows[newRequest].payer_fio_addr);
               expect(reqs.rows[req].payee_fio_addr).to.equal(newRequests.rows[newRequest].payee_fio_addr);
@@ -1066,7 +1081,7 @@ describe.skip(`Go through fioreqctxts (old table) and confirm each entry is in f
               expect(reqs.rows[req].payee_key).to.equal(newRequests.rows[newRequest].payee_key);
               //expect(reqs.rows[req].time_stamp).to.equal(newRequests.rows[newRequest].init_time); //Time stamps different?
               expect(reqs.rows[req].fio_request_id).to.equal(newRequests.rows[newRequest].fio_request_id);
-             // expect(newRequests.rows[newRequest].fio_data_type).to.equal(4);
+              expect(newRequests.rows[newRequest].fio_data_type).to.equal(currentReqStatus);
               break;
             }
           }
