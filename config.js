@@ -1,4 +1,4 @@
-const TESTURL = 'http://localhost:8889'
+//const TESTURL = 'http://localhost:8889'
 //const TESTURL = 'http://testnet.fioprotocol.io'
 //const TESTURL = 'http://52.183.126.67:8889'  //dev1
 //const TESTURL = 'http://dev2.fio.dev:8889'
@@ -6,8 +6,7 @@ const TESTURL = 'http://localhost:8889'
 //const TESTURL = 'http://dev3.fio.dev:8080'  // 8080 is the history node
 //const TESTURL = 'http://dev4.fio.dev:8889' 
 //const TESTURL = 'https://fio.greymass.com' //Mainnet
-//const TESTURL = 'http://devnet-a.az.fio.dev:8888'
-//const TESTURL = 'http://52.247.194.34:8889' //Devnet
+const TESTURL = 'http://44.238.153.162:8889' //Devnet
 
 const DEVTOOLSDIR = '../fio.devtools'
 
