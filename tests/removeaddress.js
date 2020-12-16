@@ -767,6 +767,8 @@ describe(`E-2. Add and remove addresses with NO bundles remaining`, () => {
         userA2 = await newUser(faucet);
     })
 
+    it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
     it(`Add DASH and BCH addresses to userA1`, async () => {
       try {
         const result = await userA1.sdk.genericAction('addPublicAddresses', {
@@ -868,6 +870,8 @@ describe(`E-2. Add and remove addresses with NO bundles remaining`, () => {
         expect(err).to.equal(null)
       }
     })
+
+    it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
     it(`Use up all of userA1's bundles with 51 record_obt_data transactions`, async () => {
       for (i = 0; i < 51; i++) {
