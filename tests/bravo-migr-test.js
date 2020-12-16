@@ -816,31 +816,6 @@ describe(`Go through recordobts (old table) and confirm each entry is in fiotrxt
   let obtCount = 0
   let obtRecords;
 
-  describe.skip(`Confirm the number of records in old tables aligns with `, () => {
-    
-  
-    it.skip('Get the number of OBT records in recordobts', async () => {
-      try {
-        const json = {
-          json: true,               // Get the response as json
-          code: 'fio.reqobt',      // Contract that we target
-          scope: 'fio.reqobt',         // Account that owns the data
-          table: 'recordobts',        // Table name
-          limit: 1000,                // Maximum number of rows that we want to get
-          reverse: false,           // Optional: Get reversed data
-          show_payer: false          // Optional: Show ram payer
-        }
-        obts = await callFioApi("get_table_rows", json);
-        obtCount = obts.rows.length;
-        //console.log('obts: ', obts);
-        console.log('Number of records in recordobts: ', obts.rows.length);
-      } catch (err) {
-        console.log('Error', err);
-        expect(err).to.equal(null);
-      }
-    })
-  })
-
   it('Step through recordobts and confirm every entry is found on the new table.', async () => {
     let count = 0;
 
@@ -906,87 +881,6 @@ describe(`Go through recordobts (old table) and confirm each entry is in fiotrxt
       expect(err).to.equal(null);
     }
   })
-
-  it.skip('Call get_table_rows from recordobts (old table) and confirm every entry OBT is in table', async () => {
-    let count = 0;
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'fio.reqobt',      // Contract that we target
-        scope: 'fio.reqobt',         // Account that owns the data
-        table: 'recordobts',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
-      }
-      obts = await callFioApi("get_table_rows", json);
-      //console.log('obts: ', obts);
-      console.log('Number of records in recordobts: ', obts.rows.length);
-      for (request in obts.rows) {
-        if (obts.rows[request].payer_fio_addr == user3.address) {
-          console.log('payer_fio_addr: ', obts.rows[request].payer_fio_addr); 
-          expect(obts.rows[request].payer_fio_addr).to.equal(user3.address); 
-
-          // Call get_table_rows from fiotrxts (NEW table) and confirm request is in table
-          try {
-            const json = {
-              json: true,               // Get the response as json
-              code: 'fio.reqobt',      // Contract that we target
-              scope: 'fio.reqobt',         // Account that owns the data
-              table: 'fiotrxts',        // Table name
-              limit: 1000,                // Maximum number of rows that we want to get
-              reverse: false,           // Optional: Get reversed data
-              show_payer: false          // Optional: Show ram payer
-            }
-            requests = await callFioApi("get_table_rows", json);
-            console.log('requests: ', requests);
-            for (request in requests.rows) {
-              if (requests.rows[request].payer_fio_addr == user3.address) {
-                console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
-                break;
-              }
-            }
-            expect(requests.rows[request].payer_fio_addr).to.equal(user3.address);  
-          } catch (err) {
-            console.log('Error', err);
-            expect(err).to.equal(null);
-          }
-
-        }
-        count++;
-      } 
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
-  })
-
-  it.skip('Call get_table_rows from fiotrxts (NEW table) and confirm request is in table', async () => {
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'fio.reqobt',      // Contract that we target
-        scope: 'fio.reqobt',         // Account that owns the data
-        table: 'fiotrxts',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
-      }
-      requests = await callFioApi("get_table_rows", json);
-      console.log('requests: ', requests);
-      for (request in requests.rows) {
-        if (requests.rows[request].payer_fio_addr == user3.address) {
-          console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
-          break;
-        }
-      }
-      expect(requests.rows[request].payer_fio_addr).to.equal(user3.address);  
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
-  })
-
 
 })
 
