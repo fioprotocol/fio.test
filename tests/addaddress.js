@@ -43,7 +43,7 @@ describe(`************************** addaddress.js ************************** \n
       }
     })
 
-    //it(`Wait to avoid timing errors.`, async () => { await timeout(1000) })
+    it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
     it('getPublicAddress for DASH', async () => {
       try {

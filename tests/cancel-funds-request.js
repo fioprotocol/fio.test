@@ -261,7 +261,6 @@ describe(`************************** cancel-funds-request.js *******************
   })
 })
 
-
 describe('B. cancel_funds_request with NO bundles remaining', () => {
 
   let userB1, userB2, userB1RequestId, cancel_funds_request_fee, userB1OrigRam, userB1OrigBundle
@@ -273,6 +272,8 @@ describe('B. cancel_funds_request with NO bundles remaining', () => {
       userB1 = await newUser(faucet);
       userB2 = await newUser(faucet);
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`Use up all of userB1's bundles with 51 record_obt_data transactions`, async () => {
     for (i = 0; i < 51; i++) {
@@ -324,6 +325,8 @@ describe('B. cancel_funds_request with NO bundles remaining', () => {
       //expect(err).to.equal(null)
     }      
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`userB1 requests funds from userB2`, async () => {
     try {
