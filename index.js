@@ -21,6 +21,8 @@ describe('TEST SUITE', () => {
   require('./tests/txn-resubmit.js'); //Available with fiosdk_typescript v1.2.0
   require('./tests/burn-address.js'); // FIP-7
 
+  require('./tests/tpid.js'); // FIP-7
+
   //require('./tests/fee-voting-fee-setting.js'); // FIP-10
 
   //require('./tests/producer-fee-setting.js');  // FIP-10 in development
