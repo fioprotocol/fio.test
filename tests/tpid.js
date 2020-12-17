@@ -779,7 +779,7 @@ describe(`User that has proxied their votes is sent FIO with TPID registered as 
       inVotersTable = false;
       for (voter in voters.rows) {
         if (voters.rows[voter].owner == user1.account) {
-          console.log('voters info: ', voters.rows[voter])
+          //console.log('voters info: ', voters.rows[voter])
           inVotersTable = true;
           break;
         }
@@ -831,7 +831,7 @@ describe(`User that has proxied their votes is sent FIO with TPID registered as 
       inVotersTable = false;
       for (voter in voters.rows) {
         if (voters.rows[voter].owner == user1.account) {
-          console.log('voters info: ', voters.rows[voter])
+          //console.log('voters info: ', voters.rows[voter])
           inVotersTable = true;
           break;
         }
