@@ -75,6 +75,7 @@ const config = {
         invalidFeeValue: 'Invalid fee value',
         activeProducer: 'FIO Address is active producer. Unregister first.',
         activeProxy: 'FIO Address is proxy. Unregister first.',
+        actorNotDomainOwner: 'actor is not domain owner.',
         invalidTpidSdk: 'tpid must match /^(?:(?=.{3,64}$)[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}@[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}$)/gim.'
     },
 
