@@ -3449,3 +3449,115 @@ describe(`Test total_voted_fio when user votes for proxy`, () => {
   })
 
 })
+
+describe(`BD-2028: regproxy results in faulty record in voters table if account already has a voteproducer record`, () => {
+
+  let proxyA1
+
+  it(`Create users`, async () => {
+    proxyA1 = await newUser(faucet);
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+  it(`Create voters record: proxyA1 votes for bp1@dapixdev using address #1`, async () => {
+    try {
+      const result = await proxyA1.sdk.genericAction('pushTransaction', {
+        action: 'voteproducer',
+        account: 'eosio',
+        data: {
+          "producers": [
+            'bp1@dapixdev'
+          ],
+          fio_address: proxyA1.address,
+          actor: proxyA1.account,
+          max_fee: config.api.vote_producer.fee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it('Confirm voters record:  ', async () => {
+    try {
+        const json = {
+            json: true,
+            code: 'eosio',
+            scope: 'eosio',
+            table: 'voters',
+            limit: 1000,
+            reverse: false,
+            show_payer: false
+        }
+        voters = await callFioApi("get_table_rows", json);
+        //console.log('voters: ', voters);
+        for (voter in voters.rows) {
+            if (voters.rows[voter].owner == proxyA1.account) {
+              //console.log('voters.rows[voter]: ', voters.rows[voter]);
+              break;
+            }
+        }
+        expect(voters.rows[voter].owner).to.equal(proxyA1.account);
+        expect(voters.rows[voter].is_proxy).to.equal(0);
+        expect(voters.rows[voter].fioaddress).to.equal('');
+        //expect(voters.rows[voter].addresshash).to.equal('0x00000000000000000000000000000000');
+        
+    } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+    }
+  })
+
+  it(`Register proxyA1 as a proxy`, async () => {
+    try {
+      const result = await proxyA1.sdk.genericAction('pushTransaction', {
+        action: 'regproxy',
+        account: 'eosio',
+        data: {
+          fio_address: proxyA1.address,
+          actor: proxyA1.account,
+          max_fee: config.api.register_proxy.fee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it('Confirm voters record:  ', async () => {
+    try {
+        const json = {
+            json: true,               // Get the response as json
+            code: 'eosio',      // Contract that we target
+            scope: 'eosio',         // Account that owns the data
+            table: 'voters',        // Table name
+            limit: 1000,                // Maximum number of rows that we want to get
+            reverse: false,           // Optional: Get reversed data
+            show_payer: false          // Optional: Show ram payer
+        }
+        voters = await callFioApi("get_table_rows", json);
+        //console.log('voters: ', voters);
+        for (voter in voters.rows) {
+            if (voters.rows[voter].owner == proxyA1.account) {
+              //console.log('voters.rows[voter]: ', voters.rows[voter]);
+              break;
+            }
+        }
+        expect(voters.rows[voter].owner).to.equal(proxyA1.account);
+        expect(voters.rows[voter].is_proxy).to.equal(1);
+        expect(voters.rows[voter].fioaddress).to.equal(proxyA1.address);
+        expect(voters.rows[voter].addresshash).to.not.equal('0x00000000000000000000000000000000');
+    } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+    }
+  })
+
+})
