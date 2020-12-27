@@ -384,7 +384,7 @@ describe(`******************** Error Check ******************** \n`, () => {
     })
 })
 
-describe.skip(`********************** record-obt-data.js ********************** \n Records Performance Testing`, () => {
+describe.skip(`Records Performance Testing`, () => {
 
     let userA1, userA2, userB1, userB2, userC1, userC2
     const payment = 5000000000 // 5 FIO
