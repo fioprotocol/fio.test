@@ -261,7 +261,7 @@ describe(`************************** vote.js ************************** \n A. Te
 
 })
 
-describe.only('B. Test vote counts with proxy when proxy increases and decreases funds', () => {
+describe('B. Test vote counts with proxy when proxy increases and decreases funds', () => {
 
   let proxyB1, voterB1, user1, total_voted_fio, total_bp_votes, transfer_tokens_pub_key_fee
 
