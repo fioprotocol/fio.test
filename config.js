@@ -119,10 +119,6 @@ const config = {
             message: 'FIO Address not found',
             type: 404
         },
-        invalidFioAddress: {
-            message: 'Invalid FIO Address',
-            type: 400
-        },
         invalidPublicAddress: {
             message: 'Invalid public address',
             type: 400
