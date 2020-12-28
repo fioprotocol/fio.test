@@ -351,7 +351,7 @@ describe('B. Transfer a domain to FIO Public Key which does not map to existing 
     } catch (err) {
       //console.log('Error', err)
       expect(err.error.message).to.equal(config.error2.noFioNames.message)
-      expect(err.statusCode).to.equal(config.error2.noFioNames.type);
+      expect(err.statusCode).to.equal(config.error2.noFioNames.statusCode);
     }
   })
 
