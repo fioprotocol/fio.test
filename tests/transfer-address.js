@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, generateFioAddress, createKeypair, callFioApi, getFees, fetchJson} = require('../utils.js');
+const {newUser, generateFioAddress, createKeypair, callFioApi, getFees, fetchJson, timeout} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/FIOSDK')
 config = require('../config.js');
 
@@ -38,6 +38,35 @@ describe('************************** transfer-address.js ***********************
         //console.log('Result: ', result)
         expect(result.status).to.equal('OK')
     })
+
+    it(`Add DASH and BCH addresses to walletA1.address2`, async () => {
+        try {
+          const result = await walletA1.sdk.genericAction('addPublicAddresses', {
+            fioAddress: walletA1.address2,
+            publicAddresses: [
+              {
+                chain_code: 'BCH',
+                token_code: 'BCH',
+                public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+              },
+              {
+                chain_code: 'DASH',
+                token_code: 'DASH',
+                public_address: 'XyCyPKzTWvW2XdcYjPaPXGQDCGk946ywEv',
+              }
+            ],
+            maxFee: config.api.add_pub_address.fee,
+            technologyProviderId: ''
+          })
+          //console.log('Result:', result)
+          expect(result.status).to.equal('OK')
+        } catch (err) {
+          console.log('Error', err)
+          //expect(err).to.equal(null)
+        }
+    })
+
+    it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
     it(`getFioNames for walletA1 and confirm it owns 2 addresses and that one of them is walletA1.address2`, async () => {
         try {
@@ -181,6 +210,7 @@ describe('************************** transfer-address.js ***********************
                 fioPublicKey: walletA2.publicKey
             })
             //console.log('getFioNames', walletA2FioNames)
+            walletA2.address2 = walletA2FioNames.fio_addresses[1].fio_address
             expect(walletA2FioNames.fio_addresses.length).to.equal(2)
             expect(walletA2FioNames.fio_domains[0].fio_domain).to.equal(walletA2.domain)
             expect(walletA2FioNames.fio_addresses[0].fio_address).to.equal(walletA2.address)
@@ -193,6 +223,49 @@ describe('************************** transfer-address.js ***********************
 
     it('Confirm expiration date was not changed', async () => {
         expect(walletA2FioNames.fio_addresses[1].expiration).to.equal(origAddressExpire)
+    })
+
+    it('confirm BCH address was removed', async () => {
+        try {
+          const result = await walletA2.sdk.genericAction('getPublicAddress', {
+            fioAddress: walletA2.address2,
+            chainCode: "BCH",
+            tokenCode: "BCH"
+          })
+          //console.log('Result', result)
+        } catch (err) {
+          //console.log('Error', err)
+          expect(err.json.message).to.equal(config.error.publicAddressFound)
+        }
+    })
+
+    it('confirm DASH address was removed', async () => {
+        try {
+          const result = await walletA2.sdk.genericAction('getPublicAddress', {
+            fioAddress: walletA2.address2,
+            chainCode: "DASH",
+            tokenCode: "DASH"
+          })
+          //console.log('Result', result)
+        } catch (err) {
+          //console.log('Error', err)
+          expect(err.json.message).to.equal(config.error.publicAddressFound)
+        }
+    })
+
+    it('confirm FIO address is mapped to walletA2 pub key', async () => {
+        try {
+          const result = await walletA2.sdk.genericAction('getPublicAddress', {
+            fioAddress: walletA2.address2,
+            chainCode: "FIO",
+            tokenCode: "FIO"
+          })
+          //console.log('Result', result)
+          expect(result.public_address).to.equal(walletA2.publicKey)
+        } catch (err) {
+            console.log('Error', err)
+            expect(err).to.equal(null)
+        }
     })
 
 })
@@ -377,7 +450,7 @@ describe('B. Transfer an address to FIO Public Key which does not map to existin
         }
     })
 
-    it(`getFioNames for walletA1 and confirm it now only owns 1 address`, async () => {
+    it(`getFioNames for walletB1 and confirm it now only owns 1 address`, async () => {
         try {
             walletB1FioNames = await walletB1.sdk.genericAction('getFioNames', {
                 fioPublicKey: walletB1.publicKey
@@ -392,12 +465,13 @@ describe('B. Transfer an address to FIO Public Key which does not map to existin
         }
     })
 
-    it(`getFioNames for walletA2 and confirm 2 addresses`, async () => {
+    it(`getFioNames for walletB2 and confirm 1 address (the new address)`, async () => {
         try {
             walletB2FioNames = await walletB1.sdk.genericAction('getFioNames', {
                 fioPublicKey: walletB2.publicKey
             })
             //console.log('getFioNames', walletB2FioNames)
+            walletB2.address2 = walletB2FioNames.fio_addresses[0].fio_address
             expect(walletB2FioNames.fio_addresses.length).to.equal(1)
             expect(walletB2FioNames.fio_addresses[0].fio_address).to.equal(walletB1.address2)
         } catch (err) {
@@ -412,6 +486,49 @@ describe('B. Transfer an address to FIO Public Key which does not map to existin
 
     it('Confirm expiration date was not changed', async () => {
         expect(walletB2FioNames.fio_addresses[0].expiration).to.equal(origAddressExpire)
+    })
+
+    it('confirm BCH address was removed', async () => {
+        try {
+          const result = await walletB1.sdk.genericAction('getPublicAddress', {
+            fioAddress: walletB2.address2,
+            chainCode: "BCH",
+            tokenCode: "BCH"
+          })
+          //console.log('Result', result)
+        } catch (err) {
+          //console.log('Error', err)
+          expect(err.json.message).to.equal(config.error.publicAddressFound)
+        }
+    })
+
+    it('confirm DASH address was removed', async () => {
+        try {
+          const result = await walletB1.sdk.genericAction('getPublicAddress', {
+            fioAddress: walletB2.address2,
+            chainCode: "DASH",
+            tokenCode: "DASH"
+          })
+          //console.log('Result', result)
+        } catch (err) {
+          //console.log('Error', err)
+          expect(err.json.message).to.equal(config.error.publicAddressFound)
+        }
+    })
+
+    it('confirm FIO address is mapped to walletB2 pub key', async () => {
+        try {
+          const result = await walletB1.sdk.genericAction('getPublicAddress', {
+            fioAddress: walletB2.address2,
+            chainCode: "FIO",
+            tokenCode: "FIO"
+          })
+          //console.log('Result', result)
+          expect(result.public_address).to.equal(walletB2.publicKey)
+        } catch (err) {
+            console.log('Error', err)
+            expect(err).to.equal(null)
+        }
     })
 
 })
@@ -734,3 +851,226 @@ describe('D. transferFioAddress Error testing', () => {
     })
 
 })
+
+
+describe('E. Confirm active producers and proxy cannot transfer address', () => {
+
+    let user1, prod1, proxy1, transfer_fio_address_fee
+
+    it(`Create users`, async () => {
+        user1 =  await newUser(faucet);
+        prod1 = await newUser(faucet);
+        proxy1 = await newUser(faucet);
+    })
+
+    it('Get transfer_fio_address fee', async () => {
+        try {
+            result = await user1.sdk.getFee('transfer_fio_address', user1.address);
+            transfer_fio_address_fee = result.fee;
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`Register prod1 as producer`, async () => {
+        try {
+          const result = await prod1.sdk.genericAction('pushTransaction', {
+            action: 'regproducer',
+            account: 'eosio',
+            data: {
+              fio_address: prod1.address,
+              fio_pub_key: prod1.publicKey,
+              url: "https://mywebsite.io/",
+              location: 80,
+              actor: prod1.account,
+              max_fee: config.api.register_producer.fee
+            }
+          })
+          //console.log('Result: ', result)
+          expect(result.status).to.equal('OK') 
+        } catch (err) {
+          console.log('Error: ', err.json)
+        } 
+    })
+
+    it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+    it(`Transfer prod1.address to user1. Expect error 400:  ${config.error.activeProducer}`, async () => {
+        try {
+            const result = await prod1.sdk.genericAction('transferFioAddress', {
+                fioAddress: prod1.address,
+                newOwnerKey: user1.publicKey,
+                maxFee: transfer_fio_address_fee,
+                technologyProviderId: ''
+            })
+            //console.log('Result: ', result)
+            expect(result).to.equal(null)
+        } catch (err) {
+            //console.log('Error: ', err.json.fields)
+            expect(err.json.fields[0].error).to.equal(config.error.activeProducer)
+            expect(err.errorCode).to.equal(400)
+        }
+    })
+
+    it(`Register proxy1 as a proxy`, async () => {
+        try {
+          const result = await proxy1.sdk.genericAction('pushTransaction', {
+            action: 'regproxy',
+            account: 'eosio',
+            data: {
+              fio_address: proxy1.address,
+              actor: proxy1.account,
+              max_fee: config.api.register_proxy.fee
+            }
+          })
+          //console.log('Result: ', result)
+          expect(result.status).to.equal('OK')
+        } catch (err) {
+          console.log('Error: ', err.json)
+          expect(err).to.equal('null')
+        }
+    })
+
+    it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+    it(`BUG: Transfer proxy1.address to user1. Expect error 400:  ${config.error.activeProxy}`, async () => {
+        try {
+            const result = await proxy1.sdk.genericAction('transferFioAddress', {
+                fioAddress: proxy1.address,
+                newOwnerKey: user1.publicKey,
+                maxFee: transfer_fio_address_fee,
+                technologyProviderId: ''
+            })
+            console.log('Result: ', result)
+            expect(result).to.equal(null)
+        } catch (err) {
+            //console.log('Error: ', err.json.fields)
+            expect(err.json.fields[0].error).to.equal(config.error.activeProxy)
+            expect(err.errorCode).to.equal(400)
+        }
+    })
+
+})
+
+
+describe('BRAVO ONLY: Confirm users with OBT records or Requests cannot transfer addresses', () => {
+
+    let user1, user2, user3, user4, transfer_fio_address_fee
+
+    it(`Create users`, async () => {
+        user1 =  await newUser(faucet);
+        user2 = await newUser(faucet);
+        user3 = await newUser(faucet);
+        user4 = await newUser(faucet);
+    })
+
+    it('Get transfer_fio_address fee', async () => {
+        try {
+            result = await user1.sdk.getFee('transfer_fio_address', user1.address);
+            transfer_fio_address_fee = result.fee;
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`user1 requests funds from user2`, async () => {
+        try {
+          const result = await user1.sdk.genericAction('requestFunds', { 
+            payerFioAddress: user2.address, 
+            payeeFioAddress: user1.address,
+            payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
+            amount: 1000,
+            chainCode: 'BTC',
+            tokenCode: 'BTC',
+            memo: 'requestMemo',
+            maxFee: config.maxFee,
+            payerFioPublicKey: user2.publicKey,
+            technologyProviderId: ''
+          })    
+          //console.log('Result: ', result)
+          expect(result.status).to.equal('requested') 
+        } catch (err) {
+          console.log('Error: ', err)
+          expect(err).to.equal(null)
+        }
+      })
+
+    it(`Transfer user1.address to user2. Expect error 500 - assertion failure with message: Transfering a FIO address is currently disabled for some fio.addresses `, async () => {
+        try {
+            const result = await user1.sdk.genericAction('transferFioAddress', {
+                fioAddress: user1.address,
+                newOwnerKey: user2.publicKey,
+                maxFee: transfer_fio_address_fee,
+                technologyProviderId: ''
+            })
+            //console.log('Result: ', result)
+            expect(result).to.equal(null)
+        } catch (err) {
+            //console.log('Error: ', err.json.error.details)
+            expect(err.json.error.details[0].message).to.equal('assertion failure with message: Transfering a FIO address is currently disabled for some fio.addresses')
+            expect(err.errorCode).to.equal(500)
+        }
+    })
+
+    it(`Transfer user2.address to user1. Expect error 500 - assertion failure with message: Transfering a FIO address is currently disabled for some fio.addresses`, async () => {
+        try {
+            const result = await user2.sdk.genericAction('transferFioAddress', {
+                fioAddress: user2.address,
+                newOwnerKey: user1.publicKey,
+                maxFee: transfer_fio_address_fee,
+                technologyProviderId: ''
+            })
+            //console.log('Result: ', result)
+            expect(result).to.equal(null)
+        } catch (err) {
+            //console.log('Error: ', err)
+            expect(err.json.error.details[0].message).to.equal('assertion failure with message: Transfering a FIO address is currently disabled for some fio.addresses')
+            expect(err.errorCode).to.equal(500)
+        }
+    })
+
+    it(`Create OBT for user3`, async () => {
+        try {
+          const result = await user3.sdk.genericAction('recordObtData', {
+            fioRequestId: '',
+            payerFioAddress: user3.address,
+            payeeFioAddress: user1.address,
+            payerTokenPublicAddress: user3.publicKey,
+            payeeTokenPublicAddress: user1.publicKey,
+            amount: 5000000000,
+            chainCode: "BTC",
+            tokenCode: "BTC",
+            maxFee: config.api.record_obt_data.fee,
+            technologyProviderId: '',
+            payeeFioPublicKey: user3.publicKey,
+            memo: 'this is a test'
+          })
+            //console.log('Result: ', result);
+            expect(result.status).to.equal('sent_to_blockchain');
+        } catch (err) {
+            console.log('Error: ', err)
+            expect(err).to.equal(null)
+        }
+      })
+
+      it(`Transfer user3.address to user4. Expect error 500 - assertion failure with message: Transfering a FIO address is currently disabled for some fio.addresses`, async () => {
+        try {
+            const result = await user3.sdk.genericAction('transferFioAddress', {
+                fioAddress: user3.address,
+                newOwnerKey: user4.publicKey,
+                maxFee: transfer_fio_address_fee,
+                technologyProviderId: ''
+            })
+            //console.log('Result: ', result)
+            expect(result).to.equal(null)
+        } catch (err) {
+            //console.log('Error: ', err)
+            expect(err.json.error.details[0].message).to.equal('assertion failure with message: Transfering a FIO address is currently disabled for some fio.addresses')
+            expect(err.errorCode).to.equal(500)
+        }
+    })
+
+})
+
