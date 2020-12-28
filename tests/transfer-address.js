@@ -588,6 +588,27 @@ describe('D. transferFioAddress Error testing', () => {
         }
     })
 
+    it(`(push_transaction) Transfer address with invalid address format. Expect error code ${config.error2.invalidFioAddress.statusCode}: ${config.error2.invalidFioAddress.message}`, async () => {
+        try{
+            const result = await userD1.sdk.genericAction('pushTransaction', {
+                action: 'xferaddress',
+                account: 'fio.address',
+                data: {
+                    "fio_address": ']invid@domain',
+                    "new_owner_fio_public_key": userD2.publicKey,
+                    "max_fee": config.api.transfer_fio_address.fee,
+                    "tpid": '',
+                    "actor": userD1.account
+                }
+            })
+            expect(result.status).to.equal(null);
+        } catch (err) {
+            //console.log('Error: ', err.json.fields[0].error)
+            expect(err.json.fields[0].error).to.equal(config.error2.invalidFioAddress.message);
+            expect(err.errorCode).to.equal(config.error2.invalidFioAddress.statusCode);
+        }
+    })
+
     it(`Transfer address with invalid public key. Expect error type 400: ${config.error.invalidKey}`, async () => {
         try {
             const result = await userD1.sdk.genericAction('transferFioAddress', {
