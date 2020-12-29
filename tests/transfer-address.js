@@ -982,7 +982,7 @@ describe('E. Confirm active producers and proxy cannot transfer address', () => 
         }
       })
 
-    it(`BUG: Transfer proxy1.address to user1. Expect error 400:  ${config.error.activeProxy}`, async () => {
+    it(`Transfer proxy1.address to user1. Expect error 400:  ${config.error.activeProxy}`, async () => {
         try {
             const result = await proxy1.sdk.genericAction('transferFioAddress', {
                 fioAddress: proxy1.address,
