@@ -384,25 +384,67 @@ describe(`C. Test addaction error conditions`, () => {
 
 describe(`D. General remaction testing `, () => {
 
-  it(`remaction succeeds.`, async () => {
-    try {
+  let newAction, newContract
+
+  it(`Create users`, async () => {
+    newAction = generateFioDomain(7);
+    newContract = generateFioDomain(7);
+  })
+
+  it('addaction with random action and contract name succeeds.', async () => {
     const result = await callFioApiSigned('push_transaction', {
-      action: 'remaction',
+      action: 'addaction',
       account: 'eosio',
       actor: fiotoken.account,
       privKey: fiotoken.privateKey,
       data: {
         action: newAction,
-        actor: fiotoken.account
+        contract: newContract,
+        actor: fiotoken.account,
       }
     })
-    expect(result.processed.receipt.status).to.equal('executed');
+      //console.log('Result: ', result)
+      expect(result.processed.receipt.status).to.equal('executed');
+  })
+
+  it(`remaction of new action succeeds.`, async () => {
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'remaction',
+        account: 'eosio',
+        actor: fiotoken.account,
+        privKey: fiotoken.privateKey,
+        data: {
+          action: newAction,
+          actor: fiotoken.account
+        }
+      })
+      expect(result.processed.receipt.status).to.equal('executed');
     } catch (err) {
       console.log('Error', err);
      expect(err).to.equal(null);
     }
   })
 
+  it(`remaction of same action fails`, async () => {
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'remaction',
+        account: 'eosio',
+        actor: fiotoken.account,
+        privKey: fiotoken.privateKey,
+        data: {
+          action: newAction,
+          actor: fiotoken.account
+        }
+      })
+      console.log('Result', result);
+      //expect(result.processed.receipt.status).to.equal('executed');
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
 
   it('Call get_actions and confirm action is gone', async () => {
     try {
@@ -425,7 +467,7 @@ describe(`D. General remaction testing `, () => {
     }
   })
 
-  it(`remaction fails, action not found.`, async () => {
+  it(`remaction of non-existent action fails, action not found.`, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'remaction',
