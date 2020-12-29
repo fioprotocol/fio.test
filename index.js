@@ -15,7 +15,7 @@ describe('TEST SUITE', () => {
   require('./tests/register_fio_domain.js'); // v1.0.x
   require('./tests/transfer-tokens.js'); // v1.0.x
   require('./tests/vote.js');  // v1.0.x
-  //require('./tests/action-whitelisting.js'); // FIP-12, fio v2.0.0, fio.contracts v2.0.0 // Causes future tests to fail. Only run alone.
+  require('./tests/action-whitelisting.js'); // FIP-12, fio v2.0.0, fio.contracts v2.0.0 // Causes future tests to fail. Only run alone.
   require('./tests/transfer-domain.js'); // FIP-1.a, fio v2.0.0, fio.contracts v2.1.0
   require('./tests/paging.js'); // FIP-2, fio v2.0.0, fio.contracts v2.1.0
   require('./tests/removeaddress.js'); // FIP-4, fio v2.0.0, fio.contracts v2.1.0
