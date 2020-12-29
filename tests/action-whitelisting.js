@@ -438,8 +438,8 @@ describe(`D. General remaction testing `, () => {
           actor: fiotoken.account
         }
       })
-      console.log('Result', result);
-      //expect(result.processed.receipt.status).to.equal('executed');
+      //console.log('Result', result);
+      expect(result.error.what).to.equal('Duplicate transaction');
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -487,29 +487,6 @@ describe(`D. General remaction testing `, () => {
       expect(err).to.equal(null);
     }
   })
-
-  it(`remaction with 13 character action. Returns Error: ${config.error2.invalidAction.type}: ${config.error2.invalidAction.message}`, async () => {
-    try {
-      const result = await callFioApiSigned('push_transaction', {
-        action: 'remaction',
-        account: 'eosio',
-        actor: fiotoken.account,
-        privKey: fiotoken.privateKey,
-        data: {
-          action: action_13,
-          contract: newContract,
-          actor: fiotoken.account
-        }
-      })
-
-      //console.log('Result: ', result.error.details)
-      expect(result.error.details[0].message).to.equal(config.error2.invalidAction.message);
-      expect(result.code).to.equal(config.error2.invalidAction.type);
-    } catch (err) {
-      console.log('Error: ', err)
-    }
-  })
-
   it(`remaction with invalid actor.  Returns Error: ${config.error2.invalidActor.type}: ${config.error2.invalidActor.message}`, async () => {
     const result = await callFioApiSigned('push_transaction', {
       action: 'remaction',
