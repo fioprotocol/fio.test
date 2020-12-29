@@ -955,7 +955,7 @@ describe('E. Confirm active producers and proxy cannot transfer address', () => 
 
     it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
-    it(`BUG: Transfer proxy1.address to user1. Expect error 400:  ${config.error.activeProxy}`, async () => {
+    it(`Transfer proxy1.address to user1. Expect error 400:  ${config.error.activeProxy}`, async () => {
         try {
             const result = await proxy1.sdk.genericAction('transferFioAddress', {
                 fioAddress: proxy1.address,
