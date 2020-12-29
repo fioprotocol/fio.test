@@ -8,7 +8,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
 })
 
-describe.only(`************************** tpid.js ************************** \n TPID Tests`, () => {
+describe(`************************** tpid.js ************************** \n TPID Tests`, () => {
   
   let proxy1, user1, user2, user3, user4, newPubKey
 
