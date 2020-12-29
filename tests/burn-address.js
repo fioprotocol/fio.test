@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, generateFioAddress, callFioApiSigned, callFioApi, getFees, fetchJson} = require('../utils.js');
+const {newUser, generateFioAddress, callFioApiSigned, callFioApi, getFees, timeout, fetchJson} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
@@ -665,4 +665,139 @@ describe('E. Test burnfioaddress SDK call (uses chain/burn_fio_address endpoint)
           expect(err).to.equal(null);
         }
     })
+})
+
+describe('F. Confirm active producers and proxy cannot burn address', () => {
+
+    let user1, prod1, proxy1, burn_fio_address_fee
+
+    it(`Create users`, async () => {
+        user1 =  await newUser(faucet);
+        prod1 = await newUser(faucet);
+        proxy1 = await newUser(faucet);
+    })
+
+    it('Get transfer_fio_address fee', async () => {
+        try {
+            result = await user1.sdk.getFee('burn_fio_address', user1.address);
+            burn_fio_address_fee = result.fee;
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`Register prod1 as producer`, async () => {
+        try {
+          const result = await prod1.sdk.genericAction('pushTransaction', {
+            action: 'regproducer',
+            account: 'eosio',
+            data: {
+              fio_address: prod1.address,
+              fio_pub_key: prod1.publicKey,
+              url: "https://mywebsite.io/",
+              location: 80,
+              actor: prod1.account,
+              max_fee: config.api.register_producer.fee
+            }
+          })
+          //console.log('Result: ', result)
+          expect(result.status).to.equal('OK') 
+        } catch (err) {
+          console.log('Error: ', err.json)
+        } 
+    })
+
+    it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+    it(`Burn prod1.address. Expect error 400:  ${config.error.activeProducer}`, async () => {
+        try{
+            const result = await prod1.sdk.genericAction('pushTransaction', {
+                action: 'burnaddress',
+                account: 'fio.address',
+                data: {
+                    "fio_address": prod1.address,
+                    "max_fee": burn_fio_address_fee,
+                    "tpid": '',
+                    "actor": prod1.account
+                }
+            })
+            expect(result.status).to.equal(null);
+        } catch (err) {
+            //console.log('Error: ', err)
+            expect(err.json.fields[0].error).to.equal(config.error.activeProducer);
+            expect(err.errorCode).to.equal(400);
+        }
+    })
+
+    it(`Register proxy1 as a proxy`, async () => {
+        try {
+          const result = await proxy1.sdk.genericAction('pushTransaction', {
+            action: 'regproxy',
+            account: 'eosio',
+            data: {
+              fio_address: proxy1.address,
+              actor: proxy1.account,
+              max_fee: config.api.register_proxy.fee
+            }
+          })
+          //console.log('Result: ', result)
+          expect(result.status).to.equal('OK')
+        } catch (err) {
+          console.log('Error: ', err.json)
+          expect(err).to.equal('null')
+        }
+    })
+
+    it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+    it('Confirm is_proxy = 1 for proxy1 ', async () => {
+        try {
+            const json = {
+                json: true,
+                code: 'eosio',
+                scope: 'eosio',
+                table: 'voters',
+                limit: 1000,
+                reverse: true,
+                show_payer: false
+            }
+            voters = await callFioApi("get_table_rows", json);
+            //console.log('voters: ', voters);
+            for (voter in voters.rows) {
+                if (voters.rows[voter].owner == proxy1.account) {
+                  //console.log('voters.rows[voter]: ', voters.rows[voter]);
+                  break;
+                }
+            }
+            expect(voters.rows[voter].owner).to.equal(proxy1.account);
+            expect(voters.rows[voter].is_proxy).to.equal(1);            
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+      })
+
+
+    it(`Burn proxy1.address. Expect error 400:  ${config.error.activeProxy}`, async () => {
+        try{
+            const result = await proxy1.sdk.genericAction('pushTransaction', {
+                action: 'burnaddress',
+                account: 'fio.address',
+                data: {
+                    "fio_address": proxy1.address,
+                    "max_fee": burn_fio_address_fee,
+                    "tpid": '',
+                    "actor": proxy1.account
+                }
+            })
+            console.log('Result: ', result)
+            expect(result.status).to.equal(null);
+        } catch (err) {
+            //console.log('Error: ', err)
+            expect(err.json.fields[0].error).to.equal(config.error.activeProxy);
+            expect(err.errorCode).to.equal(400);
+        }
+    })
+
 })

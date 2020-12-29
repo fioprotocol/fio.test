@@ -25,6 +25,7 @@ const config = {
     FUNDS: 3000000000000,
     BILLION: 1000000000,
     maxFee: 800000000000,
+    defaultBundleCount: 100,
 
     error: {
         validationError: 'ValidationError',
@@ -88,6 +89,10 @@ const config = {
             message: 'FIO Address not found',
             statusCode: 404
         },
+        feeExceedsMax: {
+            message: 'Fee exceeds supplied maximum.',
+            statusCode: 400
+        },
         invalidFioAddress: {
             message: 'Invalid FIO Address',
             statusCode: 400
@@ -108,49 +113,41 @@ const config = {
             message: 'Request signature is not valid or this user is not allowed to sign this transaction.',
             statusCode: 403
         },
-        noFioNames: {
-            message: 'No FIO names',
-            type: 404
-        },
-        addressNotFound: {
-            message: 'FIO Address not found',
-            type: 404
-        },
-        invalidPublicAddress: {
-            message: 'Invalid public address',
-            type: 400
-        },
-        invalidTpid: {
-            message: 'TPID must be empty or valid FIO address',
-            type: 400
-        },
-        invalidActor: {
-            message: 'Invalid Actor',
-            type: 403
-        },
-        invalidSignature: {
-            message: 'Request signature is not valid or this user is not allowed to sign this transaction.',
-            type: 403
-        },
         invalidAction: {
             message: 'Action invalid or not found',
-            type: 500
+            statusCode: 500
         },
         invalidContract: {
             message: 'Invalid Contract',
-            type: 500
+            statusCode: 500
         },
-        invalidActor: {
+        invalidActorAuth: {
             message: 'Missing required authority',
-            type: 500
+            statusCode: 500
         },
         accountExists: {
             message: 'Account name already exists',
-            type: 500
+            statusCode: 500
         },
         noActions: {
             message: 'No actions',
-            type: 404
+            statusCode: 404
+        },
+        invalidBundleSets: {
+            message: 'Invalid bundle_sets value',
+            statusCode: 400
+        },
+        invalidFeeValue: {
+            message: 'Invalid fee value',
+            statusCode: 400
+        },
+        insufficientFunds: {
+            message: 'Insufficient funds to cover fee',
+            statusCode: 400
+        },
+        fioAddressNotRegistered: {
+            message: 'FIO Address not registered',
+            statusCode: 400
         }
     },
 
@@ -332,7 +329,8 @@ const config = {
         UPDATEAUTHRAM: 1024,
         XFERDOMAINRAM: 512,
         XFERADDRESSRAM: 512,
-        CANCELFUNDSRAM: 512
+        CANCELFUNDSRAM: 512,
+        BUNDLEVOTERAM: 0
     },
 
     public_addresses: [
