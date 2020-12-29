@@ -27,6 +27,8 @@ describe('TEST SUITE', () => {
   require('./tests/transfer-address.js'); // FIP-1.b
   require('./tests/transfer-locked-tokens.js');  // FIP-6 locking tests
   require('./tests/transfer-locked-tokens-account-tests.js');  // FIP-6 tests of generic account functionality
+  require('./tests/addbundles.js');
+  
   //require('./tests/clio.js');  // FIP-16
 
   //require('./tests/locks.js');  // Depends on local wallet. Need to fix

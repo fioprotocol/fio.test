@@ -955,7 +955,34 @@ describe('E. Confirm active producers and proxy cannot transfer address', () => 
 
     it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
-    it(`BUG: Transfer proxy1.address to user1. Expect error 400:  ${config.error.activeProxy}`, async () => {
+    it('Confirm is_proxy = 1 for proxy1 ', async () => {
+        try {
+            const json = {
+                json: true,
+                code: 'eosio',
+                scope: 'eosio',
+                table: 'voters',
+                limit: 1000,
+                reverse: true,
+                show_payer: false
+            }
+            voters = await callFioApi("get_table_rows", json);
+            //console.log('voters: ', voters);
+            for (voter in voters.rows) {
+                if (voters.rows[voter].owner == proxy1.account) {
+                  //console.log('voters.rows[voter]: ', voters.rows[voter]);
+                  break;
+                }
+            }
+            expect(voters.rows[voter].owner).to.equal(proxy1.account);
+            expect(voters.rows[voter].is_proxy).to.equal(1);            
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+      })
+
+    it(`Transfer proxy1.address to user1. Expect error 400:  ${config.error.activeProxy}`, async () => {
         try {
             const result = await proxy1.sdk.genericAction('transferFioAddress', {
                 fioAddress: proxy1.address,

@@ -1,5 +1,5 @@
 /*****
- This test loads up the chain with 1000 Requests and 10000 OBTs and then:
+ This test loads up the chain with 1000 Requests and 1000 OBTs and then:
  - Calls migrtx 
  - After the first call, tests that new requests and OBTs are being added to both tables. 
  - Repeatedly calls migrtrx to complete migration.
