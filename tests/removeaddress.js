@@ -1131,7 +1131,7 @@ describe(`F. Sad - result in error`, () => {
     expect(result.fields[0].error).to.equal(config.error2.invalidFioAddress.message);
   })
 
-  it(`Fixed in BD-1955, Remove with invalid FIO Address - push transaction. Expect error type ${config.error2.invalidFioAddress.type}: ${config.error2.invalidFioAddress.message}`, async () => {
+  it(`Fixed in BD-1955, Remove with invalid FIO Address - push transaction. Expect error type ${config.error2.invalidFioAddress.statusCode}: ${config.error2.invalidFioAddress.message}`, async () => {
     try{
       const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'remaddress',
@@ -1149,11 +1149,11 @@ describe(`F. Sad - result in error`, () => {
     } catch (err) {
       //console.log('Error: ', err.json)
       expect(err.json.fields[0].error).to.equal(config.error2.invalidFioAddress.message)
-      expect(err.errorCode).to.equal(config.error2.invalidFioAddress.type);
+      expect(err.errorCode).to.equal(config.error2.invalidFioAddress.statusCode);
     }
   })
 
-  it(`Remove invalid public addresses. Expect error type ${config.error2.invalidPublicAddress.type}: ${config.error2.invalidPublicAddress.message}`, async () => {
+  it(`Remove invalid public addresses. Expect error type ${config.error2.invalidPublicAddress.statusCode}: ${config.error2.invalidPublicAddress.message}`, async () => {
     try {
       const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'remaddress',
@@ -1181,11 +1181,11 @@ describe(`F. Sad - result in error`, () => {
     } catch (err) {
       //console.log('Err: ', err.json);
       expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message)
-      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.type);
+      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   })
 
-  it(`Remove with invalid TPID. Expect error type ${config.error2.invalidTpid.type}: ${config.error2.invalidTpid.message}`, async () => {
+  it(`Remove with invalid TPID. Expect error type ${config.error2.invalidTpid.statusCode}: ${config.error2.invalidTpid.message}`, async () => {
     try{
       const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'remaddress',
@@ -1213,11 +1213,11 @@ describe(`F. Sad - result in error`, () => {
       expect(result.status).to.equal(null);
     } catch (err) {
       expect(err.json.fields[0].error).to.equal(config.error2.invalidTpid.message)
-      expect(err.errorCode).to.equal(config.error2.invalidTpid.type);
+      expect(err.errorCode).to.equal(config.error2.invalidTpid.statusCode);
     }
   })
 
-  it(`Remove with invalid actor - Direct API call. Expect error type ${config.error2.invalidActor.type}: ${config.error2.invalidActor.message}`, async () => {
+  it(`Remove with invalid actor - Direct API call. Expect error type ${config.error2.invalidActor.statusCode}: ${config.error2.invalidActor.message}`, async () => {
     const result = await callFioApiSigned('push_transaction', {
       action: 'remaddress',
       account: 'fio.address',
@@ -1244,7 +1244,7 @@ describe(`F. Sad - result in error`, () => {
     })
     //console.log('Result: ', result)
     expect(result.error.what).to.equal(config.error2.invalidActor.message)
-    expect(result.code).to.equal(config.error2.invalidActor.type);
+    expect(result.code).to.equal(config.error2.invalidActor.statusCode);
   })
 
   it(`Not a bug. SDK generates the actor from the userA1 private key. So, this will work.`, async () => {
@@ -1288,7 +1288,7 @@ describe(`F. Sad - result in error`, () => {
     }
   })
 
-  it(`userA2 tries to remove userA1s public addresses. Expect error type ${config.error2.invalidSignature.type}: ${config.error2.invalidSignature.message}`, async () => {
+  it(`userA2 tries to remove userA1s public addresses. Expect error type ${config.error2.invalidSignature.statusCode}: ${config.error2.invalidSignature.message}`, async () => {
     try{
       const result = await userA2.sdk.genericAction('pushTransaction', {
         action: 'remaddress',
@@ -1305,7 +1305,7 @@ describe(`F. Sad - result in error`, () => {
     } catch (err) {
       //console.log('Error', err)
       expect(err.json.message).to.equal(config.error2.invalidSignature.message)
-      expect(err.errorCode).to.equal(config.error2.invalidSignature.type);
+      expect(err.errorCode).to.equal(config.error2.invalidSignature.statusCode);
     }
   })
 
