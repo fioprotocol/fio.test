@@ -25,11 +25,12 @@ describe('TEST SUITE', () => {
   //require('./tests/bravo-migr-test.js');  // FIP-1.b Only used to test table migration for Request/OBT optimization update
   require('./tests/transfer-locked-tokens.js');  // FIP-6 locking tests
   require('./tests/transfer-locked-tokens-account-tests.js');  // FIP-6 tests of generic account functionality
-  
-  //require('./tests/clio.js');  // FIP-6
-  require('./tests/transfer-address.js'); // FIP-1.b
 
+  require('./tests/tpid.js'); 
+  require('./tests/transfer-address.js'); // FIP-1.b
   require('./tests/addbundles.js');
+  
+  //require('./tests/clio.js');  // FIP-6 (Bahamas release)
   
   //require('./tests/locks.js');  // Depends on local wallet. Need to fix
   //require('./tests/testnet-smoketest.js'); // In development
