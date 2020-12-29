@@ -1217,7 +1217,7 @@ describe(`F. Sad - result in error`, () => {
     }
   })
 
-  it(`Remove with invalid actor - Direct API call. Expect error type ${config.error2.invalidActor.statusCode}: ${config.error2.invalidActor.message}`, async () => {
+  it(`Remove with invalid actor - Direct API call. Expect error type ${config.error2.invalidActorAuth.statusCode}: ${config.error2.invalidActorAuth.message}`, async () => {
     const result = await callFioApiSigned('push_transaction', {
       action: 'remaddress',
       account: 'fio.address',
@@ -1243,8 +1243,8 @@ describe(`F. Sad - result in error`, () => {
       }
     })
     //console.log('Result: ', result)
-    expect(result.error.what).to.equal(config.error2.invalidActor.message)
-    expect(result.code).to.equal(config.error2.invalidActor.statusCode);
+    expect(result.error.what).to.equal(config.error2.invalidActorAuth.message)
+    expect(result.code).to.equal(config.error2.invalidActorAuth.statusCode);
   })
 
   it(`Not a bug. SDK generates the actor from the userA1 private key. So, this will work.`, async () => {

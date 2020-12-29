@@ -970,7 +970,7 @@ describe('E. Confirm active producers and proxy cannot transfer address', () => 
             //console.log('voters: ', voters);
             for (voter in voters.rows) {
                 if (voters.rows[voter].owner == proxy1.account) {
-                  console.log('voters.rows[voter]: ', voters.rows[voter]);
+                  //console.log('voters.rows[voter]: ', voters.rows[voter]);
                   break;
                 }
             }
