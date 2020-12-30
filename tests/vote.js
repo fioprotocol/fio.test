@@ -460,45 +460,47 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     expect(result.status).to.equal('OK')
   })
 
-  it(`voterB1 last_vote_weight increases by 500 FIO) (minus the fee)`, async () => {
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+  it(`voterB1 last_vote_weight increases by 500 FIO`, async () => {
     try {
       let prev_vote_weight = voterB1.last_vote_weight;
       voterB1.last_vote_weight = await getAccountVoteWeight(voterB1.account);
       //console.log('voterB1.last_vote_weight:', voterB1.last_vote_weight);
-      expect(voterB1.last_vote_weight).to.equal(prev_vote_weight + 500000000000 - transfer_tokens_pub_key_fee);
+      expect(voterB1.last_vote_weight).to.equal(prev_vote_weight + 500000000000);
     } catch (err) {
       console.log('Error: ', err)
     }
   })
 
-  it(`proxyB1 last_vote_weight increases by 500 FIO) (minus the fee)`, async () => {
+  it(`proxyB1 last_vote_weight increases by 500 FIO`, async () => {
     try {
       let prev_vote_weight = proxyB1.last_vote_weight;
       proxyB1.last_vote_weight = await getAccountVoteWeight(proxyB1.account);
       //console.log('proxyB1.last_vote_weight:', proxyB1.last_vote_weight);
-      expect(proxyB1.last_vote_weight).to.equal(prev_vote_weight + 500000000000 - transfer_tokens_pub_key_fee);
+      expect(proxyB1.last_vote_weight).to.equal(prev_vote_weight + 500000000000);
     } catch (err) {
       console.log('Error: ', err)
     }
   })
 
-  it(`total_voted_fio increased by 500 FIO (minus the fee)`, async () => {
+  it(`total_voted_fio increased by 500 FIO`, async () => {
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
       //console.log('total_voted_fio: ', total_voted_fio)
-      expect(total_voted_fio).to.equal(prev_total_voted_fio + 500000000000 - transfer_tokens_pub_key_fee)
+      expect(total_voted_fio).to.equal(prev_total_voted_fio + 500000000000)
     } catch (err) {
       console.log('Error', err)
     }
   })
 
-  it(`bp1@dapixdev total_votes increased by 500 FIO (minus the fee)`, async () => {
+  it(`bp1@dapixdev total_votes increased by 500 FIO`, async () => {
     try {
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
       //console.log('bp1@dapixdev total_votes:', total_bp_votes)
-      expect(total_bp_votes).to.equal(prev_total_bp_votes + 500000000000 - transfer_tokens_pub_key_fee)
+      expect(total_bp_votes).to.equal(prev_total_bp_votes + 500000000000)
     } catch (err) {
       console.log('Error: ', err)
     }
@@ -517,6 +519,8 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
       console.log('Error', err)
     }
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`voterB1 last_vote_weight decreases by (1000 + xfer fee) FIO)`, async () => {
     try {
@@ -571,6 +575,8 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     //console.log('Result', result)
     expect(result.status).to.equal('OK')
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`voterB1 last_vote_weight increases by 800 FIO)`, async () => {
     try {
@@ -645,6 +651,8 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
       console.log('Error: ', err.json)
     }
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`Get proxyB1 FIO Balance post unregproxy`, async () => {
     try {
@@ -2935,13 +2943,13 @@ describe(`Test proxy re-vote of proxy, re-proxy of voter`, () => {
 
   it(`Get total_voted_fio`, async () => {
     total_voted_fio = await getTotalVotedFio();
-    console.log('total_voted_fio:', total_voted_fio)
+    //console.log('total_voted_fio:', total_voted_fio)
   })
 
   it(`Get proxyA1 last_vote_weight`, async () => {
     try {
       proxyA1.last_vote_weight = await getAccountVoteWeight(proxyA1.account);
-      console.log('proxyA1.last_vote_weight: ', proxyA1.last_vote_weight)
+      //console.log('proxyA1.last_vote_weight: ', proxyA1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -2950,7 +2958,7 @@ describe(`Test proxy re-vote of proxy, re-proxy of voter`, () => {
   it(`Get bp1@dapixdev total_votes`, async () => {
     try {
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      console.log('bp1@dapixdev total_votes:', total_bp_votes)
+      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal('null')
@@ -2983,7 +2991,7 @@ describe(`Test proxy re-vote of proxy, re-proxy of voter`, () => {
     try {
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      console.log('bp1@dapixdev total_votes:', total_bp_votes)
+      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
@@ -2995,7 +3003,7 @@ describe(`Test proxy re-vote of proxy, re-proxy of voter`, () => {
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-      console.log('total_voted_fio:', total_voted_fio)
+      //console.log('total_voted_fio:', total_voted_fio)
       expect(total_voted_fio).to.equal(prev_total_voted_fio)
     } catch (err) {
       console.log('Error: ', err)
@@ -3006,11 +3014,13 @@ describe(`Test proxy re-vote of proxy, re-proxy of voter`, () => {
   it(`Get user1 last_vote_weight`, async () => {
     try {
       user1.last_vote_weight = await getAccountVoteWeight(user1.account);
-      console.log('user1.last_vote_weight: ', user1.last_vote_weight)
+      //console.log('user1.last_vote_weight: ', user1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`user1 proxies votes AGAIN to proxyA1`, async () => {
     try {
@@ -3035,7 +3045,7 @@ describe(`Test proxy re-vote of proxy, re-proxy of voter`, () => {
     try {
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      console.log('bp1@dapixdev total_votes:', total_bp_votes)
+      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
@@ -3047,7 +3057,7 @@ describe(`Test proxy re-vote of proxy, re-proxy of voter`, () => {
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-      console.log('total_voted_fio:', total_voted_fio)
+      //console.log('total_voted_fio:', total_voted_fio)
       expect(total_voted_fio).to.equal(prev_total_voted_fio)
     } catch (err) {
       console.log('Error: ', err)
@@ -3369,6 +3379,8 @@ describe(`Test total_voted_fio when user votes for proxy`, () => {
     }
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
   it(`bp1@dapixdev total_votes increased by user1 last_vote_weight`, async () => {
     try {
       let prev_total_bp_votes = total_bp_votes;
@@ -3423,6 +3435,8 @@ describe(`Test total_voted_fio when user votes for proxy`, () => {
       expect(err).to.equal('null')
     }
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`bp1@dapixdev total_votes increased by faucet last_vote_weight`, async () => {
     try {

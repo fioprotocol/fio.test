@@ -42,7 +42,7 @@ before(async () => {
 
 })
 
-describe(`************************** bravo-migr-test.js.js ************************** \n Load Requests and OBTs`, () => {
+describe.skip(`************************** bravo-migr-test.js.js ************************** \n Load Requests and OBTs`, () => {
     let user1, user2, user3;
     let payment = 3000000000;
     let requestMemo = 'asdf';
@@ -729,7 +729,7 @@ describe.skip(`Confirm paid OBT response Requests are going into both tables`, (
 
 })
 
-describe.skip(`Migrate remaining requests and OBTs`, () => {
+describe(`Migrate remaining requests and OBTs`, () => {
   let isFinished = 0
 
   it('Echo initial migrledgers table', async () => {

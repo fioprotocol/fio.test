@@ -252,7 +252,7 @@ describe(`C. Test addaction error conditions`, () => {
     action_13 = 'eddie1233213a' // Use as 13 character name string
   })
 
-  it(`addaction with empty action.  Returns Error: ${config.error2.invalidAction.type}: ${config.error2.invalidAction.message}`, async () => {
+  it(`addaction with empty action.  Returns Error: ${config.error2.invalidAction.statusCode}: ${config.error2.invalidAction.message}`, async () => {
     const result = await callFioApiSigned('push_transaction', {
       action: 'addaction',
       account: 'eosio',
@@ -266,10 +266,10 @@ describe(`C. Test addaction error conditions`, () => {
     })
     //console.log('Result: ', result)
     expect(result.error.details[0].message).to.equal(config.error2.invalidAction.message);
-    expect(result.code).to.equal(config.error2.invalidAction.type);
+    expect(result.code).to.equal(config.error2.invalidAction.statusCode);
   })
 
-  it(`addaction with empty contract.  Returns Error: ${config.error2.invalidContract.type}: ${config.error2.invalidContract.message}`, async () => {
+  it(`addaction with empty contract.  Returns Error: ${config.error2.invalidContract.statusCode}: ${config.error2.invalidContract.message}`, async () => {
     const result = await callFioApiSigned('push_transaction', {
       action: 'addaction',
       account: 'eosio',
@@ -283,10 +283,10 @@ describe(`C. Test addaction error conditions`, () => {
     })
     //console.log('Result: ', result.error)
     expect(result.error.details[0].message).to.equal(config.error2.invalidContract.message);
-    expect(result.code).to.equal(config.error2.invalidContract.type);
+    expect(result.code).to.equal(config.error2.invalidContract.statusCode);
   })
 
-  it(`addaction with invalid actor.  Returns Error: ${config.error2.invalidActor.type}: ${config.error2.invalidActor.message}`, async () => {
+  it(`addaction with invalid actor.  Returns Error: 500: 'missing authority of otheractor'`, async () => {
     const result = await callFioApiSigned('push_transaction', {
       action: 'addaction',
       account: 'eosio',
@@ -299,8 +299,8 @@ describe(`C. Test addaction error conditions`, () => {
       }
     })
     //console.log('Result: ', result)
-    expect(result.error.what).contains(config.error2.invalidActor.message);
-    expect(result.code).to.equal(config.error2.invalidActor.type);
+    expect(result.error.details[0].message).contains('missing authority of otheractor');
+    expect(result.code).to.equal(500);
   })
 
   it(`addaction with 7 character action and contract name succeeds.`, async () => {
@@ -317,14 +317,14 @@ describe(`C. Test addaction error conditions`, () => {
     })
     //console.log('Result: ', result.processed.action_traces)
     //expect(result.error.details[0].message).to.equal(config.error2.invalidAction.message);
-    //expect(result.code).to.equal(config.error2.invalidAction.type);
+    //expect(result.code).to.equal(config.error2.invalidAction.statusCode);
   })
 
   it('Wait a few seconds to avoid duplicate transaction.', async () => {
     await timeout(2000);
   })
 
-  it(`addaction with existing action AND existing contract.  Returns Error: ${config.error2.accountExists.type}: ${config.error2.accountExists.message} <invalidactor>`, async () => {
+  it(`addaction with existing action AND existing contract.  Returns Error: ${config.error2.accountExists.statusCode}: ${config.error2.accountExists.message} <invalidactor>`, async () => {
     const result = await callFioApiSigned('push_transaction', {
       action: 'addaction',
       account: 'eosio',
@@ -338,10 +338,10 @@ describe(`C. Test addaction error conditions`, () => {
     })
     //console.log('Result: ', result)
     expect(result.error.what).contains(config.error2.accountExists.message);
-    expect(result.code).to.equal(config.error2.accountExists.type);
+    expect(result.code).to.equal(config.error2.accountExists.statusCode);
   })
 
-  it(`addaction with existing action but DIFFERENT contract. Returns Error: ${config.error2.invalidAction.type}: ${config.error2.invalidAction.message}`, async () => {
+  it(`addaction with existing action but DIFFERENT contract. Returns Error: ${config.error2.invalidAction.statusCode}: ${config.error2.invalidAction.message}`, async () => {
     const result = await callFioApiSigned('push_transaction', {
       action: 'addaction',
       account: 'eosio',
@@ -355,10 +355,10 @@ describe(`C. Test addaction error conditions`, () => {
     })
     //console.log('Result: ', result)
     expect(result.error.details[0].message).to.equal(config.error2.invalidAction.message);
-    expect(result.code).to.equal(config.error2.invalidAction.type);
+    expect(result.code).to.equal(config.error2.invalidAction.statusCode);
   })
 
-  it(`addaction with 13 character action and 7 character contract. Returns Error: ${config.error2.invalidAction.type}: ${config.error2.invalidAction.message}`, async () => {
+  it(`addaction with 13 character action and 7 character contract. Returns Error: ${config.error2.invalidAction.statusCode}: ${config.error2.invalidAction.message}`, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'addaction',
@@ -374,7 +374,7 @@ describe(`C. Test addaction error conditions`, () => {
 
     //console.log('Result: ', result.error.details)
     expect(result.error.details[0].message).to.equal(config.error2.invalidAction.message);
-    expect(result.code).to.equal(config.error2.invalidAction.type);
+    expect(result.code).to.equal(config.error2.invalidAction.statusCode);
     } catch (err) {
       console.log('Error: ', err)
     }
@@ -481,13 +481,13 @@ describe(`D. General remaction testing `, () => {
       })
     //  console.log("Result: ", result);
       expect(result.error.what).contains(config.error2.accountExists.message);
-      expect(result.code).to.equal(config.error2.accountExists.type);
+      expect(result.code).to.equal(config.error2.accountExists.statusCode);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
     }
   })
-  it(`remaction with invalid actor.  Returns Error: ${config.error2.invalidActor.type}: ${config.error2.invalidActor.message}`, async () => {
+  it(`remaction with invalid actor.  Returns Error: 500: Missing required authority`, async () => {
     const result = await callFioApiSigned('push_transaction', {
       action: 'remaction',
       account: 'eosio',
@@ -500,8 +500,8 @@ describe(`D. General remaction testing `, () => {
       }
     })
     //console.log('Result: ', result)
-    expect(result.error.what).contains(config.error2.invalidActor.message);
-    expect(result.code).to.equal(config.error2.invalidActor.type);
+    expect(result.error.what).contains('Missing required authority');
+    expect(result.code).to.equal(500);
   })
 
 })
@@ -642,7 +642,7 @@ describe(`E. get_actions paging tests`, () => {
     }
   })
 
-  it(`Use floats in limit/offset. Expect error type ${config.error2.noActions.type}: ${config.error2.noActions.message}`, async () => {
+  it(`Use floats in limit/offset. Expect error type ${config.error2.noActions.statusCode}: ${config.error2.noActions.message}`, async () => {
     try {
       const json = {
         limit: 123.456,
@@ -653,7 +653,7 @@ describe(`E. get_actions paging tests`, () => {
     } catch (err) {
       //console.log('Error', err.error);
       expect(err.error.message).to.equal(config.error2.noActions.message);
-      expect(err.statusCode).to.equal(config.error2.noActions.type);
+      expect(err.statusCode).to.equal(config.error2.noActions.statusCode);
     }
   })
 
@@ -686,7 +686,7 @@ describe(`F. Test addaction perf`, () => {
       })
       //console.log('Result: ', result.processed.action_traces)
       //expect(result.error.details[0].message).to.equal(config.error2.invalidAction.message);
-      //expect(result.code).to.equal(config.error2.invalidAction.type);
+      //expect(result.code).to.equal(config.error2.invalidAction.statusCode);
     })
   }
 
