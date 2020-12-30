@@ -901,6 +901,8 @@ describe('Request funds, approve and send', () => {
     expect(result.fee_collected).to.be.a('number')
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(4000) })
+
   it(`getSentFioRequests`, async () => {
     const result = await fioSdk2.genericAction('getSentFioRequests', {})
     expect(result).to.have.all.keys('requests', 'more')
@@ -1143,7 +1145,7 @@ describe('Record obt data, check', () => {
     expect(result.fee_collected).to.be.a('number')
   })
 
-  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
   it(`Payer getObtData`, async () => {
     await timeout(4000)
@@ -1298,9 +1300,7 @@ describe(`Test locked token accounts with proxy voting`, () => {
       expect(err).to.equal('null')
     }
   })
-
-  it(`Wait a few seconds.`, async () => { await timeout(3000) })
-
+  
   it('Transfer additional 500 FIO from faucet to fioSdk', async () => {
     const result = await fioSdkFaucet.genericAction('transferTokens', {
       payeeFioPublicKey: publicKey,
@@ -1311,10 +1311,14 @@ describe(`Test locked token accounts with proxy voting`, () => {
     expect(result.status).to.equal('OK')
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
   it(`Get fioSdk last_vote_weight (should be 500 more)`, async () => {
     try {
+      prevVoteWeight = fioSdk.last_vote_weight
       fioSdk.last_vote_weight = await getAccountVoteWeight(account);
       //console.log('fioSdk.last_vote_weight:', fioSdk.last_vote_weight)
+      expect(fioSdk.last_vote_weight).to.equal(prevVoteWeight + 500000000000)
     } catch (err) {
       console.log('Error: ', err.json)
     }
