@@ -426,6 +426,8 @@ describe(`D. General remaction testing `, () => {
     }
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
+
   it(`remaction of same action fails`, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
@@ -439,10 +441,11 @@ describe(`D. General remaction testing `, () => {
         }
       })
       //console.log('Result', result);
-      expect(result.error.what).to.equal('Duplicate transaction');
+      expect(result).to.equal(null);
     } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
+      //console.log('Error', err.actual.error.details);
+      expect(err.actual.code).to.equal(500);
+      expect(err.actual.error.details[0].message).to.equal('Action invalid or not found');
     }
   })
 

@@ -3143,7 +3143,7 @@ describe(`Test impact on total_voted_fio when User 1 votes then proxies their vo
     }
   })
 
-  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+  it(`Wait a few seconds.`, async () => { await timeout(4000) })
 
   it(`Get total_voted_fio`, async () => {
     total_voted_fio = await getTotalVotedFio();
@@ -3201,6 +3201,8 @@ describe(`Test impact on total_voted_fio when User 1 votes then proxies their vo
     }
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(4000) })
+
   it(`bp1@dapixdev total_votes did not change (votes just shifted from direct vote to proxy vote via proxyA1)`, async () => {
     try {
       let prev_total_bp_votes = total_bp_votes;
@@ -3213,7 +3215,7 @@ describe(`Test impact on total_voted_fio when User 1 votes then proxies their vo
     }
   })
 
-  it(`BUG: prev_total_voted_fio did not change (votes just shifted from direct vote to proxy vote via proxyA1)`, async () => {
+  it.skip(`BUG BD-2280: prev_total_voted_fio did not change (votes just shifted from direct vote to proxy vote via proxyA1)`, async () => {
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
@@ -3311,7 +3313,7 @@ describe(`Test total_voted_fio when user votes for proxy`, () => {
     }
   })
 
-  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
   it(`Get proxyA1 last_vote_weight`, async () => {
     try {
@@ -3379,7 +3381,7 @@ describe(`Test total_voted_fio when user votes for proxy`, () => {
     }
   })
 
-  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
   it(`bp1@dapixdev total_votes increased by user1 last_vote_weight`, async () => {
     try {
@@ -3436,7 +3438,7 @@ describe(`Test total_voted_fio when user votes for proxy`, () => {
     }
   })
 
-  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
   it(`bp1@dapixdev total_votes increased by faucet last_vote_weight`, async () => {
     try {
