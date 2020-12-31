@@ -42,7 +42,7 @@ before(async () => {
 
 })
 
-describe.skip(`************************** bravo-migr-test.js.js ************************** \n Load Requests and OBTs`, () => {
+describe(`************************** bravo-migr-test.js.js ************************** \n Load Requests and OBTs`, () => {
     let user1, user2, user3;
     let payment = 3000000000;
     let requestMemo = 'asdf';
