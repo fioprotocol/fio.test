@@ -1,7 +1,7 @@
 require('mocha')
 const {expect} = require('chai')
 const {newUser, fetchJson, timeout, callFioApi} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
+const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
 before(async () => {
@@ -349,7 +349,7 @@ describe('B. Add 3 sets of bundled transactions for FIO Address owned by other u
         }
     })
 
-    it(`BUG: (push_transaction) user1 run addbundles with ${bundleSets} sets for FIO Address owned by user2`, async () => {
+    it(`(push_transaction) user1 run addbundles with ${bundleSets} sets for FIO Address owned by user2`, async () => {
         try {
             const result = await user1.sdk.genericAction('pushTransaction', {
                 action: 'addbundles',
@@ -529,7 +529,7 @@ describe('C. Error testing', () => {
         }
     })
 
-    it.skip(`BUG: Run addbundles with bundle_sets = 0. Expect error type ${config.error2.invalidBundleSets.statusCode}: ${config.error2.invalidBundleSets.message}`, async () => {
+    it(`Run addbundles with bundle_sets = 0. Expect error type ${config.error2.invalidBundleSets.statusCode}: ${config.error2.invalidBundleSets.message}`, async () => {
         try {
             const result = await user1.sdk.genericAction('pushTransaction', {
                 action: 'addbundles',
@@ -544,7 +544,7 @@ describe('C. Error testing', () => {
             console.log('Result: ', result);
             expect(result.status).to.equal(null);
         } catch (err) {
-            console.log('Error: ', err.json.fields);
+            //console.log('Error: ', err.json.fields);
             expect(err.json.fields[0].error).to.equal(config.error2.invalidBundleSets.message)
             expect(err.errorCode).to.equal(config.error2.invalidBundleSets.statusCode);
         }

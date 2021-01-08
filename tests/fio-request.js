@@ -1826,7 +1826,83 @@ describe(`F. get_cancelled_fio_requests paging: Cancel multiple FIO requests and
 
 })
 
-describe.skip(`G. Records Performance Testing`, () => {
+describe(`G. BUG in migr/part3-final?? Test rejection of FIO Requests`, () => {
+
+  let user1, user2, user1RequestId
+
+  it('Create users', async () => {
+    user1 = await newUser(faucet);
+    user2 = await newUser(faucet);
+  })
+
+  it(`user1 creates 10 FIO Requests for user2`, async () => {
+    for (i = 0; i < 10; i++) {
+      try {
+        const result = await user1.sdk.genericAction('requestFunds', {
+          payerFioAddress: user2.address,
+          payeeFioAddress: user1.address,
+          payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
+          amount: 1,
+          chainCode: 'BTC',
+          tokenCode: 'BTC',
+          memo: 'requestMemo',
+          maxFee: config.api.new_funds_request.fee,
+          payerFioPublicKey: user2.publicKey,
+          technologyProviderId: ''
+        })
+        //console.log('Result: ', result)
+        if (i == 1) {
+          user1RequestId = result.fio_request_id
+        }
+        expect(result.status).to.equal('requested')
+      } catch (err) {
+        console.log('Error: ', err)
+        expect(err).to.equal(null)
+      }
+    }
+  })
+
+  it('Wait a few seconds to avoid duplicate transaction.', async () => { await timeout(3000); })
+
+  it(`user2 rejects first funds request`, async () => {
+    try{
+      const result = await user2.sdk.genericAction('pushTransaction', {
+        action: 'rejectfndreq',
+        account: 'fio.reqobt',
+        data: {
+          "fio_request_id": user1RequestId,
+          "max_fee": config.api.cancel_funds_request.fee,
+          "tpid": '',
+          "actor": user2.account
+        }
+      })
+      //console.log('Result:', result)
+      expect(result.status).to.equal('request_rejected')
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it('Wait a few seconds...', async () => { await timeout(3000); })
+
+  it(`get_pending_fio_requests for user2, expect 9 results`, async () => {
+    try {
+      const result = await user2.sdk.genericAction('getPendingFioRequests', {
+        limit: '',
+        offset: ''
+      })
+      //console.log('result: ', result)
+      expect(result.requests.length).to.equal(9)
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+})
+
+describe.skip(`H. Records Performance Testing`, () => {
 
   let userA1, userA2, userB1, userB2, userC1, userC2
   const payment = 5000000000 // 5 FIO
