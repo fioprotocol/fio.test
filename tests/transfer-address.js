@@ -873,7 +873,6 @@ describe('D. transferFioAddress Error testing', () => {
 
 })
 
-
 describe('E. Confirm active producers and proxy cannot transfer address', () => {
 
     let user1, prod1, proxy1, transfer_fio_address_fee
@@ -1000,7 +999,6 @@ describe('E. Confirm active producers and proxy cannot transfer address', () => 
     })
 
 })
-
 
 describe('BRAVO ONLY: Confirm users with OBT records or Requests cannot transfer addresses', () => {
 
