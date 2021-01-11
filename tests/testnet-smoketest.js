@@ -1,3 +1,11 @@
+/**
+ * testnet-smoketest.js is the smoke test for high level regression testing of Testnet releases. 
+ * It can be run against a local devtools build by setting the target = 'local' variable.
+ * You must have two testnet accounts to run against testnet. 
+ * 
+ * All "describe" tests should be built to run independently. 
+ */
+
 require('mocha')
 const {expect} = require('chai')
 const {FIOSDK} = require('@fioprotocol/fiosdk')
@@ -5,21 +13,30 @@ const {newUser, existingUser, fetchJson} = require('../utils.js');
 config = require('../config.js');
 const { EndPoint } = require('@fioprotocol/fiosdk/lib/entities/EndPoint')
 
-let target = 'local'
 let privateKey, publicKey, testFioAddressName, privateKey2, publicKey2, testFioAddressName2
+
+/**
+* Set to target = 'local' if running against devtools build. Leave blank if running against Testnet.
+*/
+const target = '' 
 
 /**
  * Set your testnet existing private/public keys and existing fioAddresses (not needed if running locally)
  */
-privateKey = '',
-publicKey = '',
+privateKey = '5Jw78NzS2QMvjcyemCgJ9XQv8SMSEvTEuLxF8TcKf27xWcX5fmw',
+publicKey = 'FIO8k7N7jU9eyj57AfazGxMuvPGZG5hvXNUyxt9pBchnkXXx9KUuD',
 account = '',
-privateKey2 = '',
-publicKey2 = '',
+privateKey2 = '5Hv1zRFa7XRo395dfHS8xrviszPiVYeBhQjJq4TsPv53NvAcfyU',
+publicKey2 = 'FIO7b3WHTsS1wTF2dAUvE9DoDXvxYUVA8FepLW6x9Bv5rPJnUW6ab',
 account2 = '',
 testFioDomain = 'fiotestnet',
-testFioAddressName = '',
-testFioAddressName2 = ''
+testFioAddressName = 'ebtest1@fiotestnet',
+testFioAddressName2 = 'ebtest3@fiotestnet'
+
+
+/**
+ * Main Tests
+ */
 
 const fioTestnetDomain = 'fiotestnet'
 const fioTokenCode = 'FIO'
@@ -103,7 +120,6 @@ before(async () => {
   publicKeyExample = 'FIO5kJKNHwctcfUM5XZyiWSqSTM5HTzznJP9F3ZdbhaQAHEVq575o'
   pubKeyForTransfer = 'FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS'
 })
-
 
 describe('Testing generic actions', () => {
 
