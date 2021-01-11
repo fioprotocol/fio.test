@@ -23,15 +23,15 @@ const target = ''
 /**
  * Set your testnet existing private/public keys and existing fioAddresses (not needed if running locally)
  */
-privateKey = '5Jw78NzS2QMvjcyemCgJ9XQv8SMSEvTEuLxF8TcKf27xWcX5fmw',
-publicKey = 'FIO8k7N7jU9eyj57AfazGxMuvPGZG5hvXNUyxt9pBchnkXXx9KUuD',
+privateKey = '',
+publicKey = '',
 account = '',
-privateKey2 = '5Hv1zRFa7XRo395dfHS8xrviszPiVYeBhQjJq4TsPv53NvAcfyU',
-publicKey2 = 'FIO7b3WHTsS1wTF2dAUvE9DoDXvxYUVA8FepLW6x9Bv5rPJnUW6ab',
+privateKey2 = '',
+publicKey2 = '',
 account2 = '',
-testFioDomain = 'fiotestnet',
-testFioAddressName = 'ebtest1@fiotestnet',
-testFioAddressName2 = 'ebtest3@fiotestnet'
+testFioDomain = '',
+testFioAddressName = '',
+testFioAddressName2 = ''
 
 
 /**
@@ -240,7 +240,7 @@ describe('Testing generic actions', () => {
   it(`getFioBalance`, async () => {
     const result = await fioSdk.sdk.genericAction('getFioBalance', {})
 
-    expect(result).to.have.all.keys('balance','available')
+    expect(result).to.have.all.keys('balance')
     expect(result.balance).to.be.a('number')
   })
 })
@@ -600,7 +600,7 @@ describe('Testing domain actions', () => {
       fioPublicKey: publicKey2
     })
 
-    expect(result).to.have.all.keys('balance', 'available')
+    expect(result).to.have.all.keys('balance')
     expect(result.balance).to.be.a('number')
   })
 
@@ -650,7 +650,7 @@ describe('Testing domain actions', () => {
     expect(result.fee).to.be.a('number')
   })
 
-  it(`Burn fio address`, async () => {
+  it.skip(`Bahamas - Burn fio address`, async () => {
     const result = await fioSdk2.sdk.genericAction('burnFioAddress', {
         fioAddress: newFioAddress,
         maxFee: defaultFee
