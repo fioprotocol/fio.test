@@ -1,3 +1,11 @@
+/**
+ * testnet-smoketest.js is the smoke test for high level regression testing of Testnet releases. 
+ * It can be run against a local devtools build by setting the target = 'local' variable.
+ * You must have two testnet accounts to run against testnet. 
+ * 
+ * All "describe" tests should be built to run independently. 
+ */
+
 require('mocha')
 const {expect} = require('chai')
 const {FIOSDK} = require('@fioprotocol/fiosdk')
@@ -5,8 +13,12 @@ const {newUser, existingUser, fetchJson} = require('../utils.js');
 config = require('../config.js');
 const { EndPoint } = require('@fioprotocol/fiosdk/lib/entities/EndPoint')
 
-let target = 'local'
 let privateKey, publicKey, testFioAddressName, privateKey2, publicKey2, testFioAddressName2
+
+/**
+* Set to target = 'local' if running against devtools build. Leave blank if running against Testnet.
+*/
+const target = '' 
 
 /**
  * Set your testnet existing private/public keys and existing fioAddresses (not needed if running locally)
@@ -17,9 +29,14 @@ account = '',
 privateKey2 = '',
 publicKey2 = '',
 account2 = '',
-testFioDomain = 'fiotestnet',
+testFioDomain = '',
 testFioAddressName = '',
 testFioAddressName2 = ''
+
+
+/**
+ * Main Tests
+ */
 
 const fioTestnetDomain = 'fiotestnet'
 const fioTokenCode = 'FIO'
@@ -103,7 +120,6 @@ before(async () => {
   publicKeyExample = 'FIO5kJKNHwctcfUM5XZyiWSqSTM5HTzznJP9F3ZdbhaQAHEVq575o'
   pubKeyForTransfer = 'FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS'
 })
-
 
 describe('Testing generic actions', () => {
 
@@ -224,7 +240,7 @@ describe('Testing generic actions', () => {
   it(`getFioBalance`, async () => {
     const result = await fioSdk.sdk.genericAction('getFioBalance', {})
 
-    expect(result).to.have.all.keys('balance','available')
+    expect(result).to.have.all.keys('balance')
     expect(result.balance).to.be.a('number')
   })
 })
@@ -584,7 +600,7 @@ describe('Testing domain actions', () => {
       fioPublicKey: publicKey2
     })
 
-    expect(result).to.have.all.keys('balance', 'available')
+    expect(result).to.have.all.keys('balance')
     expect(result.balance).to.be.a('number')
   })
 
@@ -634,7 +650,7 @@ describe('Testing domain actions', () => {
     expect(result.fee).to.be.a('number')
   })
 
-  it(`Burn fio address`, async () => {
+  it.skip(`Bahamas - Burn fio address`, async () => {
     const result = await fioSdk2.sdk.genericAction('burnFioAddress', {
         fioAddress: newFioAddress,
         maxFee: defaultFee
