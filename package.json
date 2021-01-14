@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "license": "MIT",
     "dependencies": {
-        "@fioprotocol/fiosdk": "1.2.0",
+        "@fioprotocol/fiosdk": "github:fioprotocol/fiosdk_typescript#develop",
         "child_process": "",
         "request": "^2.34.0",
         "request-promise": "",

@@ -4,7 +4,7 @@ const {newUser, getProdVoteTotal, timeout, unlockWallet, addLock, getAccountVote
 const {FIOSDK } = require('@fioprotocol/FIOSDK')
 config = require('../config.js');
 
-let total_voted_fio
+let total_voted_fio, transfer_tokens_pub_key_fee, unregister_proxy_fee
 
 const eosio = {
   account: 'eosio',
@@ -20,14 +20,25 @@ const fiotoken = {
 
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
+
+  result = await faucet.getFee('transfer_tokens_pub_key');
+  transfer_tokens_pub_key_fee = result.fee;
+
+  result = await faucet.getFee('unregister_proxy');
+  unregister_proxy_fee = result.fee;
 })
 
 describe(`************************** vote.js ************************** \n A. Test vote counts with proxy when proxy increases and decreases funds`, () => {
 
-  let proxyA1, total_voted_fio, total_bp_votes
+  let proxyA1, user2, total_voted_fio, total_bp_votes, transfer_tokens_pub_key_fee
 
   it(`Create users`, async () => {
     proxyA1 = await newUser(faucet);
+    user2 = await newUser(faucet);
+
+    //console.log('proxyA1.account: ', proxyA1.account)
+    //console.log('proxyA1.publicKey: ', proxyA1.publicKey)
+    //console.log('proxyA1.privateKey: ', proxyA1.privateKey)
   })
 
   it(`Wait a few seconds.`, async () => { await timeout(3000) })
@@ -37,7 +48,7 @@ describe(`************************** vote.js ************************** \n A. Te
     //console.log('total_voted_fio:', total_voted_fio)
   })
 
-  it(`Get proxyA1 last_vote_weight`, async () => {
+  it(`Get proxyA1 last_vote_weight. Expect: null`, async () => {
     try {
       proxyA1.last_vote_weight = await getAccountVoteWeight(proxyA1.account);
       //console.log('proxyA1.last_vote_weight:', proxyA1.last_vote_weight)
@@ -65,13 +76,13 @@ describe(`************************** vote.js ************************** \n A. Te
         data: {
           fio_address: proxyA1.address,
           actor: proxyA1.account,
-          max_fee: config.api.register_proxy.fee
+          max_fee: config.maxFee
         }
       })
       //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
-      console.log('Error: ', err.json)
+      //console.log('Error: ', err.json)
       expect(err).to.equal('null')
     }
   })
@@ -94,7 +105,7 @@ describe(`************************** vote.js ************************** \n A. Te
           ],
           fio_address: proxyA1.address,
           actor: proxyA1.account,
-          max_fee: config.api.vote_producer.fee
+          max_fee: config.maxFee
         }
       })
       //console.log('Result: ', result)
@@ -110,23 +121,23 @@ describe(`************************** vote.js ************************** \n A. Te
   it(`Get proxyA1 last_vote_weight`, async () => {
     try {
       proxyA1.last_vote_weight = await getAccountVoteWeight(proxyA1.account);
-      //console.log('proxyA1.last_vote_weight:', proxyA1.last_vote_weight)
+      //console.log('proxyA1.last_vote_weight: ', proxyA1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
   })
 
   it(`proxyA1 FIO balance same as last_vote_weight`, async () => {
-      try {
-        const result = await proxyA1.sdk.genericAction('getFioBalance', {
-          fioPublicKey: proxyA1.publicKey
-        })
-        //console.log('User 1 fio balance', result)
-        expect(result.balance).to.equal(proxyA1.last_vote_weight)
-      } catch (err) {
-        console.log('Error', err)
-        expect(err).to.equal('null')
-      }
+    try {
+      const result = await proxyA1.sdk.genericAction('getFioBalance', {
+        fioPublicKey: proxyA1.publicKey
+      })
+      //console.log('proxyA1 fio balance', result)
+      expect(result.balance).to.equal(proxyA1.last_vote_weight)
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal('null')
+    }
   })
 
   it(`total_voted_fio increased by proxyA1 last_vote_weight`, async () => {
@@ -153,15 +164,17 @@ describe(`************************** vote.js ************************** \n A. Te
     }
   })
 
-  it('Transfer additional 500 FIO from faucet to proxyA1', async () => {
-    const result = await faucet.genericAction('transferTokens', {
+  it('Transfer additional 50 FIO from user2 to proxyA1', async () => {
+    const result = await user2.sdk.genericAction('transferTokens', {
       payeeFioPublicKey: proxyA1.publicKey,
-      amount: 500000000000,
-      maxFee: config.api.transfer_tokens_pub_key.fee,
+      amount: 50000000000,
+      maxFee: config.maxFee,
     })
     //console.log('Result', result)
     expect(result.status).to.equal('OK')
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`Get proxyA1 last_vote_weight (should be 500 more)`, async () => {
     try {
@@ -177,7 +190,7 @@ describe(`************************** vote.js ************************** \n A. Te
       let prev_total_voted_fio = total_voted_fio
       total_voted_fio = await getTotalVotedFio();
       //console.log('total_voted_fio: ', total_voted_fio)
-      expect(total_voted_fio).to.equal(prev_total_voted_fio + 500000000000)
+      expect(total_voted_fio).to.equal(prev_total_voted_fio + 50000000000)
     } catch (err) {
       console.log('Error', err)
       expect(err).to.equal('null')
@@ -189,24 +202,38 @@ describe(`************************** vote.js ************************** \n A. Te
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
       //console.log('bp1@dapixdev total_votes:', total_bp_votes)
-      expect(total_bp_votes).to.equal(prev_total_bp_votes + 500000000000)
+      expect(total_bp_votes).to.equal(prev_total_bp_votes + 50000000000)
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal('null')
     }
   })
 
-  it(`Transfer 200 FIO from proxyA1 back to faucet`, async () => {
+  it('Get transfer_tokens_pub_key fee', async () => {
+    try {
+        result = await proxyA1.sdk.getFee('transfer_tokens_pub_key');
+        //console.log('result: ', result);
+        transfer_tokens_pub_key_fee = result.fee;
+        expect(result.fee).to.be.greaterThan(0);
+    } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+    }
+  })
+
+  it(`Transfer 20 FIO from proxyA1 back to user2`, async () => {
     const result = await proxyA1.sdk.genericAction('transferTokens', {
-      payeeFioPublicKey: faucet.publicKey,
-      amount: 200000000000,
-      maxFee: config.api.transfer_tokens_pub_key.fee,
+      payeeFioPublicKey: user2.publicKey,
+      amount: 20000000000,
+      maxFee: config.maxFee,
     })
     //console.log('Result', result)
     expect(result.status).to.equal('OK')
   })
 
-  it(`Get proxyA1 last_vote_weight (should be 200 + 2 fee = 202 less)`, async () => {
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+  it(`Get proxyA1 last_vote_weight (should be 20 - transfer_tokens_pub_key_fee  less)`, async () => {
     try {
       proxyA1.last_vote_weight = await getAccountVoteWeight(proxyA1.account);
       //console.log('proxyA1.last_vote_weight:', proxyA1.last_vote_weight)
@@ -216,24 +243,24 @@ describe(`************************** vote.js ************************** \n A. Te
     }
   })
 
-  it(`total_voted_fio decreased by 202 FIO`, async () => {
+  it(`total_voted_fio decreased by 20 FIO (minus the transferTokens fee)`, async () => {
     try {
       let prev_total_voted_fio = total_voted_fio
       total_voted_fio = await getTotalVotedFio();
       //console.log('total_voted_fio: ', total_voted_fio)
-      expect(total_voted_fio).to.equal(prev_total_voted_fio - 200000000000 - config.api.transfer_tokens_pub_key.fee)
+      expect(total_voted_fio).to.equal(prev_total_voted_fio - 20000000000 - transfer_tokens_pub_key_fee)
     } catch (err) {
       console.log('Error', err)
       expect(err).to.equal('null')
     }
   })
 
-  it(`bp1@dapixdev total_votes increased by 500 FIO`, async () => {
+  it(`bp1@dapixdev total_votes increased by 20 FIO (minus the transferTokens fee)`, async () => {
     try {
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
       //console.log('bp1@dapixdev total_votes:', total_bp_votes)
-      expect(total_bp_votes).to.equal(prev_total_bp_votes - 200000000000 - config.api.transfer_tokens_pub_key.fee)
+      expect(total_bp_votes).to.equal(prev_total_bp_votes - 20000000000 - transfer_tokens_pub_key_fee)
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal('null')
@@ -244,12 +271,13 @@ describe(`************************** vote.js ************************** \n A. Te
 
 describe('B. Test vote counts with proxy when proxy increases and decreases funds', () => {
 
-  let proxyB1, voterB1, total_voted_fio, total_bp_votes
+  let proxyB1, voterB1, user1, total_voted_fio, total_bp_votes, transfer_tokens_pub_key_fee
 
   it(`Create users`, async () => {
     try {
       proxyB1 = await newUser(faucet);
       voterB1 = await newUser(faucet);
+      user1 = await newUser(faucet);
     } catch (err) {
       console.log('Error: ', err)
     }
@@ -418,17 +446,31 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     }
   })
 
-  it('Transfer additional 500 FIO from faucet to voterB1', async () => {
-    const result = await faucet.genericAction('transferTokens', {
+  it('Get transfer_tokens_pub_key fee', async () => {
+    try {
+        result = await proxyB1.sdk.getFee('transfer_tokens_pub_key');
+        //console.log('result: ', result);
+        transfer_tokens_pub_key_fee = result.fee;
+        expect(result.fee).to.be.greaterThan(0);
+    } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+    }
+  })
+
+  it('Transfer additional 500 FIO from user1 to voterB1', async () => {
+    const result = await user1.sdk.genericAction('transferTokens', {
       payeeFioPublicKey: voterB1.publicKey,
       amount: 500000000000,
-      maxFee: config.api.transfer_tokens_pub_key.fee,
+      maxFee: config.maxFee,
     })
     //console.log('Result', result)
     expect(result.status).to.equal('OK')
   })
 
-  it(`voterB1 last_vote_weight increases by 500 FIO)`, async () => {
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+  it(`voterB1 last_vote_weight increases by 500 FIO`, async () => {
     try {
       let prev_vote_weight = voterB1.last_vote_weight;
       voterB1.last_vote_weight = await getAccountVoteWeight(voterB1.account);
@@ -439,7 +481,7 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     }
   })
 
-  it(`proxyB1 last_vote_weight increases by 500 FIO)`, async () => {
+  it(`proxyB1 last_vote_weight increases by 500 FIO`, async () => {
     try {
       let prev_vote_weight = proxyB1.last_vote_weight;
       proxyB1.last_vote_weight = await getAccountVoteWeight(proxyB1.account);
@@ -472,12 +514,12 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     }
   })
 
-  it('Transfer 1000 FIO from voterB1 to faucet', async () => {
+  it('Transfer 1000 FIO from voterB1 to user1', async () => {
     try {
       const result = await voterB1.sdk.genericAction('transferTokens', {
-        payeeFioPublicKey: faucet.publicKey,
+        payeeFioPublicKey: user1.publicKey,
         amount: 1000000000000,
-        maxFee: config.api.transfer_tokens_pub_key.fee,
+        maxFee: config.maxFee,
       })
       //console.log('Result', result)
       expect(result.status).to.equal('OK')
@@ -486,12 +528,14 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     }
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
   it(`voterB1 last_vote_weight decreases by (1000 + xfer fee) FIO)`, async () => {
     try {
       let prev_vote_weight = voterB1.last_vote_weight;
       voterB1.last_vote_weight = await getAccountVoteWeight(voterB1.account);
       //console.log('voterB1.last_vote_weight:', voterB1.last_vote_weight);
-      expect(voterB1.last_vote_weight).to.equal(prev_vote_weight - 1000000000000 - config.api.transfer_tokens_pub_key.fee);
+      expect(voterB1.last_vote_weight).to.equal(prev_vote_weight - 1000000000000 - transfer_tokens_pub_key_fee);
     } catch (err) {
       console.log('Error: ', err)
     }
@@ -502,7 +546,7 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
       let prev_vote_weight = proxyB1.last_vote_weight;
       proxyB1.last_vote_weight = await getAccountVoteWeight(proxyB1.account);
       //console.log('proxyB1.last_vote_weight:', proxyB1.last_vote_weight);
-      expect(proxyB1.last_vote_weight).to.equal(prev_vote_weight - 1000000000000 - config.api.transfer_tokens_pub_key.fee);
+      expect(proxyB1.last_vote_weight).to.equal(prev_vote_weight - 1000000000000 - transfer_tokens_pub_key_fee);
     } catch (err) {
       console.log('Error: ', err)
     }
@@ -513,7 +557,7 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
       //console.log('total_voted_fio: ', total_voted_fio)
-      expect(total_voted_fio).to.equal(prev_total_voted_fio - 1000000000000 - config.api.transfer_tokens_pub_key.fee)
+      expect(total_voted_fio).to.equal(prev_total_voted_fio - 1000000000000 - transfer_tokens_pub_key_fee)
     } catch (err) {
       console.log('Error', err)
     }
@@ -524,7 +568,7 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
       //console.log('bp1@dapixdev total_votes:', total_bp_votes)
-      expect(total_bp_votes).to.equal(prev_total_bp_votes - 1000000000000 - config.api.transfer_tokens_pub_key.fee)
+      expect(total_bp_votes).to.equal(prev_total_bp_votes - 1000000000000 - transfer_tokens_pub_key_fee)
     } catch (err) {
       console.log('Error: ', err)
     }
@@ -534,11 +578,13 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     const result = await proxyB1.sdk.genericAction('transferTokens', {
       payeeFioPublicKey: voterB1.publicKey,
       amount: 800000000000,
-      maxFee: config.api.transfer_tokens_pub_key.fee,
+      maxFee: config.maxFee,
     })
     //console.log('Result', result)
     expect(result.status).to.equal('OK')
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`voterB1 last_vote_weight increases by 800 FIO)`, async () => {
     try {
@@ -556,7 +602,7 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
       let prev_vote_weight = proxyB1.last_vote_weight;
       proxyB1.last_vote_weight = await getAccountVoteWeight(proxyB1.account);
       //console.log('proxyB1.last_vote_weight:', proxyB1.last_vote_weight);
-      expect(proxyB1.last_vote_weight).to.equal(prev_vote_weight - config.api.transfer_tokens_pub_key.fee);
+      expect(proxyB1.last_vote_weight).to.equal(prev_vote_weight - transfer_tokens_pub_key_fee);
     } catch (err) {
       console.log('Error: ', err)
     }
@@ -567,7 +613,7 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
       //console.log('total_voted_fio: ', total_voted_fio)
-      expect(total_voted_fio).to.equal(prev_total_voted_fio - config.api.transfer_tokens_pub_key.fee)
+      expect(total_voted_fio).to.equal(prev_total_voted_fio - transfer_tokens_pub_key_fee)
     } catch (err) {
       console.log('Error', err)
     }
@@ -614,6 +660,8 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     }
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
   it(`Get proxyB1 FIO Balance post unregproxy`, async () => {
     try {
       const result = await proxyB1.sdk.genericAction('getFioBalance', {
@@ -657,11 +705,11 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     }
   })
 
-  it(`Transfer 200 FIO from proxyB1 back to faucet`, async () => {
+  it(`Transfer 200 FIO from proxyB1 back to user1`, async () => {
     const result = await proxyB1.sdk.genericAction('transferTokens', {
-      payeeFioPublicKey: faucet.publicKey,
+      payeeFioPublicKey: user1.publicKey,
       amount: 200000000000,
-      maxFee: config.api.transfer_tokens_pub_key.fee,
+      maxFee: config.maxFee,
     });
     //console.log('Result', result)
     expect(result.status).to.equal('OK')  ;
