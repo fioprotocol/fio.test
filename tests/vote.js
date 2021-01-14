@@ -4,6 +4,8 @@ const {newUser, existingUser, getProdVoteTotal, timeout, unlockWallet, addLock, 
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
+let total_voted_fio, transfer_tokens_pub_key_fee, unregister_proxy_fee
+
 const eosio = {
   account: 'eosio',
   publicKey: 'FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS',
@@ -18,7 +20,13 @@ const fiotoken = {
 
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
- })
+
+  result = await faucet.getFee('transfer_tokens_pub_key');
+  transfer_tokens_pub_key_fee = result.fee;
+
+  result = await faucet.getFee('unregister_proxy');
+  unregister_proxy_fee = result.fee;
+})
 
 describe(`************************** vote.js ************************** \n A. Test vote counts with proxy when proxy increases and decreases funds`, () => {
 
@@ -1439,6 +1447,10 @@ describe('G. Test multiple users proxying and unproxying votes to same proxy', (
     }
   })
 
+  it('Wait a few seconds.', async () => {
+    await timeout(3000);
+  })
+
   it(`bp1@dapixdev total_votes increased by proxyG1 last_vote_weight`, async () => {
     try {
       prev_total_bp_votes = total_bp_votes;
@@ -2387,6 +2399,10 @@ describe('FIP-9: G.3 Test proxy_vote with and without FIO Address', () => {
     }
   })
 
+  it('Wait a few seconds.', async () => {
+    await timeout(3000);
+  })
+
   it(`Confirm proxy_vote fee for voterG8 = ${config.api.proxy_vote.fee}`, async () => {
     try {
       result = await voterG8.sdk.getFee('proxy_vote', voterG8.address);
@@ -2593,6 +2609,10 @@ describe('FIP-9: G.3 Test proxy_vote with and without FIO Address', () => {
       console.log('Error', err);
       expect(err).to.equal(null);
     }
+  })
+
+  it('Wait a few seconds.', async () => {
+    await timeout(3000);
   })
 
   it(`Confirm proxy_vote fee for voterG10 = ${config.api.proxy_vote.fee}`, async () => {
@@ -2804,7 +2824,7 @@ describe('Fixed in Gemini: H. When a user proxies their vote, the total_voted_fi
 
 })
 
-describe('v1.2.0 release only. H. Confirm voter data is returned with get_account', () => {
+describe.skip('Bahamas release only. H. Confirm voter data is returned with get_account', () => {
   let voterH1
 
   it(`Create users`, async () => {

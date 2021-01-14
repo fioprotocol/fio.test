@@ -1535,7 +1535,6 @@ describe(`E. Test cancel_funds_request error conditions`, () => {
 })
 
 describe(`F. get_cancelled_fio_requests paging: Cancel multiple FIO requests and page through using get_cancelled_fio_requests`, () => {
-
   let userC1, requestID = [], requestCount = 20
 
   it('Create userC1', async () => {

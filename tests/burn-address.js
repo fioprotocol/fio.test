@@ -561,7 +561,7 @@ describe('D. burnFioAddress Error testing', () => {
 
 })
 
-describe('E. Test burnfioaddress SDK call (uses chain/burn_fio_address endpoint)', () => {
+describe.skip('E. Test burnfioaddress SDK call (uses chain/burn_fio_address endpoint)', () => {
 
     let walletA1, walletA1FioNames
 

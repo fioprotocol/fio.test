@@ -330,7 +330,7 @@ describe(`Initial OBT record. Confirm new OBT Sends are going into both tables`,
         scope: 'fio.reqobt',         // Account that owns the data
         table: 'recordobts',        // Table name
         limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
+        reverse: true,           // Optional: Get reversed data
         show_payer: false          // Optional: Show ram payer
       }
       obts = await callFioApi("get_table_rows", json);
@@ -450,7 +450,7 @@ describe(`Initial FIO Request record. Confirm NEW Requests are going into both t
         scope: 'fio.reqobt',         // Account that owns the data
         table: 'fiotrxts',        // Table name
         limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
+        reverse: true,           // Optional: Get reversed data
         show_payer: false          // Optional: Show ram payer
       }
       requests = await callFioApi("get_table_rows", json);
