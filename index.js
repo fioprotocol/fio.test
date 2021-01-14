@@ -3,7 +3,7 @@ const {expect} = require('chai')
 
 describe('TEST SUITE', () => {
 
-  //require('./tests/bravo-migr-test.js'); 
+  require('./tests/bravo-migr-test.js'); //This is required when launching with 2.3.0 (bravo) to do the full table migration.
 
   //require('./tests/history.js'); // Only run against history node.
   require('./tests/addaddress.js'); // v1.0.x  Also includes FIP-13 tests.

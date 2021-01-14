@@ -849,16 +849,16 @@ describe(`Go through recordobts (old table) and confirm each entry is in fiotrxt
           //console.log('requests: ', newRequests);
           for (newRequest in newRequests.rows) {
             if (newRequests.rows[newRequest].payer_fio_addr == obts.rows[obt].payer_fio_addr) {
-              console.log(count);
-              console.log('recordobts:')
-              console.log('id: ', obts.rows[obt].id);
-              console.log('payer_fio_addr: ', obts.rows[obt].payer_fio_addr); 
-              console.log('payee_fio_addr: ', obts.rows[obt].payee_fio_addr); 
-              console.log('fiotrxts:')
-              console.log('id: ', newRequests.rows[newRequest].id);
-              console.log('fio_request_id: ', newRequests.rows[newRequest].fio_request_id);
-              console.log('payer_fio_addr: ', newRequests.rows[newRequest].payer_fio_addr); 
-              console.log('payee_fio_addr: ', newRequests.rows[newRequest].payee_fio_addr); 
+              //console.log(count);
+              //console.log('recordobts:')
+              //console.log('id: ', obts.rows[obt].id);
+              //console.log('payer_fio_addr: ', obts.rows[obt].payer_fio_addr); 
+              //console.log('payee_fio_addr: ', obts.rows[obt].payee_fio_addr); 
+              //console.log('fiotrxts:')
+              //console.log('id: ', newRequests.rows[newRequest].id);
+              //console.log('fio_request_id: ', newRequests.rows[newRequest].fio_request_id);
+              //console.log('payer_fio_addr: ', newRequests.rows[newRequest].payer_fio_addr); 
+              //console.log('payee_fio_addr: ', newRequests.rows[newRequest].payee_fio_addr); 
 
               expect(obts.rows[obt].payer_fio_addr).to.equal(newRequests.rows[newRequest].payer_fio_addr);
               expect(obts.rows[obt].payee_fio_addr).to.equal(newRequests.rows[newRequest].payee_fio_addr);
@@ -955,19 +955,19 @@ describe(`Go through fioreqctxts (old table) and confirm each entry is in fiotrx
           //console.log('requests: ', newRequests);
           for (newRequest in newRequests.rows) {
             if (newRequests.rows[newRequest].fio_request_id == reqs.rows[req].fio_request_id) {
-              console.log(count);
-              console.log('fioreqctxts:')
-              console.log('fio_request_id: ', reqs.rows[req].fio_request_id);
-              console.log('payer_fio_addr: ', reqs.rows[req].payer_fio_addr); 
-              console.log('payee_fio_addr: ', reqs.rows[req].payee_fio_addr); 
-              console.log('fioreqstss:')
-              console.log('status (0 = not found): ', currentReqStatus);
-              console.log('fiotrxts:')
-              console.log('id: ', newRequests.rows[newRequest].id);
-              console.log('fio_request_id: ', newRequests.rows[newRequest].fio_request_id);
-              console.log('payer_fio_addr: ', newRequests.rows[newRequest].payer_fio_addr); 
-              console.log('payee_fio_addr: ', newRequests.rows[newRequest].payee_fio_addr); 
-              console.log('fio_data_type: ', newRequests.rows[newRequest].fio_data_type); 
+              //console.log(count);
+              //console.log('fioreqctxts:')
+              //console.log('fio_request_id: ', reqs.rows[req].fio_request_id);
+              //console.log('payer_fio_addr: ', reqs.rows[req].payer_fio_addr); 
+              //console.log('payee_fio_addr: ', reqs.rows[req].payee_fio_addr); 
+              //console.log('fioreqstss:')
+              //console.log('status (0 = not found): ', currentReqStatus);
+              //console.log('fiotrxts:')
+              //console.log('id: ', newRequests.rows[newRequest].id);
+              //console.log('fio_request_id: ', newRequests.rows[newRequest].fio_request_id);
+              //console.log('payer_fio_addr: ', newRequests.rows[newRequest].payer_fio_addr); 
+              //console.log('payee_fio_addr: ', newRequests.rows[newRequest].payee_fio_addr); 
+              //console.log('fio_data_type: ', newRequests.rows[newRequest].fio_data_type); 
 
               expect(reqs.rows[req].payer_fio_addr).to.equal(newRequests.rows[newRequest].payer_fio_addr);
               expect(reqs.rows[req].payee_fio_addr).to.equal(newRequests.rows[newRequest].payee_fio_addr);
