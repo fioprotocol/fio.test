@@ -55,9 +55,7 @@ describe('************************** transfer-domain.js ************************
       expect(result.status).to.equal('OK')  
   })
 
-  it('Wait a few seconds.', async () => {
-    await timeout(3000);
-  })
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`getFioNames for walletA1 and confirm it owns 2 domains and that one of them is walletA1.domain2`, async () => {
       try {
@@ -149,6 +147,8 @@ describe('************************** transfer-domain.js ************************
         expect(err).to.equal(null);
     } 
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it('Confirm proper fee was collected', async () => {
     expect(feeCollected).to.equal(transfer_fio_domain_fee)
@@ -351,7 +351,7 @@ describe('B. Transfer a domain to FIO Public Key which does not map to existing 
     } catch (err) {
       //console.log('Error', err)
       expect(err.error.message).to.equal(config.error2.noFioNames.message)
-      expect(err.statusCode).to.equal(config.error2.noFioNames.type);
+      expect(err.statusCode).to.equal(config.error2.noFioNames.statusCode);
     }
   })
 

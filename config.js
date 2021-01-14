@@ -15,7 +15,7 @@ const config = {
     URL: TESTURL,
     BASE_URL: TESTURL + '/v1/',
     CLIO: DEVTOOLSDIR + '/bin/clio -u ' + TESTURL,
-    WALLETKEY: 'PW5HtgbxQztpSqZvpBveGitSxBZWvF8Q4kw3wxZhCjYWehVtLj3ns', // Unlocks local FIO wallet
+    WALLETKEY: 'PW5JqTyLtZXzmDhVjP6jKK2yJ4tbXA4Gi9zaTepYF9b73U1DZhzmv', // Unlocks local FIO wallet
 
     //use this prod key file after you get a copy of the file from Ed, then you can run the
     //fee-voting-fee-setting.js.
@@ -25,14 +25,15 @@ const config = {
     FAUCET_PRIV_KEY: '5KF2B21xT5pE5G3LNA6LKJc6AP2pAd2EnfpAUrJH12SFV8NtvCD',
     FAUCET_PUB_KEY: 'FIO6zwqqzHQcqCc2MB4jpp1F73MXpisEQe2SDghQFSGQKoAPjvQ3H',
 
-    FUNDS: 2000000000000,
+    FUNDS: 3000000000000,
     BILLION: 1000000000,
     maxFee: 800000000000,
+    defaultBundleCount: 100,
 
     error: {
         validationError: 'ValidationError',
         validationError2: 'Validation error',
-        signatureError: 'Request signature not valid or not allowed.',
+        signatureError: 'Request signature is not valid or this user is not allowed to sign this transaction.',
         invalidAmount: 'Invalid amount value',
         invalidKey: 'Invalid FIO Public Key',
         keyNotFound: 'Public key not found',
@@ -71,11 +72,15 @@ const config = {
         invalidRequestStatus: 'Only pending requests can be cancelled.',
         noPendingRequests: 'No pending FIO Requests',
         invalidTpid: 'TPID must be empty or valid FIO address',
-        invalidRequestSignature: 'Request signature not valid or not allowed.',
+        invalidRequestSignature: 'Request signature is not valid or this user is not allowed to sign this transaction.',
         invalidFeeValue: 'Invalid fee value',
         activeProducer: 'FIO Address is active producer. Unregister first.',
         activeProxy: 'FIO Address is proxy. Unregister first.',
-        invalidTpidSdk: 'tpid must match /^(?:(?=.{3,64}$)[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}@[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}$)/gim.'
+        invalidTpidSdk: 'tpid must match /^(?:(?=.{3,64}$)[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}@[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}$)/gim.',
+        invalidTokenCode: 'Invalid token code format',
+        ivalidRejection: 'Only pending requests can be rejected.',
+        invalidPayerFioAddress: 'payerFioAddress must match /^(?:(?=.{3,64}$)[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}@[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}$)/gim.',
+        invalidPayeeFioAddress: 'payeeFioAddress must match /^(?:(?=.{3,64}$)[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}@[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}$)/gim.'
     },
 
     error2: {
@@ -87,6 +92,10 @@ const config = {
             message: 'FIO Address not found',
             statusCode: 404
         },
+        feeExceedsMax: {
+            message: 'Fee exceeds supplied maximum.',
+            statusCode: 400
+        },
         invalidFioAddress: {
             message: 'Invalid FIO Address',
             statusCode: 400
@@ -104,56 +113,44 @@ const config = {
             statusCode: 403
         },
         invalidSignature: {
-            message: 'Request signature not valid or not allowed.',
+            message: 'Request signature is not valid or this user is not allowed to sign this transaction.',
             statusCode: 403
-        },
-        noFioNames: {
-            message: 'No FIO names',
-            type: 404
-        },
-        addressNotFound: {
-            message: 'FIO Address not found',
-            type: 404
-        },
-        invalidFioAddress: {
-            message: 'Invalid FIO Address',
-            type: 400
-        },
-        invalidPublicAddress: {
-            message: 'Invalid public address',
-            type: 400
-        },
-        invalidTpid: {
-            message: 'TPID must be empty or valid FIO address',
-            type: 400
-        },
-        invalidActor: {
-            message: 'Invalid Actor',
-            type: 403
-        },
-        invalidSignature: {
-            message: 'Request signature not valid or not allowed.',
-            type: 403
         },
         invalidAction: {
             message: 'Action invalid or not found',
-            type: 500
+            statusCode: 500
         },
         invalidContract: {
             message: 'Invalid Contract',
-            type: 500
+            statusCode: 500
         },
-        invalidActor: {
+        invalidActorAuth: {
             message: 'Missing required authority',
-            type: 500
+            statusCode: 500
         },
         accountExists: {
             message: 'Account name already exists',
-            type: 500
+            statusCode: 500
         },
         noActions: {
             message: 'No actions',
-            type: 404
+            statusCode: 404
+        },
+        invalidBundleSets: {
+            message: 'Invalid bundle_sets value',
+            statusCode: 400
+        },
+        invalidFeeValue: {
+            message: 'Invalid fee value',
+            statusCode: 400
+        },
+        insufficientFunds: {
+            message: 'Insufficient funds to cover fee',
+            statusCode: 400
+        },
+        fioAddressNotRegistered: {
+            message: 'FIO Address not registered',
+            statusCode: 400
         }
     },
 
@@ -335,7 +332,8 @@ const config = {
         UPDATEAUTHRAM: 1024,
         XFERDOMAINRAM: 512,
         XFERADDRESSRAM: 512,
-        CANCELFUNDSRAM: 512
+        CANCELFUNDSRAM: 512,
+        BUNDLEVOTERAM: 0
     },
 
     public_addresses: [

@@ -71,7 +71,7 @@ describe(`FIO Requests (error conditions only)`, () => {
       expect(result).to.equal(null);
     } catch (err) {
       //console.log('Error', err);
-      expect(err.json.fields[0].error).to.equal('No such FIO Request ');
+      expect(err.json.fields[0].error).to.equal('No such FIO Request');
       expect(err.errorCode).to.equal(400);
     }
   })

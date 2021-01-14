@@ -418,3 +418,222 @@ describe.skip(`C. FIP-13. Get_pub_addresses endpoint`, () => {
     })
 
 })
+
+describe.skip(`FIP18. Chain-level addressing`, () => {
+
+    let userB1
+    let addressA = 'fdsfsdfsdzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9'
+    let addressB = 'j0xnwlffdn0zuyaslx3c90q7n9g9cvbfbjndghj56ufhghfdgh'
+    let addressC = 'fdn0zuyaslx3c90q7n9g9cvbfbjndghj56ufhghdfsgfsfdgh'
+    let addressD = 'k0n0zuyaslx3c90q7n9g9cvbfockeahj56ufhghdfsgfsfdgh'
+
+    it(`Create users`, async () => {
+        userB1 = await newUser(faucet);
+    })
+
+    it(`add_pub_address with chain_code ETH, token_code ETH, and public_address addressA`, async () => {
+        const result = await userB1.sdk.genericAction('addPublicAddresses', {
+            fioAddress: userB1.address,
+            publicAddresses: [
+                {
+                    chain_code: 'ETH',
+                    token_code: 'ETH',
+                    public_address: addressA,
+                }
+            ],
+            maxFee: config.api.add_pub_address.fee,
+            walletFioAddress: ''
+        })
+        //console.log('Result:', result)
+        expect(result.status).to.equal('OK')
+    })
+
+    it(`add_pub_address with chain_code ETH, token_code *, and public_address addressB`, async () => {
+        const result = await userB1.sdk.genericAction('addPublicAddresses', {
+            fioAddress: userB1.address,
+            publicAddresses: [
+                {
+                    chain_code: 'ETH',
+                    token_code: '*',
+                    public_address: addressB,
+                }
+            ],
+            maxFee: config.api.add_pub_address.fee,
+            walletFioAddress: ''
+        })
+        //console.log('Result:', result)
+        expect(result.status).to.equal('OK')
+    })
+
+    it(`add_pub_address with chain_code ETH,, token_code *, and public_address addressC`, async () => {
+        const result = await userB1.sdk.genericAction('addPublicAddresses', {
+            fioAddress: userB1.address,
+            publicAddresses: [
+                {
+                    chain_code: 'ETH',
+                    token_code: '*',
+                    public_address: addressC,
+                }
+            ],
+            maxFee: config.api.add_pub_address.fee,
+            walletFioAddress: ''
+        })
+        //console.log('Result:', result)
+        expect(result.status).to.equal('OK')
+    })
+
+    it('get_pub_address with chain_code ETH and token_code *. Expect public_address addressC', async () => {
+        try {
+            const result = await userB1.sdk.genericAction('getPublicAddress', {
+                fioAddress: userB1.address,
+                chainCode: "ETH",
+                tokenCode: "*"
+            })
+            //console.log('Result', result)
+            expect(result.public_address).to.equal('fdn0zuyaslx3c90q7n9g9cvbfbjndghj56ufhghdfsgfsfdgh')
+        } catch (err) {
+            console.log('Error', err)
+        }
+    })
+
+    it('get_pub_address with chain_code ETH and random token_code. Expect public_address addressC', async () => {
+        try {
+            const result = await userB1.sdk.genericAction('getPublicAddress', {
+                fioAddress: userB1.address,
+                chainCode: "ETH",
+                tokenCode: "EKJTKG"
+            })
+            //console.log('Result', result)
+            expect(result.public_address).to.equal(addressC)
+        } catch (err) {
+            console.log('Error', err)
+        }
+    })
+
+    it('get_pub_address with chain_code ETH, token_code ETH. Expect public_address addressA', async () => {
+        try {
+            const result = await userB1.sdk.genericAction('getPublicAddress', {
+                fioAddress: userB1.address,
+                chainCode: "ETH",
+                tokenCode: "ETH"
+            })
+            //console.log('Result', result)
+            expect(result.public_address).to.equal(addressA)
+        } catch (err) {
+            console.log('Error', err)
+        }
+    })
+
+    it(`remove_pub_address with with chain_code ETH, token_code *, and public_address addressC`, async () => {
+        try {
+            const result = await userB1.sdk.genericAction('removePublicAddresses', {
+                fioAddress: userB1.address,
+                publicAddresses: [
+                    {
+                        chain_code: 'ETH',
+                        token_code: '*',
+                        public_address: addressC,
+                    }
+                ],
+                maxFee: config.api.remove_pub_address.fee,
+                tpid: ''
+            })
+            //console.log('Result:', result)
+            expect(result).to.have.all.keys('status', 'fee_collected')
+        } catch (err) {
+            console.log('Error', err)
+            expect(err).to.equal(null)
+        }
+    })
+
+    it(`get_pub_address with chain_code ETH and random token_code. Expect ${config.error.publicAddressFound}`, async () => {
+        try {
+            const result = await userB1.sdk.genericAction('getPublicAddress', {
+                fioAddress: userB1.address,
+                chainCode: "ETH",
+                tokenCode: "EKJTKG"
+            })
+        } catch (err) {
+            expect(err.json.message).to.equal(config.error.publicAddressFound)
+        }
+    })
+
+    it('get_pub_address with chain_code ETH, token code ETH. Expect public_address addressA', async () => {
+        try {
+            const result = await userB1.sdk.genericAction('getPublicAddress', {
+                fioAddress: userB1.address,
+                chainCode: "ETH",
+                tokenCode: "ETH"
+            })
+            //console.log('Result', result)
+            expect(result.public_address).to.equal(addressA)
+        } catch (err) {
+            console.log('Error', err)
+        }
+    })
+
+    it(`add_pub_address with chain_code ETH,, token_code **, and public_address addressD. Expect ${config.error.invalidTokenCode}`, async () => {
+      try {
+        const result = await userB1.sdk.genericAction('addPublicAddresses', {
+            fioAddress: userB1.address,
+            publicAddresses: [
+                {
+                    chain_code: 'ETH',
+                    token_code: '**',
+                    public_address: addressD,
+                }
+            ],
+            maxFee: config.api.add_pub_address.fee,
+            walletFioAddress: ''
+        })
+        expect(result).to.equal(null)
+      } catch (err) {
+        //console.log('err:', err.json.fields)
+        expect(err.json.fields[0].error).to.equal(config.error.invalidTokenCode)
+    }
+  })
+
+})
+
+describe(`Remap FIO Address`, () => {
+  let user1
+  let newAddress = "FIOxyz"
+
+  it(`Create users`, async () => {
+    user1 = await newUser(faucet);
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+  it(`Remap FIO address to ${newAddress}`, async () => {
+    const result = await user1.sdk.genericAction('addPublicAddresses', {
+        fioAddress: user1.address,
+        publicAddresses: [
+            {
+                chain_code: 'FIO',
+                token_code: 'FIO',
+                public_address: newAddress,
+            }
+        ],
+        maxFee: config.api.add_pub_address.fee,
+        walletFioAddress: ''
+    })
+    //console.log('Result:', result)
+    expect(result.status).to.equal('OK')
+})
+
+  it(`Get all public addresses for user1 FIO Address (get_pub_addresses). Expect public_address to be mapped to: ${newAddress}`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('getPublicAddress', {
+        fioAddress: user1.address,
+        chainCode: "FIO",
+        tokenCode: "FIO"
+    })
+      //console.log('Result', result)
+      expect(result.public_address).to.equal(newAddress)
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+})

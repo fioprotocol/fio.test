@@ -721,7 +721,7 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
     }
   })
 
-  it(`Register domain:  succeeds`, async () => {
+  it(`[BD-2244] Register domain:  succeeds`, async () => {
     try {
     domsdk = new FIOSDK(transferdomainkey.privateKey, transferdomainkey.publicKey, config.BASE_URL, fetchJson);
     domsdk.domain2 = generateFioDomain(8)
@@ -760,7 +760,7 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
 })
 
 
-describe(`C. staking incentives, canvote = false`, () => {
+describe.skip(`C. staking incentives, canvote = false`, () => {
 
   let balancebefore, balanceafter, feetransferlocked,
   stakeKey1, stakeKey2, stakeKey3,stakeKey4, stakeKey5
