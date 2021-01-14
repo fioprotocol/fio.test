@@ -3438,7 +3438,7 @@ describe(`Test total_voted_fio when user votes for proxy`, () => {
     }
   })
 
-  it(`Wait a few seconds.`, async () => { await timeout(5000) })
+  it(`Wait a few seconds.`, async () => { await timeout(6000) })
 
   it(`bp1@dapixdev total_votes increased by faucet last_vote_weight`, async () => {
     try {

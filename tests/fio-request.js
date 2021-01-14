@@ -159,16 +159,16 @@ describe(`************************** fio-request.js ************************** \
     await timeout(7000);
   })
 
-  it(`get_sent_fio_requests for userA1`, async () => {
+  it.skip(`BUG (bahamas): BD-2306 get_sent_fio_requests for userA1`, async () => {
     try {
       const result = await userA1.sdk.genericAction('getSentFioRequests', {
         limit: '',
         offset: ''
       })
       console.log('result: ', result)
-      //console.log('content: ', result.requests[0].content)
-      //expect(result.requests[0].content.memo).to.equal(requestMemo)
-      //expect(result.requests[0].status).to.equal('sent_to_blockchain')
+      console.log('content: ', result.requests[0].content)
+      expect(result.requests[0].content.memo).to.equal(requestMemo)
+      expect(result.requests[0].status).to.equal('sent_to_blockchain')
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal(null)

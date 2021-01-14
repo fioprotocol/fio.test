@@ -4,6 +4,7 @@ const {FIOSDK } = require('@fioprotocol/fiosdk')
 const {fetchJson, timeout, generateFioDomain, generateFioAddress, createKeypair, getTotalVotedFio, getAccountVoteWeight, getProdVoteTotal, callFioApi} = require('../utils.js');
 config = require('../config.js');
 
+let transfer_tokens_pub_key_fee
 let privateKey, publicKey, privateKey2, publicKey2, account, account2, testFioDomain, testFioAddressName, testFioAddressName2
 let fioSdk, fioSdk2, fioSdkFaucet
 
@@ -34,6 +35,16 @@ before(async () => {
   publicKey2 = keys2.publicKey
   account2 = keys2.account
   fioSdk2 = new FIOSDK(privateKey2, publicKey2, config.BASE_URL, fetchJson);
+
+  it('Get transfer_tokens_pub_key fee', async () => {
+    try {
+        result = await user1.sdk.getFee('transfer_tokens_pub_key', user1.address);
+        transfer_tokens_pub_key_fee = result.fee;
+    } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+    }
+  })
 })
 
 describe(`************************** transfer-locked-tokens-account-tests.js ************************** \n A. Create accounts for tests`, () => {
@@ -863,7 +874,22 @@ describe('Request funds, approve and send', () => {
     }
   })
 
-  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+  it(`get_sent_fio_requests for fioSdk2`, async () => {
+    try {
+      const result = await fioSdk2.genericAction('getSentFioRequests', {
+        limit: '',
+        offset: ''
+      })
+      //console.log('result: ', result)
+      //console.log('content: ', result.requests[0].content)
+      expect(result.requests[0].fio_request_id).to.equal(requestId)
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
   it(`getPendingFioRequests`, async () => {
     await timeout(4000)
@@ -901,14 +927,19 @@ describe('Request funds, approve and send', () => {
     expect(result.fee_collected).to.be.a('number')
   })
 
-  it(`Wait a few seconds.`, async () => { await timeout(4000) })
+  it(`Wait a few seconds.`, async () => { await timeout(8000) })
 
-  it(`getSentFioRequests`, async () => {
-    const result = await fioSdk2.genericAction('getSentFioRequests', {})
+  it.skip(`BUG (bahamas): BD-2306 getSentFioRequests for fioSdk2`, async () => {
+    const result = await fioSdk2.genericAction('getSentFioRequests', {
+      limit: '',
+      offset: ''
+    })
+    console.log('Result: ', result)
     expect(result).to.have.all.keys('requests', 'more')
     expect(result.requests).to.be.a('array')
     expect(result.more).to.be.a('number')
     const pendingReq = result.requests.find(pr => parseInt(pr.fio_request_id) === parseInt(requestId))
+    console.log('pendingReq: ', pendingReq)
     expect(pendingReq).to.have.all.keys('fio_request_id', 'payer_fio_address', 'payee_fio_address', 'payee_fio_public_key', 'payer_fio_public_key', 'status', 'time_stamp', 'content')
     expect(pendingReq.fio_request_id).to.be.a('number')
     expect(pendingReq.fio_request_id).to.equal(requestId)
@@ -1163,12 +1194,16 @@ describe('Record obt data, check', () => {
     expect(obtData.payee_fio_address).to.equal(testFioAddressName2)
   })
 
-  it(`Payee getObtData`, async () => {
+  it.skip(`BUG BD-2305 (not all results getting returned) Payee getObtData`, async () => {
     const result = await fioSdk2.genericAction('getObtData', { tokenCode: fioTokenCode })
+    console.log('result: ', result)
     expect(result).to.have.all.keys('obt_data_records', 'more')
     expect(result.obt_data_records).to.be.a('array')
     expect(result.more).to.be.a('number')
     const obtData = result.obt_data_records.find(pr => pr.content.obt_id === obtId)
+    console.log('obt_data_records[0]: ', result.obt_data_records[0])
+    console.log('obtId: ', obtId)
+    console.log('obtData: ', obtData)
     expect(obtData).to.have.all.keys('fio_request_id', 'payer_fio_address', 'payee_fio_address', 'payee_fio_public_key', 'payer_fio_public_key', 'status', 'time_stamp', 'content')
     expect(obtData.content.obt_id).to.be.a('string')
     expect(obtData.content.obt_id).to.equal(obtId)
@@ -1223,10 +1258,12 @@ describe(`Test locked token accounts with proxy voting`, () => {
       //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
-      console.log('Error: ', err.json)
+      console.log('Error: ', err.json.error.details)
       expect(err).to.equal('null')
     }
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
   it(`Get total_voted_fio before fioSdk votes`, async () => {
     total_voted_fio = await getTotalVotedFio();
@@ -1254,6 +1291,8 @@ describe(`Test locked token accounts with proxy voting`, () => {
       expect(err).to.equal('null')
     }
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
   it(`Get fioSdk last_vote_weight`, async () => {
     try {
@@ -1311,7 +1350,7 @@ describe(`Test locked token accounts with proxy voting`, () => {
     expect(result.status).to.equal('OK')
   })
 
-  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+  it(`Wait a few seconds.`, async () => { await timeout(7000) })
 
   it(`Get fioSdk last_vote_weight (should be 500 more)`, async () => {
     try {
@@ -1358,7 +1397,7 @@ describe(`Test locked token accounts with proxy voting`, () => {
     expect(result.status).to.equal('OK')
   })
 
-  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+  it(`Wait a few seconds.`, async () => { await timeout(7000) })
 
   it(`Get fioSdk last_vote_weight (should be 200 + 2 fee = 202 less)`, async () => {
     try {
@@ -1370,24 +1409,24 @@ describe(`Test locked token accounts with proxy voting`, () => {
     }
   })
 
-  it(`total_voted_fio decreased by 202 FIO`, async () => {
+  it(`total_voted_fio decreased by 200 - transfer_tokens_pub_key_fee`, async () => {
     try {
       let prev_total_voted_fio = total_voted_fio
       total_voted_fio = await getTotalVotedFio();
       //console.log('total_voted_fio: ', total_voted_fio)
-      expect(total_voted_fio).to.equal(prev_total_voted_fio - 200000000000 - config.api.transfer_tokens_pub_key.fee)
+      expect(total_voted_fio).to.equal(prev_total_voted_fio - 200000000000 - transfer_tokens_pub_key_fee)
     } catch (err) {
       console.log('Error', err)
       expect(err).to.equal('null')
     }
   })
 
-  it(`bp1@dapixdev total_votes increased by 500 FIO`, async () => {
+  it(`bp1@dapixdev total_votes descreased by 200 - transfer_tokens_pub_key_fee`, async () => {
     try {
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
       //console.log('bp1@dapixdev total_votes:', total_bp_votes)
-      expect(total_bp_votes).to.equal(prev_total_bp_votes - 200000000000 - config.api.transfer_tokens_pub_key.fee)
+      expect(total_bp_votes).to.equal(prev_total_bp_votes - 200000000000 - transfer_tokens_pub_key_fee)
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal('null')
