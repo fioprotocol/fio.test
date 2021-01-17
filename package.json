@@ -27,7 +27,7 @@
         "typescript": "^3.8.2"
     },
     "scripts": {
-        "test": "mocha -t 5000000 index.js",
+        "test": "node node_modules/mocha/bin/_mocha -t 5000000 index.js",
         "testnet": "mocha -t 5000000 tests/testnet-smoketest.js"
     }
 }

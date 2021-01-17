@@ -1,14 +1,15 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, fetchJson, timeout, callFioApi} = require('../utils.js');
+const {newUser, fetchJson, timeout, getTestType, callFioApi} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
+const testType = getTestType();
 
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-describe('************************** addbundles.js ************************** \n A. Add 1 set of bundled transactions for FIO Address owned by signer.', () => {
+describe('************************** addbundles.js ************************** \n    A. Add 1 set of bundled transactions for FIO Address owned by signer.', () => {
 
     let user1, user1OrigBalance, user1OrigRam, add_bundled_transactions_fee, feeCollected
     let bundledVoteNumber = config.defaultBundleCount;
@@ -103,40 +104,41 @@ describe('************************** addbundles.js ************************** \n
           }
     })
 
-    it.skip(`(SDK) Run /add_bundled_transactions with 1 set for FIO Address owned by signer`, async () => {
-        try {
-            const result = await user1.sdk.genericAction('addBundledTransactions', {
-                fioAddress: user1.address,
-                bundleSets: 1,
-                maxFee: add_bundled_transactions_fee,
-                tpid: ''
-            })
-            //console.log('Result:', result)
-            expect(result.status).to.equal('OK')
-        } catch (err) {
-            console.log('Error', err)
-            //expect(err).to.equal(null)
-        }
-    })
-
-    it(`(push_transaction) Run addbundles with ${bundleSets} sets for FIO Address owned by other user`, async () => {
-        try {
-            const result = await user1.sdk.genericAction('pushTransaction', {
-                action: 'addbundles',
-                account: 'fio.address',
-                data: {
-                  fio_address: user1.address,
-                  bundle_sets: bundleSets,
-                  max_fee: add_bundled_transactions_fee * bundleSets,
-                  tpid: ''
-                }
-            })
-            feeCollected = result.fee_collected;
-            //console.log('Result: ', result);
-            expect(result.status).to.equal('OK');
-        } catch (err) {
-            console.log('Error: ', err);
-            expect(err).to.equal(null);
+    it(`(${testType}) BUG BD-2308 (when called with API) Add bundles with ${bundleSets} sets for FIO Address owned by other user`, async () => {
+        if (testType == 'sdk') {
+            try {
+                const result = await user1.sdk.genericAction('addBundledTransactions', {
+                    fioAddress: user1.address,
+                    bundleSets: 1,
+                    maxFee: add_bundled_transactions_fee * bundleSets,
+                    technologyProviderId: ''
+                })
+                feeCollected = result.fee_collected;
+                //console.log('Result:', result)
+                expect(result.status).to.equal('OK')
+            } catch (err) {
+                console.log('Error', err.json.fields)
+                expect(err).to.equal(null)
+            }
+        } else {  
+           try {
+                const result = await user1.sdk.genericAction('pushTransaction', {
+                    action: 'addbundles',
+                    account: 'fio.address',
+                    data: {
+                        fio_address: user1.address,
+                        bundle_sets: bundleSets,
+                        max_fee: add_bundled_transactions_fee * bundleSets,
+                        technologyProviderId: ''
+                    }
+                })
+                feeCollected = result.fee_collected;
+                //console.log('Result: ', result);
+                expect(result.status).to.equal('OK');
+            } catch (err) {
+                console.log('Error: ', err);
+                expect(err).to.equal(null);
+            }
         }
     })
 
@@ -333,40 +335,41 @@ describe('B. Add 3 sets of bundled transactions for FIO Address owned by other u
           }
     })
 
-    it.skip(`(SDK) Run /add_bundled_transactions with 1 set for FIO Address owned by other user`, async () => {
-        try {
-            const result = await user1.sdk.genericAction('addBundledTransactions', {
-                fioAddress: user1.address,
-                bundleSets: bundleSets,
-                maxFee: add_bundled_transactions_fee,
-                technologyProviderId: ''
-            })
-            //console.log('Result:', result)
-            expect(result.status).to.equal('OK')
-        } catch (err) {
-            console.log('Error', err)
-            //expect(err).to.equal(null)
-        }
-    })
-
-    it(`(push_transaction) user1 run addbundles with ${bundleSets} sets for FIO Address owned by user2`, async () => {
-        try {
-            const result = await user1.sdk.genericAction('pushTransaction', {
-                action: 'addbundles',
-                account: 'fio.address',
-                data: {
-                  fio_address: user2.address,
-                  bundle_sets: bundleSets,
-                  max_fee: add_bundled_transactions_fee * bundleSets,
-                  technologyProviderId: ''
-                }
-            })
-            feeCollected = result.fee_collected;
-            //console.log('Result: ', result);
-            expect(result.status).to.equal('OK');
-        } catch (err) {
-            console.log('Error: ', err);
-            expect(err).to.equal(null);
+    it(`(${testType}) BUG BD-2308 (when called with API) user1 run addbundles with ${bundleSets} sets for FIO Address owned by user2`, async () => {
+        if (testType == 'sdk') {
+            try {
+                const result = await user1.sdk.genericAction('addBundledTransactions', {
+                    fioAddress: user2.address,
+                    bundleSets: bundleSets,
+                    maxFee: add_bundled_transactions_fee * bundleSets,
+                    technologyProviderId: ''
+                })
+                feeCollected = result.fee_collected;
+                //console.log('Result:', result)
+                expect(result.status).to.equal('OK')
+            } catch (err) {
+                console.log('Error', err)
+                expect(err).to.equal(null)
+            }
+        } else {  
+            try {
+                const result = await user1.sdk.genericAction('pushTransaction', {
+                    action: 'addbundles',
+                    account: 'fio.address',
+                    data: {
+                    fio_address: user2.address,
+                    bundle_sets: bundleSets,
+                    max_fee: add_bundled_transactions_fee * bundleSets,
+                    technologyProviderId: ''
+                    }
+                })
+                feeCollected = result.fee_collected;
+                //console.log('Result: ', result);
+                expect(result.status).to.equal('OK');
+            } catch (err) {
+                console.log('Error: ', err);
+                expect(err).to.equal(null);
+            }
         }
     })
 
@@ -487,7 +490,7 @@ describe('C. Error testing', () => {
         }
     })
 
-    it(`Run addbundles with invalid FIO Address format. Expect error type ${config.error2.invalidFioAddress.statusCode}: ${config.error2.invalidFioAddress.message}`, async () => {
+    it(`(pushtransaction) Run addbundles with invalid FIO Address format. Expect error type ${config.error2.invalidFioAddress.statusCode}: ${config.error2.invalidFioAddress.message}`, async () => {
         try {
             const result = await user1.sdk.genericAction('pushTransaction', {
                 action: 'addbundles',
@@ -505,6 +508,22 @@ describe('C. Error testing', () => {
             //console.log('Error: ', err.json.fields);
             expect(err.json.fields[0].error).to.equal(config.error2.invalidFioAddress.message)
             expect(err.errorCode).to.equal(config.error2.invalidFioAddress.statusCode);
+        }
+    })
+
+    it(`(sdk) Run addbundles with invalid FIO Address format. SDK rejects with no type and error: ${config.error.fioAddressInvalidChar}`, async () => {
+        try {
+            const result = await user1.sdk.genericAction('addBundledTransactions', {
+                fioAddress: '[#invalid@address',
+                bundleSets: bundleSets,
+                maxFee: add_bundled_transactions_fee,
+                technologyProviderId: ''
+            })
+            console.log('Result: ', result);
+            expect(result.status).to.equal(null);
+        } catch (err) {
+            //console.log('Error: ', err);
+            expect(err.list[0].message).to.equal(config.error.fioAddressInvalidChar)
         }
     })
 

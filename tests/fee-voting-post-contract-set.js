@@ -37,7 +37,7 @@ before(async () => {
  // producersList = await readProdFile(config.PRODKEYFILE);
 })
 
-describe('************************** fee-voting-fee-setting.js ************************** \n A. Vote fees for top prods.', () => {
+describe('************************** fee-voting-fee-setting.js ************************** \n    A. Vote fees for top prods.', () => {
 
   let prodA1, userA1, result,  locksdk
   let timeafteraccountcreate = 5000

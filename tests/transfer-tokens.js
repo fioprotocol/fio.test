@@ -8,7 +8,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-describe(`************************** transfer-tokens.js ************************** \n A. Transferring tokens to Happy`, () => {
+describe(`************************** transfer-tokens.js ************************** \n    A. Transferring tokens to Happy`, () => {
   let userA1, prevFundsAmount
   const fundsAmount = 1000000000000
 

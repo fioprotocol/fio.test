@@ -9,7 +9,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-describe(`************************** register_fio_domain.js ************************** \n A. Check valid and invalid domain and address formats`, () => {
+describe(`************************** register-fio-domain.js ************************** \n    A. Check valid and invalid domain and address formats`, () => {
     let userA1
     const fiftyfiveChars = "0123456789012345678901234567890123456789012345678901234"
     domain0Bad = ""
@@ -351,7 +351,7 @@ describe('E. Test set_fio_domain_public', () => {
         fioPublicKey: user1.publicKey
       })
       user1Balance = result.balance
-      console.log('user1 fio balance', result.balance)
+      //console.log('user1 fio balance', result.balance)
     } catch (err) {
       //console.log('Error', err)
       expect(err).to.equal(null)

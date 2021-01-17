@@ -8,7 +8,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-describe(`************************** pushtransaction.js ************************** \n A. Misc. pushtransaction tests`, () => {
+describe(`************************** pushtransaction.js ************************** \n    A. Misc. pushtransaction tests`, () => {
 
     let userA1
 

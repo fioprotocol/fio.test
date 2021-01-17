@@ -1,8 +1,9 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, existingUser, getProdVoteTotal, timeout, unlockWallet, addLock, getAccountVoteWeight, getTotalVotedFio, callFioApi, callFioApiSigned, fetchJson} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/fiosdk')
-config = require('../config.js');
+const {newUser, existingUser, getTestType, getProdVoteTotal, timeout, unlockWallet, addLock, getAccountVoteWeight, getTotalVotedFio, callFioApi, callFioApiSigned, fetchJson} = require('../utils.js');
+const {FIOSDK } = require('@fioprotocol/fiosdk');
+const config = require('../config.js');
+const testType = getTestType();
 
 let total_voted_fio, transfer_tokens_pub_key_fee, unregister_proxy_fee
 
@@ -28,7 +29,7 @@ before(async () => {
   unregister_proxy_fee = result.fee;
 })
 
-describe(`************************** vote.js ************************** \n A. Test vote counts with proxy when proxy increases and decreases funds`, () => {
+describe(`************************** vote.js ************************** \n    A. Test vote counts with proxy when proxy increases and decreases funds`, () => {
 
   let proxyA1, user2, total_voted_fio, total_bp_votes, transfer_tokens_pub_key_fee
 
@@ -755,7 +756,7 @@ describe.skip('C. (has Bugs) Test voting and proxying of users with Type 1 locke
     }
   })
 
-  it(`Unlock fio wallet with wallet key: ${config.WALLETKEY}`, async () => {
+  it(`Unlock fio wallet`, async () => {
     try {
       unlockWallet('fio');
       await timeout(2000);  // Getting an occasional error that the wallet is not unlocked. Could be a timing issue.
@@ -2824,7 +2825,7 @@ describe('Fixed in Gemini: H. When a user proxies their vote, the total_voted_fi
 
 })
 
-describe.skip('Bahamas release only. H. Confirm voter data is returned with get_account', () => {
+describe('H. Confirm voter data is returned with get_account', () => {
   let voterH1
 
   it(`Create users`, async () => {

@@ -8,7 +8,7 @@ before(async () => {
     faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
 })
 
-describe('************************** txn-resubmit.js ************************** \n A. Get raw transaction and resubmit.', () => {
+describe('************************** txn-resubmit.js ************************** \n    A. Get raw transaction and resubmit.', () => {
 
     let userA1, userA2, preparedTrx, userA1RequestId
     const payment = 5000000000 // 5 FIO

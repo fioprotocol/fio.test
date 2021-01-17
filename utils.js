@@ -1,13 +1,10 @@
-config = require ('./config');
-
 const rp = require('request-promise');
 const exec = require('child_process').exec;
-//const url = "http://localhost:8889";
-const fiourl = config.URL + "/v1/chain/";
-const KeosdUrl = config.URL + "/v1/chain/";
-const historyUrl = config.URL + "/v1/history/"
-const clio = "../fio.devtools/bin/clio";
 var fs = require('fs');
+config = require ('./config');
+
+const fiourl = config.URL + "/v1/chain/";
+const historyUrl = config.URL + "/v1/history/"
 
 const { Fio } = require('@fioprotocol/fiojs');
 fetch = require('node-fetch');
@@ -85,6 +82,21 @@ async function createKeypair() {
 async function getAccountFromKey(publicKey) {
     account = transaction.getActor(publicKey)
     return (account);
+}
+
+function getTestType() {
+    let testType;
+    // Argument 6 = test type
+    var myArgs = process.argv.slice(5);
+    //console.log('myarg: ', myArgs)
+    switch (myArgs[0]) {
+        case 'sdk':
+            testType = 'sdk';
+            break;
+        default:
+            testType = 'pushtransaction';
+    }
+    return testType;
 }
 
 //Creates a user and registers an address and domain
@@ -524,9 +536,6 @@ async function readProdFile(prodFile) {
     });
 }
 
-
-
-
 async function addLock(account, amount, lock) {
     return new Promise(function(resolve, reject) {
         var text = {owner: account, amount: amount, locktype: lock}
@@ -546,11 +555,19 @@ async function addLock(account, amount, lock) {
 
 async function unlockWallet(wallet) {
     return new Promise(function(resolve, reject) {
+        const keyFile = config.WALLETKEYFILE;
+        try {
+            if (fs.existsSync(keyFile)) {
+                walletKey = require('fs').readFileSync(keyFile, 'utf-8')
+            }
+        } catch(err) {
+            console.error(err)
+        }
         runCmd(config.CLIO + " wallet list")
         .then(result => {
             let walletLock = result.indexOf(wallet + " *")
             if (walletLock == -1 ) {  // Wallet is not unlocked
-                runCmd(config.CLIO + " wallet unlock -n " + wallet + " --password " + config.WALLETKEY)
+                runCmd(config.CLIO + " wallet unlock -n " + wallet + " --password " + walletKey)
             }
             resolve()
         }).catch(error => {
@@ -1011,5 +1028,5 @@ class Ram {
 } //Ram class
 */
 
-module.exports = {newUser, existingUser, getTopprods, callFioApi, callFioApiSigned, callFioHistoryApi, convertToK1, unlockWallet, getFees, getAccountFromKey, getProdVoteTotal, addLock, getTotalVotedFio, getAccountVoteWeight, setRam, printUserRam, user, getMnemonic, fetchJson, randStr, timeout, generateFioDomain, generateFioAddress, createKeypair, readProdFile};
+module.exports = {newUser, existingUser, getTestType, getTopprods, callFioApi, callFioApiSigned, callFioHistoryApi, convertToK1, unlockWallet, getFees, getAccountFromKey, getProdVoteTotal, addLock, getTotalVotedFio, getAccountVoteWeight, setRam, printUserRam, user, getMnemonic, fetchJson, randStr, timeout, generateFioDomain, generateFioAddress, createKeypair, readProdFile};
 
