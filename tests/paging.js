@@ -9,7 +9,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-describe(`************************** paging.js ************************** \n A. get_fio_domains paging: Register multiple domains and page through using get_fio_domains`, () => {
+describe(`************************** paging.js ************************** \n    A. get_fio_domains paging: Register multiple domains and page through using get_fio_domains`, () => {
     let userA1, domainCount = 20
 
     it('Create userA1', async () => {

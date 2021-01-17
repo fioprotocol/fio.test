@@ -42,7 +42,7 @@ before(async () => {
 
 })
 
-describe(`************************** bravo-migr-test.js.js ************************** \n Load Requests and OBTs`, () => {
+describe(`************************** bravo-migr-test.js.js ************************** \n    A. Load Requests and OBTs`, () => {
     let user1, user2, user3;
     let payment = 3000000000;
     let requestMemo = 'asdf';
@@ -239,7 +239,7 @@ describe(`************************** bravo-migr-test.js.js *********************
     })
 })
 
-describe(`Perform single migrtrx to initialize migration`, () => {
+describe(`B. Perform single migrtrx to initialize migration`, () => {
     it(`Call single migrtrx (bp1) and confirm you can still do Requests and OBTs`, async () => {
         try {
             const result = await callFioApiSigned('push_transaction', {
@@ -280,7 +280,7 @@ describe(`Perform single migrtrx to initialize migration`, () => {
     })
 })
 
-describe(`Initial OBT record. Confirm new OBT Sends are going into both tables`, () => {
+describe(`C. Initial OBT record. Confirm new OBT Sends are going into both tables`, () => {
   let user1, user2, user3
   let payment = 3000000000;
 
@@ -376,7 +376,7 @@ describe(`Initial OBT record. Confirm new OBT Sends are going into both tables`,
 
 })
 
-describe(`Initial FIO Request record. Confirm NEW Requests are going into both tables`, () => {
+describe(`E. Initial FIO Request record. Confirm NEW Requests are going into both tables`, () => {
   let user1, user2, user3, requestId, obtId
   let payment = 3000000000;
   let requestMemo = 'asdf';
@@ -470,7 +470,7 @@ describe(`Initial FIO Request record. Confirm NEW Requests are going into both t
 
 })
 
-describe.skip(`Confirm REJECTED Requests are going into both tables`, () => {
+describe.skip(`F. Confirm REJECTED Requests are going into both tables`, () => {
     let user1, user2, user3, requestId
     let payment = 3000000000;
     let requestMemo = 'asdf';
@@ -582,7 +582,7 @@ describe.skip(`Confirm REJECTED Requests are going into both tables`, () => {
 
 })
 
-describe.skip(`Confirm paid OBT response Requests are going into both tables`, () => {
+describe.skip(`G. Confirm paid OBT response Requests are going into both tables`, () => {
     let user1, user2, user3, requestId
     let payment = 3000000000;
     let requestMemo = 'asdf';
@@ -729,7 +729,7 @@ describe.skip(`Confirm paid OBT response Requests are going into both tables`, (
 
 })
 
-describe(`Migrate remaining requests and OBTs`, () => {
+describe(`H. Migrate remaining requests and OBTs`, () => {
   let isFinished = 0
 
   it('Echo initial migrledgers table', async () => {
@@ -812,7 +812,7 @@ describe(`Migrate remaining requests and OBTs`, () => {
 
 })
 
-describe(`Go through recordobts (old table) and confirm each entry is in fiotrxts (NEW table)`, () => {
+describe.skip(`I. Go through recordobts (old table) and confirm each entry is in fiotrxts (NEW table)`, () => {
   let obtCount = 0
   let obtRecords;
 
@@ -884,7 +884,7 @@ describe(`Go through recordobts (old table) and confirm each entry is in fiotrxt
 
 })
 
-describe(`Go through fioreqctxts (old table) and confirm each entry is in fiotrxts (NEW table)`, () => {
+describe.skip(`J. Go through fioreqctxts (old table) and confirm each entry is in fiotrxts (NEW table)`, () => {
   let reqCount = 0
   let reqs;
 

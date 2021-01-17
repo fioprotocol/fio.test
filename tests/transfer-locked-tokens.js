@@ -1,8 +1,9 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, getProdVoteTotal, fetchJson, generateFioDomain, callFioApi,  generateFioAddress, createKeypair} = require('../utils.js');
+const {newUser, getProdVoteTotal, fetchJson, generateFioDomain, callFioApi,  generateFioAddress, createKeypair, getTestType} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
+const testType = getTestType();
 
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
@@ -61,17 +62,12 @@ describe(`************************** transfer-locked-tokens.js *****************
 
 describe(`B. Parameter tests`, () => {
 
-
-
-  it(`Failure test, Transfer locked tokens,  periods total percent not 100`, async () => {
-    try {
-
-      const result = await userA1.sdk.genericAction('pushTransaction', {
-        action: 'trnsloctoks',
-        account: 'fio.token',
-        data: {
-          payee_public_key: keys.publicKey,
-          can_vote: 0,
+  it(`(${testType}) Failure test, Transfer locked tokens,  periods total percent not 100`, async () => {
+    if (testType == 'sdk') {
+      try {
+        const result = await userA1.sdk.genericAction('transferLockedTokens', {
+          payeePublicKey: keys.publicKey,
+          canVote: 0,
           periods: [
             {
               duration: 120,
@@ -83,16 +79,45 @@ describe(`B. Parameter tests`, () => {
             }
           ],
           amount: fundsAmount,
-          max_fee: 400000000000,
+          maxFee: 400000000000,
           tpid: '',
-          actor: userA1.account,
-        }
-      })
-      expect(result.status).to.not.equal('OK')
 
-    } catch (err) {
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
+        })
+        expect(result.status).to.not.equal('OK')
+      } catch (err) {
+        //console.log('error: ', err)
+        var expected = `Error 400`
+        expect(err.message).to.include(expected)
+      }
+    } else {  
+      try {
+        const result = await userA1.sdk.genericAction('pushTransaction', {
+          action: 'trnsloctoks',
+          account: 'fio.token',
+          data: {
+            payee_public_key: keys.publicKey,
+            can_vote: 0,
+            periods: [
+              {
+                duration: 120,
+                percent: 50.30,
+              },
+              {
+                duration: 240,
+                percent: 50.0,
+              }
+            ],
+            amount: fundsAmount,
+            max_fee: 400000000000,
+            tpid: '',
+            actor: userA1.account,
+          }
+        })
+        expect(result.status).to.not.equal('OK')
+      } catch (err) {
+        var expected = `Error 400`
+        expect(err.message).to.include(expected)
+      }
     }
   })
 

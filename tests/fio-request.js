@@ -8,7 +8,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-describe(`************************** fio-request.js ************************** \n A. Send fio request from userA1 to userA2`, () => {
+describe(`************************** fio-request.js ************************** \n    A. Send fio request from userA1 to userA2`, () => {
 
     let userA1, userA2, requestId
     const payment = 5000000000 // 5 FIO
@@ -1825,7 +1825,7 @@ describe(`F. get_cancelled_fio_requests paging: Cancel multiple FIO requests and
 
 })
 
-describe(`G. BUG in migr/part3-final?? Test rejection of FIO Requests`, () => {
+describe(`G. Test rejection of FIO Requests`, () => {
 
   let user1, user2, user1RequestId
 

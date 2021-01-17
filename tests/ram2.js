@@ -20,7 +20,7 @@ before(async () => {
 })
 
 
-describe('************************** ram2.js ************************** \n A. Test RAM Consumption', () => {
+describe('************************** ram2.js ************************** \n    A. Test RAM Consumption', () => {
 
   it(`Create ramuser public/private keys`, async () => {
     user1Domain = generateFioDomain(15)

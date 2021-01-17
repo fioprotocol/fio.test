@@ -24,7 +24,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-describe(`************************** action-whitelisting.js ************************** \n A. Remove action, add action, action testing `, () => {
+describe(`************************** action-whitelisting.js ************************** \n    A. Remove action, add action, action testing `, () => {
   let userA1, userA2
   const fundsAmount = 1000000000
 

@@ -8,7 +8,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-describe(`************************** addaddress.js ************************** \n A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
+describe(`************************** addaddress.js ************************** \n    A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
 
     let userA1
 
@@ -254,7 +254,7 @@ describe(`C. FIP-13. Get_pub_addresses endpoint`, () => {
       }
     })
 
-    it('Get all public addresses for userA3 FIO Address (get_pub_addresses)', async () => {
+    it('(api) Get all public addresses for userA3 FIO Address (get_pub_addresses)', async () => {
       try {
           const result = await callFioApi("get_pub_addresses", {
           fio_address: userA3.address,
@@ -281,7 +281,7 @@ describe(`C. FIP-13. Get_pub_addresses endpoint`, () => {
 
     //***** SAD TESTS *****//
 
-    it('Call get_pub_addresses with invalid FIO Address. Expect error type 400: Invalid FIO Address format', async () => {
+    it('(api) Call get_pub_addresses with invalid FIO Address. Expect error type 400: Invalid FIO Address format', async () => {
       try {
           const result = await callFioApi("get_pub_addresses", {
           fio_address: "intentionallybadformat@@@@@******",
@@ -298,7 +298,7 @@ describe(`C. FIP-13. Get_pub_addresses endpoint`, () => {
     })
 
 
-    it('Call get_pub_addresses with unregistered FIO Address. Expect error type 404: FIO Address does not exist', async () => {
+    it('(api) Call get_pub_addresses with unregistered FIO Address. Expect error type 404: FIO Address does not exist', async () => {
       try {
           const result = await callFioApi("get_pub_addresses", {
           fio_address: "eric@likesbeans",
@@ -314,7 +314,7 @@ describe(`C. FIP-13. Get_pub_addresses endpoint`, () => {
       }
     })
 
-    it('Call get_pub_addresses with invalid limit parameter of -1. Expect error type 400: Invalid limit', async () => {
+    it('(api) Call get_pub_addresses with invalid limit parameter of -1. Expect error type 400: Invalid limit', async () => {
       try {
           const result = await callFioApi("get_pub_addresses", {
           fio_address: userA3.address,
@@ -330,7 +330,7 @@ describe(`C. FIP-13. Get_pub_addresses endpoint`, () => {
       }
     })
 
-    it('Call get_pub_addresses with invalid offset parameter of -1. Expect error type 400: Invalid offset', async () => {
+    it('(api) Call get_pub_addresses with invalid offset parameter of -1. Expect error type 400: Invalid offset', async () => {
       try {
           const result = await callFioApi("get_pub_addresses", {
           fio_address: userA3.address,
@@ -361,7 +361,7 @@ describe(`C. FIP-13. Get_pub_addresses endpoint`, () => {
       }
     })
 
-    it('Get all public addresses for userA3 FIO Address (get_pub_addresses). Expect only FIO address to be returned.', async () => {
+    it('(api) Get all public addresses for userA3 FIO Address (get_pub_addresses). Expect only FIO address to be returned.', async () => {
       try {
           const result = await callFioApi("get_pub_addresses", {
           fio_address: userA3.address,
@@ -401,7 +401,7 @@ describe(`C. FIP-13. Get_pub_addresses endpoint`, () => {
       }
     })
 
-    it('Get all public addresses for userA3 FIO Address (get_pub_addresses). Expect error type 404: Public Addresses not found', async () => {
+    it('(api) Get all public addresses for userA3 FIO Address (get_pub_addresses). Expect error type 404: Public Addresses not found', async () => {
       try {
           const result = await callFioApi("get_pub_addresses", {
           fio_address: userA3.address,
@@ -431,7 +431,7 @@ describe(`FIP18. Chain-level addressing`, () => {
         userB1 = await newUser(faucet);
     })
 
-    it(`add_pub_address with chain_code ETH, token_code ETH, and public_address addressA`, async () => {
+    it(`(sdk) add_pub_address with chain_code ETH, token_code ETH, and public_address addressA`, async () => {
         const result = await userB1.sdk.genericAction('addPublicAddresses', {
             fioAddress: userB1.address,
             publicAddresses: [
@@ -448,7 +448,7 @@ describe(`FIP18. Chain-level addressing`, () => {
         expect(result.status).to.equal('OK')
     })
 
-    it(`add_pub_address with chain_code ETH, token_code *, and public_address addressB`, async () => {
+    it(`(sdk) add_pub_address with chain_code ETH, token_code *, and public_address addressB`, async () => {
         const result = await userB1.sdk.genericAction('addPublicAddresses', {
             fioAddress: userB1.address,
             publicAddresses: [
@@ -465,7 +465,7 @@ describe(`FIP18. Chain-level addressing`, () => {
         expect(result.status).to.equal('OK')
     })
 
-    it(`add_pub_address with chain_code ETH,, token_code *, and public_address addressC`, async () => {
+    it(`(sdk) add_pub_address with chain_code ETH,, token_code *, and public_address addressC`, async () => {
         const result = await userB1.sdk.genericAction('addPublicAddresses', {
             fioAddress: userB1.address,
             publicAddresses: [
@@ -524,7 +524,7 @@ describe(`FIP18. Chain-level addressing`, () => {
         }
     })
 
-    it(`remove_pub_address with with chain_code ETH, token_code *, and public_address addressC`, async () => {
+    it(`(sdk) remove_pub_address with with chain_code ETH, token_code *, and public_address addressC`, async () => {
         try {
             const result = await userB1.sdk.genericAction('removePublicAddresses', {
                 fioAddress: userB1.address,

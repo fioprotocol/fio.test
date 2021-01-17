@@ -8,7 +8,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
 })
 
-describe('************************** producer.js ************************** \n A. Test register as a proxy.', () => {
+describe('************************** producer.js ************************** \n    A. Test register as a proxy.', () => {
 
   let prodA1, userA1, total_voted_fio, total_bp_votes
 

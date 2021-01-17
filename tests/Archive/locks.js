@@ -1,8 +1,8 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, unlockWallet, generateFioDomain, addLock, timeout, fetchJson} = require('../utils.js');
+const {newUser, unlockWallet, generateFioDomain, addLock, timeout, fetchJson} = require('../../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
-config = require('../config.js');
+config = require('../../config.js');
 
 let total_voted_fio
 
@@ -22,7 +22,7 @@ describe(`************************** locks.js ************************** \n A. T
     userA1.domain3 = generateFioDomain(10);
   })
 
-  it.skip(`Unlock fio wallet with wallet key: ${config.WALLETKEY}`, async () => {
+  it.skip(`Unlock fio wallet`, async () => {
     unlockWallet('fio');
   })
 

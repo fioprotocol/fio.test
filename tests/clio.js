@@ -36,7 +36,7 @@ before(async () => {
     result = await unlockWallet('fio');
 })
 
-describe(`************************** clio.js ************************** \n A. Test clio`, () => {
+describe(`************************** clio.js ************************** \n    A. Test clio`, () => {
 
     it(`get info`, async () => {
         result = await runClio('get info');
@@ -165,7 +165,7 @@ describe(`C. Domain`, () => {
             fioPublicKey: user1.publicKey
           })
           user1Balance = result.balance
-          console.log('user1 fio balance', result.balance)
+          //console.log('user1 fio balance', result.balance)
         } catch (err) {
           //console.log('Error', err)
           expect(err).to.equal(null)
@@ -291,7 +291,7 @@ describe(`D. Address`, () => {
         try {
             result = await user1.sdk.getFee('register_fio_address');
             register_fio_address_fee = result.fee;
-            console.log('Domain Fee: ', register_fio_address_fee)
+            //console.log('Domain Fee: ', register_fio_address_fee)
         } catch (err) {
             console.log('Error', err);
             expect(err).to.equal(null);
@@ -304,7 +304,7 @@ describe(`D. Address`, () => {
             fioPublicKey: user1.publicKey
           })
           user1Balance = result.balance
-          console.log('user1 fio balance', result.balance)
+          //console.log('user1 fio balance', result.balance)
         } catch (err) {
           //console.log('Error', err)
           expect(err).to.equal(null)
@@ -328,7 +328,7 @@ describe(`D. Address`, () => {
             fioPublicKey: user1.publicKey
           })
           user1Balance = result.balance
-          console.log('user1 fio balance', result.balance)
+          //console.log('user1 fio balance', result.balance)
           expect(user1Balance).to.equal(prevBalance - register_fio_address_fee)
         } catch (err) {
           //console.log('Error', err)
@@ -349,7 +349,7 @@ describe(`D. Address`, () => {
     it.skip(`(Future release) address transfer`, async () => {
         try {
             result = await runClio(`address transfer -j ${user1.account} ${user1.address} ${user2.publicKey} ${tpid} ${max_fee} --permission ${user1.account}@active`);
-            console.log('Result: ', JSON.parse(result));
+            //console.log('Result: ', JSON.parse(result));
             expect(JSON.parse(result).transaction_id).to.exist
         } catch (err) {
             console.log('Error', err)
@@ -359,7 +359,7 @@ describe(`D. Address`, () => {
     it.skip(`(Future release) address add_pub. Add BCH address `, async () => {
         try {
             result = await runClio(`address add_pub -j ${user1.account} ${BCHAddress.clioAddress} ${user1.address} ${tpid} ${max_fee} --permission ${user1.account}@active`);
-            console.log('Result: ', JSON.parse(result));
+            //console.log('Result: ', JSON.parse(result));
             expect(JSON.parse(result).transaction_id).to.exist
         } catch (err) {
             console.log('Error', err)

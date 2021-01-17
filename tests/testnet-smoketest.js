@@ -18,7 +18,7 @@ let privateKey, publicKey, testFioAddressName, privateKey2, publicKey2, testFioA
 /**
 * Set to target = 'local' if running against devtools build. Leave blank if running against Testnet.
 */
-const target = '' 
+const target = 'local' 
 
 /**
  * Set your testnet existing private/public keys and existing fioAddresses (not needed if running locally)
@@ -121,7 +121,7 @@ before(async () => {
   pubKeyForTransfer = 'FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS'
 })
 
-describe('Testing generic actions', () => {
+describe('************************** testnet-smoketest.js ************************** \n    A. Testing generic actions', () => {
 
   it(`FIO Key Generation Testing`, async () => {
     const testMnemonic = 'valley alien library bread worry brother bundle hammer loyal barely dune brave'
@@ -240,12 +240,12 @@ describe('Testing generic actions', () => {
   it(`getFioBalance`, async () => {
     const result = await fioSdk.sdk.genericAction('getFioBalance', {})
 
-    expect(result).to.have.all.keys('balance')
+    expect(result).to.have.all.keys('balance', 'available')
     expect(result.balance).to.be.a('number')
   })
 })
 
-describe('Testing domain actions', () => {
+describe('B. Testing domain actions', () => {
 
   it(`Register fio domain`, async () => {
     const result = await fioSdk2.sdk.genericAction('registerFioDomain', { fioDomain: newFioDomain, maxFee: defaultFee })
@@ -392,25 +392,35 @@ describe('Testing domain actions', () => {
     expect(result.fee_collected).to.be.a('number')
   })
 
-  it.skip(`Bahamas: getFee for addBundledTransactions`, async () => {
-    const result = await fioSdk2.sdk.genericAction('getFeeForAddBundledTransactions', {
-      fioAddress: newFioAddress
-    })
-
-    expect(result).to.have.all.keys('fee')
-    expect(result.fee).to.be.a('number')
+  it.skip(`BUG BD-2308 getFee for addBundledTransactions`, async () => {
+    try {
+      const result = await fioSdk2.sdk.genericAction('getFeeForAddBundledTransactions', {
+        fioAddress: newFioAddress
+      })
+      console.log('Result: ', result)
+      expect(result).to.have.all.keys('fee')
+      expect(result.fee).to.be.a('number')
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
   })
 
-  it.skip(`Bahamas: add Bundled Transactions`, async () => {
-    const result = await fioSdk2.sdk.genericAction('addBundledTransactions', {
-      fioAddress: newFioAddress,
-      bundleSets: defaultBundledSets,
-      maxFee: defaultFee
-    })
-
-    expect(result).to.have.all.keys('status', 'fee_collected')
-    expect(result.status).to.be.a('string')
-    expect(result.fee_collected).to.be.a('number')
+  it.skip(`BUG BD-2308 add Bundled Transactions`, async () => {
+    try {
+      const result = await fioSdk2.sdk.genericAction('addBundledTransactions', {
+        fioAddress: newFioAddress,
+        bundleSets: defaultBundledSets,
+        maxFee: defaultFee
+      })
+      console.log('Result: ', result)
+      expect(result).to.have.all.keys('status', 'fee_collected')
+      expect(result.status).to.be.a('string')
+      expect(result.fee_collected).to.be.a('number')
+    } catch (err) {
+      console.log('Error: ', err.json.fields)
+      expect(err).to.equal(null)
+    }
   })
 
   it(`(push_transaction) user1 run addbundles with sets for FIO Address owned by user2`, async () => {
@@ -600,7 +610,7 @@ describe('Testing domain actions', () => {
       fioPublicKey: publicKey2
     })
 
-    expect(result).to.have.all.keys('balance')
+    expect(result).to.have.all.keys('balance', 'available')
     expect(result.balance).to.be.a('number')
   })
 
@@ -650,7 +660,7 @@ describe('Testing domain actions', () => {
     expect(result.fee).to.be.a('number')
   })
 
-  it.skip(`Bahamas - Burn fio address`, async () => {
+  it(`Burn fio address`, async () => {
     const result = await fioSdk2.sdk.genericAction('burnFioAddress', {
         fioAddress: newFioAddress,
         maxFee: defaultFee
@@ -663,7 +673,7 @@ describe('Testing domain actions', () => {
 
 })
 
-describe('Request funds, approve and send', () => {
+describe('C. Request funds, approve and send', () => {
   const fundsAmount = 3
   let requestId
   const memo = 'testing fund request'
@@ -783,7 +793,7 @@ describe('Request funds, approve and send', () => {
 
 })
 
-describe('Request funds, cancel funds request', () => {
+describe('D. Request funds, cancel funds request', () => {
   const fundsAmount = 3
   let requestId
   const memo = 'testing fund request'
@@ -845,7 +855,7 @@ describe('Request funds, cancel funds request', () => {
 
 })
 
-describe('Request funds, reject', () => {
+describe('E. Request funds, reject', () => {
   const fundsAmount = 4
   let requestId
   const memo = 'testing fund request'
@@ -908,7 +918,7 @@ describe('Request funds, reject', () => {
 
 })
 
-describe('Transfer tokens', () => {
+describe('F. Transfer tokens', () => {
   const fundsAmount = FIOSDK.SUFUnit
   let fioBalance = 0
   let fioBalanceAfter = 0
@@ -939,7 +949,7 @@ describe('Transfer tokens', () => {
   })
 })
 
-describe('Record obt data, check', () => {
+describe('G. Record obt data, check', () => {
   const obtId = generateObtId()
   const fundsAmount = 4.5
 
@@ -1003,7 +1013,7 @@ describe('Record obt data, check', () => {
   })
 })
 
-describe('Encrypting/Decrypting', () => {
+describe('H. Encrypting/Decrypting', () => {
   const alicePrivateKey = '5J35xdLtcPvDASxpyWhNrR2MfjSZ1xjViH5cvv15VVjqyNhiPfa'
   const alicePublicKey = 'FIO6NxZ7FLjjJuHGByJtNJQ1uN1P5X9JJnUmFW3q6Q7LE7YJD4GZs'
   const bobPrivateKey = '5J37cXw5xRJgE869B5LxC3FQ8ZJECiYnsjuontcHz5cJsz5jhb7'
@@ -1175,7 +1185,7 @@ describe('Encrypting/Decrypting', () => {
 
 })
 
-describe.skip('Check prepared transaction', () => {
+describe.skip('I. Check prepared transaction', () => {
   it(`requestFunds prepared transaction`, async () => {
     fioSdk2.setSignedTrxReturnOption(true)
     const preparedTrx = await fioSdk2.sdk.genericAction('requestFunds', {

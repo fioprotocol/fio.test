@@ -8,7 +8,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-describe(`************************** removeaddress.js ************************** \n A. Remove public address, address parameter tests`, () => {
+describe(`************************** remove-address.js ************************** \n    A. Remove public address, address parameter tests`, () => {
   let userA1
 
   it(`Create users`, async () => {
