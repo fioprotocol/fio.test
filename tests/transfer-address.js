@@ -854,7 +854,7 @@ describe('D. transferFioAddress Error testing', () => {
         }
     })
 
-    it(`For Bravo, this will fail because userD3 has OBT transactions. Will need to fix when all xferaddress are enabled. Transfer address with insufficient funds and no bundled transactions. Expect error type 400: ${config.error.insufficientFunds}`, async () => {
+    it.skip(`(For Bravo/v2.3.0 contracts, transferring the address will fail because userD3 has OBT transactions. Will need to fix when all xferaddress are enabled.) Transfer address with insufficient funds and no bundled transactions. Expect error type 400: ${config.error.insufficientFunds}`, async () => {
         try {
             const result = await userD3.sdk.genericAction('transferFioAddress', {
                 fioAddress: userD3.address,
@@ -865,9 +865,8 @@ describe('D. transferFioAddress Error testing', () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log('Error: ', err.json.error)
-            expect(err.json.code).to.equal(500);
-            //expect(err.json.fields[0].error).to.equal(config.error.insufficientFunds)
-            //expect(err.json.code).to.equal(400);
+            expect(err.json.fields[0].error).to.equal(config.error.insufficientFunds)
+            expect(err.json.code).to.equal(400);
         }
     })
 
@@ -1000,7 +999,7 @@ describe('E. Confirm active producers and proxy cannot transfer address', () => 
 
 })
 
-describe('BRAVO ONLY: Confirm users with OBT records or Requests cannot transfer addresses', () => {
+describe('F. BRAVO ONLY: Confirm users with OBT records or Requests cannot transfer addresses', () => {
 
     let user1, user2, user3, user4, transfer_fio_address_fee
 

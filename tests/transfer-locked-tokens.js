@@ -24,7 +24,7 @@ const fundsAmount = 500000000000
 const maxTestFundsAmount = 5000000000
 const halfundsAmount = 220000000000
 
-describe(`************************** transfer-locked-tokens.js ************************** \n A. Create accounts for tests`, () => {
+describe(`************************** transfer-locked-tokens.js ************************** \n    A. Create accounts for tests`, () => {
 
 
   it(`Create users`, async () => {
@@ -43,6 +43,7 @@ describe(`************************** transfer-locked-tokens.js *****************
     locksdk3 = new FIOSDK(keys3.privateKey, keys3.publicKey, config.BASE_URL, fetchJson);
   })
 
+  /*
   it.skip(`Show account info`, async () => {
     console.log('              userA1.account:', userA1.account)
     console.log('              userA1.publicKey:', userA1.publicKey)
@@ -56,6 +57,7 @@ describe(`************************** transfer-locked-tokens.js *****************
     console.log("              locked token holder votable account ",keys1.account)
     console.log("              locked token holder votable priv key ",keys1.privateKey)
   })
+  */
 })
 
 
@@ -785,8 +787,8 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
 })
 
 
-describe.skip(`C. staking incentives, canvote = false`, () => {
-
+describe.skip(`FUTURE FEATURE (commented out) C. staking incentives, canvote = false`, () => {
+/*
   let balancebefore, balanceafter, feetransferlocked,
   stakeKey1, stakeKey2, stakeKey3,stakeKey4, stakeKey5
 
@@ -1507,9 +1509,9 @@ describe.skip(`C. staking incentives, canvote = false`, () => {
 
 
   //end check that we arent abl to vote with this lock
+  */
 })
 //end new tests matching testing requirements.
-
 
 describe(`D. Canvote true, verify tokens are voted.`, () => {
 
