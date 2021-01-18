@@ -8,7 +8,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
 })
 
-describe(`************************** tpid.js ************************** \n TPID Tests`, () => {
+describe(`************************** tpid.js ************************** \n    A. Test TPIDs with proxy`, () => {
   
   let proxy1, user1, user2, user3, user4, newPubKey
 
@@ -21,8 +21,6 @@ describe(`************************** tpid.js ************************** \n TPID 
 
     let keys = await createKeypair();
     newPubKey = keys.publicKey;
-
-    console.log('key: ', newPubKey)
   })
 
   it('Confirm proxy1: is_proxy = 0, is_auto_proxy = 0', async () => {
@@ -260,7 +258,7 @@ describe(`************************** tpid.js ************************** \n TPID 
     }
   })
 
-  it(`FIXED: regaddress: user3 register new Address for user1 using FIO Address of proxy1 (who IS a registered proxy). Expect: no proxy for user1.`, async () => {
+  it(`regaddress: user3 register new Address for user1 using FIO Address of proxy1 (who IS a registered proxy). Expect: no proxy for user1.`, async () => {
     user1.address2 = generateFioAddress(user3.domain, 8)
     try {
       const result = await user3.sdk.genericAction('pushTransaction', {
@@ -324,7 +322,7 @@ describe(`************************** tpid.js ************************** \n TPID 
     }
   })
 
-  it.skip(`Future release: xferaddress: user3 transfers user3.address2 to emptyAccount.publicKey using FIO Address of proxy1 (who IS a registered proxy). Expect: no proxy for user1.`, async () => {
+  it(`xferaddress: user3 transfers user3.address2 to emptyAccount.publicKey using FIO Address of proxy1 (who IS a registered proxy). Expect: no proxy for user1.`, async () => {
     try{
         const result = await user3.sdk.genericAction('pushTransaction', {
             action: 'xferaddress',
@@ -344,27 +342,7 @@ describe(`************************** tpid.js ************************** \n TPID 
     }
   })
 
-  it.skip(`NOT APPLICABLE: burnaddress: user2 tries to burn user3 address`, async () => {
-    try {
-      const result = await user2.sdk.genericAction('pushTransaction', {
-        action: 'burnaddress',
-        account: 'fio.address',
-        data: {
-          fio_address: user3.address,
-          max_fee: config.maxFee,
-          tpid: proxy1.address,
-          actor: user2.account
-        }
-      })
-      //console.log('Result: ', result)
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-      console.log('Error: ', err)
-      expect(err).to.equal('null')
-    }
-  })
-
-  it(`FIXED: trnsfiopubky: user 3 transfers 10 FIO to user1 using FIO Address of proxy1 (who IS a registered proxy). Expect: no proxy for user1.`, async () => {
+  it(`user 3 transfers 10 FIO to user1 using FIO Address of proxy1 (who IS a registered proxy). Expect: no proxy for user1.`, async () => {
     try {
       const result = await user3.sdk.genericAction('pushTransaction', {
         action: 'trnsfiopubky',
@@ -415,7 +393,7 @@ describe(`************************** tpid.js ************************** \n TPID 
 
 })
 
-describe(`User that has proxied their vote is sent FIO with TPID registered as proxy`, () => {
+describe(`B. User that has proxied their vote is sent FIO with TPID registered as proxy`, () => {
   
   let proxy1, user1, user2
 
@@ -608,7 +586,7 @@ describe(`User that has proxied their vote is sent FIO with TPID registered as p
 
 })
 
-describe(`User that has proxied their votes is sent FIO with TPID registered as proxy`, () => {
+describe(`C. User that has proxied their votes is sent FIO with TPID registered as proxy`, () => {
   
   let proxy1, proxyThief, user1, user2
 

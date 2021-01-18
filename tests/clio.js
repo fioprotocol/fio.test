@@ -345,7 +345,7 @@ describe(`D. Address`, () => {
             console.log('Error', err)
         }
     })
-
+    /*
     it.skip(`(Future release) address transfer`, async () => {
         try {
             result = await runClio(`address transfer -j ${user1.account} ${user1.address} ${user2.publicKey} ${tpid} ${max_fee} --permission ${user1.account}@active`);
@@ -466,7 +466,8 @@ describe(`D. Address`, () => {
           console.log('Error', err)
           expect(err).to.equal(null)
         }
-      })
+    })
+    */
 
 })
 
