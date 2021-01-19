@@ -3063,7 +3063,7 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
 
 })
 
-describe(`K. regproxy results in faulty record in voters table if account already has a voteproducer record (BD-2028)`, () => {
+describe(`K. regproxy results in faulty record in voters table if account already has a voteproducer record (fixed BD-2028)`, () => {
 
   let proxyA1
 
@@ -3174,3 +3174,4 @@ describe(`K. regproxy results in faulty record in voters table if account alread
   })
 
 })
+
