@@ -1,5 +1,5 @@
 const TESTURL = 'http://localhost:8889'             // Localhost
-//const TESTURL = 'http://dev2.fio.dev:8889'        // DEV
+//const TESTURL = 'http://44.234.45.7:8889'        // DEV1
 //const TESTURL = 'http://44.238.153.162:8889'      // Devnet
 //const TESTURL = 'http://testnet.fioprotocol.io'   // Testnet
 //const TESTURL = 'https://fio.greymass.com'        // Mainnet
