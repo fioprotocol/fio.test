@@ -104,7 +104,7 @@ describe('************************** addbundles.js ************************** \n
           }
     })
 
-    it(`(${testType}) BUG BD-2308 (when called with API) Add bundles with ${bundleSets} sets for FIO Address owned by other user`, async () => {
+    it(`(${testType}) Add bundles with ${bundleSets} sets for FIO Address owned by other user (fixed in BD-2308)`, async () => {
         if (testType == 'sdk') {
             try {
                 const result = await user1.sdk.genericAction('addBundledTransactions', {
@@ -335,7 +335,7 @@ describe('B. Add 3 sets of bundled transactions for FIO Address owned by other u
           }
     })
 
-    it(`(${testType}) BUG BD-2308 (when called with API) user1 run addbundles with ${bundleSets} sets for FIO Address owned by user2`, async () => {
+    it(`(${testType}) user1 run addbundles with ${bundleSets} sets for FIO Address owned by user2 (fixed in BD-2308)`, async () => {
         if (testType == 'sdk') {
             try {
                 const result = await user1.sdk.genericAction('addBundledTransactions', {

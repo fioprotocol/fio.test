@@ -392,12 +392,12 @@ describe('B. Testing domain actions', () => {
     expect(result.fee_collected).to.be.a('number')
   })
 
-  it.skip(`BUG BD-2308 getFee for addBundledTransactions`, async () => {
+  it(`getFee for addBundledTransactions`, async () => {
     try {
       const result = await fioSdk2.sdk.genericAction('getFeeForAddBundledTransactions', {
         fioAddress: newFioAddress
       })
-      console.log('Result: ', result)
+      //console.log('Result: ', result)
       expect(result).to.have.all.keys('fee')
       expect(result.fee).to.be.a('number')
     } catch (err) {
@@ -406,14 +406,14 @@ describe('B. Testing domain actions', () => {
     }
   })
 
-  it.skip(`BUG BD-2308 add Bundled Transactions`, async () => {
+  it(`add Bundled Transactions`, async () => {
     try {
       const result = await fioSdk2.sdk.genericAction('addBundledTransactions', {
         fioAddress: newFioAddress,
         bundleSets: defaultBundledSets,
         maxFee: defaultFee
       })
-      console.log('Result: ', result)
+      //console.log('Result: ', result)
       expect(result).to.have.all.keys('status', 'fee_collected')
       expect(result.status).to.be.a('string')
       expect(result.fee_collected).to.be.a('number')
@@ -422,6 +422,8 @@ describe('B. Testing domain actions', () => {
       expect(err).to.equal(null)
     }
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`(push_transaction) user1 run addbundles with sets for FIO Address owned by user2`, async () => {
     try {
@@ -710,20 +712,27 @@ describe('C. Request funds, approve and send', () => {
     expect(result.fee_collected).to.be.a('number')
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
+
   it(`getPendingFioRequests`, async () => {
-    await timeout(4000)
-    const result = await fioSdk.sdk.genericAction('getPendingFioRequests', {})
-    expect(result).to.have.all.keys('requests', 'more')
-    expect(result.requests).to.be.a('array')
-    expect(result.more).to.be.a('number')
-    const pendingReq = result.requests.find(pr => parseInt(pr.fio_request_id) === parseInt(requestId))
-    expect(pendingReq).to.have.all.keys('fio_request_id', 'payer_fio_address', 'payee_fio_address', 'payee_fio_public_key', 'payer_fio_public_key', 'time_stamp', 'content')
-    expect(pendingReq.fio_request_id).to.be.a('number')
-    expect(pendingReq.fio_request_id).to.equal(requestId)
-    expect(pendingReq.payer_fio_address).to.be.a('string')
-    expect(pendingReq.payer_fio_address).to.equal(testFioAddressName)
-    expect(pendingReq.payee_fio_address).to.be.a('string')
-    expect(pendingReq.payee_fio_address).to.equal(testFioAddressName2)
+    try {
+      const result = await fioSdk.sdk.genericAction('getPendingFioRequests', {})
+      //console.log('Result: ', result)
+      expect(result).to.have.all.keys('requests', 'more')
+      expect(result.requests).to.be.a('array')
+      expect(result.more).to.be.a('number')
+      const pendingReq = result.requests.find(pr => parseInt(pr.fio_request_id) === parseInt(requestId))
+      expect(pendingReq).to.have.all.keys('fio_request_id', 'payer_fio_address', 'payee_fio_address', 'payee_fio_public_key', 'payer_fio_public_key', 'time_stamp', 'content')
+      expect(pendingReq.fio_request_id).to.be.a('number')
+      expect(pendingReq.fio_request_id).to.equal(requestId)
+      expect(pendingReq.payer_fio_address).to.be.a('string')
+      expect(pendingReq.payer_fio_address).to.equal(testFioAddressName)
+      expect(pendingReq.payee_fio_address).to.be.a('string')
+      expect(pendingReq.payee_fio_address).to.equal(testFioAddressName2)
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
+    }
   })
 
   it(`recordObtData`, async () => {
