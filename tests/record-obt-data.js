@@ -10,10 +10,10 @@ before(async () => {
 
 describe(`*********************** record-obt-data.js *********************** \n    A. Test OBT DAta`, () => {
 
-    let userA1, userA2, userA2Balance
+    let userA1, userA2, userA2Balance, timeStamp
     const payment = 5000000000 // 5 FIO
     const requestMemo = 'Memo Test'
-    const obtMemo = 'Memo in OBT response to request'
+    const obtMemo = 'Memo in OBT payment'
 
     it(`Create users`, async () => {
         userA1 = await newUser(faucet);
@@ -40,6 +40,7 @@ describe(`*********************** record-obt-data.js *********************** \n 
                 offLineUrl: ''
             })
             //console.log('Result: ', result)
+            timeStamp = result.time_stamp
             expect(result.status).to.equal('sent_to_blockchain')
         } catch (err) {
             console.log('Error: ', err)
@@ -47,15 +48,42 @@ describe(`*********************** record-obt-data.js *********************** \n 
         }
     })
 
-    it(`Confirm get_obt_data returns correct record for payee and payer`, async () => {
+    it(`get_obt_data for userA1 (payer)`, async () => {
         try {
             const result = await userA1.sdk.genericAction('getObtData', {
                 limit: '',
                 offset: ''
             })
-            //console.log('result: ', result)
-            //console.log('content: ', result.requests[0].content)
-            expect(result.obt_data_records[0].content.memo).to.equal(obtMemo)
+            //console.log('result: ', result);
+            //console.log('content: ', result.obt_data_records[0].content);
+            expect(result.obt_data_records[0].fio_request_id).to.equal(0);
+            expect(result.obt_data_records[0].payer_fio_address).to.equal(userA1.address);
+            expect(result.obt_data_records[0].payee_fio_address).to.equal(userA2.address);
+            expect(result.obt_data_records[0].payer_fio_public_key).to.equal(userA1.publicKey);
+            expect(result.obt_data_records[0].payee_fio_public_key).to.equal(userA2.publicKey);
+            expect(result.obt_data_records[0].status).to.equal('sent_to_blockchain');
+            expect(result.obt_data_records[0].content.memo).to.equal(obtMemo);
+        } catch (err) {
+            console.log('Error: ', err)
+            expect(err).to.equal(null)
+        }
+    })
+
+    it(`get_obt_data for userA2 (payee)`, async () => {
+        try {
+            const result = await userA2.sdk.genericAction('getObtData', {
+                limit: '',
+                offset: ''
+            })
+            //console.log('result: ', result);
+            //console.log('content: ', result.obt_data_records[0].content);
+            expect(result.obt_data_records[0].fio_request_id).to.equal(0);
+            expect(result.obt_data_records[0].payer_fio_address).to.equal(userA1.address);
+            expect(result.obt_data_records[0].payee_fio_address).to.equal(userA2.address);
+            expect(result.obt_data_records[0].payer_fio_public_key).to.equal(userA1.publicKey);
+            expect(result.obt_data_records[0].payee_fio_public_key).to.equal(userA2.publicKey);
+            expect(result.obt_data_records[0].status).to.equal('sent_to_blockchain');
+            expect(result.obt_data_records[0].content.memo).to.equal(obtMemo);
         } catch (err) {
             console.log('Error: ', err)
             expect(err).to.equal(null)
