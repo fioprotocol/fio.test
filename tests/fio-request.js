@@ -8,7 +8,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-describe(`************************** fio-request.js ************************** \n    A. Send fio request from userA1 to userA2`, () => {
+describe(`************************** fio-request.js ************************** \n    A. Send fio request from userA1 to userA2. userA2 responds with OBT Record`, () => {
 
     let userA1, userA2, requestId
     const payment = 5000000000 // 5 FIO
@@ -59,6 +59,7 @@ describe(`************************** fio-request.js ************************** \
           hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
           offlineUrl: ''
         })
+        requestId = result.fio_request_id
         //console.log('Result: ', result)
         expect(result.status).to.equal('requested')
       } catch (err) {
@@ -67,23 +68,58 @@ describe(`************************** fio-request.js ************************** \
       }
     })
 
-    it(`get_sent_fio_requests for userA1`, async () => {
+    it(`get_sent_fio_requests for userA1 (payee)`, async () => {
       try {
-        const result = await userA1.sdk.genericAction('getSentFioRequests', {
-          limit: '',
-          offset: ''
-        })
-        //console.log('result: ', result)
-        //console.log('content: ', result.requests[0].content)
-        requestId = result.requests[0].fio_request_id
-        expect(result.requests[0].content.memo).to.equal(requestMemo)
+          const result = await userA1.sdk.genericAction('getSentFioRequests', {
+              limit: '',
+              offset: ''
+          })
+          //console.log('result: ', result);
+          //console.log('content: ', result.requests[0].content);
+          expect(result.requests[0].fio_request_id).to.equal(requestId);
+          expect(result.requests[0].payer_fio_address).to.equal(userA2.address);
+          expect(result.requests[0].payee_fio_address).to.equal(userA1.address);
+          expect(result.requests[0].payer_fio_public_key).to.equal(userA2.publicKey);
+          expect(result.requests[0].payee_fio_public_key).to.equal(userA1.publicKey);
+          expect(result.requests[0].status).to.equal('requested');
+          expect(result.requests[0].content.memo).to.equal(requestMemo);
       } catch (err) {
-        console.log('Error: ', err)
-        expect(err).to.equal(null)
+          console.log('Error: ', err)
+          expect(err).to.equal(null)
       }
     })
 
-    it(`get_pending_fio_requests for userA2`, async () => {
+    it(`get_sent_fio_requests for userA2 (payer). Expect 'No FIO Requests'`, async () => {
+      try {
+          const result = await userA2.sdk.genericAction('getSentFioRequests', {
+              limit: '',
+              offset: ''
+          })
+          //console.log('result: ', result);
+          //console.log('content: ', result.requests[0].content);
+          expect(result).to.equal(null)
+      } catch (err) {
+          //console.log('Error: ', err)
+          expect(err.json.message).to.equal('No FIO Requests')
+      }
+    })
+
+    it(`get_pending_fio_requests for userA1 (payee). Expect 'No FIO Requests'`, async () => {
+      try {
+        const result = await userA1.sdk.genericAction('getPendingFioRequests', {
+          limit: '',
+          offset: ''
+        })
+        console.log('result: ', result)
+        //console.log('content: ', result.requests[0].content)
+        expect(result).to.equal(null)
+      } catch (err) {
+          //console.log('Error: ', err)
+          expect(err.json.message).to.equal('No FIO Requests')
+      }
+    })
+
+    it(`get_pending_fio_requests for userA2 (payer)`, async () => {
       try {
         const result = await userA2.sdk.genericAction('getPendingFioRequests', {
           limit: '',
@@ -91,11 +127,85 @@ describe(`************************** fio-request.js ************************** \
         })
         //console.log('result: ', result)
         //console.log('content: ', result.requests[0].content)
-        expect(result.requests[0].fio_request_id).to.equal(requestId)
-        expect(result.requests[0].content.memo).to.equal(requestMemo)
+        expect(result.requests[0].fio_request_id).to.equal(requestId);
+        expect(result.requests[0].payer_fio_address).to.equal(userA2.address);
+        expect(result.requests[0].payee_fio_address).to.equal(userA1.address);
+        expect(result.requests[0].payer_fio_public_key).to.equal(userA2.publicKey);
+        expect(result.requests[0].payee_fio_public_key).to.equal(userA1.publicKey);
+        expect(result.requests[0].content.memo).to.equal(requestMemo);
       } catch (err) {
         console.log('Error: ', err)
         expect(err).to.equal(null)
+      }
+    })
+
+    it(`get_cancelled_fio_requests for userA1 (payee). Expect 'No FIO Requests'`, async () => {
+      try {
+        const result = await userA1.sdk.genericAction('getCancelledFioRequests', {
+          limit: '',
+          offset: ''
+        })
+        console.log('result: ', result)
+        //console.log('content: ', result.requests[0].content)
+        expect(result).to.equal(null)
+      } catch (err) {
+          //console.log('Error: ', err)
+          expect(err.json.message).to.equal('No FIO Requests')
+      }
+    })
+
+    it(`get_cancelled_fio_requests for userA2 (payer). Expect 'No FIO Requests'`, async () => {
+      try {
+        const result = await userA1.sdk.genericAction('getCancelledFioRequests', {
+          limit: '',
+          offset: ''
+        })
+        console.log('result: ', result)
+        //console.log('content: ', result.requests[0].content)
+        expect(result).to.equal(null)
+      } catch (err) {
+          //console.log('Error: ', err)
+          expect(err.json.message).to.equal('No FIO Requests')
+      }
+    })
+
+    it(`Bahamas TODO: update after added to SDK to include memo check. get_received_fio_requests for userA2 (payer)`, async () => {
+      try {
+        const json = {
+          fio_public_key: userA2.publicKey,
+          limit: 100,
+          offset: 0
+        }
+        result = await callFioApi("get_received_fio_requests", json);
+        //console.log('result: ', result)
+        //console.log('content: ', result.requests[0].content)
+        expect(result.requests[0].fio_request_id).to.equal(requestId);
+        expect(result.requests[0].payer_fio_address).to.equal(userA2.address);
+        expect(result.requests[0].payee_fio_address).to.equal(userA1.address);
+        expect(result.requests[0].payer_fio_public_key).to.equal(userA2.publicKey);
+        expect(result.requests[0].payee_fio_public_key).to.equal(userA1.publicKey);
+        expect(result.requests[0].status).to.equal('requested');
+        //expect(result.requests[0].content.memo).to.equal(requestMemo);
+      } catch (err) {
+        console.log('Error: ', err)
+        expect(err).to.equal(null)
+      }
+    })
+
+    it(`get_received_fio_requests for userA1 (payee). Expect 'No FIO Requests'`, async () => {
+      try {
+        const json = {
+          fio_public_key: userA1.publicKey,
+          limit: 100,
+          offset: 0
+        }
+        result = await callFioApi("get_received_fio_requests", json);
+        console.log('result: ', result.json)
+        //console.log('content: ', result.requests[0].content)
+        expect(result).to.equal(null)
+      } catch (err) {
+          //console.log('Error: ', err.response)
+          expect(err.response.body.message).to.equal('No FIO Requests')
       }
     })
 
@@ -173,6 +283,142 @@ describe(`************************** fio-request.js ************************** \
       console.log('Error: ', err)
       expect(err).to.equal(null)
     }
+  }) 
+  
+  it.skip(`BUG (bahamas): BD-2306 get_sent_fio_requests for userA1 (payee)`, async () => {
+    try {
+        const result = await userA1.sdk.genericAction('getSentFioRequests', {
+            limit: '',
+            offset: ''
+        })
+        //console.log('result: ', result);
+        //console.log('content: ', result.requests[0].content);
+        expect(result.requests[0].fio_request_id).to.equal(requestId);
+        expect(result.requests[0].payer_fio_address).to.equal(userA2.address);
+        expect(result.requests[0].payee_fio_address).to.equal(userA1.address);
+        expect(result.requests[0].payer_fio_public_key).to.equal(userA2.publicKey);
+        expect(result.requests[0].payee_fio_public_key).to.equal(userA1.publicKey);
+        expect(result.requests[0].status).to.equal('sent_to_blockchain');
+        expect(result.requests[0].content.memo).to.equal(requestMemo);
+    } catch (err) {
+        console.log('Error: ', err)
+        expect(err).to.equal(null)
+    }
+  })
+
+  it(`get_sent_fio_requests for userA2 (payer). Expect 'No FIO Requests'`, async () => {
+    try {
+        const result = await userA2.sdk.genericAction('getSentFioRequests', {
+            limit: '',
+            offset: ''
+        })
+        //console.log('result: ', result);
+        //console.log('content: ', result.requests[0].content);
+        expect(result).to.equal(null)
+    } catch (err) {
+        //console.log('Error: ', err)
+        expect(err.json.message).to.equal('No FIO Requests')
+    }
+  })
+
+  it(`get_pending_fio_requests for userA1 (payee). Expect 'No FIO Requests'`, async () => {
+    try {
+      const result = await userA1.sdk.genericAction('getPendingFioRequests', {
+        limit: '',
+        offset: ''
+      })
+      console.log('result: ', result)
+      //console.log('content: ', result.requests[0].content)
+      expect(result).to.equal(null)
+    } catch (err) {
+        //console.log('Error: ', err)
+        expect(err.json.message).to.equal('No FIO Requests')
+    }
+  })
+
+  it(`get_pending_fio_requests for userA2 (payer)`, async () => {
+    try {
+      const result = await userA2.sdk.genericAction('getPendingFioRequests', {
+        limit: '',
+        offset: ''
+      })
+      //console.log('result: ', result)
+      //console.log('content: ', result.requests[0].content)
+      expect(result).to.equal(null)
+    } catch (err) {
+        //console.log('Error: ', err)
+        expect(err.json.message).to.equal('No FIO Requests')
+    }
+  })
+
+  it(`get_cancelled_fio_requests for userA1 (payee). Expect 'No FIO Requests'`, async () => {
+    try {
+      const result = await userA1.sdk.genericAction('getCancelledFioRequests', {
+        limit: '',
+        offset: ''
+      })
+      console.log('result: ', result)
+      //console.log('content: ', result.requests[0].content)
+      expect(result).to.equal(null)
+    } catch (err) {
+        //console.log('Error: ', err)
+        expect(err.json.message).to.equal('No FIO Requests')
+    }
+  })
+
+  it(`get_cancelled_fio_requests for userA2 (payer). Expect 'No FIO Requests'`, async () => {
+    try {
+      const result = await userA2.sdk.genericAction('getCancelledFioRequests', {
+        limit: '',
+        offset: ''
+      })
+      console.log('result: ', result)
+      //console.log('content: ', result.requests[0].content)
+      expect(result).to.equal(null)
+    } catch (err) {
+        //console.log('Error: ', err)
+        expect(err.json.message).to.equal('No FIO Requests')
+    }
+  })
+
+  it(`Bahamas TODO: update after added to SDK to include memo check. get_received_fio_requests for userA2 (payer)`, async () => {
+    try {
+      const json = {
+        fio_public_key: userA2.publicKey,
+        limit: 100,
+        offset: 0
+      }
+      result = await callFioApi("get_received_fio_requests", json);
+      //console.log('result: ', result)
+      //console.log('content: ', result.requests[0].content)
+      expect(result.requests[0].fio_request_id).to.equal(requestId);
+      expect(result.requests[0].payer_fio_address).to.equal(userA2.address);
+      expect(result.requests[0].payee_fio_address).to.equal(userA1.address);
+      expect(result.requests[0].payer_fio_public_key).to.equal(userA2.publicKey);
+      expect(result.requests[0].payee_fio_public_key).to.equal(userA1.publicKey);
+      expect(result.requests[0].status).to.equal('sent_to_blockchain');
+      //expect(result.requests[0].content.memo).to.equal(requestMemo);
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`get_received_fio_requests for userA1 (payee). Expect 'No FIO Requests'`, async () => {
+    try {
+      const json = {
+        fio_public_key: userA1.publicKey,
+        limit: 100,
+        offset: 0
+      }
+      result = await callFioApi("get_received_fio_requests", json);
+      console.log('result: ', result.json)
+      //console.log('content: ', result.requests[0].content)
+      expect(result).to.equal(null)
+    } catch (err) {
+        //console.log('Error: ', err.response)
+        expect(err.response.body.message).to.equal('No FIO Requests')
+    }
   })
 
   it(`getObtData for userA2`, async () => {
@@ -184,7 +430,13 @@ describe(`************************** fio-request.js ************************** \
       })
       //console.log('result: ', result)
       //console.log('content: ', result.obt_data_records[0].content)
-      expect(result.obt_data_records[0].content.memo).to.equal(obtMemo)
+      expect(result.obt_data_records[0].fio_request_id).to.equal(requestId);
+      expect(result.obt_data_records[0].payer_fio_address).to.equal(userA2.address);
+      expect(result.obt_data_records[0].payee_fio_address).to.equal(userA1.address);
+      expect(result.obt_data_records[0].payer_fio_public_key).to.equal(userA2.publicKey);
+      expect(result.obt_data_records[0].payee_fio_public_key).to.equal(userA1.publicKey);
+      expect(result.obt_data_records[0].status).to.equal('sent_to_blockchain');
+      expect(result.obt_data_records[0].content.memo).to.equal(obtMemo);
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal(null)
@@ -200,7 +452,13 @@ describe(`************************** fio-request.js ************************** \
       })
       //console.log('result: ', result)
       //console.log('content: ', result.obt_data_records[0].content)
-      expect(result.obt_data_records[0].content.memo).to.equal(obtMemo)
+      expect(result.obt_data_records[0].fio_request_id).to.equal(requestId);
+      expect(result.obt_data_records[0].payer_fio_address).to.equal(userA2.address);
+      expect(result.obt_data_records[0].payee_fio_address).to.equal(userA1.address);
+      expect(result.obt_data_records[0].payer_fio_public_key).to.equal(userA2.publicKey);
+      expect(result.obt_data_records[0].payee_fio_public_key).to.equal(userA1.publicKey);
+      expect(result.obt_data_records[0].status).to.equal('sent_to_blockchain');
+      expect(result.obt_data_records[0].content.memo).to.equal(obtMemo);
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal(null)
@@ -829,7 +1087,7 @@ describe(`C. cancel_funds_request with bundles remaining`, () => {
     }
   })
 
-  it(`Call cancel_funds_request to cancel request in pending state`, async () => {
+  it(`userA1 (payee) Call cancel_funds_request to cancel request in pending state`, async () => {
     try{
       const result = await userA1.sdk.genericAction('cancelFundsRequest', {
         fioRequestId: userA1RequestId,
@@ -846,7 +1104,7 @@ describe(`C. cancel_funds_request with bundles remaining`, () => {
     }
   })
 
-  it(`Verify request was cancelled: get_sent_fio_requests for userA1 returns 1 request with status 'cancelled'`, async () => {
+  it(`Verify request was cancelled: get_sent_fio_requests for userA1 (payee) returns 1 request with status 'cancelled'`, async () => {
     try {
       const result = await userA1.sdk.genericAction('getSentFioRequests', {
         limit: '',
@@ -854,11 +1112,30 @@ describe(`C. cancel_funds_request with bundles remaining`, () => {
       })
       //console.log('result: ', result)
       expect(result.requests[0].fio_request_id).to.equal(userA1RequestId);
-      expect(result.requests[0].content.memo).to.equal(requestMemo);
+      expect(result.requests[0].payer_fio_address).to.equal(userA2.address);
+      expect(result.requests[0].payee_fio_address).to.equal(userA1.address);
+      expect(result.requests[0].payer_fio_public_key).to.equal(userA2.publicKey);
+      expect(result.requests[0].payee_fio_public_key).to.equal(userA1.publicKey);
       expect(result.requests[0].status).to.equal('cancelled');
+      expect(result.requests[0].content.memo).to.equal(requestMemo);
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
+    }
+  })
+
+  it(`get_sent_fio_requests for userA2 (payer). Expect 'No FIO Requests'`, async () => {
+    try {
+        const result = await userA2.sdk.genericAction('getSentFioRequests', {
+            limit: '',
+            offset: ''
+        })
+        //console.log('result: ', result);
+        //console.log('content: ', result.requests[0].content);
+        expect(result).to.equal(null)
+    } catch (err) {
+        //console.log('Error: ', err)
+        expect(err.json.message).to.equal('No FIO Requests')
     }
   })
 
@@ -876,7 +1153,21 @@ describe(`C. cancel_funds_request with bundles remaining`, () => {
     }
   })
 
-  it(`Verify request was cancelled: get_cancelled_fio_requests returns 1 request with status 'cancelled'`, async () => {
+  it(`get_pending_fio_requests for userA1 returns: ${config.error.noFioRequests}`, async () => {
+    try {
+      const result = await userA1.sdk.genericAction('getPendingFioRequests', {
+        limit: '',
+        offset: ''
+      })
+      console.log('result: ', result);
+      expect(result).to.equal(null);
+    } catch (err) {
+      //console.log('Error: ', err.json);
+      expect(err.json.message).to.equal(config.error.noFioRequests);
+    }
+  })
+
+  it(`Verify request was cancelled: get_cancelled_fio_requests for userA1 (payee) returns 1 request with status 'cancelled'`, async () => {
     try {
       const json = {
         "fio_public_key": userA1.publicKey
@@ -884,10 +1175,69 @@ describe(`C. cancel_funds_request with bundles remaining`, () => {
       result = await callFioApi("get_cancelled_fio_requests", json);
       //console.log('Result: ', result);
       expect(result.requests[0].fio_request_id).to.equal(userA1RequestId);
+      expect(result.requests[0].payer_fio_address).to.equal(userA2.address);
+      expect(result.requests[0].payee_fio_address).to.equal(userA1.address);
+      expect(result.requests[0].payer_fio_public_key).to.equal(userA2.publicKey);
+      expect(result.requests[0].payee_fio_public_key).to.equal(userA1.publicKey);
       expect(result.requests[0].status).to.equal('cancelled');
     } catch (err) {
-      //console.log('Error', err.error.message)
-      expect(err.error.message).to.equal(config.error.noFioRequests)
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`get_cancelled_fio_requests for userA2 (payer). Expect 'No FIO Requests'`, async () => {
+    try {
+      const result = await userA2.sdk.genericAction('getCancelledFioRequests', {
+        limit: '',
+        offset: ''
+      })
+      console.log('result: ', result)
+      //console.log('content: ', result.requests[0].content)
+      expect(result).to.equal(null)
+    } catch (err) {
+        //console.log('Error: ', err)
+        expect(err.json.message).to.equal('No FIO Requests')
+    }
+  })
+
+  it(`get_received_fio_requests for userA1 (payee). Expect 'No FIO Requests'`, async () => {
+    try {
+      const json = {
+        fio_public_key: userA1.publicKey,
+        limit: 100,
+        offset: 0
+      }
+      result = await callFioApi("get_received_fio_requests", json);
+      console.log('result: ', result.json)
+      //console.log('content: ', result.requests[0].content)
+      expect(result).to.equal(null)
+    } catch (err) {
+        //console.log('Error: ', err.response)
+        expect(err.response.body.message).to.equal('No FIO Requests')
+    }
+  })
+
+  it(`Bahamas TODO: update after added to SDK to include memo check. get_received_fio_requests for userA2 (payer)`, async () => {
+    try {
+      const json = {
+        fio_public_key: userA2.publicKey,
+        limit: 100,
+        offset: 0
+      }
+      result = await callFioApi("get_received_fio_requests", json);
+      //console.log('result: ', result)
+      //console.log('content: ', result.requests[0].content)
+      expect(result.requests[0].fio_request_id).to.equal(userA1RequestId);
+      expect(result.requests[0].payer_fio_address).to.equal(userA2.address);
+      expect(result.requests[0].payee_fio_address).to.equal(userA1.address);
+      expect(result.requests[0].payer_fio_public_key).to.equal(userA2.publicKey);
+      expect(result.requests[0].payee_fio_public_key).to.equal(userA1.publicKey);
+      expect(result.requests[0].status).to.equal('cancelled');
+      //expect(result.requests[0].content.memo).to.equal(requestMemo);
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
     }
   })
 
@@ -2039,4 +2389,197 @@ describe.skip(`H. Records Performance Testing`, () => {
       }
     }
   })
+})
+
+describe(`I. reject_funds_request: Check all getters after`, () => {
+  let userA1, userA2, requestId
+  const payment = 5000000000 // 5 FIO
+  const requestMemo = 'Memo in the initial request'
+
+  it(`Create users`, async () => {
+    userA1 = await newUser(faucet);
+    userA2 = await newUser(faucet);
+  })
+
+  it(`userA1 requests funds from userA2`, async () => {
+    try {
+      const result = await userA1.sdk.genericAction('requestFunds', {
+        payerFioAddress: userA2.address,
+        payeeFioAddress: userA1.address,
+        payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
+        amount: payment,
+        chainCode: 'BTC',
+        tokenCode: 'BTC',
+        memo: requestMemo,
+        maxFee: config.api.new_funds_request.fee,
+        payerFioPublicKey: userA2.publicKey,
+        technologyProviderId: '',
+        hash: '',
+        offLineUrl: ''
+      })
+      //console.log('Result: ', result)
+      requestId = result.fio_request_id
+      expect(result.status).to.equal('requested')
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`userA2 rejects funds request`, async () => {
+    try{
+      const result = await userA2.sdk.genericAction('pushTransaction', {
+        action: 'rejectfndreq',
+        account: 'fio.reqobt',
+        data: {
+          "fio_request_id": requestId,
+          "max_fee": config.maxFee,
+          "tpid": '',
+          "actor": userA2.account
+        }
+      })
+      //console.log('Result:', result)
+      expect(result.status).to.equal('request_rejected')
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`get_sent_fio_requests for userA1 (payee)`, async () => {
+    try {
+        const result = await userA1.sdk.genericAction('getSentFioRequests', {
+            limit: '',
+            offset: ''
+        })
+        //console.log('result: ', result);
+        //console.log('content: ', result.requests[0].content);
+        expect(result.requests[0].fio_request_id).to.equal(requestId);
+        expect(result.requests[0].payer_fio_address).to.equal(userA2.address);
+        expect(result.requests[0].payee_fio_address).to.equal(userA1.address);
+        expect(result.requests[0].payer_fio_public_key).to.equal(userA2.publicKey);
+        expect(result.requests[0].payee_fio_public_key).to.equal(userA1.publicKey);
+        expect(result.requests[0].status).to.equal('rejected');
+        expect(result.requests[0].content.memo).to.equal(requestMemo);
+    } catch (err) {
+        console.log('Error: ', err)
+        expect(err).to.equal(null)
+    }
+  })
+
+  it(`get_sent_fio_requests for userA2 (payer). Expect 'No FIO Requests'`, async () => {
+    try {
+        const result = await userA2.sdk.genericAction('getSentFioRequests', {
+            limit: '',
+            offset: ''
+        })
+        //console.log('result: ', result);
+        //console.log('content: ', result.requests[0].content);
+        expect(result).to.equal(null)
+    } catch (err) {
+        //console.log('Error: ', err)
+        expect(err.json.message).to.equal('No FIO Requests')
+    }
+  })
+
+  it(`get_pending_fio_requests for userA1 (payee). Expect 'No FIO Requests'`, async () => {
+    try {
+      const result = await userA1.sdk.genericAction('getPendingFioRequests', {
+        limit: '',
+        offset: ''
+      })
+      console.log('result: ', result)
+      //console.log('content: ', result.requests[0].content)
+      expect(result).to.equal(null)
+    } catch (err) {
+        //console.log('Error: ', err)
+        expect(err.json.message).to.equal('No FIO Requests')
+    }
+  })
+
+  it(`get_pending_fio_requests for userA2 (payer). Expect 'No FIO Requests'`, async () => {
+    try {
+      const result = await userA2.sdk.genericAction('getPendingFioRequests', {
+        limit: '',
+        offset: ''
+      })
+      console.log('result: ', result)
+      //console.log('content: ', result.requests[0].content)
+      expect(result).to.equal(null)
+    } catch (err) {
+        //console.log('Error: ', err)
+        expect(err.json.message).to.equal('No FIO Requests')
+    }
+  })
+
+  it(`get_cancelled_fio_requests for userA1 (payee). Expect 'No FIO Requests'`, async () => {
+    try {
+      const result = await userA1.sdk.genericAction('getCancelledFioRequests', {
+        limit: '',
+        offset: ''
+      })
+      console.log('result: ', result)
+      //console.log('content: ', result.requests[0].content)
+      expect(result).to.equal(null)
+    } catch (err) {
+        //console.log('Error: ', err)
+        expect(err.json.message).to.equal('No FIO Requests')
+    }
+  })
+
+  it(`get_cancelled_fio_requests for userA2 (payer). Expect 'No FIO Requests'`, async () => {
+    try {
+      const result = await userA1.sdk.genericAction('getCancelledFioRequests', {
+        limit: '',
+        offset: ''
+      })
+      console.log('result: ', result)
+      //console.log('content: ', result.requests[0].content)
+      expect(result).to.equal(null)
+    } catch (err) {
+        //console.log('Error: ', err)
+        expect(err.json.message).to.equal('No FIO Requests')
+    }
+  })
+
+  it(`Bahamas TODO: update after added to SDK to include memo check. get_received_fio_requests for userA2 (payer)`, async () => {
+    try {
+      const json = {
+        fio_public_key: userA2.publicKey,
+        limit: 100,
+        offset: 0
+      }
+      result = await callFioApi("get_received_fio_requests", json);
+      //console.log('result: ', result)
+      //console.log('content: ', result.requests[0].content)
+      expect(result.requests[0].fio_request_id).to.equal(requestId);
+      expect(result.requests[0].payer_fio_address).to.equal(userA2.address);
+      expect(result.requests[0].payee_fio_address).to.equal(userA1.address);
+      expect(result.requests[0].payer_fio_public_key).to.equal(userA2.publicKey);
+      expect(result.requests[0].payee_fio_public_key).to.equal(userA1.publicKey);
+      expect(result.requests[0].status).to.equal('rejected');
+      //expect(result.requests[0].content.memo).to.equal(requestMemo);
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`get_received_fio_requests for userA1 (payee). Expect 'No FIO Requests'`, async () => {
+    try {
+      const json = {
+        fio_public_key: userA1.publicKey,
+        limit: 100,
+        offset: 0
+      }
+      result = await callFioApi("get_received_fio_requests", json);
+      console.log('result: ', result.json)
+      //console.log('content: ', result.requests[0].content)
+      expect(result).to.equal(null)
+    } catch (err) {
+        //console.log('Error: ', err.response)
+        expect(err.response.body.message).to.equal('No FIO Requests')
+    }
+  })
+
 })

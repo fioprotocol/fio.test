@@ -12,6 +12,7 @@ describe('TEST SUITE', () => {
   require('./tests/producer.js'); // v1.0.x
   require('./tests/pushtransaction.js'); // v1.0.x
   require('./tests/ram2.js');  // v1.0.x //Eric to update to remove clio
+  require('./tests/register-fio-address.js');
   require('./tests/register-fio-domain.js'); // v1.0.x
   require('./tests/transfer-tokens.js'); // v1.0.x
   require('./tests/vote.js');  // v1.0.x
