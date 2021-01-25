@@ -42,11 +42,250 @@ before(async () => {
 
 })
 
-describe(`************************** bravo-migr-test.js.js ************************** \n    A. Load Requests and OBTs`, () => {
-    let user1, user2, user3;
+describe.skip(`************************** bravo-migr-test.js.js ************************** \n    fiotrxts (original table) scripts`, () => {
+
+  describe(`A. Load Requests and OBTs`, () => {
+      let user1, user2, user3;
+      let payment = 3000000000;
+      let requestMemo = 'asdf';
+      let count = 5;
+
+      it(`Create users`, async () => {
+          user1 = await newUser(faucet);
+          user2 = await newUser(faucet);
+          user3 = await newUser(faucet);
+
+          //console.log('user1: ' + user1.account + ', ' + user1.privateKey + ', ' + user1.publicKey)
+          //console.log('user2: ' + user2.account + ', ' + user2.privateKey + ', ' + user2.publicKey)
+          //console.log('user3: ' + user3.account + ', ' + user3.privateKey + ', ' + user3.publicKey)
+      })
+
+      it(`${count}x - user1 requests funds from user2`, async () => {
+          for (i = 0; i < count; i++) {
+            try {
+              const result = await user1.sdk.genericAction('requestFunds', {
+                payerFioAddress: user2.address,
+                payeeFioAddress: user1.address,
+                payeeTokenPublicAddress: user1.address,
+                amount: payment,
+                chainCode: 'FIO',
+                tokenCode: 'FIO',
+                memo: requestMemo,
+                maxFee: config.api.new_funds_request.fee,
+                payerFioPublicKey: user2.publicKey,
+                technologyProviderId: '',
+                hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
+                offlineUrl: ''
+              })
+              //console.log('Result: ', result)
+              expect(result.status).to.equal('requested')
+            } catch (err) {
+              console.log('Error', err.json)
+              expect(err).to.equal(null)
+            }
+          }
+      })
+
+      it(`${count}x - user2 requests funds from user1`, async () => {
+          for (i = 0; i < count; i++) {
+            try {
+              const result = await user2.sdk.genericAction('requestFunds', {
+                payerFioAddress: user1.address,
+                payeeFioAddress: user2.address,
+                payeeTokenPublicAddress: user2.address,
+                amount: payment,
+                chainCode: 'FIO',
+                tokenCode: 'FIO',
+                memo: requestMemo,
+                maxFee: config.api.new_funds_request.fee,
+                payerFioPublicKey: user1.publicKey,
+                technologyProviderId: '',
+                hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
+                offlineUrl: ''
+              })
+              //console.log('Result: ', result)
+              expect(result.status).to.equal('requested')
+            } catch (err) {
+              console.log('Error', err.json)
+              expect(err).to.equal(null)
+            }
+          }
+      })
+
+      it(`${count}x - user3 requests funds from user2, user2 rejects request`, async () => {
+          let requestId;
+          for (i = 0; i < count; i++) {
+              try {
+                  const result = await user3.sdk.genericAction('requestFunds', {
+                      payerFioAddress: user2.address,
+                      payeeFioAddress: user3.address,
+                      payeeTokenPublicAddress: user3.address,
+                      amount: payment,
+                      chainCode: 'FIO',
+                      tokenCode: 'FIO',
+                      memo: requestMemo,
+                      maxFee: config.api.new_funds_request.fee,
+                      payerFioPublicKey: user2.publicKey,
+                      technologyProviderId: '',
+                      hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
+                      offlineUrl: ''
+                  })
+                  //console.log('Result: ', result)
+                  requestId = result.fio_request_id;
+                  expect(result.status).to.equal('requested')
+              } catch (err) {
+                  console.log('Error', err.json)
+                  expect(err).to.equal(null)
+              }
+
+              try {
+                  const result = await user2.sdk.genericAction('pushTransaction', {
+                      action: 'rejectfndreq',
+                      account: 'fio.reqobt',
+                      data: {
+                          fio_request_id: requestId,
+                          max_fee: config.api.cancel_funds_request.fee,
+                          tpid: '',
+                          actor: user2.account
+                      }
+                  })
+                  //console.log('Result:', result)
+                  expect(result.status).to.equal('request_rejected') 
+              } catch (err) {
+                  console.log('Error', err)
+                  expect(err).to.equal(null)
+              }
+          }
+      })
+
+      it(`${count}x - user2 requests funds from user1, user 1 records OBT response`, async () => {
+          let requestId;
+          for (i = 0; i < count; i++) {
+              try {
+                  const result = await user2.sdk.genericAction('requestFunds', {
+                      payerFioAddress: user1.address,
+                      payeeFioAddress: user2.address,
+                      payeeTokenPublicAddress: user2.address,
+                      amount: payment,
+                      chainCode: 'FIO',
+                      tokenCode: 'FIO',
+                      memo: requestMemo,
+                      maxFee: config.api.new_funds_request.fee,
+                      payerFioPublicKey: user1.publicKey,
+                      technologyProviderId: '',
+                      hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
+                      offlineUrl: ''
+                  })
+                  //console.log('Result: ', result)
+                  requestId = result.fio_request_id;
+                  expect(result.status).to.equal('requested')
+              } catch (err) {
+                  console.log('Error', err.json)
+                  expect(err).to.equal(null)
+              }
+
+            try {
+                  const result = await user1.sdk.genericAction('recordObtData', {
+                      payerFioAddress: user1.address,
+                      payeeFioAddress: user2.address,
+                      payerTokenPublicAddress: user1.publicKey,
+                      payeeTokenPublicAddress: user2.publicKey,
+                      amount: payment,
+                      chainCode: "FIO",
+                      tokenCode: "FIO",
+                      status: '',
+                      obtId: requestId,
+                      maxFee: config.api.record_obt_data.fee,
+                      technologyProviderId: '',
+                      payeeFioPublicKey: user2.publicKey,
+                      memo: 'this is a test',
+                      hash: '',
+                      offLineUrl: ''
+                  })
+                  //console.log('Result: ', result)
+                  expect(result.status).to.equal('sent_to_blockchain')
+              } catch (err) {
+                  console.log('Error', err.json)
+                  expect(err).to.equal(null)
+              }
+          }
+      })
+
+      it(`${count}x user3 creates BTC OBT send record to user1`, async () => {
+          for (i = 0; i < count; i++) {
+              try {
+                  const result = await user3.sdk.genericAction('recordObtData', {
+                      payerFioAddress: user3.address,
+                      payeeFioAddress: user1.address,
+                      payerTokenPublicAddress: user3.publicKey,
+                      payeeTokenPublicAddress: user1.publicKey,
+                      amount: payment,
+                      chainCode: "BTC",
+                      tokenCode: "BTC",
+                      status: '',
+                      obtId: '',
+                      maxFee: config.api.record_obt_data.fee,
+                      technologyProviderId: '',
+                      payeeFioPublicKey: user1.publicKey,
+                      memo: 'this is a test',
+                      hash: '',
+                      offLineUrl: ''
+                  })
+                  //console.log('Result: ', result)
+                  expect(result.status).to.equal('sent_to_blockchain')
+              } catch (err) {
+                  console.log('Error', err.json)
+                  expect(err).to.equal(null)
+              }
+          }
+      })
+  })
+
+  describe(`B. Perform single migrtrx to initialize migration`, () => {
+
+    it(`Call single migrtrx (bp1) and confirm you can still do Requests and OBTs`, async () => {
+        try {
+            const result = await callFioApiSigned('push_transaction', {
+                action: 'migrtrx',
+                account: 'fio.reqobt',
+                actor: bp1.account,
+                privKey: bp1.privateKey,
+                data: {
+                    amount: 20,
+                    actor: bp1.account
+                }
+            })
+            //console.log('Result: ', result)
+            expect(result.transaction_id).to.exist
+        } catch (err) {
+            console.log('Error: ', err)
+            expect(err).to.equal(null)
+        }
+      })
+
+      it.skip('Call get_table_rows from fiotrxts (NEW table) and display', async () => {
+        try {
+          const json = {
+            json: true,               // Get the response as json
+            code: 'fio.reqobt',      // Contract that we target
+            scope: 'fio.reqobt',         // Account that owns the data
+            table: 'fiotrxts',        // Table name
+            limit: 1000,                // Maximum number of rows that we want to get
+            reverse: false,           // Optional: Get reversed data
+            show_payer: false          // Optional: Show ram payer
+          }
+          requests = await callFioApi("get_table_rows", json);
+          console.log('requests: ', requests); 
+        } catch (err) {
+          console.log('Error', err);
+          expect(err).to.equal(null);
+        }
+      })
+  })
+
+  describe(`C. Initial OBT record. Confirm new OBT Sends are going into both tables`, () => {
+    let user1, user2, user3
     let payment = 3000000000;
-    let requestMemo = 'asdf';
-    let count = 5;
 
     it(`Create users`, async () => {
         user1 = await newUser(faucet);
@@ -58,10 +297,106 @@ describe(`************************** bravo-migr-test.js.js *********************
         //console.log('user3: ' + user3.account + ', ' + user3.privateKey + ', ' + user3.publicKey)
     })
 
-    it(`${count}x - user1 requests funds from user2`, async () => {
-        for (i = 0; i < count; i++) {
-          try {
-            const result = await user1.sdk.genericAction('requestFunds', {
+
+    it(`user3 creates BTC OBT send record to user1`, async () => {
+      try {
+          const result = await user3.sdk.genericAction('recordObtData', {
+              payerFioAddress: user3.address,
+              payeeFioAddress: user1.address,
+              payerTokenPublicAddress: user3.publicKey,
+              payeeTokenPublicAddress: user1.publicKey,
+              amount: payment,
+              chainCode: "BTC",
+              tokenCode: "BTC",
+              status: '',
+              obtId: '',
+              maxFee: config.api.record_obt_data.fee,
+              technologyProviderId: '',
+              payeeFioPublicKey: user1.publicKey,
+              memo: 'this is a test',
+              hash: '',
+              offLineUrl: ''
+          })
+          //console.log('Result: ', result)
+          expect(result.status).to.equal('sent_to_blockchain')
+      } catch (err) {
+          console.log('Error', err.json)
+          expect(err).to.equal(null)
+      }
+    })
+
+    it('Call get_table_rows from recordobts (old table) and confirm OBT is in table', async () => {
+      try {
+        const json = {
+          json: true,               // Get the response as json
+          code: 'fio.reqobt',      // Contract that we target
+          scope: 'fio.reqobt',         // Account that owns the data
+          table: 'recordobts',        // Table name
+          limit: 1000,                // Maximum number of rows that we want to get
+          reverse: true,           // Optional: Get reversed data
+          show_payer: false          // Optional: Show ram payer
+        }
+        obts = await callFioApi("get_table_rows", json);
+        //console.log('obts: ', obts);
+        for (request in obts.rows) {
+          if (obts.rows[request].payer_fio_addr == user3.address) {
+            //console.log('payer_fio_addr: ', obts.rows[request].payer_fio_addr); 
+            break;
+          }
+        }
+        expect(obts.rows[request].payer_fio_addr).to.equal(user3.address);  
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
+
+    it('Call get_table_rows from fiotrxts (NEW table) and confirm request is in table', async () => {
+      try {
+        const json = {
+          json: true,               // Get the response as json
+          code: 'fio.reqobt',      // Contract that we target
+          scope: 'fio.reqobt',         // Account that owns the data
+          table: 'fiotrxts',        // Table name
+          limit: 1000,                // Maximum number of rows that we want to get
+          reverse: true,           // Optional: Get reversed data
+          show_payer: false          // Optional: Show ram payer
+        }
+        requests = await callFioApi("get_table_rows", json);
+        //console.log('requests: ', requests);
+        for (request in requests.rows) {
+          if (requests.rows[request].payer_fio_addr == user3.address) {
+            //console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
+            break;
+          }
+        }
+        expect(requests.rows[request].payer_fio_addr).to.equal(user3.address);  
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
+
+  })
+
+  describe(`E. Initial FIO Request record. Confirm NEW Requests are going into both tables`, () => {
+    let user1, user2, user3, requestId, obtId
+    let payment = 3000000000;
+    let requestMemo = 'asdf';
+
+    it(`Create users`, async () => {
+        user1 = await newUser(faucet);
+        user2 = await newUser(faucet);
+        user3 = await newUser(faucet);
+
+        //console.log('user1: ' + user1.account + ', ' + user1.privateKey + ', ' + user1.publicKey)
+        //console.log('user2: ' + user2.account + ', ' + user2.privateKey + ', ' + user2.publicKey)
+        //console.log('user3: ' + user3.account + ', ' + user3.privateKey + ', ' + user3.publicKey)
+    })
+
+    it(`user1 requests funds from user2`, async () => {
+      try {
+          const result = await user1.sdk.genericAction('requestFunds', {
               payerFioAddress: user2.address,
               payeeFioAddress: user1.address,
               payeeTokenPublicAddress: user1.address,
@@ -74,193 +409,43 @@ describe(`************************** bravo-migr-test.js.js *********************
               technologyProviderId: '',
               hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
               offlineUrl: ''
-            })
-            //console.log('Result: ', result)
-            expect(result.status).to.equal('requested')
-          } catch (err) {
-            console.log('Error', err.json)
-            expect(err).to.equal(null)
+          })
+          //console.log('Result: ', result)
+          requestId = result.fio_request_id;
+          expect(result.status).to.equal('requested')
+      } catch (err) {
+          console.log('Error', err.json)
+          expect(err).to.equal(null)
+      }
+    })
+
+    it('Requests: Call get_table_rows from fioreqctxts (old table) and confirm request is in table', async () => {
+      try {
+        const json = {
+          json: true,               // Get the response as json
+          code: 'fio.reqobt',      // Contract that we target
+          scope: 'fio.reqobt',         // Account that owns the data
+          table: 'fioreqctxts',        // Table name
+          limit: 1000,                // Maximum number of rows that we want to get
+          reverse: true,           // Optional: Get reversed data
+          show_payer: false          // Optional: Show ram payer
+        }
+        requests = await callFioApi("get_table_rows", json);
+        //console.log('requests: ', requests);
+        for (request in requests.rows) {
+          if (requests.rows[request].fio_request_id == requestId) {
+            //console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
+            break;
           }
         }
+        expect(requests.rows[request].payer_fio_addr).to.equal(user2.address);  
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
     })
 
-    it(`${count}x - user2 requests funds from user1`, async () => {
-        for (i = 0; i < count; i++) {
-          try {
-            const result = await user2.sdk.genericAction('requestFunds', {
-              payerFioAddress: user1.address,
-              payeeFioAddress: user2.address,
-              payeeTokenPublicAddress: user2.address,
-              amount: payment,
-              chainCode: 'FIO',
-              tokenCode: 'FIO',
-              memo: requestMemo,
-              maxFee: config.api.new_funds_request.fee,
-              payerFioPublicKey: user1.publicKey,
-              technologyProviderId: '',
-              hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
-              offlineUrl: ''
-            })
-            //console.log('Result: ', result)
-            expect(result.status).to.equal('requested')
-          } catch (err) {
-            console.log('Error', err.json)
-            expect(err).to.equal(null)
-          }
-        }
-    })
-
-    it(`${count}x - user3 requests funds from user2, user2 rejects request`, async () => {
-        let requestId;
-        for (i = 0; i < count; i++) {
-            try {
-                const result = await user3.sdk.genericAction('requestFunds', {
-                    payerFioAddress: user2.address,
-                    payeeFioAddress: user3.address,
-                    payeeTokenPublicAddress: user3.address,
-                    amount: payment,
-                    chainCode: 'FIO',
-                    tokenCode: 'FIO',
-                    memo: requestMemo,
-                    maxFee: config.api.new_funds_request.fee,
-                    payerFioPublicKey: user2.publicKey,
-                    technologyProviderId: '',
-                    hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
-                    offlineUrl: ''
-                })
-                //console.log('Result: ', result)
-                requestId = result.fio_request_id;
-                expect(result.status).to.equal('requested')
-            } catch (err) {
-                console.log('Error', err.json)
-                expect(err).to.equal(null)
-            }
-
-            try {
-                const result = await user2.sdk.genericAction('pushTransaction', {
-                    action: 'rejectfndreq',
-                    account: 'fio.reqobt',
-                    data: {
-                        fio_request_id: requestId,
-                        max_fee: config.api.cancel_funds_request.fee,
-                        tpid: '',
-                        actor: user2.account
-                    }
-                })
-                //console.log('Result:', result)
-                expect(result.status).to.equal('request_rejected') 
-            } catch (err) {
-                console.log('Error', err)
-                expect(err).to.equal(null)
-            }
-        }
-    })
-
-    it(`${count}x - user2 requests funds from user1, user 1 records OBT response`, async () => {
-        let requestId;
-        for (i = 0; i < count; i++) {
-            try {
-                const result = await user2.sdk.genericAction('requestFunds', {
-                    payerFioAddress: user1.address,
-                    payeeFioAddress: user2.address,
-                    payeeTokenPublicAddress: user2.address,
-                    amount: payment,
-                    chainCode: 'FIO',
-                    tokenCode: 'FIO',
-                    memo: requestMemo,
-                    maxFee: config.api.new_funds_request.fee,
-                    payerFioPublicKey: user1.publicKey,
-                    technologyProviderId: '',
-                    hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
-                    offlineUrl: ''
-                })
-                //console.log('Result: ', result)
-                requestId = result.fio_request_id;
-                expect(result.status).to.equal('requested')
-            } catch (err) {
-                console.log('Error', err.json)
-                expect(err).to.equal(null)
-            }
-
-          try {
-                const result = await user1.sdk.genericAction('recordObtData', {
-                    payerFioAddress: user1.address,
-                    payeeFioAddress: user2.address,
-                    payerTokenPublicAddress: user1.publicKey,
-                    payeeTokenPublicAddress: user2.publicKey,
-                    amount: payment,
-                    chainCode: "FIO",
-                    tokenCode: "FIO",
-                    status: '',
-                    obtId: requestId,
-                    maxFee: config.api.record_obt_data.fee,
-                    technologyProviderId: '',
-                    payeeFioPublicKey: user2.publicKey,
-                    memo: 'this is a test',
-                    hash: '',
-                    offLineUrl: ''
-                })
-                //console.log('Result: ', result)
-                expect(result.status).to.equal('sent_to_blockchain')
-            } catch (err) {
-                console.log('Error', err.json)
-                expect(err).to.equal(null)
-            }
-        }
-    })
-
-    it(`${count}x user3 creates BTC OBT send record to user1`, async () => {
-        for (i = 0; i < count; i++) {
-            try {
-                const result = await user3.sdk.genericAction('recordObtData', {
-                    payerFioAddress: user3.address,
-                    payeeFioAddress: user1.address,
-                    payerTokenPublicAddress: user3.publicKey,
-                    payeeTokenPublicAddress: user1.publicKey,
-                    amount: payment,
-                    chainCode: "BTC",
-                    tokenCode: "BTC",
-                    status: '',
-                    obtId: '',
-                    maxFee: config.api.record_obt_data.fee,
-                    technologyProviderId: '',
-                    payeeFioPublicKey: user1.publicKey,
-                    memo: 'this is a test',
-                    hash: '',
-                    offLineUrl: ''
-                })
-                //console.log('Result: ', result)
-                expect(result.status).to.equal('sent_to_blockchain')
-            } catch (err) {
-                console.log('Error', err.json)
-                expect(err).to.equal(null)
-            }
-        }
-    })
-})
-
-describe(`B. Perform single migrtrx to initialize migration`, () => {
-    it(`Call single migrtrx (bp1) and confirm you can still do Requests and OBTs`, async () => {
-        try {
-            const result = await callFioApiSigned('push_transaction', {
-                action: 'migrtrx',
-                account: 'fio.reqobt',
-                actor: bp1.account,
-                privKey: bp1.privateKey,
-                data: {
-                    amount: 1,
-                    actor: bp1.account
-                }
-            })
-            //console.log('Result: ', result)
-            expect(result.transaction_id).to.exist
-        } catch (err) {
-            console.log('Error: ', err)
-            expect(err).to.equal(null)
-        }
-    })
-
-    it.skip('Call get_table_rows from fiotrxts (NEW table) and display', async () => {
+    it('Call get_table_rows from fiotrxts (NEW table) and confirm request is in table', async () => {
       try {
         const json = {
           json: true,               // Get the response as json
@@ -268,509 +453,289 @@ describe(`B. Perform single migrtrx to initialize migration`, () => {
           scope: 'fio.reqobt',         // Account that owns the data
           table: 'fiotrxts',        // Table name
           limit: 1000,                // Maximum number of rows that we want to get
-          reverse: false,           // Optional: Get reversed data
+          reverse: true,           // Optional: Get reversed data
           show_payer: false          // Optional: Show ram payer
         }
         requests = await callFioApi("get_table_rows", json);
-        console.log('requests: ', requests); 
+        //console.log('requests: ', requests);
+        for (request in requests.rows) {
+          if (requests.rows[request].fio_request_id == requestId) {
+            //console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
+            break;
+          }
+        }
+        expect(requests.rows[request].payer_fio_addr).to.equal(user2.address);  
       } catch (err) {
         console.log('Error', err);
         expect(err).to.equal(null);
       }
     })
-})
 
-describe(`C. Initial OBT record. Confirm new OBT Sends are going into both tables`, () => {
-  let user1, user2, user3
-  let payment = 3000000000;
-
-  it(`Create users`, async () => {
-      user1 = await newUser(faucet);
-      user2 = await newUser(faucet);
-      user3 = await newUser(faucet);
-
-      //console.log('user1: ' + user1.account + ', ' + user1.privateKey + ', ' + user1.publicKey)
-      //console.log('user2: ' + user2.account + ', ' + user2.privateKey + ', ' + user2.publicKey)
-      //console.log('user3: ' + user3.account + ', ' + user3.privateKey + ', ' + user3.publicKey)
   })
 
+  describe.skip(`F. Confirm REJECTED Requests are going into both tables`, () => {
+      let user1, user2, user3, requestId
+      let payment = 3000000000;
+      let requestMemo = 'asdf';
 
-  it(`user3 creates BTC OBT send record to user1`, async () => {
-    try {
-        const result = await user3.sdk.genericAction('recordObtData', {
-            payerFioAddress: user3.address,
-            payeeFioAddress: user1.address,
-            payerTokenPublicAddress: user3.publicKey,
-            payeeTokenPublicAddress: user1.publicKey,
-            amount: payment,
-            chainCode: "BTC",
-            tokenCode: "BTC",
-            status: '',
-            obtId: '',
-            maxFee: config.api.record_obt_data.fee,
-            technologyProviderId: '',
-            payeeFioPublicKey: user1.publicKey,
-            memo: 'this is a test',
-            hash: '',
-            offLineUrl: ''
-        })
-        //console.log('Result: ', result)
-        expect(result.status).to.equal('sent_to_blockchain')
-    } catch (err) {
-        console.log('Error', err.json)
-        expect(err).to.equal(null)
-    }
+      it(`Create users`, async () => {
+          user1 = await newUser(faucet);
+          user2 = await newUser(faucet);
+          user3 = await newUser(faucet);
+      })
+
+
+      it(`user3 requests funds from user2, user2 rejects request`, async () => {
+          let requestId;
+          for (i = 0; i < count; i++) {
+              try {
+                  const result = await user3.sdk.genericAction('requestFunds', {
+                      payerFioAddress: user2.address,
+                      payeeFioAddress: user3.address,
+                      payeeTokenPublicAddress: user3.address,
+                      amount: payment,
+                      chainCode: 'FIO',
+                      tokenCode: 'FIO',
+                      memo: requestMemo,
+                      maxFee: config.api.new_funds_request.fee,
+                      payerFioPublicKey: user2.publicKey,
+                      technologyProviderId: '',
+                      hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
+                      offlineUrl: ''
+                  })
+                  //console.log('Result: ', result)
+                  requestId = result.fio_request_id;
+                  expect(result.status).to.equal('requested')
+              } catch (err) {
+                  console.log('Error', err.json)
+                  expect(err).to.equal(null)
+              }
+
+              try {
+                  const result = await user2.sdk.genericAction('pushTransaction', {
+                      action: 'rejectfndreq',
+                      account: 'fio.reqobt',
+                      data: {
+                          fio_request_id: requestId,
+                          max_fee: config.api.cancel_funds_request.fee,
+                          tpid: '',
+                          actor: user2.account
+                      }
+                  })
+                  //console.log('Result:', result)
+                  expect(result.status).to.equal('request_rejected') 
+              } catch (err) {
+                  console.log('Error', err)
+                  expect(err).to.equal(null)
+              }
+          }
+      })
+
+          it('Requests: Call get_table_rows from fioreqctxts (old table) and confirm request is in table', async () => {
+          try {
+              const json = {
+              json: true,               // Get the response as json
+              code: 'fio.reqobt',      // Contract that we target
+              scope: 'fio.reqobt',         // Account that owns the data
+              table: 'fioreqctxts',        // Table name
+              limit: 1000,                // Maximum number of rows that we want to get
+              reverse: false,           // Optional: Get reversed data
+              show_payer: false          // Optional: Show ram payer
+              }
+              requests = await callFioApi("get_table_rows", json);
+              console.log('requests: ', requests);
+              for (request in requests.rows) {
+              if (requests.rows[request].fio_request_id == requestId) {
+                  console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
+                  break;
+              }
+              }
+              expect(requests.rows[request].payer_fio_addr).to.equal(user2.address);  
+          } catch (err) {
+              console.log('Error', err);
+              expect(err).to.equal(null);
+          }
+          })
+
+          it('Call get_table_rows from fiotrxts (NEW table) and confirm request is in table', async () => {
+          try {
+              const json = {
+              json: true,               // Get the response as json
+              code: 'fio.reqobt',      // Contract that we target
+              scope: 'fio.reqobt',         // Account that owns the data
+              table: 'fiotrxts',        // Table name
+              limit: 1000,                // Maximum number of rows that we want to get
+              reverse: false,           // Optional: Get reversed data
+              show_payer: false          // Optional: Show ram payer
+              }
+              requests = await callFioApi("get_table_rows", json);
+              console.log('requests: ', requests);
+              for (request in requests.rows) {
+              if (requests.rows[request].fio_request_id == requestId) {
+                  console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
+                  break;
+              }
+              }
+              expect(requests.rows[request].payer_fio_addr).to.equal(user2.address);  
+          } catch (err) {
+              console.log('Error', err);
+              expect(err).to.equal(null);
+          }
+          })
+
   })
 
-  it('Call get_table_rows from recordobts (old table) and confirm OBT is in table', async () => {
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'fio.reqobt',      // Contract that we target
-        scope: 'fio.reqobt',         // Account that owns the data
-        table: 'recordobts',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: true,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
-      }
-      obts = await callFioApi("get_table_rows", json);
-      //console.log('obts: ', obts);
-      for (request in obts.rows) {
-        if (obts.rows[request].payer_fio_addr == user3.address) {
-          //console.log('payer_fio_addr: ', obts.rows[request].payer_fio_addr); 
-          break;
-        }
-      }
-      expect(obts.rows[request].payer_fio_addr).to.equal(user3.address);  
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
-  })
+  describe.skip(`G. Confirm paid OBT response Requests are going into both tables`, () => {
+      let user1, user2, user3, requestId
+      let payment = 3000000000;
+      let requestMemo = 'asdf';
 
-  it('Call get_table_rows from fiotrxts (NEW table) and confirm request is in table', async () => {
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'fio.reqobt',      // Contract that we target
-        scope: 'fio.reqobt',         // Account that owns the data
-        table: 'fiotrxts',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: true,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
-      }
-      requests = await callFioApi("get_table_rows", json);
-      //console.log('requests: ', requests);
-      for (request in requests.rows) {
-        if (requests.rows[request].payer_fio_addr == user3.address) {
-          //console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
-          break;
-        }
-      }
-      expect(requests.rows[request].payer_fio_addr).to.equal(user3.address);  
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
-  })
+      it(`Create users`, async () => {
+          user1 = await newUser(faucet);
+          user2 = await newUser(faucet);
+          user3 = await newUser(faucet);
 
-})
-
-describe(`E. Initial FIO Request record. Confirm NEW Requests are going into both tables`, () => {
-  let user1, user2, user3, requestId, obtId
-  let payment = 3000000000;
-  let requestMemo = 'asdf';
-
-  it(`Create users`, async () => {
-      user1 = await newUser(faucet);
-      user2 = await newUser(faucet);
-      user3 = await newUser(faucet);
-
-      //console.log('user1: ' + user1.account + ', ' + user1.privateKey + ', ' + user1.publicKey)
-      //console.log('user2: ' + user2.account + ', ' + user2.privateKey + ', ' + user2.publicKey)
-      //console.log('user3: ' + user3.account + ', ' + user3.privateKey + ', ' + user3.publicKey)
-  })
-
-  it(`user1 requests funds from user2`, async () => {
-    try {
-        const result = await user1.sdk.genericAction('requestFunds', {
-            payerFioAddress: user2.address,
-            payeeFioAddress: user1.address,
-            payeeTokenPublicAddress: user1.address,
-            amount: payment,
-            chainCode: 'FIO',
-            tokenCode: 'FIO',
-            memo: requestMemo,
-            maxFee: config.api.new_funds_request.fee,
-            payerFioPublicKey: user2.publicKey,
-            technologyProviderId: '',
-            hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
-            offlineUrl: ''
-        })
-        //console.log('Result: ', result)
-        requestId = result.fio_request_id;
-        expect(result.status).to.equal('requested')
-    } catch (err) {
-        console.log('Error', err.json)
-        expect(err).to.equal(null)
-    }
-  })
-
-  it('Requests: Call get_table_rows from fioreqctxts (old table) and confirm request is in table', async () => {
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'fio.reqobt',      // Contract that we target
-        scope: 'fio.reqobt',         // Account that owns the data
-        table: 'fioreqctxts',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: true,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
-      }
-      requests = await callFioApi("get_table_rows", json);
-      //console.log('requests: ', requests);
-      for (request in requests.rows) {
-        if (requests.rows[request].fio_request_id == requestId) {
-          //console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
-          break;
-        }
-      }
-      expect(requests.rows[request].payer_fio_addr).to.equal(user2.address);  
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
-  })
-
-  it('Call get_table_rows from fiotrxts (NEW table) and confirm request is in table', async () => {
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'fio.reqobt',      // Contract that we target
-        scope: 'fio.reqobt',         // Account that owns the data
-        table: 'fiotrxts',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: true,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
-      }
-      requests = await callFioApi("get_table_rows", json);
-      //console.log('requests: ', requests);
-      for (request in requests.rows) {
-        if (requests.rows[request].fio_request_id == requestId) {
-          //console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
-          break;
-        }
-      }
-      expect(requests.rows[request].payer_fio_addr).to.equal(user2.address);  
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
-  })
-
-})
-
-describe.skip(`F. Confirm REJECTED Requests are going into both tables`, () => {
-    let user1, user2, user3, requestId
-    let payment = 3000000000;
-    let requestMemo = 'asdf';
-
-    it(`Create users`, async () => {
-        user1 = await newUser(faucet);
-        user2 = await newUser(faucet);
-        user3 = await newUser(faucet);
-    })
+          console.log('user1: ' + user1.account + ', ' + user1.privateKey + ', ' + user1.publicKey)
+          console.log('user2: ' + user2.account + ', ' + user2.privateKey + ', ' + user2.publicKey)
+          console.log('user3: ' + user3.account + ', ' + user3.privateKey + ', ' + user3.publicKey)
+      })
 
 
-    it(`user3 requests funds from user2, user2 rejects request`, async () => {
-        let requestId;
-        for (i = 0; i < count; i++) {
-            try {
-                const result = await user3.sdk.genericAction('requestFunds', {
-                    payerFioAddress: user2.address,
-                    payeeFioAddress: user3.address,
-                    payeeTokenPublicAddress: user3.address,
-                    amount: payment,
-                    chainCode: 'FIO',
-                    tokenCode: 'FIO',
-                    memo: requestMemo,
-                    maxFee: config.api.new_funds_request.fee,
-                    payerFioPublicKey: user2.publicKey,
-                    technologyProviderId: '',
-                    hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
-                    offlineUrl: ''
-                })
-                //console.log('Result: ', result)
-                requestId = result.fio_request_id;
-                expect(result.status).to.equal('requested')
-            } catch (err) {
-                console.log('Error', err.json)
-                expect(err).to.equal(null)
-            }
+      it(`user2 requests funds from user1, user 1 records OBT response`, async () => {
+          let requestId;
+              try {
+                  const result = await user2.sdk.genericAction('requestFunds', {
+                      payerFioAddress: user1.address,
+                      payeeFioAddress: user2.address,
+                      payeeTokenPublicAddress: user2.address,
+                      amount: payment,
+                      chainCode: 'FIO',
+                      tokenCode: 'FIO',
+                      memo: requestMemo,
+                      maxFee: config.api.new_funds_request.fee,
+                      payerFioPublicKey: user1.publicKey,
+                      technologyProviderId: '',
+                      hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
+                      offlineUrl: ''
+                  })
+                  //console.log('Result: ', result)
+                  requestId = result.fio_request_id;
+                  expect(result.status).to.equal('requested')
+              } catch (err) {
+                  console.log('Error', err.json)
+                  expect(err).to.equal(null)
+              }
 
             try {
-                const result = await user2.sdk.genericAction('pushTransaction', {
-                    action: 'rejectfndreq',
-                    account: 'fio.reqobt',
-                    data: {
-                        fio_request_id: requestId,
-                        max_fee: config.api.cancel_funds_request.fee,
-                        tpid: '',
-                        actor: user2.account
-                    }
-                })
-                //console.log('Result:', result)
-                expect(result.status).to.equal('request_rejected') 
-            } catch (err) {
-                console.log('Error', err)
-                expect(err).to.equal(null)
-            }
-        }
-    })
+                  const result = await user1.sdk.genericAction('recordObtData', {
+                      payerFioAddress: user1.address,
+                      payeeFioAddress: user2.address,
+                      payerTokenPublicAddress: user1.publicKey,
+                      payeeTokenPublicAddress: user2.publicKey,
+                      amount: payment,
+                      chainCode: "FIO",
+                      tokenCode: "FIO",
+                      status: '',
+                      obtId: requestId,
+                      maxFee: config.api.record_obt_data.fee,
+                      technologyProviderId: '',
+                      payeeFioPublicKey: user2.publicKey,
+                      memo: 'this is a test',
+                      hash: '',
+                      offLineUrl: ''
+                  })
+                  //console.log('Result: ', result)
+                  expect(result.status).to.equal('sent_to_blockchain')
+              } catch (err) {
+                  console.log('Error', err.json)
+                  expect(err).to.equal(null)
+              }
+      })
 
-        it('Requests: Call get_table_rows from fioreqctxts (old table) and confirm request is in table', async () => {
-        try {
+      it('Call get_table_rows from recordobts (old table) and confirm OBT is in table', async () => {
+          try {
             const json = {
-            json: true,               // Get the response as json
-            code: 'fio.reqobt',      // Contract that we target
-            scope: 'fio.reqobt',         // Account that owns the data
-            table: 'fioreqctxts',        // Table name
-            limit: 1000,                // Maximum number of rows that we want to get
-            reverse: false,           // Optional: Get reversed data
-            show_payer: false          // Optional: Show ram payer
+              json: true,               // Get the response as json
+              code: 'fio.reqobt',      // Contract that we target
+              scope: 'fio.reqobt',         // Account that owns the data
+              table: 'recordobts',        // Table name
+              limit: 1000,                // Maximum number of rows that we want to get
+              reverse: false,           // Optional: Get reversed data
+              show_payer: false          // Optional: Show ram payer
+            }
+            obts = await callFioApi("get_table_rows", json);
+            console.log('obts: ', obts);
+            for (request in obts.rows) {
+              if (obts.rows[request].id == user1.address) {
+                console.log('payer_fio_addr: ', obts.rows[request].requestId); 
+                break;
+              }
+            }
+            expect(obts.rows[request].payer_fio_addr).to.equal(user1.address);  
+          } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+          }
+        })
+
+        it.skip('Requests: Call get_table_rows from fioreqctxts (old table) and confirm request is in table', async () => {
+          try {
+            const json = {
+              json: true,               // Get the response as json
+              code: 'fio.reqobt',      // Contract that we target
+              scope: 'fio.reqobt',         // Account that owns the data
+              table: 'fioreqctxts',        // Table name
+              limit: 1000,                // Maximum number of rows that we want to get
+              reverse: false,           // Optional: Get reversed data
+              show_payer: false          // Optional: Show ram payer
             }
             requests = await callFioApi("get_table_rows", json);
             console.log('requests: ', requests);
             for (request in requests.rows) {
-            if (requests.rows[request].fio_request_id == requestId) {
+              if (requests.rows[request].fio_request_id == requestId) {
                 console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
                 break;
-            }
+              }
             }
             expect(requests.rows[request].payer_fio_addr).to.equal(user2.address);  
-        } catch (err) {
+          } catch (err) {
             console.log('Error', err);
             expect(err).to.equal(null);
-        }
+          }
         })
 
         it('Call get_table_rows from fiotrxts (NEW table) and confirm request is in table', async () => {
-        try {
+          try {
             const json = {
-            json: true,               // Get the response as json
-            code: 'fio.reqobt',      // Contract that we target
-            scope: 'fio.reqobt',         // Account that owns the data
-            table: 'fiotrxts',        // Table name
-            limit: 1000,                // Maximum number of rows that we want to get
-            reverse: false,           // Optional: Get reversed data
-            show_payer: false          // Optional: Show ram payer
+              json: true,               // Get the response as json
+              code: 'fio.reqobt',      // Contract that we target
+              scope: 'fio.reqobt',         // Account that owns the data
+              table: 'fiotrxts',        // Table name
+              limit: 1000,                // Maximum number of rows that we want to get
+              reverse: false,           // Optional: Get reversed data
+              show_payer: false          // Optional: Show ram payer
             }
             requests = await callFioApi("get_table_rows", json);
             console.log('requests: ', requests);
             for (request in requests.rows) {
-            if (requests.rows[request].fio_request_id == requestId) {
+              if (requests.rows[request].fio_request_id == requestId) {
                 console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
                 break;
-            }
+              }
             }
             expect(requests.rows[request].payer_fio_addr).to.equal(user2.address);  
-        } catch (err) {
+          } catch (err) {
             console.log('Error', err);
             expect(err).to.equal(null);
-        }
+          }
         })
 
-})
-
-describe.skip(`G. Confirm paid OBT response Requests are going into both tables`, () => {
-    let user1, user2, user3, requestId
-    let payment = 3000000000;
-    let requestMemo = 'asdf';
-
-    it(`Create users`, async () => {
-        user1 = await newUser(faucet);
-        user2 = await newUser(faucet);
-        user3 = await newUser(faucet);
-
-        console.log('user1: ' + user1.account + ', ' + user1.privateKey + ', ' + user1.publicKey)
-        console.log('user2: ' + user2.account + ', ' + user2.privateKey + ', ' + user2.publicKey)
-        console.log('user3: ' + user3.account + ', ' + user3.privateKey + ', ' + user3.publicKey)
-    })
-
-
-    it(`user2 requests funds from user1, user 1 records OBT response`, async () => {
-        let requestId;
-            try {
-                const result = await user2.sdk.genericAction('requestFunds', {
-                    payerFioAddress: user1.address,
-                    payeeFioAddress: user2.address,
-                    payeeTokenPublicAddress: user2.address,
-                    amount: payment,
-                    chainCode: 'FIO',
-                    tokenCode: 'FIO',
-                    memo: requestMemo,
-                    maxFee: config.api.new_funds_request.fee,
-                    payerFioPublicKey: user1.publicKey,
-                    technologyProviderId: '',
-                    hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
-                    offlineUrl: ''
-                })
-                //console.log('Result: ', result)
-                requestId = result.fio_request_id;
-                expect(result.status).to.equal('requested')
-            } catch (err) {
-                console.log('Error', err.json)
-                expect(err).to.equal(null)
-            }
-
-          try {
-                const result = await user1.sdk.genericAction('recordObtData', {
-                    payerFioAddress: user1.address,
-                    payeeFioAddress: user2.address,
-                    payerTokenPublicAddress: user1.publicKey,
-                    payeeTokenPublicAddress: user2.publicKey,
-                    amount: payment,
-                    chainCode: "FIO",
-                    tokenCode: "FIO",
-                    status: '',
-                    obtId: requestId,
-                    maxFee: config.api.record_obt_data.fee,
-                    technologyProviderId: '',
-                    payeeFioPublicKey: user2.publicKey,
-                    memo: 'this is a test',
-                    hash: '',
-                    offLineUrl: ''
-                })
-                //console.log('Result: ', result)
-                expect(result.status).to.equal('sent_to_blockchain')
-            } catch (err) {
-                console.log('Error', err.json)
-                expect(err).to.equal(null)
-            }
-    })
-
-    it('Call get_table_rows from recordobts (old table) and confirm OBT is in table', async () => {
-        try {
-          const json = {
-            json: true,               // Get the response as json
-            code: 'fio.reqobt',      // Contract that we target
-            scope: 'fio.reqobt',         // Account that owns the data
-            table: 'recordobts',        // Table name
-            limit: 1000,                // Maximum number of rows that we want to get
-            reverse: false,           // Optional: Get reversed data
-            show_payer: false          // Optional: Show ram payer
-          }
-          obts = await callFioApi("get_table_rows", json);
-          console.log('obts: ', obts);
-          for (request in obts.rows) {
-            if (obts.rows[request].id == user1.address) {
-              console.log('payer_fio_addr: ', obts.rows[request].requestId); 
-              break;
-            }
-          }
-          expect(obts.rows[request].payer_fio_addr).to.equal(user1.address);  
-        } catch (err) {
-          console.log('Error', err);
-          expect(err).to.equal(null);
-        }
-      })
-
-      it.skip('Requests: Call get_table_rows from fioreqctxts (old table) and confirm request is in table', async () => {
-        try {
-          const json = {
-            json: true,               // Get the response as json
-            code: 'fio.reqobt',      // Contract that we target
-            scope: 'fio.reqobt',         // Account that owns the data
-            table: 'fioreqctxts',        // Table name
-            limit: 1000,                // Maximum number of rows that we want to get
-            reverse: false,           // Optional: Get reversed data
-            show_payer: false          // Optional: Show ram payer
-          }
-          requests = await callFioApi("get_table_rows", json);
-          console.log('requests: ', requests);
-          for (request in requests.rows) {
-            if (requests.rows[request].fio_request_id == requestId) {
-              console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
-              break;
-            }
-          }
-          expect(requests.rows[request].payer_fio_addr).to.equal(user2.address);  
-        } catch (err) {
-          console.log('Error', err);
-          expect(err).to.equal(null);
-        }
-      })
-
-      it('Call get_table_rows from fiotrxts (NEW table) and confirm request is in table', async () => {
-        try {
-          const json = {
-            json: true,               // Get the response as json
-            code: 'fio.reqobt',      // Contract that we target
-            scope: 'fio.reqobt',         // Account that owns the data
-            table: 'fiotrxts',        // Table name
-            limit: 1000,                // Maximum number of rows that we want to get
-            reverse: false,           // Optional: Get reversed data
-            show_payer: false          // Optional: Show ram payer
-          }
-          requests = await callFioApi("get_table_rows", json);
-          console.log('requests: ', requests);
-          for (request in requests.rows) {
-            if (requests.rows[request].fio_request_id == requestId) {
-              console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
-              break;
-            }
-          }
-          expect(requests.rows[request].payer_fio_addr).to.equal(user2.address);  
-        } catch (err) {
-          console.log('Error', err);
-          expect(err).to.equal(null);
-        }
-      })
-
-})
-
-describe(`H. Migrate remaining requests and OBTs`, () => {
-  let isFinished = 0
-
-  it('Echo initial migrledgers table', async () => {
-    try {
-      const json = {
-        json: true,
-        code: 'fio.reqobt', 
-        scope: 'fio.reqobt', 
-        table: 'migrledgers', 
-        limit: 10,               
-        reverse: false,         
-        show_payer: false  
-      }
-      ledger = await callFioApi("get_table_rows", json);
-      console.log('migrledgers: ', ledger);
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
   })
 
-  it(`Call migrtrx (bp1) with amount = 3 until migrledgers isFinished = 1`, async () => {
-    while (!isFinished) {
-      try {
-          const result = await callFioApiSigned('push_transaction', {
-              action: 'migrtrx',
-              account: 'fio.reqobt',
-              actor: bp1.account,
-              privKey: bp1.privateKey,
-              data: {
-                  amount: 3,
-                  actor: bp1.account
-              }
-          })
-          //console.log('Result: ', result)
-          expect(result.transaction_id).to.exist
-      } catch (err) {
-          console.log('Error: ', err)
-          expect(err).to.equal(null)
-      }
-      await timeout(2000);
+  describe(`H. Migrate remaining requests and OBTs`, () => {
+    let isFinished = 0
+
+    it('Echo initial migrledgers table', async () => {
       try {
         const json = {
           json: true,
@@ -782,23 +747,268 @@ describe(`H. Migrate remaining requests and OBTs`, () => {
           show_payer: false  
         }
         ledger = await callFioApi("get_table_rows", json);
-        isFinished = ledger.rows[0].isFinished
-        //console.log('isFinished: ', isFinished);
+        console.log('migrledgers: ', ledger);
       } catch (err) {
         console.log('Error', err);
         expect(err).to.equal(null);
       }
-    }
+    })
+
+    it(`Call migrtrx (bp1) with amount = 3 until migrledgers isFinished = 1`, async () => {
+      while (!isFinished) {
+        try {
+            const result = await callFioApiSigned('push_transaction', {
+                action: 'migrtrx',
+                account: 'fio.reqobt',
+                actor: bp1.account,
+                privKey: bp1.privateKey,
+                data: {
+                    amount: 3,
+                    actor: bp1.account
+                }
+            })
+            //console.log('Result: ', result)
+            expect(result.transaction_id).to.exist
+        } catch (err) {
+            console.log('Error: ', err)
+            expect(err).to.equal(null)
+        }
+        await timeout(2000);
+        try {
+          const json = {
+            json: true,
+            code: 'fio.reqobt', 
+            scope: 'fio.reqobt', 
+            table: 'migrledgers', 
+            limit: 10,               
+            reverse: false,         
+            show_payer: false  
+          }
+          ledger = await callFioApi("get_table_rows", json);
+          isFinished = ledger.rows[0].isFinished
+          //console.log('isFinished: ', isFinished);
+        } catch (err) {
+          console.log('Error', err);
+          expect(err).to.equal(null);
+        }
+      }
+    })
+
+    it('Echo final migrledgers table', async () => {
+      try {
+        const json = {
+          json: true,
+          code: 'fio.reqobt', 
+          scope: 'fio.reqobt', 
+          table: 'migrledgers', 
+          limit: 10,               
+          reverse: false,         
+          show_payer: false  
+        }
+        ledger = await callFioApi("get_table_rows", json);
+        console.log('migrledgers: ', ledger);
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
+
   })
 
-  it('Echo final migrledgers table', async () => {
+  describe.skip(`I. Go through recordobts (old table) and confirm each entry is in fiotrxts (NEW table)`, () => {
+    let obtCount = 0
+    let obtRecords;
+
+    it('Step through recordobts and confirm every entry is found on the new table.', async () => {
+      let count = 0;
+
+      try {
+        const json = {
+          json: true,               // Get the response as json
+          code: 'fio.reqobt',      // Contract that we target
+          scope: 'fio.reqobt',         // Account that owns the data
+          table: 'recordobts',        // Table name
+          limit: 1000,                // Maximum number of rows that we want to get
+          reverse: false,           // Optional: Get reversed data
+          show_payer: false          // Optional: Show ram payer
+        }
+        obts = await callFioApi("get_table_rows", json);
+        obtCount = obts.rows.length;
+        //console.log('obts: ', obts);
+        console.log('Number of records in recordobts: ', obtCount);
+        for (obt in obts.rows) {
+          // Call get_table_rows from fiotrxts (NEW table) and confirm request is in table
+          try {
+            const json = {
+              json: true,               // Get the response as json
+              code: 'fio.reqobt',      // Contract that we target
+              scope: 'fio.reqobt',         // Account that owns the data
+              table: 'fiotrxts',        // Table name
+              limit: 1000,                // Maximum number of rows that we want to get
+              reverse: false,           // Optional: Get reversed data
+              show_payer: false          // Optional: Show ram payer
+            }
+            newRequests = await callFioApi("get_table_rows", json);
+            //console.log('requests: ', newRequests);
+            for (newRequest in newRequests.rows) {
+              if (newRequests.rows[newRequest].payer_fio_addr == obts.rows[obt].payer_fio_addr) {
+                //console.log(count);
+                //console.log('recordobts:')
+                //console.log('id: ', obts.rows[obt].id);
+                //console.log('payer_fio_addr: ', obts.rows[obt].payer_fio_addr); 
+                //console.log('payee_fio_addr: ', obts.rows[obt].payee_fio_addr); 
+                //console.log('fiotrxts:')
+                //console.log('id: ', newRequests.rows[newRequest].id);
+                //console.log('fio_request_id: ', newRequests.rows[newRequest].fio_request_id);
+                //console.log('payer_fio_addr: ', newRequests.rows[newRequest].payer_fio_addr); 
+                //console.log('payee_fio_addr: ', newRequests.rows[newRequest].payee_fio_addr); 
+
+                expect(obts.rows[obt].payer_fio_addr).to.equal(newRequests.rows[newRequest].payer_fio_addr);
+                expect(obts.rows[obt].payee_fio_addr).to.equal(newRequests.rows[newRequest].payee_fio_addr);
+                expect(obts.rows[obt].payer_key).to.equal(newRequests.rows[newRequest].payer_key);
+                expect(obts.rows[obt].payee_key).to.equal(newRequests.rows[newRequest].payee_key);
+                //expect(obts.rows[obt].time_stamp).to.equal(newRequests.rows[newRequest].init_time); //Time stamps different?
+                //expect(newRequests.rows[newRequest].fio_request_id).to.equal(0);
+                //expect(newRequests.rows[newRequest].fio_data_type).to.equal(4);
+                break;
+              }
+            }
+          } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+          }
+          count++;
+        }
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
+
+  })
+
+  describe.skip(`J. Go through fioreqctxts (old table) and confirm each entry is in fiotrxts (NEW table)`, () => {
+    let reqCount = 0
+    let reqs;
+
+    it('Step through fioreqctxts and confirm every entry is found on the new table.', async () => {
+      let count = 0;
+      let currentReqStatus;
+
+      try {
+        const json = {
+          json: true,               // Get the response as json
+          code: 'fio.reqobt',      // Contract that we target
+          scope: 'fio.reqobt',         // Account that owns the data
+          table: 'fioreqctxts',        // Table name
+          limit: 1000,                // Maximum number of rows that we want to get
+          reverse: false,           // Optional: Get reversed data
+          show_payer: false          // Optional: Show ram payer
+        }
+        reqs = await callFioApi("get_table_rows", json);
+        reqCount = reqs.rows.length;
+        //console.log('reqs: ', reqs);
+        console.log('Number of records in fioreqctxts: ', reqCount);
+        for (req in reqs.rows) {
+          // First, get the status of the request
+          try {
+            const json = {
+              json: true,               // Get the response as json
+              code: 'fio.reqobt',      // Contract that we target
+              scope: 'fio.reqobt',         // Account that owns the data
+              table: 'fioreqstss',        // Table name
+              limit: 1000,                // Maximum number of rows that we want to get
+              reverse: false,           // Optional: Get reversed data
+              show_payer: false          // Optional: Show ram payer
+            }
+            fioReqSts = await callFioApi("get_table_rows", json);
+            //console.log('fioReqSts: ', fioReqSts);
+            currentReqStatus = 0; //Initialize to 0 since that will be the status in the new table if the record's fio_request_id is not found in fioreqstss
+            for (fioReqStatus in fioReqSts.rows) {
+              //console.log('reqs.rows[req].fio_request_id', reqs.rows[req].fio_request_id)
+              //console.log('fioReqStatus: ', fioReqSts.rows[fioReqStatus]);
+              //console.log ('currentReqStatus', fioReqSts.rows[fioReqStatus].status);
+              if (fioReqSts.rows[fioReqStatus].fio_request_id == reqs.rows[req].fio_request_id) {
+                currentReqStatus = fioReqSts.rows[fioReqStatus].status;
+                //console.log('id: ', fioReqSts.rows[fioReqStatus].id);
+                //console.log('fio_request_id: ', fioReqSts.rows[fioReqStatus].fio_request_id);
+                //console.log('status: ', fioReqSts.rows[fioReqStatus].status);
+                //console.log('payer_fio_addr: ', fioReqSts.rows[fioReqStatus].time_stamp); 
+                expect(reqs.rows[req].fio_request_id).to.equal(fioReqSts.rows[fioReqStatus].fio_request_id);
+                break;
+              }
+            }
+          } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+          }
+
+          // Next, all get_table_rows from fiotrxts (NEW table) and confirm request is in table
+          try {
+            const json = {
+              json: true,               // Get the response as json
+              code: 'fio.reqobt',      // Contract that we target
+              scope: 'fio.reqobt',         // Account that owns the data
+              table: 'fiotrxts',        // Table name
+              limit: 1000,                // Maximum number of rows that we want to get
+              reverse: false,           // Optional: Get reversed data
+              show_payer: false          // Optional: Show ram payer
+            }
+            newRequests = await callFioApi("get_table_rows", json);
+            //console.log('requests: ', newRequests);
+            for (newRequest in newRequests.rows) {
+              if (newRequests.rows[newRequest].fio_request_id == reqs.rows[req].fio_request_id) {
+                //console.log(count);
+                //console.log('fioreqctxts:')
+                //console.log('fio_request_id: ', reqs.rows[req].fio_request_id);
+                //console.log('payer_fio_addr: ', reqs.rows[req].payer_fio_addr); 
+                //console.log('payee_fio_addr: ', reqs.rows[req].payee_fio_addr); 
+                //console.log('fioreqstss:')
+                //console.log('status (0 = not found): ', currentReqStatus);
+                //console.log('fiotrxts:')
+                //console.log('id: ', newRequests.rows[newRequest].id);
+                //console.log('fio_request_id: ', newRequests.rows[newRequest].fio_request_id);
+                //console.log('payer_fio_addr: ', newRequests.rows[newRequest].payer_fio_addr); 
+                //console.log('payee_fio_addr: ', newRequests.rows[newRequest].payee_fio_addr); 
+                //console.log('fio_data_type: ', newRequests.rows[newRequest].fio_data_type); 
+
+                expect(reqs.rows[req].payer_fio_addr).to.equal(newRequests.rows[newRequest].payer_fio_addr);
+                expect(reqs.rows[req].payee_fio_addr).to.equal(newRequests.rows[newRequest].payee_fio_addr);
+                expect(reqs.rows[req].payer_key).to.equal(newRequests.rows[newRequest].payer_key);
+                expect(reqs.rows[req].payee_key).to.equal(newRequests.rows[newRequest].payee_key);
+                //expect(reqs.rows[req].time_stamp).to.equal(newRequests.rows[newRequest].init_time); //Time stamps different?
+                expect(reqs.rows[req].fio_request_id).to.equal(newRequests.rows[newRequest].fio_request_id);
+                expect(newRequests.rows[newRequest].fio_data_type).to.equal(currentReqStatus);
+                break;
+              }
+            }
+          } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+          }
+          count++;
+        }
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
+
+  })
+
+})
+
+describe.skip(`NUKE Bravo: Call migrtrx until table data is nuked`, () => {
+  let isFinished = 0
+
+  it('Echo initial migrledgers table', async () => {
     try {
       const json = {
         json: true,
         code: 'fio.reqobt', 
         scope: 'fio.reqobt', 
         table: 'migrledgers', 
-        limit: 10,               
+        limit: 1000,               
         reverse: false,         
         show_payer: false  
       }
@@ -810,72 +1020,81 @@ describe(`H. Migrate remaining requests and OBTs`, () => {
     }
   })
 
-})
+  it(`Call migrtrx (bp1) with amount = 10 until migrtrx is empty`, async () => {
+    while (!isFinished) {
+      try {
+          const result = await callFioApiSigned('push_transaction', {
+              action: 'migrtrx',
+              account: 'fio.reqobt',
+              actor: bp1.account,
+              privKey: bp1.privateKey,
+              data: {
+                  amount: 10,
+                  actor: bp1.account
+              }
+          })
+          console.log('Result: ', result)
+          expect(result.transaction_id).to.exist
+      } catch (err) {
+          console.log('Error: ', err)
+          expect(err).to.equal(null)
+      }
+      await timeout(2000);
+      try {
+        const json = {
+          json: true,
+          code: 'fio.reqobt', 
+          scope: 'fio.reqobt', 
+          table: 'fiotrxts', 
+          limit: 1000,               
+          reverse: false,         
+          show_payer: false  
+        }
+        fiotrxts = await callFioApi("get_table_rows", json);
+        isFinished = (fiotrxts.rows.length == 0);
+        //console.log('fiotrxts: ', fiotrxts)
+        console.log('Table rows count: ', fiotrxts.rows.length)
+        console.log('isFinished: ', isFinished);
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    }
+  })
 
-describe.skip(`I. Go through recordobts (old table) and confirm each entry is in fiotrxts (NEW table)`, () => {
-  let obtCount = 0
-  let obtRecords;
-
-  it('Step through recordobts and confirm every entry is found on the new table.', async () => {
-    let count = 0;
-
+  it('Confirm migrledgers table is empty', async () => {
     try {
       const json = {
-        json: true,               // Get the response as json
-        code: 'fio.reqobt',      // Contract that we target
-        scope: 'fio.reqobt',         // Account that owns the data
-        table: 'recordobts',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
+        json: true,
+        code: 'fio.reqobt', 
+        scope: 'fio.reqobt', 
+        table: 'migrledgers', 
+        limit: 10,               
+        reverse: false,         
+        show_payer: false  
       }
-      obts = await callFioApi("get_table_rows", json);
-      obtCount = obts.rows.length;
-      //console.log('obts: ', obts);
-      console.log('Number of records in recordobts: ', obtCount);
-      for (obt in obts.rows) {
-        // Call get_table_rows from fiotrxts (NEW table) and confirm request is in table
-        try {
-          const json = {
-            json: true,               // Get the response as json
-            code: 'fio.reqobt',      // Contract that we target
-            scope: 'fio.reqobt',         // Account that owns the data
-            table: 'fiotrxts',        // Table name
-            limit: 1000,                // Maximum number of rows that we want to get
-            reverse: false,           // Optional: Get reversed data
-            show_payer: false          // Optional: Show ram payer
-          }
-          newRequests = await callFioApi("get_table_rows", json);
-          //console.log('requests: ', newRequests);
-          for (newRequest in newRequests.rows) {
-            if (newRequests.rows[newRequest].payer_fio_addr == obts.rows[obt].payer_fio_addr) {
-              //console.log(count);
-              //console.log('recordobts:')
-              //console.log('id: ', obts.rows[obt].id);
-              //console.log('payer_fio_addr: ', obts.rows[obt].payer_fio_addr); 
-              //console.log('payee_fio_addr: ', obts.rows[obt].payee_fio_addr); 
-              //console.log('fiotrxts:')
-              //console.log('id: ', newRequests.rows[newRequest].id);
-              //console.log('fio_request_id: ', newRequests.rows[newRequest].fio_request_id);
-              //console.log('payer_fio_addr: ', newRequests.rows[newRequest].payer_fio_addr); 
-              //console.log('payee_fio_addr: ', newRequests.rows[newRequest].payee_fio_addr); 
+      migrledgers = await callFioApi("get_table_rows", json);
+      console.log('migrledgers: ', migrledgers);
+      expect(migrledgers.rows.length).to.equal(0);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
 
-              expect(obts.rows[obt].payer_fio_addr).to.equal(newRequests.rows[newRequest].payer_fio_addr);
-              expect(obts.rows[obt].payee_fio_addr).to.equal(newRequests.rows[newRequest].payee_fio_addr);
-              expect(obts.rows[obt].payer_key).to.equal(newRequests.rows[newRequest].payer_key);
-              expect(obts.rows[obt].payee_key).to.equal(newRequests.rows[newRequest].payee_key);
-              //expect(obts.rows[obt].time_stamp).to.equal(newRequests.rows[newRequest].init_time); //Time stamps different?
-              //expect(newRequests.rows[newRequest].fio_request_id).to.equal(0);
-              //expect(newRequests.rows[newRequest].fio_data_type).to.equal(4);
-              break;
-            }
-          }
-        } catch (err) {
-          console.log('Error', err);
-          expect(err).to.equal(null);
-        }
-        count++;
+  it('Confirm fiotrxts table is empty', async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'fio.reqobt', 
+        scope: 'fio.reqobt', 
+        table: 'fiotrxts', 
+        limit: 10,               
+        reverse: false,         
+        show_payer: false  
       }
+      fiotrxts = await callFioApi("get_table_rows", json);
+      console.log('fiotrxts: ', fiotrxts);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -884,111 +1103,1160 @@ describe.skip(`I. Go through recordobts (old table) and confirm each entry is in
 
 })
 
-describe.skip(`J. Go through fioreqctxts (old table) and confirm each entry is in fiotrxts (NEW table)`, () => {
-  let reqCount = 0
-  let reqs;
+describe(`Release v2.3.2 - fiotrxtss (NEW table) scripts`, () => {
 
-  it('Step through fioreqctxts and confirm every entry is found on the new table.', async () => {
-    let count = 0;
-    let currentReqStatus;
+  describe(`A. Load Requests and OBTs`, () => {
+      let user1, user2, user3;
+      let payment = 3000000000;
+      let requestMemo = 'asdf';
+      let count = 5;
 
+      it(`Create users`, async () => {
+          user1 = await newUser(faucet);
+          user2 = await newUser(faucet);
+          user3 = await newUser(faucet);
+
+          //console.log('user1: ' + user1.account + ', ' + user1.privateKey + ', ' + user1.publicKey)
+          //console.log('user2: ' + user2.account + ', ' + user2.privateKey + ', ' + user2.publicKey)
+          //console.log('user3: ' + user3.account + ', ' + user3.privateKey + ', ' + user3.publicKey)
+      })
+
+      it(`${count}x - user1 requests funds from user2`, async () => {
+          for (i = 0; i < count; i++) {
+            try {
+              const result = await user1.sdk.genericAction('requestFunds', {
+                payerFioAddress: user2.address,
+                payeeFioAddress: user1.address,
+                payeeTokenPublicAddress: user1.address,
+                amount: payment,
+                chainCode: 'FIO',
+                tokenCode: 'FIO',
+                memo: requestMemo,
+                maxFee: config.api.new_funds_request.fee,
+                payerFioPublicKey: user2.publicKey,
+                technologyProviderId: '',
+                hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
+                offlineUrl: ''
+              })
+              //console.log('Result: ', result)
+              expect(result.status).to.equal('requested')
+            } catch (err) {
+              console.log('Error', err.json)
+              expect(err).to.equal(null)
+            }
+          }
+      })
+
+      it(`${count}x - user2 requests funds from user1`, async () => {
+          for (i = 0; i < count; i++) {
+            try {
+              const result = await user2.sdk.genericAction('requestFunds', {
+                payerFioAddress: user1.address,
+                payeeFioAddress: user2.address,
+                payeeTokenPublicAddress: user2.address,
+                amount: payment,
+                chainCode: 'FIO',
+                tokenCode: 'FIO',
+                memo: requestMemo,
+                maxFee: config.api.new_funds_request.fee,
+                payerFioPublicKey: user1.publicKey,
+                technologyProviderId: '',
+                hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
+                offlineUrl: ''
+              })
+              //console.log('Result: ', result)
+              expect(result.status).to.equal('requested')
+            } catch (err) {
+              console.log('Error', err.json)
+              expect(err).to.equal(null)
+            }
+          }
+      })
+
+      it(`${count}x - user3 requests funds from user2, user2 rejects request`, async () => {
+          let requestId;
+          for (i = 0; i < count; i++) {
+              try {
+                  const result = await user3.sdk.genericAction('requestFunds', {
+                      payerFioAddress: user2.address,
+                      payeeFioAddress: user3.address,
+                      payeeTokenPublicAddress: user3.address,
+                      amount: payment,
+                      chainCode: 'FIO',
+                      tokenCode: 'FIO',
+                      memo: requestMemo,
+                      maxFee: config.api.new_funds_request.fee,
+                      payerFioPublicKey: user2.publicKey,
+                      technologyProviderId: '',
+                      hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
+                      offlineUrl: ''
+                  })
+                  //console.log('Result: ', result)
+                  requestId = result.fio_request_id;
+                  expect(result.status).to.equal('requested')
+              } catch (err) {
+                  console.log('Error', err.json)
+                  expect(err).to.equal(null)
+              }
+
+              try {
+                  const result = await user2.sdk.genericAction('pushTransaction', {
+                      action: 'rejectfndreq',
+                      account: 'fio.reqobt',
+                      data: {
+                          fio_request_id: requestId,
+                          max_fee: config.api.cancel_funds_request.fee,
+                          tpid: '',
+                          actor: user2.account
+                      }
+                  })
+                  //console.log('Result:', result)
+                  expect(result.status).to.equal('request_rejected') 
+              } catch (err) {
+                  console.log('Error', err)
+                  expect(err).to.equal(null)
+              }
+          }
+      })
+
+      it(`${count}x - user2 requests funds from user1, user 1 records OBT response`, async () => {
+          let requestId;
+          for (i = 0; i < count; i++) {
+              try {
+                  const result = await user2.sdk.genericAction('requestFunds', {
+                      payerFioAddress: user1.address,
+                      payeeFioAddress: user2.address,
+                      payeeTokenPublicAddress: user2.address,
+                      amount: payment,
+                      chainCode: 'FIO',
+                      tokenCode: 'FIO',
+                      memo: requestMemo,
+                      maxFee: config.api.new_funds_request.fee,
+                      payerFioPublicKey: user1.publicKey,
+                      technologyProviderId: '',
+                      hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
+                      offlineUrl: ''
+                  })
+                  //console.log('Result: ', result)
+                  requestId = result.fio_request_id;
+                  expect(result.status).to.equal('requested')
+              } catch (err) {
+                  console.log('Error', err.json)
+                  expect(err).to.equal(null)
+              }
+
+            try {
+                  const result = await user1.sdk.genericAction('recordObtData', {
+                      payerFioAddress: user1.address,
+                      payeeFioAddress: user2.address,
+                      payerTokenPublicAddress: user1.publicKey,
+                      payeeTokenPublicAddress: user2.publicKey,
+                      amount: payment,
+                      chainCode: "FIO",
+                      tokenCode: "FIO",
+                      status: '',
+                      obtId: requestId,
+                      maxFee: config.api.record_obt_data.fee,
+                      technologyProviderId: '',
+                      payeeFioPublicKey: user2.publicKey,
+                      memo: 'this is a test',
+                      hash: '',
+                      offLineUrl: ''
+                  })
+                  //console.log('Result: ', result)
+                  expect(result.status).to.equal('sent_to_blockchain')
+              } catch (err) {
+                  console.log('Error', err.json)
+                  expect(err).to.equal(null)
+              }
+          }
+      })
+
+      it(`${count}x user3 creates BTC OBT send record to user1`, async () => {
+          for (i = 0; i < count; i++) {
+              try {
+                  const result = await user3.sdk.genericAction('recordObtData', {
+                      payerFioAddress: user3.address,
+                      payeeFioAddress: user1.address,
+                      payerTokenPublicAddress: user3.publicKey,
+                      payeeTokenPublicAddress: user1.publicKey,
+                      amount: payment,
+                      chainCode: "BTC",
+                      tokenCode: "BTC",
+                      status: '',
+                      obtId: '',
+                      maxFee: config.api.record_obt_data.fee,
+                      technologyProviderId: '',
+                      payeeFioPublicKey: user1.publicKey,
+                      memo: 'this is a test',
+                      hash: '',
+                      offLineUrl: ''
+                  })
+                  //console.log('Result: ', result)
+                  expect(result.status).to.equal('sent_to_blockchain')
+              } catch (err) {
+                  console.log('Error', err.json)
+                  expect(err).to.equal(null)
+              }
+          }
+      })
+  })
+
+  describe(`B. Perform single migrtrx to initialize migration`, () => {
+
+    it(`Call single migrtrx (bp1) and confirm you can still do Requests and OBTs`, async () => {
+        try {
+            const result = await callFioApiSigned('push_transaction', {
+                action: 'migrtrx',
+                account: 'fio.reqobt',
+                actor: bp1.account,
+                privKey: bp1.privateKey,
+                data: {
+                    amount: 20,
+                    actor: bp1.account
+                }
+            })
+            //console.log('Result: ', result)
+            expect(result.transaction_id).to.exist
+        } catch (err) {
+            console.log('Error: ', err)
+            expect(err).to.equal(null)
+        }
+      })
+
+      it.skip('Call get_table_rows from fiotrxtss (NEW table) and display', async () => {
+        try {
+          const json = {
+            json: true,               // Get the response as json
+            code: 'fio.reqobt',      // Contract that we target
+            scope: 'fio.reqobt',         // Account that owns the data
+            table: 'fiotrxtss',        // Table name
+            limit: 1000,                // Maximum number of rows that we want to get
+            reverse: false,           // Optional: Get reversed data
+            show_payer: false          // Optional: Show ram payer
+          }
+          requests = await callFioApi("get_table_rows", json);
+          console.log('requests: ', requests); 
+        } catch (err) {
+          console.log('Error', err);
+          expect(err).to.equal(null);
+        }
+      })
+  })
+
+  describe(`C. Initial OBT record. Confirm new OBT Sends are going into both tables`, () => {
+    let user1, user2, user3
+    let payment = 3000000000;
+
+    it(`Create users`, async () => {
+        user1 = await newUser(faucet);
+        user2 = await newUser(faucet);
+        user3 = await newUser(faucet);
+
+        //console.log('user1: ' + user1.account + ', ' + user1.privateKey + ', ' + user1.publicKey)
+        //console.log('user2: ' + user2.account + ', ' + user2.privateKey + ', ' + user2.publicKey)
+        //console.log('user3: ' + user3.account + ', ' + user3.privateKey + ', ' + user3.publicKey)
+    })
+
+
+    it(`user3 creates BTC OBT send record to user1`, async () => {
+      try {
+          const result = await user3.sdk.genericAction('recordObtData', {
+              payerFioAddress: user3.address,
+              payeeFioAddress: user1.address,
+              payerTokenPublicAddress: user3.publicKey,
+              payeeTokenPublicAddress: user1.publicKey,
+              amount: payment,
+              chainCode: "BTC",
+              tokenCode: "BTC",
+              status: '',
+              obtId: '',
+              maxFee: config.api.record_obt_data.fee,
+              technologyProviderId: '',
+              payeeFioPublicKey: user1.publicKey,
+              memo: 'this is a test',
+              hash: '',
+              offLineUrl: ''
+          })
+          //console.log('Result: ', result)
+          expect(result.status).to.equal('sent_to_blockchain')
+      } catch (err) {
+          console.log('Error', err.json)
+          expect(err).to.equal(null)
+      }
+    })
+
+    it('Call get_table_rows from recordobts (old table) and confirm OBT is in table', async () => {
+      try {
+        const json = {
+          json: true,               // Get the response as json
+          code: 'fio.reqobt',      // Contract that we target
+          scope: 'fio.reqobt',         // Account that owns the data
+          table: 'recordobts',        // Table name
+          limit: 1000,                // Maximum number of rows that we want to get
+          reverse: true,           // Optional: Get reversed data
+          show_payer: false          // Optional: Show ram payer
+        }
+        obts = await callFioApi("get_table_rows", json);
+        //console.log('obts: ', obts);
+        for (request in obts.rows) {
+          if (obts.rows[request].payer_fio_addr == user3.address) {
+            //console.log('payer_fio_addr: ', obts.rows[request].payer_fio_addr); 
+            break;
+          }
+        }
+        expect(obts.rows[request].payer_fio_addr).to.equal(user3.address);  
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
+
+    it('Call get_table_rows from fiotrxtss (NEW table) and confirm request is in table', async () => {
+      try {
+        const json = {
+          json: true,               // Get the response as json
+          code: 'fio.reqobt',      // Contract that we target
+          scope: 'fio.reqobt',         // Account that owns the data
+          table: 'fiotrxtss',        // Table name
+          limit: 1000,                // Maximum number of rows that we want to get
+          reverse: true,           // Optional: Get reversed data
+          show_payer: false          // Optional: Show ram payer
+        }
+        requests = await callFioApi("get_table_rows", json);
+        //console.log('requests: ', requests);
+        for (request in requests.rows) {
+          if (requests.rows[request].payer_fio_addr == user3.address) {
+            //console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
+            break;
+          }
+        }
+        expect(requests.rows[request].payer_fio_addr).to.equal(user3.address);  
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
+
+  })
+
+  describe(`E. Initial FIO Request record. Confirm NEW Requests are going into both tables`, () => {
+    let user1, user2, user3, requestId, obtId
+    let payment = 3000000000;
+    let requestMemo = 'asdf';
+
+    it(`Create users`, async () => {
+        user1 = await newUser(faucet);
+        user2 = await newUser(faucet);
+        user3 = await newUser(faucet);
+
+        //console.log('user1: ' + user1.account + ', ' + user1.privateKey + ', ' + user1.publicKey)
+        //console.log('user2: ' + user2.account + ', ' + user2.privateKey + ', ' + user2.publicKey)
+        //console.log('user3: ' + user3.account + ', ' + user3.privateKey + ', ' + user3.publicKey)
+    })
+
+    it(`user1 requests funds from user2`, async () => {
+      try {
+          const result = await user1.sdk.genericAction('requestFunds', {
+              payerFioAddress: user2.address,
+              payeeFioAddress: user1.address,
+              payeeTokenPublicAddress: user1.address,
+              amount: payment,
+              chainCode: 'FIO',
+              tokenCode: 'FIO',
+              memo: requestMemo,
+              maxFee: config.api.new_funds_request.fee,
+              payerFioPublicKey: user2.publicKey,
+              technologyProviderId: '',
+              hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
+              offlineUrl: ''
+          })
+          //console.log('Result: ', result)
+          requestId = result.fio_request_id;
+          expect(result.status).to.equal('requested')
+      } catch (err) {
+          console.log('Error', err.json)
+          expect(err).to.equal(null)
+      }
+    })
+
+    it('Requests: Call get_table_rows from fioreqctxts (old table) and confirm request is in table', async () => {
+      try {
+        const json = {
+          json: true,               // Get the response as json
+          code: 'fio.reqobt',      // Contract that we target
+          scope: 'fio.reqobt',         // Account that owns the data
+          table: 'fioreqctxts',        // Table name
+          limit: 1000,                // Maximum number of rows that we want to get
+          reverse: true,           // Optional: Get reversed data
+          show_payer: false          // Optional: Show ram payer
+        }
+        requests = await callFioApi("get_table_rows", json);
+        //console.log('requests: ', requests);
+        for (request in requests.rows) {
+          if (requests.rows[request].fio_request_id == requestId) {
+            //console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
+            break;
+          }
+        }
+        expect(requests.rows[request].payer_fio_addr).to.equal(user2.address);  
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
+
+    it('Call get_table_rows from fiotrxtss (NEW table) and confirm request is in table', async () => {
+      try {
+        const json = {
+          json: true,               // Get the response as json
+          code: 'fio.reqobt',      // Contract that we target
+          scope: 'fio.reqobt',         // Account that owns the data
+          table: 'fiotrxtss',        // Table name
+          limit: 1000,                // Maximum number of rows that we want to get
+          reverse: true,           // Optional: Get reversed data
+          show_payer: false          // Optional: Show ram payer
+        }
+        requests = await callFioApi("get_table_rows", json);
+        //console.log('requests: ', requests);
+        for (request in requests.rows) {
+          if (requests.rows[request].fio_request_id == requestId) {
+            //console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
+            break;
+          }
+        }
+        expect(requests.rows[request].payer_fio_addr).to.equal(user2.address);  
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
+
+  })
+
+  describe.skip(`F. Confirm REJECTED Requests are going into both tables`, () => {
+      let user1, user2, user3, requestId
+      let payment = 3000000000;
+      let requestMemo = 'asdf';
+
+      it(`Create users`, async () => {
+          user1 = await newUser(faucet);
+          user2 = await newUser(faucet);
+          user3 = await newUser(faucet);
+      })
+
+
+      it(`user3 requests funds from user2, user2 rejects request`, async () => {
+          let requestId;
+          for (i = 0; i < count; i++) {
+              try {
+                  const result = await user3.sdk.genericAction('requestFunds', {
+                      payerFioAddress: user2.address,
+                      payeeFioAddress: user3.address,
+                      payeeTokenPublicAddress: user3.address,
+                      amount: payment,
+                      chainCode: 'FIO',
+                      tokenCode: 'FIO',
+                      memo: requestMemo,
+                      maxFee: config.api.new_funds_request.fee,
+                      payerFioPublicKey: user2.publicKey,
+                      technologyProviderId: '',
+                      hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
+                      offlineUrl: ''
+                  })
+                  //console.log('Result: ', result)
+                  requestId = result.fio_request_id;
+                  expect(result.status).to.equal('requested')
+              } catch (err) {
+                  console.log('Error', err.json)
+                  expect(err).to.equal(null)
+              }
+
+              try {
+                  const result = await user2.sdk.genericAction('pushTransaction', {
+                      action: 'rejectfndreq',
+                      account: 'fio.reqobt',
+                      data: {
+                          fio_request_id: requestId,
+                          max_fee: config.api.cancel_funds_request.fee,
+                          tpid: '',
+                          actor: user2.account
+                      }
+                  })
+                  //console.log('Result:', result)
+                  expect(result.status).to.equal('request_rejected') 
+              } catch (err) {
+                  console.log('Error', err)
+                  expect(err).to.equal(null)
+              }
+          }
+      })
+
+          it('Requests: Call get_table_rows from fioreqctxts (old table) and confirm request is in table', async () => {
+          try {
+              const json = {
+              json: true,               // Get the response as json
+              code: 'fio.reqobt',      // Contract that we target
+              scope: 'fio.reqobt',         // Account that owns the data
+              table: 'fioreqctxts',        // Table name
+              limit: 1000,                // Maximum number of rows that we want to get
+              reverse: false,           // Optional: Get reversed data
+              show_payer: false          // Optional: Show ram payer
+              }
+              requests = await callFioApi("get_table_rows", json);
+              console.log('requests: ', requests);
+              for (request in requests.rows) {
+              if (requests.rows[request].fio_request_id == requestId) {
+                  console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
+                  break;
+              }
+              }
+              expect(requests.rows[request].payer_fio_addr).to.equal(user2.address);  
+          } catch (err) {
+              console.log('Error', err);
+              expect(err).to.equal(null);
+          }
+          })
+
+          it('Call get_table_rows from fiotrxtss (NEW table) and confirm request is in table', async () => {
+          try {
+              const json = {
+              json: true,               // Get the response as json
+              code: 'fio.reqobt',      // Contract that we target
+              scope: 'fio.reqobt',         // Account that owns the data
+              table: 'fiotrxtss',        // Table name
+              limit: 1000,                // Maximum number of rows that we want to get
+              reverse: false,           // Optional: Get reversed data
+              show_payer: false          // Optional: Show ram payer
+              }
+              requests = await callFioApi("get_table_rows", json);
+              console.log('requests: ', requests);
+              for (request in requests.rows) {
+              if (requests.rows[request].fio_request_id == requestId) {
+                  console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
+                  break;
+              }
+              }
+              expect(requests.rows[request].payer_fio_addr).to.equal(user2.address);  
+          } catch (err) {
+              console.log('Error', err);
+              expect(err).to.equal(null);
+          }
+          })
+
+  })
+
+  describe.skip(`G. Confirm paid OBT response Requests are going into both tables`, () => {
+      let user1, user2, user3, requestId
+      let payment = 3000000000;
+      let requestMemo = 'asdf';
+
+      it(`Create users`, async () => {
+          user1 = await newUser(faucet);
+          user2 = await newUser(faucet);
+          user3 = await newUser(faucet);
+
+          console.log('user1: ' + user1.account + ', ' + user1.privateKey + ', ' + user1.publicKey)
+          console.log('user2: ' + user2.account + ', ' + user2.privateKey + ', ' + user2.publicKey)
+          console.log('user3: ' + user3.account + ', ' + user3.privateKey + ', ' + user3.publicKey)
+      })
+
+
+      it(`user2 requests funds from user1, user 1 records OBT response`, async () => {
+          let requestId;
+              try {
+                  const result = await user2.sdk.genericAction('requestFunds', {
+                      payerFioAddress: user1.address,
+                      payeeFioAddress: user2.address,
+                      payeeTokenPublicAddress: user2.address,
+                      amount: payment,
+                      chainCode: 'FIO',
+                      tokenCode: 'FIO',
+                      memo: requestMemo,
+                      maxFee: config.api.new_funds_request.fee,
+                      payerFioPublicKey: user1.publicKey,
+                      technologyProviderId: '',
+                      hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
+                      offlineUrl: ''
+                  })
+                  //console.log('Result: ', result)
+                  requestId = result.fio_request_id;
+                  expect(result.status).to.equal('requested')
+              } catch (err) {
+                  console.log('Error', err.json)
+                  expect(err).to.equal(null)
+              }
+
+            try {
+                  const result = await user1.sdk.genericAction('recordObtData', {
+                      payerFioAddress: user1.address,
+                      payeeFioAddress: user2.address,
+                      payerTokenPublicAddress: user1.publicKey,
+                      payeeTokenPublicAddress: user2.publicKey,
+                      amount: payment,
+                      chainCode: "FIO",
+                      tokenCode: "FIO",
+                      status: '',
+                      obtId: requestId,
+                      maxFee: config.api.record_obt_data.fee,
+                      technologyProviderId: '',
+                      payeeFioPublicKey: user2.publicKey,
+                      memo: 'this is a test',
+                      hash: '',
+                      offLineUrl: ''
+                  })
+                  //console.log('Result: ', result)
+                  expect(result.status).to.equal('sent_to_blockchain')
+              } catch (err) {
+                  console.log('Error', err.json)
+                  expect(err).to.equal(null)
+              }
+      })
+
+      it('Call get_table_rows from recordobts (old table) and confirm OBT is in table', async () => {
+          try {
+            const json = {
+              json: true,               // Get the response as json
+              code: 'fio.reqobt',      // Contract that we target
+              scope: 'fio.reqobt',         // Account that owns the data
+              table: 'recordobts',        // Table name
+              limit: 1000,                // Maximum number of rows that we want to get
+              reverse: false,           // Optional: Get reversed data
+              show_payer: false          // Optional: Show ram payer
+            }
+            obts = await callFioApi("get_table_rows", json);
+            console.log('obts: ', obts);
+            for (request in obts.rows) {
+              if (obts.rows[request].id == user1.address) {
+                console.log('payer_fio_addr: ', obts.rows[request].requestId); 
+                break;
+              }
+            }
+            expect(obts.rows[request].payer_fio_addr).to.equal(user1.address);  
+          } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+          }
+        })
+
+        it.skip('Requests: Call get_table_rows from fioreqctxts (old table) and confirm request is in table', async () => {
+          try {
+            const json = {
+              json: true,               // Get the response as json
+              code: 'fio.reqobt',      // Contract that we target
+              scope: 'fio.reqobt',         // Account that owns the data
+              table: 'fioreqctxts',        // Table name
+              limit: 1000,                // Maximum number of rows that we want to get
+              reverse: false,           // Optional: Get reversed data
+              show_payer: false          // Optional: Show ram payer
+            }
+            requests = await callFioApi("get_table_rows", json);
+            console.log('requests: ', requests);
+            for (request in requests.rows) {
+              if (requests.rows[request].fio_request_id == requestId) {
+                console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
+                break;
+              }
+            }
+            expect(requests.rows[request].payer_fio_addr).to.equal(user2.address);  
+          } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+          }
+        })
+
+        it('Call get_table_rows from fiotrxtss (NEW table) and confirm request is in table', async () => {
+          try {
+            const json = {
+              json: true,               // Get the response as json
+              code: 'fio.reqobt',      // Contract that we target
+              scope: 'fio.reqobt',         // Account that owns the data
+              table: 'fiotrxtss',        // Table name
+              limit: 1000,                // Maximum number of rows that we want to get
+              reverse: false,           // Optional: Get reversed data
+              show_payer: false          // Optional: Show ram payer
+            }
+            requests = await callFioApi("get_table_rows", json);
+            console.log('requests: ', requests);
+            for (request in requests.rows) {
+              if (requests.rows[request].fio_request_id == requestId) {
+                console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
+                break;
+              }
+            }
+            expect(requests.rows[request].payer_fio_addr).to.equal(user2.address);  
+          } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+          }
+        })
+
+  })
+
+  describe(`H. Migrate remaining requests and OBTs`, () => {
+    let isFinished = 0
+
+    it('Echo initial migrledgers table', async () => {
+      try {
+        const json = {
+          json: true,
+          code: 'fio.reqobt', 
+          scope: 'fio.reqobt', 
+          table: 'migrledgers', 
+          limit: 10,               
+          reverse: false,         
+          show_payer: false  
+        }
+        ledger = await callFioApi("get_table_rows", json);
+        console.log('migrledgers: ', ledger);
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
+
+    it(`Call migrtrx (bp1) with amount = 3 until migrledgers isFinished = 1`, async () => {
+      while (!isFinished) {
+        try {
+            const result = await callFioApiSigned('push_transaction', {
+                action: 'migrtrx',
+                account: 'fio.reqobt',
+                actor: bp1.account,
+                privKey: bp1.privateKey,
+                data: {
+                    amount: 3,
+                    actor: bp1.account
+                }
+            })
+            //console.log('Result: ', result)
+            expect(result.transaction_id).to.exist
+        } catch (err) {
+            console.log('Error: ', err)
+            expect(err).to.equal(null)
+        }
+        await timeout(2000);
+        try {
+          const json = {
+            json: true,
+            code: 'fio.reqobt', 
+            scope: 'fio.reqobt', 
+            table: 'migrledgers', 
+            limit: 10,               
+            reverse: false,         
+            show_payer: false  
+          }
+          ledger = await callFioApi("get_table_rows", json);
+          isFinished = ledger.rows[0].isFinished
+          //console.log('isFinished: ', isFinished);
+        } catch (err) {
+          console.log('Error', err);
+          expect(err).to.equal(null);
+        }
+      }
+    })
+
+    it('Echo final migrledgers table', async () => {
+      try {
+        const json = {
+          json: true,
+          code: 'fio.reqobt', 
+          scope: 'fio.reqobt', 
+          table: 'migrledgers', 
+          limit: 10,               
+          reverse: false,         
+          show_payer: false  
+        }
+        ledger = await callFioApi("get_table_rows", json);
+        console.log('migrledgers: ', ledger);
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
+
+  })
+
+  describe.skip(`I. Go through recordobts (old table) and confirm each entry is in fiotrxtss (NEW table)`, () => {
+    let obtCount = 0
+    let obtRecords;
+
+    it('Step through recordobts and confirm every entry is found on the new table.', async () => {
+      let count = 0;
+
+      try {
+        const json = {
+          json: true,               // Get the response as json
+          code: 'fio.reqobt',      // Contract that we target
+          scope: 'fio.reqobt',         // Account that owns the data
+          table: 'recordobts',        // Table name
+          limit: 1000,                // Maximum number of rows that we want to get
+          reverse: false,           // Optional: Get reversed data
+          show_payer: false          // Optional: Show ram payer
+        }
+        obts = await callFioApi("get_table_rows", json);
+        obtCount = obts.rows.length;
+        //console.log('obts: ', obts);
+        console.log('Number of records in recordobts: ', obtCount);
+        for (obt in obts.rows) {
+          // Call get_table_rows from fiotrxtss (NEW table) and confirm request is in table
+          try {
+            const json = {
+              json: true,               // Get the response as json
+              code: 'fio.reqobt',      // Contract that we target
+              scope: 'fio.reqobt',         // Account that owns the data
+              table: 'fiotrxtss',        // Table name
+              limit: 1000,                // Maximum number of rows that we want to get
+              reverse: false,           // Optional: Get reversed data
+              show_payer: false          // Optional: Show ram payer
+            }
+            newRequests = await callFioApi("get_table_rows", json);
+            //console.log('requests: ', newRequests);
+            for (newRequest in newRequests.rows) {
+              if (newRequests.rows[newRequest].payer_fio_addr == obts.rows[obt].payer_fio_addr) {
+                //console.log(count);
+                //console.log('recordobts:')
+                //console.log('id: ', obts.rows[obt].id);
+                //console.log('payer_fio_addr: ', obts.rows[obt].payer_fio_addr); 
+                //console.log('payee_fio_addr: ', obts.rows[obt].payee_fio_addr); 
+                //console.log('fiotrxtss:')
+                //console.log('id: ', newRequests.rows[newRequest].id);
+                //console.log('fio_request_id: ', newRequests.rows[newRequest].fio_request_id);
+                //console.log('payer_fio_addr: ', newRequests.rows[newRequest].payer_fio_addr); 
+                //console.log('payee_fio_addr: ', newRequests.rows[newRequest].payee_fio_addr); 
+
+                expect(obts.rows[obt].payer_fio_addr).to.equal(newRequests.rows[newRequest].payer_fio_addr);
+                expect(obts.rows[obt].payee_fio_addr).to.equal(newRequests.rows[newRequest].payee_fio_addr);
+                expect(obts.rows[obt].payer_key).to.equal(newRequests.rows[newRequest].payer_key);
+                expect(obts.rows[obt].payee_key).to.equal(newRequests.rows[newRequest].payee_key);
+                //expect(obts.rows[obt].time_stamp).to.equal(newRequests.rows[newRequest].init_time); //Time stamps different?
+                //expect(newRequests.rows[newRequest].fio_request_id).to.equal(0);
+                //expect(newRequests.rows[newRequest].fio_data_type).to.equal(4);
+                break;
+              }
+            }
+          } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+          }
+          count++;
+        }
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
+
+  })
+
+  describe.skip(`J. Go through fioreqctxts (old table) and confirm each entry is in fiotrxtss (NEW table)`, () => {
+    let reqCount = 0
+    let reqs;
+
+    it('Step through fioreqctxts and confirm every entry is found on the new table.', async () => {
+      let count = 0;
+      let currentReqStatus;
+
+      try {
+        const json = {
+          json: true,               // Get the response as json
+          code: 'fio.reqobt',      // Contract that we target
+          scope: 'fio.reqobt',         // Account that owns the data
+          table: 'fioreqctxts',        // Table name
+          limit: 1000,                // Maximum number of rows that we want to get
+          reverse: false,           // Optional: Get reversed data
+          show_payer: false          // Optional: Show ram payer
+        }
+        reqs = await callFioApi("get_table_rows", json);
+        reqCount = reqs.rows.length;
+        //console.log('reqs: ', reqs);
+        console.log('Number of records in fioreqctxts: ', reqCount);
+        for (req in reqs.rows) {
+          // First, get the status of the request
+          try {
+            const json = {
+              json: true,               // Get the response as json
+              code: 'fio.reqobt',      // Contract that we target
+              scope: 'fio.reqobt',         // Account that owns the data
+              table: 'fioreqstss',        // Table name
+              limit: 1000,                // Maximum number of rows that we want to get
+              reverse: false,           // Optional: Get reversed data
+              show_payer: false          // Optional: Show ram payer
+            }
+            fioReqSts = await callFioApi("get_table_rows", json);
+            //console.log('fioReqSts: ', fioReqSts);
+            currentReqStatus = 0; //Initialize to 0 since that will be the status in the new table if the record's fio_request_id is not found in fioreqstss
+            for (fioReqStatus in fioReqSts.rows) {
+              //console.log('reqs.rows[req].fio_request_id', reqs.rows[req].fio_request_id)
+              //console.log('fioReqStatus: ', fioReqSts.rows[fioReqStatus]);
+              //console.log ('currentReqStatus', fioReqSts.rows[fioReqStatus].status);
+              if (fioReqSts.rows[fioReqStatus].fio_request_id == reqs.rows[req].fio_request_id) {
+                currentReqStatus = fioReqSts.rows[fioReqStatus].status;
+                //console.log('id: ', fioReqSts.rows[fioReqStatus].id);
+                //console.log('fio_request_id: ', fioReqSts.rows[fioReqStatus].fio_request_id);
+                //console.log('status: ', fioReqSts.rows[fioReqStatus].status);
+                //console.log('payer_fio_addr: ', fioReqSts.rows[fioReqStatus].time_stamp); 
+                expect(reqs.rows[req].fio_request_id).to.equal(fioReqSts.rows[fioReqStatus].fio_request_id);
+                break;
+              }
+            }
+          } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+          }
+
+          // Next, all get_table_rows from fiotrxtss (NEW table) and confirm request is in table
+          try {
+            const json = {
+              json: true,               // Get the response as json
+              code: 'fio.reqobt',      // Contract that we target
+              scope: 'fio.reqobt',         // Account that owns the data
+              table: 'fiotrxtss',        // Table name
+              limit: 1000,                // Maximum number of rows that we want to get
+              reverse: false,           // Optional: Get reversed data
+              show_payer: false          // Optional: Show ram payer
+            }
+            newRequests = await callFioApi("get_table_rows", json);
+            //console.log('requests: ', newRequests);
+            for (newRequest in newRequests.rows) {
+              if (newRequests.rows[newRequest].fio_request_id == reqs.rows[req].fio_request_id) {
+                //console.log(count);
+                //console.log('fioreqctxts:')
+                //console.log('fio_request_id: ', reqs.rows[req].fio_request_id);
+                //console.log('payer_fio_addr: ', reqs.rows[req].payer_fio_addr); 
+                //console.log('payee_fio_addr: ', reqs.rows[req].payee_fio_addr); 
+                //console.log('fioreqstss:')
+                //console.log('status (0 = not found): ', currentReqStatus);
+                //console.log('fiotrxtss:')
+                //console.log('id: ', newRequests.rows[newRequest].id);
+                //console.log('fio_request_id: ', newRequests.rows[newRequest].fio_request_id);
+                //console.log('payer_fio_addr: ', newRequests.rows[newRequest].payer_fio_addr); 
+                //console.log('payee_fio_addr: ', newRequests.rows[newRequest].payee_fio_addr); 
+                //console.log('fio_data_type: ', newRequests.rows[newRequest].fio_data_type); 
+
+                expect(reqs.rows[req].payer_fio_addr).to.equal(newRequests.rows[newRequest].payer_fio_addr);
+                expect(reqs.rows[req].payee_fio_addr).to.equal(newRequests.rows[newRequest].payee_fio_addr);
+                expect(reqs.rows[req].payer_key).to.equal(newRequests.rows[newRequest].payer_key);
+                expect(reqs.rows[req].payee_key).to.equal(newRequests.rows[newRequest].payee_key);
+                //expect(reqs.rows[req].time_stamp).to.equal(newRequests.rows[newRequest].init_time); //Time stamps different?
+                expect(reqs.rows[req].fio_request_id).to.equal(newRequests.rows[newRequest].fio_request_id);
+                expect(newRequests.rows[newRequest].fio_data_type).to.equal(currentReqStatus);
+                break;
+              }
+            }
+          } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+          }
+          count++;
+        }
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
+
+  })
+})
+
+describe.skip(`Release delta - remove data from old tables (fioreqctxts, recordobts, fioreqstss)`, () => {
+  let isFinished = 0
+
+  it('Echo size of fioreqctxts table', async () => {
     try {
       const json = {
-        json: true,               // Get the response as json
-        code: 'fio.reqobt',      // Contract that we target
-        scope: 'fio.reqobt',         // Account that owns the data
-        table: 'fioreqctxts',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
+        json: true,
+        code: 'fio.reqobt', 
+        scope: 'fio.reqobt', 
+        table: 'fioreqctxts', 
+        limit: 1000,               
+        reverse: false,         
+        show_payer: false  
       }
-      reqs = await callFioApi("get_table_rows", json);
-      reqCount = reqs.rows.length;
-      //console.log('reqs: ', reqs);
-      console.log('Number of records in fioreqctxts: ', reqCount);
-      for (req in reqs.rows) {
-        // First, get the status of the request
-        try {
-          const json = {
-            json: true,               // Get the response as json
-            code: 'fio.reqobt',      // Contract that we target
-            scope: 'fio.reqobt',         // Account that owns the data
-            table: 'fioreqstss',        // Table name
-            limit: 1000,                // Maximum number of rows that we want to get
-            reverse: false,           // Optional: Get reversed data
-            show_payer: false          // Optional: Show ram payer
-          }
-          fioReqSts = await callFioApi("get_table_rows", json);
-          //console.log('fioReqSts: ', fioReqSts);
-          currentReqStatus = 0; //Initialize to 0 since that will be the status in the new table if the record's fio_request_id is not found in fioreqstss
-          for (fioReqStatus in fioReqSts.rows) {
-            //console.log('reqs.rows[req].fio_request_id', reqs.rows[req].fio_request_id)
-            //console.log('fioReqStatus: ', fioReqSts.rows[fioReqStatus]);
-            //console.log ('currentReqStatus', fioReqSts.rows[fioReqStatus].status);
-            if (fioReqSts.rows[fioReqStatus].fio_request_id == reqs.rows[req].fio_request_id) {
-              currentReqStatus = fioReqSts.rows[fioReqStatus].status;
-              //console.log('id: ', fioReqSts.rows[fioReqStatus].id);
-              //console.log('fio_request_id: ', fioReqSts.rows[fioReqStatus].fio_request_id);
-              //console.log('status: ', fioReqSts.rows[fioReqStatus].status);
-              //console.log('payer_fio_addr: ', fioReqSts.rows[fioReqStatus].time_stamp); 
-              expect(reqs.rows[req].fio_request_id).to.equal(fioReqSts.rows[fioReqStatus].fio_request_id);
-              break;
-            }
-          }
-        } catch (err) {
-          console.log('Error', err);
-          expect(err).to.equal(null);
-        }
-
-        // Next, all get_table_rows from fiotrxts (NEW table) and confirm request is in table
-        try {
-          const json = {
-            json: true,               // Get the response as json
-            code: 'fio.reqobt',      // Contract that we target
-            scope: 'fio.reqobt',         // Account that owns the data
-            table: 'fiotrxts',        // Table name
-            limit: 1000,                // Maximum number of rows that we want to get
-            reverse: false,           // Optional: Get reversed data
-            show_payer: false          // Optional: Show ram payer
-          }
-          newRequests = await callFioApi("get_table_rows", json);
-          //console.log('requests: ', newRequests);
-          for (newRequest in newRequests.rows) {
-            if (newRequests.rows[newRequest].fio_request_id == reqs.rows[req].fio_request_id) {
-              //console.log(count);
-              //console.log('fioreqctxts:')
-              //console.log('fio_request_id: ', reqs.rows[req].fio_request_id);
-              //console.log('payer_fio_addr: ', reqs.rows[req].payer_fio_addr); 
-              //console.log('payee_fio_addr: ', reqs.rows[req].payee_fio_addr); 
-              //console.log('fioreqstss:')
-              //console.log('status (0 = not found): ', currentReqStatus);
-              //console.log('fiotrxts:')
-              //console.log('id: ', newRequests.rows[newRequest].id);
-              //console.log('fio_request_id: ', newRequests.rows[newRequest].fio_request_id);
-              //console.log('payer_fio_addr: ', newRequests.rows[newRequest].payer_fio_addr); 
-              //console.log('payee_fio_addr: ', newRequests.rows[newRequest].payee_fio_addr); 
-              //console.log('fio_data_type: ', newRequests.rows[newRequest].fio_data_type); 
-
-              expect(reqs.rows[req].payer_fio_addr).to.equal(newRequests.rows[newRequest].payer_fio_addr);
-              expect(reqs.rows[req].payee_fio_addr).to.equal(newRequests.rows[newRequest].payee_fio_addr);
-              expect(reqs.rows[req].payer_key).to.equal(newRequests.rows[newRequest].payer_key);
-              expect(reqs.rows[req].payee_key).to.equal(newRequests.rows[newRequest].payee_key);
-              //expect(reqs.rows[req].time_stamp).to.equal(newRequests.rows[newRequest].init_time); //Time stamps different?
-              expect(reqs.rows[req].fio_request_id).to.equal(newRequests.rows[newRequest].fio_request_id);
-              expect(newRequests.rows[newRequest].fio_data_type).to.equal(currentReqStatus);
-              break;
-            }
-          }
-        } catch (err) {
-          console.log('Error', err);
-          expect(err).to.equal(null);
-        }
-        count++;
-      }
+      fioreqctxts = await callFioApi("get_table_rows", json);
+      console.log('fioreqctxts: ', fioreqctxts.rows.length);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
     }
   })
 
+  it('Echo size of recordobts table', async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'fio.reqobt', 
+        scope: 'fio.reqobt', 
+        table: 'recordobts', 
+        limit: 1000,               
+        reverse: false,         
+        show_payer: false  
+      }
+      recordobts = await callFioApi("get_table_rows", json);
+      console.log('recordobts: ', recordobts.rows.length);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it('Echo size of fioreqstss table', async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'fio.reqobt', 
+        scope: 'fio.reqobt', 
+        table: 'fioreqstss', 
+        limit: 1000,               
+        reverse: false,         
+        show_payer: false  
+      }
+      fioreqstss = await callFioApi("get_table_rows", json);
+      console.log('fioreqstss: ', fioreqstss.rows.length);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Call migrtrx (bp1) with amount = 20 until (fioreqctxts, recordobts, fioreqstss) are empty`, async () => {
+    while (!fioreqctxtsIsFinished || !recordobtsIsFinished || !fioreqstssIsFinished) {
+      try {
+          const result = await callFioApiSigned('push_transaction', {
+              action: 'migrtrx',
+              account: 'fio.reqobt',
+              actor: bp1.account,
+              privKey: bp1.privateKey,
+              data: {
+                  amount: 20,
+                  actor: bp1.account
+              }
+          })
+          console.log('Result: ', result)
+          expect(result.transaction_id).to.exist
+      } catch (err) {
+          console.log('Error: ', err)
+          expect(err).to.equal(null)
+      }
+      await timeout(2000);
+      try {
+        const json = {
+          json: true,
+          code: 'fio.reqobt', 
+          scope: 'fio.reqobt', 
+          table: 'fioreqctxts', 
+          limit: 1000,               
+          reverse: false,         
+          show_payer: false  
+        }
+        fioreqctxts = await callFioApi("get_table_rows", json);
+        fioreqctxtsIsFinished = (fioreqctxts.rows.length == 0);
+        //console.log('fioreqctxts: ', fioreqctxts)
+        console.log('Table rows count: ', fioreqctxts.rows.length)
+        console.log('isFinished: ', isFinished);
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+      try {
+        const json = {
+          json: true,
+          code: 'fio.reqobt', 
+          scope: 'fio.reqobt', 
+          table: 'recordobts', 
+          limit: 1000,               
+          reverse: false,         
+          show_payer: false  
+        }
+        recordobts = await callFioApi("get_table_rows", json);
+        recordobtsIsFinished = (recordobts.rows.length == 0);
+        //console.log('recordobts: ', recordobts)
+        console.log('Table rows count: ', recordobts.rows.length)
+        console.log('isFinished: ', isFinished);
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+      try {
+        const json = {
+          json: true,
+          code: 'fio.reqobt', 
+          scope: 'fio.reqobt', 
+          table: 'fioreqstss', 
+          limit: 1000,               
+          reverse: false,         
+          show_payer: false  
+        }
+        fioreqstss = await callFioApi("get_table_rows", json);
+        fioreqstssIsFinished = (fioreqstss.rows.length == 0);
+        //console.log('fioreqstss: ', fioreqstss)
+        console.log('Table rows count: ', fioreqstss.rows.length)
+        console.log('isFinished: ', isFinished);
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    }
+  })
+
+  it('Confirm fioreqctxts table is empty', async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'fio.reqobt', 
+        scope: 'fio.reqobt', 
+        table: 'fioreqctxts', 
+        limit: 10,               
+        reverse: false,         
+        show_payer: false  
+      }
+      fioreqctxts = await callFioApi("get_table_rows", json);
+      console.log('fioreqctxts: ', fioreqctxts);
+      expect(fioreqctxts.rows.length).to.equal(0);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it('Confirm recordobts table is empty', async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'fio.reqobt', 
+        scope: 'fio.reqobt', 
+        table: 'recordobts', 
+        limit: 10,               
+        reverse: false,         
+        show_payer: false  
+      }
+      recordobts = await callFioApi("get_table_rows", json);
+      console.log('recordobts: ', recordobts);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it('Confirm fioreqstss table is empty', async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'fio.reqobt', 
+        scope: 'fio.reqobt', 
+        table: 'fioreqstss', 
+        limit: 10,               
+        reverse: false,         
+        show_payer: false  
+      }
+      fioreqstss = await callFioApi("get_table_rows", json);
+      console.log('fioreqstss: ', fioreqstss);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+})
+
+describe(`Release delta - remove migrtrx action, remove references to old tables (fioreqctxts, recordobts, fioreqstss) `, () => {
 })
