@@ -240,24 +240,25 @@ describe(`************************** bravo-migr-test.js.js *********************
 })
 
 describe(`B. Perform single migrtrx to initialize migration`, () => {
-    it(`Call single migrtrx (bp1) and confirm you can still do Requests and OBTs`, async () => {
-        try {
-            const result = await callFioApiSigned('push_transaction', {
-                action: 'migrtrx',
-                account: 'fio.reqobt',
-                actor: bp1.account,
-                privKey: bp1.privateKey,
-                data: {
-                    amount: 1,
-                    actor: bp1.account
-                }
-            })
-            //console.log('Result: ', result)
-            expect(result.transaction_id).to.exist
-        } catch (err) {
-            console.log('Error: ', err)
-            expect(err).to.equal(null)
-        }
+
+  it(`Call single migrtrx (bp1) and confirm you can still do Requests and OBTs`, async () => {
+      try {
+          const result = await callFioApiSigned('push_transaction', {
+              action: 'migrtrx',
+              account: 'fio.reqobt',
+              actor: bp1.account,
+              privKey: bp1.privateKey,
+              data: {
+                  amount: 20,
+                  actor: bp1.account
+              }
+          })
+          //console.log('Result: ', result)
+          expect(result.transaction_id).to.exist
+      } catch (err) {
+          console.log('Error: ', err)
+          expect(err).to.equal(null)
+      }
     })
 
     it.skip('Call get_table_rows from fiotrxts (NEW table) and display', async () => {
@@ -985,6 +986,91 @@ describe.skip(`J. Go through fioreqctxts (old table) and confirm each entry is i
         }
         count++;
       }
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+})
+
+describe.skip(`Bravo fix: Call migrtrx until table data is nuked`, () => {
+  let isFinished = 0
+
+  it('Echo initial migrledgers table', async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'fio.reqobt', 
+        scope: 'fio.reqobt', 
+        table: 'migrledgers', 
+        limit: 1000,               
+        reverse: false,         
+        show_payer: false  
+      }
+      ledger = await callFioApi("get_table_rows", json);
+      console.log('migrledgers: ', ledger);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Call migrtrx (bp1) with amount = 10 until migrtrx is empty`, async () => {
+    while (!isFinished) {
+      try {
+          const result = await callFioApiSigned('push_transaction', {
+              action: 'migrtrx',
+              account: 'fio.reqobt',
+              actor: bp1.account,
+              privKey: bp1.privateKey,
+              data: {
+                  amount: 10,
+                  actor: bp1.account
+              }
+          })
+          console.log('Result: ', result)
+          expect(result.transaction_id).to.exist
+      } catch (err) {
+          console.log('Error: ', err)
+          expect(err).to.equal(null)
+      }
+      await timeout(2000);
+      try {
+        const json = {
+          json: true,
+          code: 'fio.reqobt', 
+          scope: 'fio.reqobt', 
+          table: 'fiotrxts', 
+          limit: 1000,               
+          reverse: false,         
+          show_payer: false  
+        }
+        fiotrxts = await callFioApi("get_table_rows", json);
+        isFinished = (fiotrxts.rows.length == 0);
+        //console.log('fiotrxts: ', fiotrxts)
+        console.log('Table rows count: ', fiotrxts.rows.length)
+        console.log('isFinished: ', isFinished);
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    }
+  })
+
+  it('Echo final migrledgers table', async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'fio.reqobt', 
+        scope: 'fio.reqobt', 
+        table: 'migrledgers', 
+        limit: 10,               
+        reverse: false,         
+        show_payer: false  
+      }
+      ledger = await callFioApi("get_table_rows", json);
+      console.log('migrledgers: ', ledger);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
