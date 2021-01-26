@@ -43,6 +43,8 @@ describe(`************************** fio-request.js ************************** \
       }
     })
 
+    it(`Wait a few seconds.`, async () => { await timeout(2000) })
+
     it(`userA1 requests funds from userA2`, async () => {
       try {
         const result = await userA1.sdk.genericAction('requestFunds', {

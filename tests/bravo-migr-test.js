@@ -2258,5 +2258,5 @@ describe.skip(`Release delta - remove data from old tables (fioreqctxts, recordo
 
 })
 
-describe(`Release delta - remove migrtrx action, remove references to old tables (fioreqctxts, recordobts, fioreqstss) `, () => {
+describe.skip(`Release delta - remove migrtrx action, remove references to old tables (fioreqctxts, recordobts, fioreqstss) `, () => {
 })

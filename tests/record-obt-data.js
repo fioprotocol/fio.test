@@ -8,7 +8,7 @@ before(async () => {
     faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-describe(`*********************** record-obt-data.js *********************** \n    A. Test OBT DAta`, () => {
+describe(`*********************** record-obt-data.js *********************** \n    A. Test OBT Data`, () => {
 
     let userA1, userA2, userA2Balance, timeStamp
     const payment = 5000000000 // 5 FIO
@@ -20,7 +20,7 @@ describe(`*********************** record-obt-data.js *********************** \n 
         userA2 = await newUser(faucet);
     })
 
-    it(`userA1 sends obt data to userA2`, async () => {
+    it(`userA1 sends recordObtData to userA2`, async () => {
         try {
             const result = await userA1.sdk.genericAction('recordObtData', {
                 payerFioAddress: userA1.address,
@@ -47,6 +47,8 @@ describe(`*********************** record-obt-data.js *********************** \n 
             expect(err).to.equal(null)
         }
     })
+
+    it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
     it(`get_obt_data for userA1 (payer)`, async () => {
         try {
@@ -89,6 +91,25 @@ describe(`*********************** record-obt-data.js *********************** \n 
             expect(err).to.equal(null)
         }
     })
+
+    it('Echo fiotrxtss table (need to uncomment)', async () => {
+        try {
+          const json = {
+            json: true,
+            code: 'fio.reqobt', 
+            scope: 'fio.reqobt', 
+            table: 'fiotrxtss', 
+            limit: 5,               
+            reverse: true,         
+            show_payer: false  
+          }
+          fiotrxtss = await callFioApi("get_table_rows", json);
+          //console.log('fiotrxtss: ', fiotrxtss);
+        } catch (err) {
+          console.log('Error', err);
+          expect(err).to.equal(null);
+        }
+      })
 
     it('Call get_table_rows from fionames to get bundles remaining for userA2. Verify 100 bundles', async () => {
         let bundleCount
