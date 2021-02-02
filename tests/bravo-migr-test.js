@@ -2119,6 +2119,7 @@ describe.skip(`Release delta - remove data from old tables (fioreqctxts, recordo
   })
 
   it(`Call migrtrx (bp1) with amount = 20 until (fioreqctxts, recordobts, fioreqstss) are empty`, async () => {
+    let fioreqctxtsIsFinished = false, recordobtsIsFinished = false, fioreqstssIsFinished = false;
     while (!fioreqctxtsIsFinished || !recordobtsIsFinished || !fioreqstssIsFinished) {
       try {
           const result = await callFioApiSigned('push_transaction', {
@@ -2231,6 +2232,7 @@ describe.skip(`Release delta - remove data from old tables (fioreqctxts, recordo
       }
       recordobts = await callFioApi("get_table_rows", json);
       console.log('recordobts: ', recordobts);
+      expect(recordobts.rows.length).to.equal(0);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -2250,6 +2252,7 @@ describe.skip(`Release delta - remove data from old tables (fioreqctxts, recordo
       }
       fioreqstss = await callFioApi("get_table_rows", json);
       console.log('fioreqstss: ', fioreqstss);
+      expect(fioreqstss.rows.length).to.equal(0);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
