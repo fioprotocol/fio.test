@@ -2493,7 +2493,7 @@ describe(`H. Test proxy re-vote of proxy, re-proxy of voter`, () => {
     }
   })
 
-  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
   it(`proxyA1 votes for bp1@dapixdev using address #1`, async () => {
     try {
@@ -2517,7 +2517,7 @@ describe(`H. Test proxy re-vote of proxy, re-proxy of voter`, () => {
     }
   })
 
-  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
   it(`user1 proxies votes to proxyA1`, async () => {
     try {
@@ -2617,7 +2617,7 @@ describe(`H. Test proxy re-vote of proxy, re-proxy of voter`, () => {
     }
   })
 
-  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
   it(`user1 proxies votes AGAIN to proxyA1`, async () => {
     try {
@@ -2881,7 +2881,7 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
     }
   })
 
-  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
   it(`Get total_voted_fio before proxyA1 votes`, async () => {
     total_voted_fio = await getTotalVotedFio();

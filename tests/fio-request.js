@@ -2428,6 +2428,29 @@ describe(`I. reject_funds_request: Check all getters after`, () => {
     }
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(2000) })
+
+  it(`get_sent_fio_requests for userA1 (payee) BEFORE Reject`, async () => {
+    try {
+        const result = await userA1.sdk.genericAction('getSentFioRequests', {
+            limit: '',
+            offset: ''
+        })
+        //console.log('result: ', result);
+        //console.log('content: ', result.requests[0].content);
+        expect(result.requests[0].fio_request_id).to.equal(requestId);
+        expect(result.requests[0].payer_fio_address).to.equal(userA2.address);
+        expect(result.requests[0].payee_fio_address).to.equal(userA1.address);
+        expect(result.requests[0].payer_fio_public_key).to.equal(userA2.publicKey);
+        expect(result.requests[0].payee_fio_public_key).to.equal(userA1.publicKey);
+        expect(result.requests[0].status).to.equal('requested');
+        expect(result.requests[0].content.memo).to.equal(requestMemo);
+    } catch (err) {
+        console.log('Error: ', err)
+        expect(err).to.equal(null)
+    }
+  })
+
   it(`userA2 rejects funds request`, async () => {
     try{
       const result = await userA2.sdk.genericAction('pushTransaction', {
@@ -2448,7 +2471,7 @@ describe(`I. reject_funds_request: Check all getters after`, () => {
     }
   })
 
-  it(`get_sent_fio_requests for userA1 (payee)`, async () => {
+  it(`get_sent_fio_requests for userA1 (payee) AFTER Reject`, async () => {
     try {
         const result = await userA1.sdk.genericAction('getSentFioRequests', {
             limit: '',
@@ -2583,5 +2606,31 @@ describe(`I. reject_funds_request: Check all getters after`, () => {
         expect(err.response.body.message).to.equal('No FIO Requests')
     }
   })
+
+  it.skip('Call get_table_rows from fiotrxtss (NEW table) and confirm request is in table', async () => {
+    try {
+        const json = {
+        json: true,               // Get the response as json
+        code: 'fio.reqobt',      // Contract that we target
+        scope: 'fio.reqobt',         // Account that owns the data
+        table: 'fiotrxtss',        // Table name
+        limit: 2,                // Maximum number of rows that we want to get
+        reverse: true,           // Optional: Get reversed data
+        show_payer: false          // Optional: Show ram payer
+        }
+        requests = await callFioApi("get_table_rows", json);
+        console.log('requests: ', requests);
+        for (request in requests.rows) {
+        if (requests.rows[request].fio_request_id == requestId) {
+            console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
+            break;
+        }
+        }
+        expect(requests.rows[request].payer_fio_addr).to.equal(user2.address);  
+    } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+    }
+    })
 
 })

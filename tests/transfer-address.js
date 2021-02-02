@@ -951,7 +951,7 @@ describe('E. Confirm active producers and proxy cannot transfer address', () => 
         }
     })
 
-    it(`Wait a few seconds.`, async () => { await timeout(3000) })
+    it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
     it('Confirm is_proxy = 1 for proxy1 ', async () => {
         try {
@@ -1041,6 +1041,8 @@ describe('F. BRAVO ONLY: Confirm users with OBT records or Requests cannot trans
           expect(err).to.equal(null)
         }
       })
+
+      it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
     it(`Transfer user1.address to user2. Expect error 500 - assertion failure with message: Transfering a FIO address is currently disabled for some fio.addresses `, async () => {
         try {

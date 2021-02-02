@@ -399,7 +399,7 @@ describe('B. Transfer a domain to FIO Public Key which does not map to existing 
     }
   })
 
-  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
   it('Confirm proper fee was collected', async () => {
     expect(feeCollected).to.equal(transfer_fio_domain_fee)

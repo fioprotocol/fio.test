@@ -1,7 +1,7 @@
 require('mocha')
 config = require('../config.js');
 const {expect} = require('chai')
-const {newUser, fetchJson, generateFioDomain, generateFioAddress, createKeypair, callFioApi} = require('../utils.js');
+const {newUser, fetchJson, generateFioDomain, generateFioAddress, createKeypair, callFioApi, timeout} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 
 
@@ -463,6 +463,8 @@ describe(`B. get_fio_addresses paging: Register multiple addresses and page thro
       }
     }
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
   it(`Call (get_fio_addresses, no limit param, no offset param). Expect ${addressCount} results`, async () => {
     try {
