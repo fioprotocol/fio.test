@@ -924,17 +924,17 @@ describe('C. Request funds, approve and send', () => {
 
   it(`Wait a few seconds.`, async () => { await timeout(8000) })
 
-  it.skip(`BUG (bahamas): BD-2306 getSentFioRequests for fioSdk2`, async () => {
+  it(`getSentFioRequests for fioSdk2 (BD-2306)`, async () => {
     const result = await fioSdk2.genericAction('getSentFioRequests', {
       limit: '',
       offset: ''
     })
-    console.log('Result: ', result)
+    //console.log('Result: ', result)
     expect(result).to.have.all.keys('requests', 'more')
     expect(result.requests).to.be.a('array')
     expect(result.more).to.be.a('number')
     const pendingReq = result.requests.find(pr => parseInt(pr.fio_request_id) === parseInt(requestId))
-    console.log('pendingReq: ', pendingReq)
+    //console.log('pendingReq: ', pendingReq)
     expect(pendingReq).to.have.all.keys('fio_request_id', 'payer_fio_address', 'payee_fio_address', 'payee_fio_public_key', 'payer_fio_public_key', 'status', 'time_stamp', 'content')
     expect(pendingReq.fio_request_id).to.be.a('number')
     expect(pendingReq.fio_request_id).to.equal(requestId)
@@ -1138,7 +1138,7 @@ describe('F. Transfer tokens', () => {
   })
 })
 
-describe('G. Record obt data, check', () => {
+describe('G. Record obt data, check getObtData', () => {
   const obtId = generateObtId()
   const fundsAmount = 4.5
 
@@ -1188,7 +1188,7 @@ describe('G. Record obt data, check', () => {
     expect(obtData.payee_fio_address).to.equal(testFioAddressName2)
   })
 
-  it.skip(`BUG BD-2305 (not all results getting returned) Payee getObtData`, async () => {
+  it(`BUG BD-2305 (not all results getting returned) Payee getObtData`, async () => {
     const result = await fioSdk2.genericAction('getObtData', { tokenCode: fioTokenCode })
     console.log('result: ', result)
     expect(result).to.have.all.keys('obt_data_records', 'more')
@@ -1399,15 +1399,17 @@ describe(`H. Test locked token accounts with proxy voting`, () => {
 
   it(`Get fioSdk last_vote_weight (should be 200 + 2 fee = 202 less)`, async () => {
     try {
+      prevVoteWeight = fioSdk.last_vote_weight
       fioSdk.last_vote_weight = await getAccountVoteWeight(account);
       //console.log('fioSdk.last_vote_weight:', fioSdk.last_vote_weight)
+      expect(fioSdk.last_vote_weight).to.equal(prevVoteWeight- 200000000000 - transfer_tokens_pub_key_fee)
     } catch (err) {
-      console.log('Error: ', err.json)
+      console.log('Error: ', err)
       expect(err).to.equal('null')
     }
   })
 
-  it(`(Bug? will address in most recent fio.test)total_voted_fio decreased by 200 - transfer_tokens_pub_key fee`, async () => {
+  it(`total_voted_fio decreased by 200 - transfer_tokens_pub_key fee`, async () => {
     try {
       let prev_total_voted_fio = total_voted_fio
       total_voted_fio = await getTotalVotedFio();
@@ -1419,7 +1421,7 @@ describe(`H. Test locked token accounts with proxy voting`, () => {
     }
   })
 
-  it(`(Bug? will address in most recent fio.test) bp1@dapixdev total_votes descreased by 200 - transfer_tokens_pub_key fee`, async () => {
+  it(`bp1@dapixdev total_votes decreased by 200 - transfer_tokens_pub_key fee`, async () => {
     try {
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
