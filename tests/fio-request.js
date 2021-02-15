@@ -481,6 +481,30 @@ describe(`B. Test FIO Request error conditions`, () => {
     userB3 = await newUser(faucet);
   })
 
+  it(`userB3 requests funds using userB2.address as payer and userB1.address as payee`, async () => {
+    try {
+      const result = await userB3.sdk.genericAction('requestFunds', {
+        payerFioAddress: userB2.address,
+        payeeFioAddress: userB1.address,
+        payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
+        amount: payment,
+        chainCode: 'BTC',
+        tokenCode: 'BTC',
+        memo: requestMemo,
+        maxFee: config.api.new_funds_request.fee,
+        payerFioPublicKey: userB2.publicKey,
+        technologyProviderId: '',
+      })
+      console.log('Result: ', result)
+      expect(result).to.equal(null)
+    } catch (err) {
+      //console.log('Error: ', err)
+      expect(err.json.type).to.equal('invalid_signature');
+      expect(err.json.message).to.equal(config.error.invalidRequestSignature);
+      expect(err.errorCode).to.equal(403);
+    }
+  })
+
   it(`Add BTC address to userB1`, async () => {
     try {
       const result = await userB1.sdk.genericAction('addPublicAddresses', {
@@ -2632,5 +2656,42 @@ describe(`I. reject_funds_request: Check all getters after`, () => {
         expect(err).to.equal(null);
     }
     })
+
+})
+
+describe(`J. Test FIO Request with two addresses owned by same account`, () => {
+  let userA1, userA2, userA3requestId
+  const payment = 5000000000 // 5 FIO
+  const requestMemo = 'Memo in the initial request'
+
+  it(`Create users`, async () => {
+    userA1 = await newUser(faucet);
+    userA2 = await newUser(faucet);
+    userA3 = await newUser(faucet);
+    userA1.address2 = generateFioAddress(userA1.domain, 5)
+  })
+
+  it(`userA3 requests funds using userA1 as payee and using userA2 as payer`, async () => {
+    try {
+      const result = await userA1.sdk.genericAction('requestFunds', {
+        payerFioAddress: userA2.address,
+        payeeFioAddress: userA1.address,
+        payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
+        amount: payment,
+        chainCode: 'BTC',
+        tokenCode: 'BTC',
+        memo: requestMemo,
+        maxFee: config.api.new_funds_request.fee,
+        payerFioPublicKey: userA2.publicKey,
+        technologyProviderId: '',
+      })
+      //console.log('Result: ', result)
+      requestId = result.fio_request_id
+      expect(result.status).to.equal('requested')
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
 
 })

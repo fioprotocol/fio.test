@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, randStr, generateFioDomain, generateFioAddress, unlockWallet, callFioApi, fetchJson} = require('../utils.js');
+const {newUser, randStr, generateFioDomain, generateFioAddress, unlockWallet, callFioApi, timeout, fetchJson} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
@@ -33,30 +33,33 @@ async function runClio(parms) {
 before(async () => {
     faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
 
-    result = await unlockWallet('fio');
+    const result = await unlockWallet('fio');
 })
 
 describe(`************************** clio.js ************************** \n    A. Test clio`, () => {
 
     it(`get info`, async () => {
-        result = await runClio('get info');
+        const result = await runClio('get info');
         expect(JSON.parse(result).head_block_num).to.be.a('number')
       })
 })
 
-describe(`B. Request and OBT Data`, () => {
-    let fio_request_id, fio_request_id2, fio_request_id3, user1, user2
+describe.only(`B. Request and OBT Data`, () => {
+    let fio_request_id, fio_request_id2, fio_request_id3, user1, user2, resultSdk, resultClio, contentSdk, contentClio
 
     it(`Create users and import private keys`, async () => {
         user1 = await newUser(faucet);
-        result = await runClio('wallet import -n fio --private-key ' + user1.privateKey);
+        await runClio('wallet import -n fio --private-key ' + user1.privateKey);
         user2 = await newUser(faucet);
-        result = await runClio('wallet import -n fio --private-key ' + user2.privateKey);
+        await runClio('wallet import -n fio --private-key ' + user2.privateKey);
+
+        console.log('user1 pub key: ', user1.publicKey)
+        console.log('user2 pub key: ', user2.publicKey)
     })
 
-    it(`Request new`, async () => {
+    it(`clio: request new (user1 requests funds from user2)`, async () => {
         try {
-            result = await runClio(`request new -j ${user2.address} ${user1.address} ${content} ${user1.account} ${tpid} ${max_fee} --permission ${user1.account}@active`);
+            const result = await runClio(`request new -j ${user2.address} ${user1.address} ${content} ${user1.account} ${tpid} ${max_fee} --permission ${user1.account}@active`);
             //console.log('Result: ', result)
             fio_request_id = JSON.parse(JSON.parse(result).processed.action_traces[0].receipt.response).fio_request_id
             //console.log('ID: ', JSON.parse(JSON.parse(result).processed.action_traces[0].receipt.response).fio_request_id)
@@ -67,7 +70,71 @@ describe(`B. Request and OBT Data`, () => {
         }
     })
 
-    it(`Request reject`, async () => {
+    it(`SDK: user1 requests funds from user2`, async () => {
+        try {
+          const result = await user1.sdk.genericAction('requestFunds', {
+            payerFioAddress: user2.address,
+            payeeFioAddress: user1.address,
+            payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
+            amount: 500000,
+            chainCode: 'BTC',
+            tokenCode: 'BTC',
+            memo: 'requestMemo',
+            maxFee: config.maxFee,
+            payerFioPublicKey: user2.publicKey,
+            technologyProviderId: '',
+          })
+          requestId = result.fio_request_id
+          //console.log('Result: ', result)
+          expect(result.status).to.equal('requested')
+        } catch (err) {
+          console.log('Error: ', err)
+          expect(err).to.equal(null)
+        }
+    })
+
+    it(`Wait a few seconds.`, async () => { await timeout(2000) })
+
+    it.skip(`(BUG BD-2358) get_sent_fio_requests for user1 (payee). Both clio and SDK requests to return same content.`, async () => {
+        try {
+            const result = await user1.sdk.genericAction('getSentFioRequests', {
+                limit: '',
+                offset: ''
+            })
+            //console.log('result: ', result);
+            //console.log('fio_request_id: ', fio_request_id)
+            expect(result.requests[0].fio_request_id).to.equal(result.requests[1].fio_request_id);
+            expect(result.requests[0].payer_fio_address).to.equal(result.requests[1].payer_fio_address);
+            expect(result.requests[0].payee_fio_address).to.equal(result.requests[1].payee_fio_address);
+            expect(result.requests[0].payer_fio_public_key).to.equal(result.requests[1].payer_fio_public_key);
+            expect(result.requests[0].payee_fio_public_key).to.equal(result.requests[1].payee_fio_public_key);
+            expect(result.requests[0].status).to.equal(result.requests[1].status);
+        } catch (err) {
+            console.log('Error: ', err)
+            expect(err).to.equal(null)
+        }
+    })
+   
+    it('(api) Call get_sent_fio_requests', async () => {
+        try {
+            const result = await callFioApi("get_sent_fio_requests", {
+            fio_public_key: user1.publicKey,
+            limit: 10,
+            offset: 0
+          })
+          //console.log('Result', result)
+          expect(result.requests[0].fio_request_id).to.equal(result.requests[1].fio_request_id - 1);
+          expect(result.requests[0].payer_fio_address).to.equal(result.requests[1].payer_fio_address);
+          expect(result.requests[0].payee_fio_address).to.equal(result.requests[1].payee_fio_address);
+          expect(result.requests[0].payer_fio_public_key).to.equal(result.requests[1].payer_fio_public_key);
+          expect(result.requests[0].payee_fio_public_key).to.equal(result.requests[1].payee_fio_public_key);
+          expect(result.requests[0].status).to.equal(result.requests[1].status);
+        } catch (err) {
+          console.log('Error', err)
+        }
+    })
+
+    it(`clio: request reject (user2 rejects request from user1)`, async () => {
         try {
             result = await runClio(`request reject -j ${fio_request_id} ${user2.account} ${tpid} ${max_fee} --permission ${user2.account}@active`);
             //console.log('Result: ', result)
@@ -78,7 +145,27 @@ describe(`B. Request and OBT Data`, () => {
         }
     })
 
-    it(`Request new`, async () => {
+    it(`(BUG BD-2358) get_sent_fio_requests for user1 (payee). Expect one request with status = 'rejected'`, async () => {
+        try {
+            const result = await user1.sdk.genericAction('getSentFioRequests', {
+                limit: '',
+                offset: ''
+            })
+            console.log('result: ', result);
+            //console.log('content: ', result.requests[0].content);
+            //expect(result.requests[0].fio_request_id).to.equal(fio_request_id);
+            //expect(result.requests[0].payer_fio_address).to.equal(user2.address);
+            //expect(result.requests[0].payee_fio_address).to.equal(user1.address);
+            //expect(result.requests[0].payer_fio_public_key).to.equal(user2.publicKey);
+            //expect(result.requests[0].payee_fio_public_key).to.equal(user1.publicKey);
+            //expect(result.requests[0].status).to.equal('rejected');
+        } catch (err) {
+            console.log('Error: ', err)
+            expect(err).to.equal(null)
+        }
+    })
+
+    it(`clio: request new (user2 requests funds from user1)`, async () => {
         try {
             result = await runClio(`request new -j ${user1.address} ${user2.address} ${content} ${user2.account} ${tpid} ${max_fee} --permission ${user2.account}@active`);
             //console.log('Result: ', result)
@@ -90,7 +177,26 @@ describe(`B. Request and OBT Data`, () => {
         }
     })
 
-    it(`Request cancel`, async () => {
+    it(`get_pending_fio_requests for user1 (payer). Expect one request with status = 'pending'`, async () => {
+        try {
+          const result = await user1.sdk.genericAction('getPendingFioRequests', {
+            limit: '',
+            offset: ''
+          })
+          console.log('result: ', result)
+          //console.log('content: ', result.requests[0].content)
+          expect(result.requests[0].fio_request_id).to.equal(fio_request_id2);
+          expect(result.requests[0].payer_fio_address).to.equal(user1.address);
+          expect(result.requests[0].payee_fio_address).to.equal(user2.address);
+          expect(result.requests[0].payer_fio_public_key).to.equal(user1.publicKey);
+          expect(result.requests[0].payee_fio_public_key).to.equal(user2.publicKey);
+        } catch (err) {
+          console.log('Error: ', err)
+          expect(err).to.equal(null)
+        }
+    })
+
+    it(`clio: request cancel (user2 cancels sent request)`, async () => {
         try {
             result = await runClio(`request cancel -j ${fio_request_id2} ${user2.account} ${tpid} ${max_fee} --permission ${user2.account}@active`);
             //console.log('Result: ', result)
@@ -101,7 +207,26 @@ describe(`B. Request and OBT Data`, () => {
         }
     })
 
-    it(`Request new`, async () => {
+    it(`get_pending_fio_requests for user1 (payer). Expect one request with status = 'cancelled'`, async () => {
+        try {
+          const result = await user1.sdk.genericAction('getPendingFioRequests', {
+            limit: '',
+            offset: ''
+          })
+          console.log('result: ', result)
+          //console.log('content: ', result.requests[0].content)
+          expect(result.requests[0].fio_request_id).to.equal(fio_request_id2);
+          expect(result.requests[0].payer_fio_address).to.equal(user1.address);
+          expect(result.requests[0].payee_fio_address).to.equal(user2.address);
+          expect(result.requests[0].payer_fio_public_key).to.equal(user1.publicKey);
+          expect(result.requests[0].payee_fio_public_key).to.equal(user2.publicKey);
+        } catch (err) {
+          console.log('Error: ', err)
+          expect(err).to.equal(null)
+        }
+    })
+
+    it(`clio: request new (user1 requests funds from user2)`, async () => {
         try {
             result = await runClio(`request new -j ${user2.address} ${user1.address} ${content2} ${user1.account} ${tpid} ${max_fee} --permission ${user1.account}@active`);
             //console.log('Result: ', result)
@@ -113,12 +238,53 @@ describe(`B. Request and OBT Data`, () => {
         }
     })
 
-    it(`Record`, async () => {
+    it(`clio: record (user2 records obt record in response to request)`, async () => {
         try {
             result = await runClio(`data record -j ${fio_request_id3} ${user2.address} ${user1.address} ${content3} ${user2.account} ${tpid} ${max_fee} --permission ${user2.account}@active`);
             //console.log('Result: ', result)
         } catch (err) {
             console.log('Error', err)
+            expect(err).to.equal(null)
+        }
+    })
+
+    it(`getObtData for user2. Expect one record with status = 'sent_to_blockchain'`, async () => {
+        try {
+          const result = await user2.sdk.genericAction('getObtData', {
+            limit: '',
+            offset: '',
+            tokenCode: 'BTC'
+          })
+          console.log('result: ', result)
+          //console.log('content: ', result.obt_data_records[0].content)
+          expect(result.obt_data_records[0].fio_request_id).to.equal(fio_request_id3);
+          expect(result.obt_data_records[0].payer_fio_address).to.equal(user2.address);
+          expect(result.obt_data_records[0].payee_fio_address).to.equal(user1.address);
+          expect(result.obt_data_records[0].payer_fio_public_key).to.equal(user2.publicKey);
+          expect(result.obt_data_records[0].payee_fio_public_key).to.equal(user1.publicKey);
+          expect(result.obt_data_records[0].status).to.equal('sent_to_blockchain');
+        } catch (err) {
+          console.log('Error: ', err)
+          expect(err).to.equal(null)
+        }
+      })
+
+    it(`get_sent_fio_requests for user1 (payee). Expect one request with status = 'sent_to_blockchain'`, async () => {
+        try {
+            const result = await user1.sdk.genericAction('getSentFioRequests', {
+                limit: '',
+                offset: ''
+            })
+            console.log('result: ', result);
+            //console.log('content: ', result.requests[0].content);
+            expect(result.requests[0].fio_request_id).to.equal(fio_request_id);
+            expect(result.requests[0].payer_fio_address).to.equal(user2.address);
+            expect(result.requests[0].payee_fio_address).to.equal(user1.address);
+            expect(result.requests[0].payer_fio_public_key).to.equal(user2.publicKey);
+            expect(result.requests[0].payee_fio_public_key).to.equal(user1.publicKey);
+            expect(result.requests[0].status).to.equal('sent_to_blockchain');
+        } catch (err) {
+            console.log('Error: ', err)
             expect(err).to.equal(null)
         }
     })
@@ -172,7 +338,7 @@ describe(`C. Domain`, () => {
         }
       })
 
-    it(`domain register`, async () => {
+    it(`clio: domain register`, async () => {
         try {
             result = await runClio(`domain register -j ${user1.domain2} ${user1.account} ${user1.publicKey} ${tpid} ${max_fee} --permission ${user1.account}@active`);
             //console.log('Result: ', JSON.parse(result));
@@ -197,7 +363,7 @@ describe(`C. Domain`, () => {
         }
       })
 
-    it(`domain renew`, async () => {
+    it(`clio: domain renew`, async () => {
         try {
             result = await runClio(`domain renew -j ${user1.account} ${user1.domain2} ${tpid} ${max_fee} --permission ${user1.account}@active`);
             //console.log('Result: ', JSON.parse(result));
@@ -222,7 +388,7 @@ describe(`C. Domain`, () => {
         }
     })
 
-    it(`domain set_public`, async () => {
+    it(`clio: domain set_public`, async () => {
         try {
             result = await runClio(`domain set_public -j ${user1.domain2} 1 ${user1.account} ${tpid} ${max_fee} --permission ${user1.account}@active`);
             //console.log('Result: ', JSON.parse(result));
@@ -247,7 +413,7 @@ describe(`C. Domain`, () => {
         }
     })
 
-    it(`domain transfer`, async () => {
+    it(`clio: domain transfer`, async () => {
         try {
             result = await runClio(`domain transfer -j ${user1.domain2} ${user1.account} ${user2.publicKey} ${tpid} ${max_fee} --permission ${user1.account}@active`);
             //console.log('Result: ', JSON.parse(result));
@@ -256,6 +422,21 @@ describe(`C. Domain`, () => {
             console.log('Error', err)
         }
     })
+
+    it(`Call get_fio_domains for user2. Expect new domain.`, async () => {
+        try {
+          const json = {
+            "fio_public_key": user2.publicKey
+          }
+          result = await callFioApi("get_fio_domains", json);
+          console.log('Result: ', result);
+          expect(result.fio_domains.length).to.equal(2)
+        } catch (err) {
+          //console.log('Error', err.error.message)
+          expect(err.error.message).to.equal(config.error.noFioAddresses)
+          expect(err.statusCode).to.equal(404);
+        }
+      })
 
 })
 
@@ -311,7 +492,7 @@ describe(`D. Address`, () => {
         }
       })
 
-    it(`address register`, async () => {
+    it(`clio: address register`, async () => {
         try {
             result = await runClio(`address register -j ${user1.address2} ${user1.account} ${user1.publicKey} ${tpid} ${max_fee} --permission ${user1.account}@active`);
             //console.log('Result: ', JSON.parse(result));
@@ -336,7 +517,7 @@ describe(`D. Address`, () => {
         }
       })
 
-    it(`address renew`, async () => {
+    it(`clio: address renew`, async () => {
         try {
             result = await runClio(`address renew -j ${user1.address2} ${user1.account} ${tpid} ${max_fee} --permission ${user1.account}@active`);
             //console.log('Result: ', JSON.parse(result));
@@ -510,7 +691,7 @@ describe(`F. Transfer`, () => {
         }
     })
 
-    it(`transfer ${fundsAmount} FIO to user2 FIO public key`, async () => {
+    it(`clio: transfer ${fundsAmount} FIO to user2 FIO public key`, async () => {
         try {
             result = await runClio(`transfer -j ${user2.publicKey} ${fundsAmount} ${user1.account} ${tpid} ${max_fee} --permission ${user1.account}@active`);
             //console.log('Result: ', JSON.parse(result));
@@ -536,7 +717,7 @@ describe(`G. Vote Producer`, () => {
         result = await runClio('wallet import -n fio --private-key ' + user1.privateKey);
     })
 
-    it(`userA1 votes for bp@dapixdev`, async () => {
+    it(`clio: voteproducer prods (userA1 votes for bp@dapixdev)`, async () => {
         try {
             result = await runClio(`system voteproducer prods -j ${user1.address} ${user1.account} ${max_fee} bp1@dapixdev --permission ${user1.account}@active`);
             //console.log('Result: ', JSON.parse(result));
