@@ -2659,39 +2659,3 @@ describe(`I. reject_funds_request: Check all getters after`, () => {
 
 })
 
-describe(`J. Test FIO Request with two addresses owned by same account`, () => {
-  let userA1, userA2, userA3requestId
-  const payment = 5000000000 // 5 FIO
-  const requestMemo = 'Memo in the initial request'
-
-  it(`Create users`, async () => {
-    userA1 = await newUser(faucet);
-    userA2 = await newUser(faucet);
-    userA3 = await newUser(faucet);
-    userA1.address2 = generateFioAddress(userA1.domain, 5)
-  })
-
-  it(`userA3 requests funds using userA1 as payee and using userA2 as payer`, async () => {
-    try {
-      const result = await userA1.sdk.genericAction('requestFunds', {
-        payerFioAddress: userA2.address,
-        payeeFioAddress: userA1.address,
-        payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
-        amount: payment,
-        chainCode: 'BTC',
-        tokenCode: 'BTC',
-        memo: requestMemo,
-        maxFee: config.api.new_funds_request.fee,
-        payerFioPublicKey: userA2.publicKey,
-        technologyProviderId: '',
-      })
-      //console.log('Result: ', result)
-      requestId = result.fio_request_id
-      expect(result.status).to.equal('requested')
-    } catch (err) {
-      console.log('Error: ', err)
-      expect(err).to.equal(null)
-    }
-  })
-
-})
