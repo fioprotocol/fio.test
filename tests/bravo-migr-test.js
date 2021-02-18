@@ -42,7 +42,7 @@ before(async () => {
 
 })
 
-describe.skip(`************************** bravo-migr-test.js.js ************************** \n    fiotrxts (original table) scripts`, () => {
+describe.skip(`************************** bravo-migr-test.js ************************** \n    fiotrxts (original table) scripts`, () => {
 
   describe(`A. Load Requests and OBTs`, () => {
       let user1, user2, user3;

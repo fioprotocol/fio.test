@@ -271,14 +271,14 @@ describe(`************************** fio-request.js ************************** \
     await timeout(7000);
   })
 
-  it.skip(`BUG (bahamas): BD-2306 get_sent_fio_requests for userA1`, async () => {
+  it(`get_sent_fio_requests for userA1 (BD-2306)`, async () => {
     try {
       const result = await userA1.sdk.genericAction('getSentFioRequests', {
         limit: '',
         offset: ''
       })
-      console.log('result: ', result)
-      console.log('content: ', result.requests[0].content)
+      //console.log('result: ', result)
+      //console.log('content: ', result.requests[0].content)
       expect(result.requests[0].content.memo).to.equal(requestMemo)
       expect(result.requests[0].status).to.equal('sent_to_blockchain')
     } catch (err) {
@@ -287,7 +287,7 @@ describe(`************************** fio-request.js ************************** \
     }
   }) 
   
-  it.skip(`BUG (bahamas): BD-2306 get_sent_fio_requests for userA1 (payee)`, async () => {
+  it(`get_sent_fio_requests for userA1 (payee) (BD-2306)`, async () => {
     try {
         const result = await userA1.sdk.genericAction('getSentFioRequests', {
             limit: '',
@@ -479,6 +479,30 @@ describe(`B. Test FIO Request error conditions`, () => {
     userB1 = await newUser(faucet);
     userB2 = await newUser(faucet);
     userB3 = await newUser(faucet);
+  })
+
+  it(`userB3 requests funds using userB2.address as payer and userB1.address as payee`, async () => {
+    try {
+      const result = await userB3.sdk.genericAction('requestFunds', {
+        payerFioAddress: userB2.address,
+        payeeFioAddress: userB1.address,
+        payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
+        amount: payment,
+        chainCode: 'BTC',
+        tokenCode: 'BTC',
+        memo: requestMemo,
+        maxFee: config.api.new_funds_request.fee,
+        payerFioPublicKey: userB2.publicKey,
+        technologyProviderId: '',
+      })
+      console.log('Result: ', result)
+      expect(result).to.equal(null)
+    } catch (err) {
+      //console.log('Error: ', err)
+      expect(err.json.type).to.equal('invalid_signature');
+      expect(err.json.message).to.equal(config.error.invalidRequestSignature);
+      expect(err.errorCode).to.equal(403);
+    }
   })
 
   it(`Add BTC address to userB1`, async () => {
@@ -2634,3 +2658,4 @@ describe(`I. reject_funds_request: Check all getters after`, () => {
     })
 
 })
+

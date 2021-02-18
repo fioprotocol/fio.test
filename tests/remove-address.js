@@ -1247,7 +1247,7 @@ describe(`F. Sad - result in error`, () => {
     expect(result.code).to.equal(config.error2.invalidActorAuth.statusCode);
   })
 
-  it(`Not a bug. SDK generates the actor from the userA1 private key. So, this will work.`, async () => {
+  it(`Not an error. SDK generates the actor from the userA1 private key. So, this will work.`, async () => {
     try{
       const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'remaddress',
