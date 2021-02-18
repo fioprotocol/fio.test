@@ -123,14 +123,13 @@ describe(`B. Parameter tests`, () => {
     }
   })
 
-  it(`Failure test, Transfer locked tokens, period percent larger than 3 decimals`, async () => {
-    try {
-      const result = await userA1.sdk.genericAction('pushTransaction', {
-        action: 'trnsloctoks',
-        account: 'fio.token',
-        data: {
-          payee_public_key: keys.publicKey,
-          can_vote: 0,
+  it(`(${testType}) Failure test, Transfer locked tokens, period percent larger than 3 decimals`, async () => {
+
+    if (testType == 'sdk') {
+      try {
+        const result = await userA1.sdk.genericAction('transferLockedTokens', {
+          payeePublicKey: keys.publicKey,
+          canVote: 0,
           periods: [
             {
               duration: 120,
@@ -142,28 +141,57 @@ describe(`B. Parameter tests`, () => {
             }
           ],
           amount: fundsAmount,
-          max_fee: 400000000000,
+          maxFee: 400000000000,
           tpid: '',
-          actor: userA1.account,
-        }
 
-      })
-      expect(result.status).to.not.equal('OK')
+        })
+        expect(result.status).to.not.equal('OK')
+      } catch (err) {
+        //console.log('error: ', err)
+        var expected = `Error 400`
+        expect(err.message).to.include(expected)
+      }
+    } else {
+      try {
+        const result = await userA1.sdk.genericAction('pushTransaction', {
+          action: 'trnsloctoks',
+          account: 'fio.token',
+          data: {
+            payee_public_key: keys.publicKey,
+            can_vote: 0,
+            periods: [
+              {
+                duration: 120,
+                percent: 50.4444,
+              },
+              {
+                duration: 240,
+                percent: 49.5556,
+              }
+            ],
+            amount: fundsAmount,
+            max_fee: 400000000000,
+            tpid: '',
+            actor: userA1.account,
+          }
 
-    } catch (err) {
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
+        })
+        expect(result.status).to.not.equal('OK')
+
+      } catch (err) {
+        var expected = `Error 400`
+        expect(err.message).to.include(expected)
+      }
     }
   })
 
-  it(`Failure test, Transfer locked tokens, periods are not in ascending order of duration`, async () => {
-    try {
-      const result = await userA1.sdk.genericAction('pushTransaction', {
-        action: 'trnsloctoks',
-        account: 'fio.token',
-        data: {
-          payee_public_key: keys.publicKey,
-          can_vote: 0,
+  it(`(${testType}) Failure test, Transfer locked tokens, periods are not in ascending order of duration`, async () => {
+
+    if (testType == 'sdk') {
+      try {
+        const result = await userA1.sdk.genericAction('transferLockedTokens', {
+          payeePublicKey: keys.publicKey,
+          canVote: 0,
           periods: [
             {
               duration: 240,
@@ -175,28 +203,56 @@ describe(`B. Parameter tests`, () => {
             }
           ],
           amount: fundsAmount,
-          max_fee: 400000000000,
+          maxFee: 400000000000,
           tpid: '',
-          actor: userA1.account,
-        }
 
-      })
-      expect(result.status).to.not.equal('OK')
+        })
+        expect(result.status).to.not.equal('OK')
+      } catch (err) {
+        //console.log('error: ', err)
+        var expected = `Error 400`
+        expect(err.message).to.include(expected)
+      }
+    } else {
+      try {
+        const result = await userA1.sdk.genericAction('pushTransaction', {
+          action: 'trnsloctoks',
+          account: 'fio.token',
+          data: {
+            payee_public_key: keys.publicKey,
+            can_vote: 0,
+            periods: [
+              {
+                duration: 240,
+                percent: 50.4444,
+              },
+              {
+                duration: 120,
+                percent: 49.5556,
+              }
+            ],
+            amount: fundsAmount,
+            max_fee: 400000000000,
+            tpid: '',
+            actor: userA1.account,
+          }
 
-    } catch (err) {
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
+        })
+        expect(result.status).to.not.equal('OK')
+
+      } catch (err) {
+        var expected = `Error 400`
+        expect(err.message).to.include(expected)
+      }
     }
   })
 
-  it(`Failure test, Transfer locked tokens, duration 0`, async () => {
-    try {
-      const result = await userA1.sdk.genericAction('pushTransaction', {
-        action: 'trnsloctoks',
-        account: 'fio.token',
-        data: {
-          payee_public_key: keys.publicKey,
-          can_vote: 0,
+  it(`(${testType}) Failure test, Transfer locked tokens, duration 0`, async () => {
+    if (testType == 'sdk') {
+      try {
+        const result = await userA1.sdk.genericAction('transferLockedTokens', {
+          payeePublicKey: keys.publicKey,
+          canVote: 0,
           periods: [
             {
               duration: 0,
@@ -208,27 +264,55 @@ describe(`B. Parameter tests`, () => {
             }
           ],
           amount: fundsAmount,
-          max_fee: 400000000000,
+          maxFee: 400000000000,
           tpid: '',
-          actor: userA1.account
-        }
 
-      })
-      expect(result.status).to.not.equal('OK')
-    } catch (err) {
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
+        })
+        expect(result.status).to.not.equal('OK')
+      } catch (err) {
+        //console.log('error: ', err)
+        var expected = `Error 400`
+        expect(err.message).to.include(expected)
+      }
+    } else {
+      try {
+        const result = await userA1.sdk.genericAction('pushTransaction', {
+          action: 'trnsloctoks',
+          account: 'fio.token',
+          data: {
+            payee_public_key: keys.publicKey,
+            can_vote: 0,
+            periods: [
+              {
+                duration: 0,
+                percent: 50.0,
+              },
+              {
+                duration: 240,
+                percent: 50.0,
+              }
+            ],
+            amount: fundsAmount,
+            max_fee: 400000000000,
+            tpid: '',
+            actor: userA1.account
+          }
+
+        })
+        expect(result.status).to.not.equal('OK')
+      } catch (err) {
+        var expected = `Error 400`
+        expect(err.message).to.include(expected)
+      }
     }
   })
 
-  it(`Failute test, Transfer locked tokens, pub key account pre exists`, async () => {
-    try {
-      const result = await userA1.sdk.genericAction('pushTransaction', {
-        action: 'trnsloctoks',
-        account: 'fio.token',
-        data: {
-          payee_public_key: userA1.publicKey,
-          can_vote: 0,
+  it(`(${testType}) Failute test, Transfer locked tokens, pub key account pre exists`, async () => {
+    if (testType == 'sdk') {
+      try {
+        const result = await userA1.sdk.genericAction('transferLockedTokens', {
+          payeePublicKey: keys.publicKey,
+          canVote: 0,
           periods: [
             {
               duration: 0,
@@ -240,27 +324,55 @@ describe(`B. Parameter tests`, () => {
             }
           ],
           amount: fundsAmount,
-          max_fee: 400000000000,
+          maxFee: 400000000000,
           tpid: '',
-          actor: userA1.account
-        }
 
-      })
-      expect(result.status).to.not.equal('OK')
-    } catch (err) {
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
+        })
+        expect(result.status).to.not.equal('OK')
+      } catch (err) {
+        //console.log('error: ', err)
+        var expected = `Error 400`
+        expect(err.message).to.include(expected)
+      }
+    } else {
+      try {
+        const result = await userA1.sdk.genericAction('pushTransaction', {
+          action: 'trnsloctoks',
+          account: 'fio.token',
+          data: {
+            payee_public_key: userA1.publicKey,
+            can_vote: 0,
+            periods: [
+              {
+                duration: 0,
+                percent: 50.0,
+              },
+              {
+                duration: 240,
+                percent: 50.0,
+              }
+            ],
+            amount: fundsAmount,
+            max_fee: 400000000000,
+            tpid: '',
+            actor: userA1.account
+          }
+
+        })
+        expect(result.status).to.not.equal('OK')
+      } catch (err) {
+        var expected = `Error 400`
+        expect(err.message).to.include(expected)
+      }
     }
   })
 
-  it(`Failute test, Too many lock periods`, async () => {
-    try {
-      const result = await userA4.sdk.genericAction('pushTransaction', {
-        action: 'trnsloctoks',
-        account: 'fio.token',
-        data: {
-          payee_public_key: keys2.publicKey,
-          can_vote: 0,
+  it(`(${testType}) Failute test, Too many lock periods`, async () => {
+    if (testType == 'sdk') {
+      try {
+        const result = await userA4.sdk.genericAction('transferLockedTokens', {
+          payeePublicKey: keys2.publicKey,
+          canVote: 0,
           periods: [
             {
               duration: 1,
@@ -468,17 +580,243 @@ describe(`B. Parameter tests`, () => {
             }
           ],
           amount: fundsAmount,
-          max_fee: 400000000000,
+          maxFee: 400000000000,
           tpid: '',
-          actor: userA4.account,
-        }
 
-      })
-      expect(result.status).to.not.equal('OK')
+        })
+        expect(result.status).to.not.equal('OK')
+      } catch (err) {
+        //console.log('error: ', err)
+        var expected = `Error 400`
+        expect(err.message).to.include(expected)
+      }
+    } else {
+      try {
+        const result = await userA4.sdk.genericAction('pushTransaction', {
+          action: 'trnsloctoks',
+          account: 'fio.token',
+          data: {
+            payee_public_key: keys2.publicKey,
+            can_vote: 0,
+            periods: [
+              {
+                duration: 1,
+                percent: 0.273,
+              },
+              {
+                duration: 2,
+                percent: .273,
+              },
+              {
+                duration: 3,
+                percent: .273,
+              },
+              {
+                duration: 4,
+                percent: .273,
+              },
+              {
+                duration: 5,
+                percent: .273,
+              },
+              {
+                duration: 6,
+                percent: .273,
+              },
+              {
+                duration: 7,
+                percent: .273,
+              },
+              {
+                duration: 8,
+                percent: .273,
+              },
+              {
+                duration: 9,
+                percent: .273,
+              },
+              {
+                duration: 10,
+                percent: .273,
+              },
+              {
+                duration: 11,
+                percent: .273,
+              },
+              {
+                duration: 12,
+                percent: .273,
+              },
+              {
+                duration: 13,
+                percent: .273,
+              },
+              {
+                duration: 14,
+                percent: .273,
+              },
+              {
+                duration: 15,
+                percent: .273,
+              },
+              {
+                duration: 16,
+                percent: .273,
+              },
+              {
+                duration: 17,
+                percent: .273,
+              },
+              {
+                duration: 18,
+                percent: .273,
+              },
+              {
+                duration: 19,
+                percent: .273,
+              },
+              {
+                duration: 20,
+                percent: .273,
+              },
+              {
+                duration: 21,
+                percent: .273,
+              },
+              {
+                duration: 22,
+                percent: .273,
+              },
+              {
+                duration: 23,
+                percent: .273,
+              },
+              {
+                duration: 24,
+                percent: .273,
+              },
+              {
+                duration: 25,
+                percent: .273,
+              },
+              {
+                duration: 26,
+                percent: .273,
+              },
+              {
+                duration: 27,
+                percent: .273,
+              },
+              {
+                duration: 28,
+                percent: .273,
+              },
+              {
+                duration: 29,
+                percent: .273,
+              },
+              {
+                duration: 30,
+                percent: .273,
+              },
+              {
+                duration: 31,
+                percent: .273,
+              },
+              {
+                duration: 32,
+                percent: .273,
+              },
+              {
+                duration: 33,
+                percent: .273,
+              },
+              {
+                duration: 34,
+                percent: .273,
+              },
+              {
+                duration: 35,
+                percent: .273,
+              },
+              {
+                duration: 36,
+                percent: .273,
+              },
+              {
+                duration: 37,
+                percent: .273,
+              },
+              {
+                duration: 38,
+                percent: .273,
+              },
+              {
+                duration: 39,
+                percent: .273,
+              },
+              {
+                duration: 40,
+                percent: .273,
+              },
+              {
+                duration: 41,
+                percent: .273,
+              },
+              {
+                duration: 42,
+                percent: .273,
+              },
+              {
+                duration: 43,
+                percent: .273,
+              },
+              {
+                duration: 44,
+                percent: .273,
+              },
+              {
+                duration: 45,
+                percent: .273,
+              },
+              {
+                duration: 46,
+                percent: .273,
+              },
+              {
+                duration: 47,
+                percent: .273,
+              },
+              {
+                duration: 48,
+                percent: .273,
+              },
+              {
+                duration: 49,
+                percent: .273,
+              },
+              {
+                duration: 50,
+                percent: .273,
+              },
+              {
+                duration: 51,
+                percent: 86.35,
+              }
+            ],
+            amount: fundsAmount,
+            max_fee: 400000000000,
+            tpid: '',
+            actor: userA4.account,
+          }
 
-    } catch (err) {
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
+        })
+        expect(result.status).to.not.equal('OK')
+
+      } catch (err) {
+        var expected = `Error 400`
+        expect(err.message).to.include(expected)
+      }
     }
   })
 
@@ -506,14 +844,12 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
     balancebefore = result.balance;
   })
 
-  it(`SUCCESS transferLockedTokens ${fundsAmount}, canvote false, (20,40 seconds) and (40,60%)`, async () => {
-    try {
-      const result = await userA1.sdk.genericAction('pushTransaction', {
-        action: 'trnsloctoks',
-        account: 'fio.token',
-        data: {
-          payee_public_key: keys.publicKey,
-          can_vote: 0,
+  it(`(${testType}) SUCCESS transferLockedTokens ${fundsAmount}, canvote false, (20,40 seconds) and (40,60%)`, async () => {
+    if (testType == 'sdk') {
+      try {
+        const result = await userA1.sdk.genericAction('transferLockedTokens', {
+          payeePublicKey: keys.publicKey,
+          canVote: 0,
           periods: [
             {
               duration: 20,
@@ -525,16 +861,45 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
             }
           ],
           amount: fundsAmount,
-          max_fee: 400000000000,
+          maxFee: 400000000000,
           tpid: '',
-          actor: userA1.account,
-        }
 
-      })
-      expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys( 'status', 'fee_collected')
-    } catch (err) {
-      console.log(' Error', err)
+        })
+        expect(result.status).to.equal('OK')
+        expect(result).to.have.all.keys('status', 'fee_collected')
+      } catch (err) {
+        console.log(' Error', err)
+      }
+    } else {
+      try {
+        const result = await userA1.sdk.genericAction('pushTransaction', {
+          action: 'trnsloctoks',
+          account: 'fio.token',
+          data: {
+            payee_public_key: keys.publicKey,
+            can_vote: 0,
+            periods: [
+              {
+                duration: 20,
+                percent: 40.0,
+              },
+              {
+                duration: 40,
+                percent: 60.0,
+              }
+            ],
+            amount: fundsAmount,
+            max_fee: 400000000000,
+            tpid: '',
+            actor: userA1.account,
+          }
+
+        })
+        expect(result.status).to.equal('OK')
+        expect(result).to.have.all.keys('status', 'fee_collected')
+      } catch (err) {
+        console.log(' Error', err)
+      }
     }
   })
 
