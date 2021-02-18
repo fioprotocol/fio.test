@@ -13,7 +13,7 @@ describe('************************** addbundles.js ************************** \n
 
     let user1, user1OrigBalance, user1OrigRam, add_bundled_transactions_fee, feeCollected
     let bundledVoteNumber = config.defaultBundleCount;
-    let bundleSets = 1;
+    let bundleSets = 2;
 
     it(`Create users`, async () => {
         user1 = await newUser(faucet);
@@ -79,30 +79,12 @@ describe('************************** addbundles.js ************************** \n
         }
     })
 
-    it(`Get bundle count for user1 from fionames table`, async () => {
-        try {
-            const json = {
-              json: true,
-              code: 'fio.address',
-              scope: 'fio.address',
-              table: 'fionames',
-              limit: 100,
-              reverse: true,
-              show_payer: false
-            }
-            fionames = await callFioApi("get_table_rows", json);
-            for (fioname in fionames.rows) {
-                if (fionames.rows[fioname].name == user1.address) {
-                  user1BundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-                }
-            }
-            //console.log('user1BundleCount: ', user1BundleCount);
-            expect(bundledVoteNumber).to.greaterThan(0);  
-          } catch (err) {
-            console.log('Error', err);
-            expect(err).to.equal(null);
-          }
-    })
+    it(`Get bundle count for user1 `, async () => {
+        const result = await user1.sdk.genericAction('getFioNames', { fioPublicKey: user1.publicKey })
+        //console.log('Result: ', result)
+        user1BundleCount = result.fio_addresses[0].remaining_bundled_tx;
+        expect(user1BundleCount).to.be.greaterThan(0)
+      })
 
     it(`(${testType}) Add bundles with ${bundleSets} sets for FIO Address owned by other user (fixed in BD-2308)`, async () => {
         if (testType == 'sdk') {
@@ -173,31 +155,13 @@ describe('************************** addbundles.js ************************** \n
         }
     })
 
-    it(`Confirm bundle count was increased by ${bundleSets} set`, async () => {
+    it(`Get bundle count for user1 `, async () => {
         let prevBundleCount = user1BundleCount;
-        try {
-            const json = {
-              json: true,
-              code: 'fio.address',
-              scope: 'fio.address',
-              table: 'fionames',
-              limit: 100,
-              reverse: true,
-              show_payer: false
-            }
-            fionames = await callFioApi("get_table_rows", json);
-            for (fioname in fionames.rows) {
-                if (fionames.rows[fioname].name == user1.address) {
-                  user1BundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-                }
-            }
-            //console.log('user1BundleCount: ', user1BundleCount);
-            expect(user1BundleCount).to.equal(prevBundleCount + (bundleSets * bundledVoteNumber));  
-          } catch (err) {
-            console.log('Error', err);
-            expect(err).to.equal(null);
-          }
-    })
+        const result = await user1.sdk.genericAction('getFioNames', { fioPublicKey: user1.publicKey })
+        //console.log('Result: ', result)
+        user1BundleCount = result.fio_addresses[0].remaining_bundled_tx;
+        expect(user1BundleCount).to.equal(prevBundleCount + (bundleSets * bundledVoteNumber));
+      })
 
 })
 
@@ -285,54 +249,18 @@ describe('B. Add 3 sets of bundled transactions for FIO Address owned by other u
         }
     })
 
-    it(`Get bundle count for user1 from fionames table`, async () => {
-        try {
-            const json = {
-              json: true,
-              code: 'fio.address',
-              scope: 'fio.address',
-              table: 'fionames',
-              limit: 100,
-              reverse: true,
-              show_payer: false
-            }
-            fionames = await callFioApi("get_table_rows", json);
-            for (fioname in fionames.rows) {
-                if (fionames.rows[fioname].name == user1.address) {
-                  user1BundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-                }
-            }
-            //console.log('user1BundleCount: ', user1BundleCount);
-            expect(user1BundleCount).to.greaterThan(0);  
-          } catch (err) {
-            console.log('Error', err);
-            expect(err).to.equal(null);
-          }
+    it(`Get bundle count for user1 `, async () => {
+        const result = await user1.sdk.genericAction('getFioNames', { fioPublicKey: user1.publicKey })
+        //console.log('Result: ', result)
+        user1BundleCount = result.fio_addresses[0].remaining_bundled_tx;
+        expect(user1BundleCount).to.be.greaterThan(0);
     })
 
-    it(`Get bundle count for user2 from fionames table`, async () => {
-        try {
-            const json = {
-              json: true,
-              code: 'fio.address',
-              scope: 'fio.address',
-              table: 'fionames',
-              limit: 100,
-              reverse: true,
-              show_payer: false
-            }
-            fionames = await callFioApi("get_table_rows", json);
-            for (fioname in fionames.rows) {
-                if (fionames.rows[fioname].name == user2.address) {
-                  user2BundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-                }
-            }
-            //console.log('user1BundleCount: ', user1BundleCount);
-            expect(user2BundleCount).to.greaterThan(0);  
-          } catch (err) {
-            console.log('Error', err);
-            expect(err).to.equal(null);
-          }
+    it(`Get bundle count for user2 `, async () => {
+        const result = await user2.sdk.genericAction('getFioNames', { fioPublicKey: user2.publicKey })
+        //console.log('Result: ', result)
+        user2BundleCount = result.fio_addresses[0].remaining_bundled_tx;
+        expect(user2BundleCount).to.be.greaterThan(0);
     })
 
     it(`(${testType}) user1 run addbundles with ${bundleSets} sets for FIO Address owned by user2 (fixed in BD-2308)`, async () => {
@@ -419,54 +347,18 @@ describe('B. Add 3 sets of bundled transactions for FIO Address owned by other u
 
     it(`Confirm user1 bundle count is unchanged`, async () => {
         let prevBundleCount = user1BundleCount;
-        try {
-            const json = {
-              json: true,
-              code: 'fio.address',
-              scope: 'fio.address',
-              table: 'fionames',
-              limit: 100,
-              reverse: true,
-              show_payer: false
-            }
-            fionames = await callFioApi("get_table_rows", json);
-            for (fioname in fionames.rows) {
-                if (fionames.rows[fioname].name == user1.address) {
-                  user1BundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-                }
-            }
-            //console.log('user1BundleCount: ', user1BundleCount);
-            expect(user1BundleCount).to.equal(prevBundleCount);  
-          } catch (err) {
-            console.log('Error', err);
-            expect(err).to.equal(null);
-          }
+        const result = await user1.sdk.genericAction('getFioNames', { fioPublicKey: user1.publicKey })
+        //console.log('Result: ', result)
+        user1BundleCount = result.fio_addresses[0].remaining_bundled_tx;
+        expect(user1BundleCount).to.equal(prevBundleCount); 
     })
 
     it(`Confirm user2 bundle count was increased by ${bundleSets} sets`, async () => {
         let prevBundleCount = user2BundleCount;
-        try {
-            const json = {
-              json: true,
-              code: 'fio.address',
-              scope: 'fio.address',
-              table: 'fionames',
-              limit: 100,
-              reverse: true,
-              show_payer: false
-            }
-            fionames = await callFioApi("get_table_rows", json);
-            for (fioname in fionames.rows) {
-                if (fionames.rows[fioname].name == user2.address) {
-                    user2BundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-                }
-            }
-            //console.log('user2BundleCount: ', user2BundleCount);
-            expect(user2BundleCount).to.equal(prevBundleCount + (bundleSets * bundledVoteNumber));  
-          } catch (err) {
-            console.log('Error', err);
-            expect(err).to.equal(null);
-          }
+        const result = await user2.sdk.genericAction('getFioNames', { fioPublicKey: user2.publicKey })
+        //console.log('Result: ', result)
+        user2BundleCount = result.fio_addresses[0].remaining_bundled_tx;
+        expect(user2BundleCount).to.equal(prevBundleCount + (bundleSets * bundledVoteNumber));  
     })
 
 })
@@ -681,31 +573,12 @@ describe('C. Error testing', () => {
         }
     })
     
-    it('Call get_table_rows from fionames to get bundles remaining for user1. Verify 0 bundles', async () => {
-        let bundleCount
-        try {
-            const json = {
-                json: true,               // Get the response as json
-                code: 'fio.address',      // Contract that we target
-                scope: 'fio.address',         // Account that owns the data
-                table: 'fionames',        // Table name
-                limit: 1000,                // Maximum number of rows that we want to get
-                reverse: false,           // Optional: Get reversed data
-                show_payer: false          // Optional: Show ram payer
-            }
-            fionames = await callFioApi("get_table_rows", json);
-            //console.log('fionames: ', fionames);
-            for (fioname in fionames.rows) {
-                if (fionames.rows[fioname].name == user1.address) {
-                //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown); 
-                bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-                }
-            }
-            expect(bundleCount).to.equal(0);  
-        } catch (err) {
-            console.log('Error', err);
-            expect(err).to.equal(null);
-        }
+    it(`Get bundle count for user1. Verify 0 bundles`, async () => {
+        let bundleCount;
+        const result = await user1.sdk.genericAction('getFioNames', { fioPublicKey: user1.publicKey })
+        //console.log('Result: ', result)
+        bundleCount = result.fio_addresses[0].remaining_bundled_tx;
+        expect(bundleCount).to.equal(0);
     })
 
     it(`Attempt addbundles with fee lower than actual fee amount and no bundled transactions left. Expect error type ${config.error2.feeExceedsMax.statusCode}: ${config.error2.feeExceedsMax.message}`, async () => {

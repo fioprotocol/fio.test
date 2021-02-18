@@ -1286,32 +1286,13 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
         //console.log('Error', err)
         expect(err).to.equal(null)
     }
-})
+  })
 
-  it('Get initial bundle count for voterG3. ', async () => {
-    try {
-        const json = {
-            json: true,               // Get the response as json
-            code: 'fio.address',      // Contract that we target
-            scope: 'fio.address',         // Account that owns the data
-            table: 'fionames',        // Table name
-            limit: 1000,                // Maximum number of rows that we want to get
-            reverse: false,           // Optional: Get reversed data
-            show_payer: false          // Optional: Show ram payer
-        }
-        fionames = await callFioApi("get_table_rows", json);
-        //console.log('fionames: ', fionames);
-        for (fioname in fionames.rows) {
-            if (fionames.rows[fioname].name == voterG3.address) {
-                //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
-                bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-            }
-        }
-        expect(bundleCount).to.be.greaterThan(0);
-    } catch (err) {
-        console.log('Error', err);
-        expect(err).to.equal(null);
-    }
+  it(`Get bundle count for voterG3 `, async () => {
+    const result = await voterG3.sdk.genericAction('getFioNames', { fioPublicKey: voterG3.publicKey })
+    //console.log('Result: ', result)
+    bundleCount = result.fio_addresses[0].remaining_bundled_tx;
+    expect(bundleCount).to.be.greaterThan(0);
   })
 
   it(`Execute vote_producer WITH FIO Address (with bundled tx left), confirm fee_collected = 0`, async () => {
@@ -1336,31 +1317,12 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
     }
   })
 
-  it('Get bundle count for voterG3. Confirm bundle count was decremented by 1.', async () => {
+  it(`Get bundle count for voterG3 `, async () => {
     prevBundleCount = bundleCount;
-    try {
-        const json = {
-            json: true,               // Get the response as json
-            code: 'fio.address',      // Contract that we target
-            scope: 'fio.address',         // Account that owns the data
-            table: 'fionames',        // Table name
-            limit: 1000,                // Maximum number of rows that we want to get
-            reverse: false,           // Optional: Get reversed data
-            show_payer: false          // Optional: Show ram payer
-        }
-        fionames = await callFioApi("get_table_rows", json);
-        //console.log('fionames: ', fionames);
-        for (fioname in fionames.rows) {
-            if (fionames.rows[fioname].name == voterG3.address) {
-                //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
-                bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-            }
-        }
-        expect(bundleCount).to.equal(prevBundleCount - 1);
-    } catch (err) {
-        console.log('Error', err);
-        expect(err).to.equal(null);
-    }
+    const result = await voterG3.sdk.genericAction('getFioNames', { fioPublicKey: voterG3.publicKey })
+    //console.log('Result: ', result)
+    bundleCount = result.fio_addresses[0].remaining_bundled_tx;
+    expect(bundleCount).to.equal(prevBundleCount - 1);
   })
 
   it('Confirm no fee was deducted from voterG3 account', async () => {
