@@ -2643,7 +2643,7 @@ describe(`I. reject_funds_request: Check all getters after`, () => {
         show_payer: false
         }
         requests = await callFioApi("get_table_rows", json);
-        console.log('requests: ', requests);
+        //console.log('requests: ', requests);
         for (request in requests.rows) {
         if (requests.rows[request].fio_request_id == requestId) {
             //console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
