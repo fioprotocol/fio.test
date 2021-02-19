@@ -307,7 +307,7 @@ describe(`B. Parameter tests`, () => {
     }
   })
 
-  it(`(${testType}) Failute test, Transfer locked tokens, pub key account pre exists`, async () => {
+  it(`(${testType}) Failure test, Transfer locked tokens, pub key account pre exists`, async () => {
     if (testType == 'sdk') {
       try {
         const result = await userA1.sdk.genericAction('transferLockedTokens', {
@@ -367,7 +367,7 @@ describe(`B. Parameter tests`, () => {
     }
   })
 
-  it(`(${testType}) Failute test, Too many lock periods`, async () => {
+  it(`(${testType}) Failure test, Too many lock periods`, async () => {
     if (testType == 'sdk') {
       try {
         const result = await userA4.sdk.genericAction('transferLockedTokens', {
@@ -1113,7 +1113,7 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
     }
   })
 
-  it(`[BD-2244] Register domain:  succeeds`, async () => {
+  it(`Register domain:  succeeds (BD-2244)`, async () => {
     try {
     domsdk = new FIOSDK(transferdomainkey.privateKey, transferdomainkey.publicKey, config.BASE_URL, fetchJson);
     domsdk.domain2 = generateFioDomain(8)

@@ -3,8 +3,6 @@ const {expect} = require('chai')
 
 describe('TEST SUITE', () => {
 
-
-
   require('./tests/bravo-migr-test.js'); //This is required when testing 2.3.0 (bravo) with fio bahamas (need to do the full table migration).
 
   //require('./tests/history.js'); // Only run against history node.

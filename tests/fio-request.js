@@ -2631,26 +2631,26 @@ describe(`I. reject_funds_request: Check all getters after`, () => {
     }
   })
 
-  it.skip('Call get_table_rows from fiotrxtss (NEW table) and confirm request is in table', async () => {
+  it('Call get_table_rows from fiotrxtss (NEW table) and confirm request is in table', async () => {
     try {
         const json = {
-        json: true,               // Get the response as json
-        code: 'fio.reqobt',      // Contract that we target
-        scope: 'fio.reqobt',         // Account that owns the data
-        table: 'fiotrxtss',        // Table name
-        limit: 2,                // Maximum number of rows that we want to get
-        reverse: true,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
+        json: true,
+        code: 'fio.reqobt',
+        scope: 'fio.reqobt',
+        table: 'fiotrxtss',
+        limit: 2,
+        reverse: true,
+        show_payer: false
         }
         requests = await callFioApi("get_table_rows", json);
         console.log('requests: ', requests);
         for (request in requests.rows) {
         if (requests.rows[request].fio_request_id == requestId) {
-            console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
+            //console.log('payer_fio_addr: ', requests.rows[request].payer_fio_addr); 
             break;
         }
         }
-        expect(requests.rows[request].payer_fio_addr).to.equal(user2.address);  
+        expect(requests.rows[request].payer_fio_addr).to.equal(userA2.address);  
     } catch (err) {
         console.log('Error', err);
         expect(err).to.equal(null);
@@ -2659,3 +2659,106 @@ describe(`I. reject_funds_request: Check all getters after`, () => {
 
 })
 
+describe(`J. get_received_fio_requests error conditions`, () => {
+  let userA1, userA2
+  const payment = 5000000000 // 5 FIO
+  const requestMemo = 'Memo in the initial request'
+
+  it(`Create users`, async () => {
+    userA1 = await newUser(faucet);
+    userA2 = await newUser(faucet);
+  })
+
+  it(`get_received_fio_requests with no requests. Expect: ${config.error.noFioRequests}`, async () => {
+    try {
+      const json = {
+        fio_public_key: userA2.publicKey,
+        limit: 100,
+        offset: 0
+      }
+      result = await callFioApi("get_received_fio_requests", json);
+      console.log('result: ', result.json)
+      //console.log('content: ', result.requests[0].content)
+      expect(result).to.equal(null)
+    } catch (err) {
+        //console.log('Error: ', err.error)
+        expect(err.error.message).to.equal(config.error.noFioRequests)
+    }
+  })
+
+  it(`userA1 requests funds from userA2`, async () => {
+    try {
+      const result = await userA1.sdk.genericAction('requestFunds', {
+        payerFioAddress: userA2.address,
+        payeeFioAddress: userA1.address,
+        payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
+        amount: payment,
+        chainCode: 'BTC',
+        tokenCode: 'BTC',
+        memo: requestMemo,
+        maxFee: config.api.new_funds_request.fee,
+        payerFioPublicKey: userA2.publicKey,
+        technologyProviderId: '',
+        hash: '',
+        offLineUrl: ''
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('requested')
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`get_received_fio_requests with invalid public key. Expect: ${config.error.invalidKey}`, async () => {
+    try {
+      const json = {
+        fio_public_key: 'FIOXXXLGcmXLCw87pqNMFurd23SqqEDbCUirr7vwuwuzfaySxQ9w6',
+        limit: 100,
+        offset: 0
+      }
+      result = await callFioApi("get_received_fio_requests", json);
+      console.log('result: ', result.json)
+      //console.log('content: ', result.requests[0].content)
+      expect(result).to.equal(null)
+    } catch (err) {
+        //console.log('Error: ', err.error)
+        expect(err.error.fields[0].error).to.equal(config.error.invalidKey)
+    }
+  })
+
+  it(`get_received_fio_requests with invalid limit. Expect: ${config.error.invalidLimit}`, async () => {
+    try {
+      const json = {
+        fio_public_key: userA2.publicKey,
+        limit: -1,
+        offset: 0
+      }
+      result = await callFioApi("get_received_fio_requests", json);
+      console.log('result: ', result.json)
+      //console.log('content: ', result.requests[0].content)
+      expect(result).to.equal(null)
+    } catch (err) {
+      //console.log('Error: ', err.error)
+      expect(err.error.fields[0].error).to.equal(config.error.invalidLimit)
+    }
+  })
+
+  it(`get_received_fio_requests with invalid offset. Expect: ${config.error.invalidOffset}`, async () => {
+    try {
+      const json = {
+        fio_public_key: userA2.publicKey,
+        limit: 100,
+        offset: -1
+      }
+      result = await callFioApi("get_received_fio_requests", json);
+      console.log('result: ', result.json)
+      //console.log('content: ', result.requests[0].content)
+      expect(result).to.equal(null)
+    } catch (err) {
+      //console.log('Error: ', err.error)
+      expect(err.error.fields[0].error).to.equal(config.error.invalidOffset)
+    }
+  })
+
+})
