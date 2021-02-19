@@ -2058,7 +2058,7 @@ describe(`Release v2.3.2 - fiotrxtss (NEW table) scripts`, () => {
   })
 })
 
-describe.skip(`Release delta - remove data from old tables (fioreqctxts, recordobts, fioreqstss)`, () => {
+describe.skip(`Release delta (develop - migr2) - remove data from old tables (fioreqctxts, recordobts, fioreqstss)`, () => {
   let isFinished = 0
 
   it('Echo size of fioreqctxts table', async () => {
@@ -2132,7 +2132,7 @@ describe.skip(`Release delta - remove data from old tables (fioreqctxts, recordo
                   actor: bp1.account
               }
           })
-          console.log('Result: ', result)
+          //console.log('Result: ', result)
           expect(result.transaction_id).to.exist
       } catch (err) {
           console.log('Error: ', err)
@@ -2261,5 +2261,89 @@ describe.skip(`Release delta - remove data from old tables (fioreqctxts, recordo
 
 })
 
-describe.skip(`Release delta - remove migrtrx action, remove references to old tables (fioreqctxts, recordobts, fioreqstss) `, () => {
+describe.skip(`Release echo (migr/final-rc1) - remove migrtrx action, remove references to old tables (fioreqctxts, recordobts, fioreqstss) `, () => {
+
+  it(`Call migrtrx. Expect error: Unknown action migrtrx in contract fio.reqobt`, async () => {
+    try {
+        const result = await callFioApiSigned('push_transaction', {
+            action: 'migrtrx',
+            account: 'fio.reqobt',
+            actor: bp1.account,
+            privKey: bp1.privateKey,
+            data: {
+                amount: 20,
+                actor: bp1.account
+            }
+        })
+        console.log('Result: ', result);
+        expect(result).to.equal(null);
+    } catch (err) {
+        //console.log('Error: ', err.message);
+        expect(err.message).to.equal('Unknown action migrtrx in contract fio.reqobt')
+    }
+  })
+
+  it('get_table_rows for fioreqctxts. Expect: Table fioreqctxts is not specified in the ABI', async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'fio.reqobt', 
+        scope: 'fio.reqobt', 
+        table: 'fioreqctxts', 
+        limit: 10,               
+        reverse: false,         
+        show_payer: false  
+      }
+      fioreqctxts = await callFioApi("get_table_rows", json);
+      console.log('fioreqctxts: ', fioreqctxts);
+      expect(result).to.equal(null)
+    } catch (err) {
+      //console.log('Error: ', err.error.error)
+      expect(err.error.code).to.equal(500)
+      expect(err.error.error.details[0].message).to.equal('Table fioreqctxts is not specified in the ABI')
+    }
+  })
+
+  it('get_table_rows for recordobts. Expect: Table recordobts is not specified in the ABI', async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'fio.reqobt', 
+        scope: 'fio.reqobt', 
+        table: 'recordobts', 
+        limit: 10,               
+        reverse: false,         
+        show_payer: false  
+      }
+      recordobts = await callFioApi("get_table_rows", json);
+      console.log('recordobts: ', recordobts);
+      expect(recordobts.rows.length).to.equal(0);
+    } catch (err) {
+      //console.log('Error', err);
+      expect(err.error.code).to.equal(500)
+      expect(err.error.error.details[0].message).to.equal('Table recordobts is not specified in the ABI')
+    }
+  })
+
+  it('get_table_rows for fioreqstss. Expect: Table fioreqstss is not specified in the ABI', async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'fio.reqobt', 
+        scope: 'fio.reqobt', 
+        table: 'fioreqstss', 
+        limit: 10,               
+        reverse: false,         
+        show_payer: false  
+      }
+      fioreqstss = await callFioApi("get_table_rows", json);
+      console.log('fioreqstss: ', fioreqstss);
+      expect(fioreqstss.rows.length).to.equal(0);
+    } catch (err) {
+      //console.log('Error', err);
+      expect(err.error.code).to.equal(500)
+      expect(err.error.error.details[0].message).to.equal('Table fioreqstss is not specified in the ABI')
+    }
+  })
+
 })
