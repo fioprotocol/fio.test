@@ -31,6 +31,7 @@ describe('TEST SUITE', () => {
   require('./tests/addbundles.js');  // FIP-11.a
   require('./tests/tpid.js'); 
   require('./tests/clio.js');  // FIP-16
+  //require('./tests/performance-request-obt.js');
 
   require('./tests/testnet-smoketest.js'); // Testnet smoketest. By default runs against local build.
   

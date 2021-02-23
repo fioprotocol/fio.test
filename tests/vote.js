@@ -846,7 +846,7 @@ describe('C. Test proxying to a user who is also proxying (should fail)', () => 
 
 })
 
-describe('D. last_voting_weight not updated when paying fee for register/unregister proxy (fixed bug MAS-1539)', () => {
+describe('D. last_voting_weight not updated when paying fee for register/unregister proxy (fixed MAS-1539)', () => {
   let proxyF1, voterF1, original_last_vote_weight
 
   it(`Create users`, async () => {
