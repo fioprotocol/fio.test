@@ -901,16 +901,64 @@ describe(`F. Transfer`, () => {
 })
 
 describe(`H. clio error testing`, () => {
-    let user1, user2, fio_request_id
-    const fundsAmount = 10000000000
+  let user1, user2, fio_request_id
+  const fundsAmount = 10000000000
+  let content
 
-    it(`Create users and import private keys`, async () => {
-        user1 = await newUser(faucet);
-        result = await runClio('wallet import -n fio --private-key ' + user1.privateKey);
+  const contentFields = {
+    payee_public_address: 'btc:thisispayeetokenpublicaddress',
+    amount: 500000,
+    chain_code: 'BTC',
+    token_code: 'BTC',
+    memo: 'request Memo One'
+  }
 
-        user2 = await newUser(faucet);
-        result = await runClio('wallet import -n fio --private-key ' + user2.privateKey);
-    })
+  it(`Create users and import private keys`, async () => {
+      user1 = await newUser(faucet);
+      result = await runClio('wallet import -n fio --private-key ' + user1.privateKey);
+
+      user2 = await newUser(faucet);
+      result = await runClio('wallet import -n fio --private-key ' + user2.privateKey);
+  })
+
+
+  it(`SDK: user1 requests funds from user2`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('requestFunds', {
+        payerFioAddress: user2.address,
+        payeeFioAddress: user1.address,
+        payeeTokenPublicAddress: contentFields.payee_public_address,
+        amount: contentFields.payee_public_address,
+        chainCode: contentFields.chain_code,
+        tokenCode: contentFields.token_code,
+        memo: contentFields.memo,
+        maxFee: config.maxFee,
+        payerFioPublicKey: user2.publicKey,
+        technologyProviderId: '',
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('requested')
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(2000) })
+  
+  it('(api) Call get_sent_fio_requests to get content field', async () => {
+    try {
+        const result = await callFioApi("get_sent_fio_requests", {
+        fio_public_key: user1.publicKey,
+        limit: 10,
+        offset: 0
+      })
+      //console.log('Result', result)
+      content = result.requests[0].content
+    } catch (err) {
+      console.log('Error', err)
+    }
+  })
 
     it(`clio: request new (user1 requests funds from user2)`, async () => {
         try {
