@@ -797,7 +797,7 @@ describe('C. Test invalid multipliers and ratios (using producer #20)', () => {
     }
   })
 
-  it.skip(`Bug: .Set fee ratio to negative number gives error: ${config.error.invalidRatioFeeError}`, async () => {
+  it.skip(`BUG: .Set fee ratio to negative number gives error: ${config.error.invalidRatioFeeError}`, async () => {
     try {
       let endpoint = 'register_fio_domain'
       let value = -400

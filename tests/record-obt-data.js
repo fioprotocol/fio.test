@@ -433,3 +433,156 @@ describe(`B. OBT Data Error Check`, () => {
     })
 })
 
+describe.skip(`BUG-2305 C. Test get_obt_data`, () => {
+
+    let userA1, userA2, timeStamp
+    const payment = 5000000000 // 5 FIO
+    const obtMemo = 'Memo in OBT payment'
+
+    it(`Create users`, async () => {
+        userA1 = await newUser(faucet);
+        userA2 = await newUser(faucet);
+    })
+
+    it(`get_obt_data for userA1 (payer) when no records exist. limit = '', offset = ''. Expect: ${config.error.noFioRequests}`, async () => {
+        try {
+            const result = await userA1.sdk.genericAction('getObtData', {
+                limit: '',
+                offset: ''
+            })
+            console.log('result: ', result);
+            expect(result).to.equal(null)
+        } catch (err) {
+            //console.log('Error: ', err.json)
+            expect(err.json.message).to.equal(config.error.noFioRequests)
+        }
+    })
+
+    it(`get_obt_data for userA1 (payer) when no records exist. limit = 0, offset = 100. Expect: ${config.error.noFioRequests}`, async () => {
+        try {
+            const result = await userA1.sdk.genericAction('getObtData', {
+                limit: 0,
+                offset: 100
+            })
+            console.log('result: ', result);
+            expect(result).to.equal(null)
+        } catch (err) {
+            //console.log('Error: ', err.json)
+            expect(err.json.message).to.equal(config.error.noFioRequests)
+        }
+    })
+
+    it(`get_obt_data for userA1 (payer) when no records exist. limit = -1, offset = 0. Expect: ${config.error.invalidLimit}`, async () => {
+        try {
+            const result = await userA1.sdk.genericAction('getObtData', {
+                limit: -1,
+                offset: 0
+            })
+            console.log('result: ', result);
+            //console.log('content: ', result.obt_data_records[0].content);
+            expect(result.obt_data_records.length).to.equal(2);
+        } catch (err) {
+            //console.log('Error: ', err.json)
+            expect(err.json.fields[0].error).to.equal(config.error.invalidLimit)
+        }
+    })
+
+    it(`userA1 sends recordObtData to userA2`, async () => {
+        try {
+            const result = await userA1.sdk.genericAction('recordObtData', {
+                payerFioAddress: userA1.address,
+                payeeFioAddress: userA2.address,
+                payerTokenPublicAddress: userA1.publicKey,
+                payeeTokenPublicAddress: userA2.publicKey,
+                amount: payment,
+                chainCode: "FIO",
+                tokenCode: "FIO",
+                status: '',
+                obtId: '',
+                maxFee: config.api.record_obt_data.fee,
+                technologyProviderId: '',
+                payeeFioPublicKey: userA2.publicKey,
+                memo: obtMemo,
+            })
+            //console.log('Result: ', result)
+            timeStamp = result.time_stamp
+            expect(result.status).to.equal('sent_to_blockchain')
+        } catch (err) {
+            console.log('Error: ', err)
+            expect(err).to.equal(null)
+        }
+    })
+
+    it(`userA1 sends second recordObtData to userA2`, async () => {
+        try {
+            const result = await userA1.sdk.genericAction('recordObtData', {
+                payerFioAddress: userA1.address,
+                payeeFioAddress: userA2.address,
+                payerTokenPublicAddress: userA1.publicKey,
+                payeeTokenPublicAddress: userA2.publicKey,
+                amount: payment,
+                chainCode: "FIO",
+                tokenCode: "FIO",
+                status: '',
+                obtId: '',
+                maxFee: config.api.record_obt_data.fee,
+                technologyProviderId: '',
+                payeeFioPublicKey: userA2.publicKey,
+                memo: "second obt",
+            })
+            //console.log('Result: ', result)
+            timeStamp = result.time_stamp
+            expect(result.status).to.equal('sent_to_blockchain')
+        } catch (err) {
+            console.log('Error: ', err)
+            expect(err).to.equal(null)
+        }
+    })
+
+    it(`Wait a few seconds.`, async () => { await timeout(5000) })
+
+    it(`get_obt_data for userA1 (payer)`, async () => {
+        try {
+            const result = await userA1.sdk.genericAction('getObtData', {
+                limit: '',
+                offset: ''
+            })
+            console.log('result: ', result);
+            //console.log('content: ', result.obt_data_records[0].content);
+            expect(result.obt_data_records.length).to.equal(2);
+            expect(result.obt_data_records[0].fio_request_id).to.equal(0);
+            expect(result.obt_data_records[0].payer_fio_address).to.equal(userA1.address);
+            expect(result.obt_data_records[0].payee_fio_address).to.equal(userA2.address);
+            expect(result.obt_data_records[0].payer_fio_public_key).to.equal(userA1.publicKey);
+            expect(result.obt_data_records[0].payee_fio_public_key).to.equal(userA2.publicKey);
+            expect(result.obt_data_records[0].status).to.equal('sent_to_blockchain');
+            expect(result.obt_data_records[0].content.memo).to.equal(obtMemo);
+        } catch (err) {
+            console.log('Error: ', err)
+            expect(err).to.equal(null)
+        }
+    })
+
+    it(`get_obt_data for userA2 (payee)`, async () => {
+        try {
+            const result = await userA2.sdk.genericAction('getObtData', {
+                limit: '',
+                offset: ''
+            })
+            console.log('result: ', result);
+            //console.log('content: ', result.obt_data_records[0].content);
+            expect(result.obt_data_records.length).to.equal(2);
+            expect(result.obt_data_records[0].fio_request_id).to.equal(0);
+            expect(result.obt_data_records[0].payer_fio_address).to.equal(userA1.address);
+            expect(result.obt_data_records[0].payee_fio_address).to.equal(userA2.address);
+            expect(result.obt_data_records[0].payer_fio_public_key).to.equal(userA1.publicKey);
+            expect(result.obt_data_records[0].payee_fio_public_key).to.equal(userA2.publicKey);
+            expect(result.obt_data_records[0].status).to.equal('sent_to_blockchain');
+            expect(result.obt_data_records[0].content.memo).to.equal(obtMemo);
+        } catch (err) {
+            console.log('Error: ', err)
+            expect(err).to.equal(null)
+        }
+    })
+
+})
