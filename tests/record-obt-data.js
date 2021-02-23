@@ -433,7 +433,7 @@ describe(`B. OBT Data Error Check`, () => {
     })
 })
 
-describe.skip(`BUG-2305 C. Test get_obt_data`, () => {
+describe(`C. Test get_obt_data`, () => {
 
     let userA1, userA2, timeStamp
     const payment = 5000000000 // 5 FIO
@@ -547,7 +547,7 @@ describe.skip(`BUG-2305 C. Test get_obt_data`, () => {
                 limit: '',
                 offset: ''
             })
-            console.log('result: ', result);
+            //console.log('result: ', result);
             //console.log('content: ', result.obt_data_records[0].content);
             expect(result.obt_data_records.length).to.equal(2);
             expect(result.obt_data_records[0].fio_request_id).to.equal(0);
@@ -563,13 +563,13 @@ describe.skip(`BUG-2305 C. Test get_obt_data`, () => {
         }
     })
 
-    it(`get_obt_data for userA2 (payee)`, async () => {
+    it(`get_obt_data for userA2 (payee) (BD-2305)`, async () => {
         try {
             const result = await userA2.sdk.genericAction('getObtData', {
                 limit: '',
                 offset: ''
             })
-            console.log('result: ', result);
+            //console.log('result: ', result);
             //console.log('content: ', result.obt_data_records[0].content);
             expect(result.obt_data_records.length).to.equal(2);
             expect(result.obt_data_records[0].fio_request_id).to.equal(0);

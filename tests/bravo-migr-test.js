@@ -2152,8 +2152,7 @@ describe.skip(`Release delta (develop - migr2) - remove data from old tables (fi
         fioreqctxts = await callFioApi("get_table_rows", json);
         fioreqctxtsIsFinished = (fioreqctxts.rows.length == 0);
         //console.log('fioreqctxts: ', fioreqctxts)
-        console.log('Table rows count: ', fioreqctxts.rows.length)
-        console.log('isFinished: ', isFinished);
+        console.log('\nfioreqctxts table rows count: ', fioreqctxts.rows.length)
       } catch (err) {
         console.log('Error', err);
         expect(err).to.equal(null);
@@ -2171,8 +2170,7 @@ describe.skip(`Release delta (develop - migr2) - remove data from old tables (fi
         recordobts = await callFioApi("get_table_rows", json);
         recordobtsIsFinished = (recordobts.rows.length == 0);
         //console.log('recordobts: ', recordobts)
-        console.log('Table rows count: ', recordobts.rows.length)
-        console.log('isFinished: ', isFinished);
+        console.log('recordobts table rows count: ', recordobts.rows.length)
       } catch (err) {
         console.log('Error', err);
         expect(err).to.equal(null);
@@ -2190,8 +2188,7 @@ describe.skip(`Release delta (develop - migr2) - remove data from old tables (fi
         fioreqstss = await callFioApi("get_table_rows", json);
         fioreqstssIsFinished = (fioreqstss.rows.length == 0);
         //console.log('fioreqstss: ', fioreqstss)
-        console.log('Table rows count: ', fioreqstss.rows.length)
-        console.log('isFinished: ', isFinished);
+        console.log('fioreqstss table rows count: ', fioreqstss.rows.length)
       } catch (err) {
         console.log('Error', err);
         expect(err).to.equal(null);

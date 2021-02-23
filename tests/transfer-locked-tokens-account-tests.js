@@ -1188,16 +1188,16 @@ describe('G. Record obt data, check getObtData', () => {
     expect(obtData.payee_fio_address).to.equal(testFioAddressName2)
   })
 
-  it.skip(`BUG BD-2305 (not all results getting returned) Payee getObtData`, async () => {
+  it(`Payee getObtData`, async () => {
     const result = await fioSdk2.genericAction('getObtData', { tokenCode: fioTokenCode })
-    console.log('result: ', result)
+    //console.log('result: ', result)
     expect(result).to.have.all.keys('obt_data_records', 'more')
     expect(result.obt_data_records).to.be.a('array')
     expect(result.more).to.be.a('number')
     const obtData = result.obt_data_records.find(pr => pr.content.obt_id === obtId)
-    console.log('obt_data_records[0]: ', result.obt_data_records[0])
-    console.log('obtId: ', obtId)
-    console.log('obtData: ', obtData)
+    //console.log('obt_data_records[0]: ', result.obt_data_records[0])
+    //console.log('obtId: ', obtId)
+    //console.log('obtData: ', obtData)
     expect(obtData).to.have.all.keys('fio_request_id', 'payer_fio_address', 'payee_fio_address', 'payee_fio_public_key', 'payer_fio_public_key', 'status', 'time_stamp', 'content')
     expect(obtData.content.obt_id).to.be.a('string')
     expect(obtData.content.obt_id).to.equal(obtId)
