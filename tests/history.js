@@ -4,12 +4,14 @@
 
 require('mocha')
 const {expect} = require('chai')
-const {callFioHistoryApi, existingUser, newUser, generateFioDomain, generateFioAddress, createKeypair, fetchJson} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/fiosdk')
+const {callFioHistoryApi, callFioApi, callFioApiSigned, unlockWallet, runClio, newUser, existingUser, generateFioDomain, generateFioAddress, createKeypair, fetchJson} = require('../utils.js');
+const {FIOSDK } = require('@fioprotocol/fiosdk');
 config = require('../config.js');
 
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
+
+  //const result = await unlockWallet('fio');
 })
 
 describe('************************** history.js ************************** \n A. get_transfers to existing account', () => {
@@ -62,28 +64,28 @@ describe('************************** history.js ************************** \n A.
 
 })
 
-describe('B. get_transfers to non-existent account', () => {
+describe.only('B. get_transfers to non-existent account', () => {
 
-  let userB1, userB2
+  let user1, user2
   let transferAmount = 33000000000
 
   it(`Create users`, async () => {
     let keys = await createKeypair();
-    userB1 = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson)
-    userB1.domain = generateFioDomain(8)
-    userB1.address = generateFioAddress(userB1.domain, 8)
+    user1 = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson)
+    user1.domain = generateFioDomain(8)
+    user1.address = generateFioAddress(user1.domain, 8)
 
-    console.log('userB1 Account: ', userB1.account)
-    console.log('userB1 Public: ', userB1.publicKey)
-    console.log('userB1 Private: ', userB1.privateKey)
+    console.log('userB1 Account: ', user1.account)
+    console.log('userB1 Public: ', user1.publicKey)
+    console.log('userB1 Private: ', user1.privateKey)
 
-    userB2 = await newUser(faucet);
+    user2 = await newUser(faucet);
   })
 
-  it(`Transfer 2000000000000 sufs to non-existent account userB1`, async () => {
+  it(`Transfer 2000000000000 sufs to non-existent account user1`, async () => {
     try {
       const result = await faucet.genericAction('transferTokens', {
-        payeeFioPublicKey: userB1.publicKey,
+        payeeFioPublicKey: user1.publicKey,
         amount: 2000000000000,
         maxFee: config.api.transfer_tokens_pub_key.fee,
         walletFioAddress: ''
@@ -99,12 +101,12 @@ describe('B. get_transfers to non-existent account', () => {
   it('Confirm single, initial trnsfiopubky transfer', async () => {
     try {
       const json = {
-        "fio_public_key": userB1.publicKey,
+        "fio_public_key": user1.publicKey,
         "pos": 0,
         "offset": 100
       }
       result = await callFioHistoryApi("get_transfers", json);
-      //console.log('Result: ', result)
+      console.log('Result: ', result)
       expect(result.transfers.length).to.equal(1);   // Should have the initial transfer as a result.
       expect(result.transfers[0].action).to.equal('trnsfiopubky');
     } catch (err) {
@@ -112,7 +114,7 @@ describe('B. get_transfers to non-existent account', () => {
       expect(err).to.equal(null);
     }
   })
-
+/*
   it(`Send ${transferAmount} sufs from userB1 to userB2`, async () => {
     try {
       const result = await userB1.genericAction('transferTokens', {
@@ -209,7 +211,108 @@ describe('B. get_transfers to non-existent account', () => {
       expect(err).to.equal(null);
     }
   })
-
+*/
 
 })
 
+describe('C. updateauth using key with no associated account', () => {
+  let userMain, userAuth1, userAuth2
+
+  it(`Create users and import private keys`, async () => {
+    userMain = await newUser(faucet);
+    user1 = await newUser(faucet);
+
+    //User with no existing account
+    keys2 = await createKeypair();
+    
+    //user2 = await existingUser(account2, keys2.privateKey, keys2.publicKey, '', '');
+    user2 = new FIOSDK(keys2.privateKey, keys2.publicKey, config.BASE_URL, fetchJson)
+    user2.account = FIOSDK.accountHash(user2.publicKey).accountnm;
+    //user2 = await newUser(faucet);
+    console.log('user2: ', user2.account)
+
+    //Alphabetical sort by account name for updateauth
+    if (user1.account < user2.account) {
+      userAuth1 = user1;
+      userAuth2 = user2;
+    } else {
+      userAuth1 = user2;
+      userAuth2 = user1;
+    }
+    console.log('userAuth1: ', userAuth1.account)
+    console.log('userAuth2: ', userAuth2.account)
+  
+  })
+
+  it(`Show permissions userMain`, async () => {
+    try {
+        const json = {
+            "account_name": userMain.account
+        }
+        result = await callFioApi("get_account", json);
+        console.log('Result.permissions: ', result.permissions);
+    } catch (err) {
+        //console.log('Error', err)
+        expect(err).to.equal(null)
+    }
+  })
+
+  // Reminder that the accounts under auth need to be in alphabetical order
+  it(`Updateauth for userMain: threshold = 2, account1 = userAuth1, account2 = userAuth2`, async () => {
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'updateauth',
+        account: 'eosio',
+        actor: userMain.account,
+        privKey: userMain.privateKey,
+        data: {
+          "account": userMain.account,
+          "permission": "active",
+          "parent": "owner",
+          "auth": { 
+            "threshold": 2, 
+            "keys": [], 
+            "waits": [],
+            "accounts": [
+              {
+                "permission": {
+                  "actor": userAuth1.account,
+                  "permission": "active" 
+                },
+                "weight":1
+              }, 
+              {
+                "permission": {
+                  "actor": userAuth2.account,
+                  "permission": "active"
+                },
+                "weight":1
+              }
+            ] 
+          }, 
+          "max_fee": config.maxFee
+        }
+      })
+      //console.log('Result: ', result)
+      //console.log('Result: ', result.error.details)
+      expect(result.processed.receipt.status).to.equal('executed');
+    } catch (err) {
+        console.log('Error', err)
+        expect(err).to.equal(null)
+    }
+  })
+
+  it(`Show permissions userMain`, async () => {
+    try {
+        const json = {
+            "account_name": userMain.account
+        }
+        result = await callFioApi("get_account", json);
+        console.log('Result.permissions: ', result.permissions[0].required_auth);
+    } catch (err) {
+        //console.log('Error', err)
+        expect(err).to.equal(null)
+    }
+  })
+
+})
