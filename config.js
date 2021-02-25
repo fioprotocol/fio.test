@@ -3,7 +3,7 @@
 //const TESTURL = 'http://44.238.153.162:8889'      // Devnet
 //const TESTURL = 'http://testnet.fioprotocol.io'   // Testnet
 //const TESTURL = 'https://fio.greymass.com'        // Mainnet
-const TESTURL = 'http://34.222.201.72:8889'        // History
+const TESTURL = 'http://34.222.201.72:8080'        // History
 
 const DEVTOOLSDIR = '../fio.devtools'
 
