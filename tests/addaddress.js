@@ -39,7 +39,7 @@ describe(`************************** addaddress.js ************************** \n
         expect(result.status).to.equal('OK')
       } catch (err) {
         console.log('Error', err)
-        //expect(err).to.equal(null)
+        expect(err).to.equal(null)
       }
     })
 
@@ -71,6 +71,7 @@ describe(`************************** addaddress.js ************************** \n
         expect(result.public_address).to.equal('bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9')
       } catch (err) {
         console.log('Error', err)
+        expect(err).to.equal(null);
       }
     })
 
@@ -133,6 +134,7 @@ describe(`************************** addaddress.js ************************** \n
       } catch (err) {
         console.log('Error', err)
         expect(err).to.equal(null)
+        expect(err).to.equal(null);
       }
     })
 
@@ -174,6 +176,7 @@ describe(`B. Add the same address twice`, () => {
       expect(result.public_address).to.equal('bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9')
     } catch (err) {
       console.log('Error', err)
+      expect(err).to.equal(null);
     }
   })
 
@@ -195,6 +198,7 @@ describe(`B. Add the same address twice`, () => {
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error', err)
+      expect(err).to.equal(null);
     }
   })
 
@@ -209,6 +213,7 @@ describe(`B. Add the same address twice`, () => {
       expect(result.public_address).to.equal('bitcoincash:qzf8zha74adsfasdf0xnwlffdn0zuyaslx3c90q7n9g9')
     } catch (err) {
       console.log('Error', err)
+      expect(err).to.equal(null);
     }
   })
 
@@ -276,6 +281,81 @@ describe(`C. FIP-13. Get_pub_addresses endpoint`, () => {
         expect(result.more).to.equal(false);
       } catch (err) {
         console.log('Error', err)
+        expect(err).to.equal(null);
+      }
+    })
+
+    it.skip('(BUG BD-2382)(api) Get all public addresses for userA3 FIO Address (get_pub_addresses) with no limit/offset.', async () => {
+      try {
+          const result = await callFioApi("get_pub_addresses", {
+          fio_address: userA3.address
+        })
+      //  console.log('Result', result)
+        expect(result.public_addresses.length).to.equal(4)
+        expect(result.public_addresses[0].token_code).to.equal("FIO");
+        expect(result.public_addresses[1].public_address).to.equal("bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9");
+        expect(result.public_addresses[1].token_code).to.equal("BCH");
+        expect(result.public_addresses[1].chain_code).to.equal("BCH");
+        expect(result.public_addresses[2].public_address).to.equal("XyCyPKzTWvW2XdcYjPaPXGQDCGk946ywEv");
+        expect(result.public_addresses[2].token_code).to.equal("DASH");
+        expect(result.public_addresses[2].chain_code).to.equal("DASH");
+        expect(result.public_addresses[3].public_address).to.equal("EQH6o4xfaR5fbhV8cDbDGRxwJRJn3qeo41");
+        expect(result.public_addresses[3].token_code).to.equal("ELA");
+        expect(result.public_addresses[3].chain_code).to.equal("ELA");
+        expect(result.more).to.equal(false);
+      } catch (err) {
+        console.log('Error', err)
+        expect(err).to.equal(null);
+      }
+    })
+
+    it.skip('(BUG BD-2382)(api) Get all public addresses for userA3 FIO Address (get_pub_addresses) with no offset.', async () => {
+      try {
+          const result = await callFioApi("get_pub_addresses", {
+          fio_address: userA3.address,
+          limit: 10
+        })
+      //  console.log('Result', result)
+        expect(result.public_addresses.length).to.equal(4)
+        expect(result.public_addresses[0].token_code).to.equal("FIO");
+        expect(result.public_addresses[1].public_address).to.equal("bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9");
+        expect(result.public_addresses[1].token_code).to.equal("BCH");
+        expect(result.public_addresses[1].chain_code).to.equal("BCH");
+        expect(result.public_addresses[2].public_address).to.equal("XyCyPKzTWvW2XdcYjPaPXGQDCGk946ywEv");
+        expect(result.public_addresses[2].token_code).to.equal("DASH");
+        expect(result.public_addresses[2].chain_code).to.equal("DASH");
+        expect(result.public_addresses[3].public_address).to.equal("EQH6o4xfaR5fbhV8cDbDGRxwJRJn3qeo41");
+        expect(result.public_addresses[3].token_code).to.equal("ELA");
+        expect(result.public_addresses[3].chain_code).to.equal("ELA");
+        expect(result.more).to.equal(false);
+      } catch (err) {
+        console.log('Error', err)
+        expect(err).to.equal(null);
+      }
+    })
+
+    it('(api) Get all public addresses for userA3 FIO Address (get_pub_addresses) with no limit', async () => {
+      try {
+          const result = await callFioApi("get_pub_addresses", {
+          fio_address: userA3.address,
+          offset: 0
+        })
+      //  console.log('Result', result)
+        expect(result.public_addresses.length).to.equal(4)
+        expect(result.public_addresses[0].token_code).to.equal("FIO");
+        expect(result.public_addresses[1].public_address).to.equal("bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9");
+        expect(result.public_addresses[1].token_code).to.equal("BCH");
+        expect(result.public_addresses[1].chain_code).to.equal("BCH");
+        expect(result.public_addresses[2].public_address).to.equal("XyCyPKzTWvW2XdcYjPaPXGQDCGk946ywEv");
+        expect(result.public_addresses[2].token_code).to.equal("DASH");
+        expect(result.public_addresses[2].chain_code).to.equal("DASH");
+        expect(result.public_addresses[3].public_address).to.equal("EQH6o4xfaR5fbhV8cDbDGRxwJRJn3qeo41");
+        expect(result.public_addresses[3].token_code).to.equal("ELA");
+        expect(result.public_addresses[3].chain_code).to.equal("ELA");
+        expect(result.more).to.equal(false);
+      } catch (err) {
+        console.log('Error', err)
+        expect(err).to.equal(null);
       }
     })
 
@@ -569,6 +649,7 @@ describe(`FIP18. Chain-level addressing`, () => {
             expect(result.public_address).to.equal(addressA)
         } catch (err) {
             console.log('Error', err)
+            expect(err).to.equal(null);
         }
     })
 
