@@ -10,7 +10,7 @@ before(async () => {
 
 describe('************************** burn-address.js ************************** \n    A. Test Burn FIO Address using push_transaction with burnaddress action ', () => {
 
-    let walletA1, walletA1FioNames, balance, walletA1OrigBalance, burn_fio_address_fee, feeCollected
+    let walletA1, walletA1FioNames, balance, prevBundleCount, walletA1OrigBalance, burn_fio_address_fee, feeCollected
 
     it(`Create users`, async () => {
         walletA1 = await newUser(faucet);
@@ -41,6 +41,32 @@ describe('************************** burn-address.js ************************** 
         } catch (err) {
             console.log('Error', err)
             expect(err).to.equal(null)
+        }
+    })
+
+    it('Call get_table_rows from fionames to get bundles remaining for walletA1. Verify NNN bundles', async () => {
+        try {
+            const json = {
+                json: true,               // Get the response as json
+                code: 'fio.address',      // Contract that we target
+                scope: 'fio.address',         // Account that owns the data
+                table: 'fionames',        // Table name
+                limit: 1000,                // Maximum number of rows that we want to get
+                reverse: false,           // Optional: Get reversed data
+                show_payer: false          // Optional: Show ram payer
+            }
+            fionames = await callFioApi("get_table_rows", json);
+            //console.log('fionames: ', fionames);
+            for (fioname in fionames.rows) {
+                if (fionames.rows[fioname].name == walletA1.address) {
+                    //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
+                    prevBundleCount = fionames.rows[fioname].bundleeligiblecountdown;
+                }
+            }
+            expect(prevBundleCount).to.equal(100);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
         }
     })
 
@@ -77,6 +103,33 @@ describe('************************** burn-address.js ************************** 
             expect(err).to.equal(null);
         }
     })
+
+    it('(BUG BD-2386) Call get_table_rows from fionames to get bundles remaining for walletA1. Expect bundleCount = prevBundleCount - 1', async () => {
+        try {
+          let bundleCount;
+          const json = {
+            json: true,               // Get the response as json
+            code: 'fio.address',      // Contract that we target
+            scope: 'fio.address',         // Account that owns the data
+            table: 'fionames',        // Table name
+            limit: 1000,                // Maximum number of rows that we want to get
+            reverse: false,           // Optional: Get reversed data
+            show_payer: false          // Optional: Show ram payer
+          }
+          fionames = await callFioApi("get_table_rows", json);
+          //console.log('fionames: ', fionames);
+          for (fioname in fionames.rows) {
+            if (fionames.rows[fioname].name == walletA1.address) {
+              //console.log('bundleCount: ', fionames.rows[fioname].bundleeligiblecountdown);
+              bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
+            }
+          }
+          expect(bundleCount).to.equal(prevBundleCount - 1);
+        } catch (err) {
+          console.log('Error', err);
+          expect(err).to.equal(null);
+        }
+      })
 
     it(`getFioNames for walletA1 and confirm it now only owns 1 address`, async () => {
         try {
