@@ -8,7 +8,8 @@
         "request": "^2.34.0",
         "request-promise": "",
         "semver": "^7.1.1",
-        "submodules": "^3.0.0"
+        "submodules": "^3.0.0",
+        "web3": "^1.3.4"
     },
     "devDependencies": {
         "@types/chai": "^4.2.4",
