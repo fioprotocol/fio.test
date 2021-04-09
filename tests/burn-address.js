@@ -144,7 +144,7 @@ describe('************************** burn-address.js ************************** 
           console.log('Error', err);
           expect(err).to.equal(null);
         }
-      })
+    })
 
     it(`Use up all of walletA1's bundles with 51 record_obt_data transactions`, async () => {
         for (i = 0; i < 51; i++) {
