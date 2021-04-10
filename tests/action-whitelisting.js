@@ -206,7 +206,7 @@ describe(`B. General addaction testing with random contracts and domains (can be
     }
   })
 
-  it(`addaction with 7 character action and 50 character contract succeeds.`, async () => {
+  it(`addaction with 7 character action and 50 character contract FAILS.`, async () => {
     const result = await callFioApiSigned('push_transaction', {
       action: 'addaction',
       account: 'eosio',
@@ -219,10 +219,10 @@ describe(`B. General addaction testing with random contracts and domains (can be
       }
     })
     //console.log('Result: ', result)
-    expect(result.processed.receipt.status).to.equal('executed');
+    expect(result.code).to.equal(config.error2.invalidContract.statusCode);
   })
 
-  it(`addaction with 7 character action and 1000 character contract succeeds.`, async () => {
+  it(`addaction with 7 character action and 1000 character contract FAILS.`, async () => {
     const result = await callFioApiSigned('push_transaction', {
       action: 'addaction',
       account: 'eosio',
@@ -235,7 +235,7 @@ describe(`B. General addaction testing with random contracts and domains (can be
       }
     })
     //console.log('Result: ', result)
-    expect(result.processed.receipt.status).to.equal('executed');
+    expect(result.code).to.equal(config.error2.invalidContract.statusCode);
   })
 
 })
@@ -264,7 +264,7 @@ describe(`C. Test addaction error conditions`, () => {
         actor: fiotoken.account
       }
     })
-    //console.log('Result: ', result)
+   // console.log('Result: ', result)
     expect(result.error.details[0].message).to.equal(config.error2.invalidAction.message);
     expect(result.code).to.equal(config.error2.invalidAction.statusCode);
   })
@@ -281,7 +281,7 @@ describe(`C. Test addaction error conditions`, () => {
         actor: fiotoken.account
       }
     })
-    //console.log('Result: ', result.error)
+   // console.log('Result: ', result.error)
     expect(result.error.details[0].message).to.equal(config.error2.invalidContract.message);
     expect(result.code).to.equal(config.error2.invalidContract.statusCode);
   })
