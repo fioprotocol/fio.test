@@ -16,8 +16,7 @@
  * 
  * Once updated:
  * - Rebuild the contracts with the fix
- * - cd into fio.test directory
- * - run node tests/expired-address-domain.js
+ * - run expired-address-domain.js
  */
 
 require('mocha')
@@ -161,11 +160,11 @@ describe('************************** expired-address-domain.js *****************
             }
         })
         console.log('Result: ', result);
-        //expect(result.status).to.equal(null);
+        expect(result.fields[0].error).to.equal(config.error.fioDomainNeedsRenew);
+        //expect(err.errorCode).to.equal(400);
     } catch (err) {
       console.log('Error: ', err);
-      expect(err.json.fields[0].error).to.equal(config.error.fioDomainNeedsRenew);
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.equal(null);
     }
   })
 
