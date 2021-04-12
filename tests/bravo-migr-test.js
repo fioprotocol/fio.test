@@ -2058,7 +2058,7 @@ describe(`Release v2.3.2 - fiotrxtss (NEW table) scripts`, () => {
   })
 })
 
-describe.skip(`Release delta (develop - migr2) - remove data from old tables (fioreqctxts, recordobts, fioreqstss)`, () => {
+describe.skip(`(Only works in environments with both tables. Need to update contract) Release delta (develop - migr2) - remove data from old tables (fioreqctxts, recordobts, fioreqstss)`, () => {
   let isFinished = 0
 
   it('Echo size of fioreqctxts table', async () => {
