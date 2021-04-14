@@ -106,8 +106,17 @@ describe(`************************** action-whitelisting.js ********************
     }
   })
 
+  it('Wait a few seconds.', async () => {
+    await timeout(5000);
+  })
+
   it(`Confirm create users works`, async () => {
-    userA2 = await newUser(faucet);
+    try {
+      userA2 = await newUser(faucet);
+    } catch (err) {
+        console.log("err ", err);
+          expect(err).to.equal(null);
+      }
   })
 
 })
@@ -146,7 +155,7 @@ describe('A.2. Add random action hoses up the SDK session. Non recoverable. So, 
     await timeout(5000);
   })
 
-  it(`Create users`, async () => {
+  it(`Confirm create users works`, async () => {
     try {
       user2 = await newUser(faucet);
     } catch (err) {
