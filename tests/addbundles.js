@@ -572,6 +572,8 @@ describe('C. Error testing', () => {
             expect(err).to.equal(null)
         }
     })
+
+    it(`Wait a few seconds.`, async () => { await timeout(3000) })
     
     it(`Get bundle count for user1. Verify 0 bundles`, async () => {
         let bundleCount;

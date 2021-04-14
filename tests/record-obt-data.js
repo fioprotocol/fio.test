@@ -444,6 +444,8 @@ describe(`C. Test get_obt_data`, () => {
         userA2 = await newUser(faucet);
     })
 
+    it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
     it(`get_obt_data for userA1 (payer) when no records exist. limit = '', offset = ''. Expect: ${config.error.noFioRequests}`, async () => {
         try {
             const result = await userA1.sdk.genericAction('getObtData', {
