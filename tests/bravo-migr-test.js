@@ -1198,7 +1198,7 @@ describe(`Release v2.3.2 - fiotrxtss (NEW table) scripts`, () => {
                   console.log('Error', err.json)
                   expect(err).to.equal(null)
               }
-
+              await timeout(2000);
               try {
                   const result = await user2.sdk.genericAction('pushTransaction', {
                       action: 'rejectfndreq',
@@ -1244,7 +1244,7 @@ describe(`Release v2.3.2 - fiotrxtss (NEW table) scripts`, () => {
                   console.log('Error', err.json)
                   expect(err).to.equal(null)
               }
-
+              await timeout(2000);
             try {
                   const result = await user1.sdk.genericAction('recordObtData', {
                       payerFioAddress: user1.address,

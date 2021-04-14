@@ -43,7 +43,7 @@ describe(`************************** fio-request.js ************************** \
       }
     })
 
-    it(`Wait a few seconds.`, async () => { await timeout(2000) })
+    it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
     it(`userA1 requests funds from userA2`, async () => {
       try {
@@ -1567,6 +1567,8 @@ describe(`E. Test cancel_funds_request error conditions`, () => {
     userC1 = await newUser(faucet);
     userC2 = await newUser(faucet);
   })
+  
+  it(`Wait a few seconds.`, async () => { await timeout(2000) })
 
   it(`Run get_cancelled_fio_requests when no request have been cancelled. Expect error type 404: ${config.error.noFioRequests}`, async () => {
     try {
@@ -1956,6 +1958,8 @@ describe(`F. get_cancelled_fio_requests paging: Cancel multiple FIO requests and
     }
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
   it(`Make ${requestCount} requests for userC1`, async () => {
     for (i = 0; i < requestCount; i++) {
       try {
@@ -2237,7 +2241,7 @@ describe(`G. Test rejection of FIO Requests`, () => {
     }
   })
 
-  it('Wait a few seconds to avoid duplicate transaction.', async () => { await timeout(3000); })
+  it('Wait a few seconds to avoid duplicate transaction.', async () => { await timeout(5000); })
 
   it(`user2 rejects first funds request`, async () => {
     try{
@@ -2259,7 +2263,7 @@ describe(`G. Test rejection of FIO Requests`, () => {
     }
   })
 
-  it('Wait a few seconds...', async () => { await timeout(3000); })
+  it('Wait a few seconds...', async () => { await timeout(5000); })
 
   it(`get_pending_fio_requests for user2, expect 9 results`, async () => {
     try {
@@ -2452,7 +2456,7 @@ describe(`I. reject_funds_request: Check all getters after`, () => {
     }
   })
 
-  it(`Wait a few seconds.`, async () => { await timeout(2000) })
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
   it(`get_sent_fio_requests for userA1 (payee) BEFORE Reject`, async () => {
     try {

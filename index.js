@@ -30,7 +30,7 @@ describe('TEST SUITE', () => {
   require('./tests/transfer-locked-tokens-account-tests.js');  // FIP-6 tests of generic account functionality
   require('./tests/addbundles.js');  // FIP-11.a
   require('./tests/tpid.js'); 
-  require('./tests/clio.js');  // FIP-16
+  //require('./tests/clio.js');  // FIP-16  //Only works with local testing
   //require('./tests/performance-request-obt.js');
 
   require('./tests/testnet-smoketest.js'); // Testnet smoketest. By default runs against local build.
