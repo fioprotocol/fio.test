@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, existingUser, randStr, generateFioDomain, generateFioAddress, unlockWallet, callFioApi, timeout, fetchJson} = require('../utils.js');
+const {newUser, existingUser, randStr, createKeypair, generateFioDomain, generateFioAddress, unlockWallet, callFioApi, timeout, fetchJson} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
@@ -26,6 +26,21 @@ async function runClio(parms) {
   });
 }
 
+async function runClioWallet(parms) {
+  return new Promise(function(resolve, reject) {
+      command = clio + " " + parms
+      //console.log('command = ', command)
+      //command = "../fio.devtools/bin/clio -u http://localhost:8889 get info"
+      exec(command, (error, stdout, stderr) => {
+          if (error) {
+              reject(error);
+              return;
+          }
+          resolve(stdout.trim());
+      });
+  });
+}
+
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
 
@@ -34,10 +49,13 @@ before(async () => {
 
 describe(`************************** clio.js ************************** \n    A. Test clio`, () => {
 
+  let keypair;
+
   it(`get info`, async () => {
     const result = await runClio('get info');
     expect(JSON.parse(result).head_block_num).to.be.a('number')
   })
+
 })
 
 describe(`B. Request and OBT Data`, () => {
@@ -1019,6 +1037,30 @@ describe(`H. clio error testing`, () => {
     })
 })
 
+describe.skip(`Load wallet test`, () => {
+
+  let keypair;
+
+  it(`add keys`, async () => {
+    for (i = 0; i < 10; i++) {
+      keypair = await createKeypair();
+      //console.log('keypair.privateKey: ', keypair.privateKey);
+      const result = await runClioWallet('wallet import -n fio --private-key ' + keypair.privateKey);
+      //console.log('Result: ', result);
+    }
+  })
+
+  it(`clio: trnsfiopubky with print`, async () => {
+    try {
+      result = await runClio(`--print-response push action fio.token trnsfiopubky '{"payee_public_key": "FIO5hVsGrqf4Rwxyv2Q6zqv9ARL7Q1oXnV2id4sx6HWvUMQdHk9JA","amount": 2,"max_fee": 10000000000,"tpid": "","actor": "qhh25sqpktwh"}' --permission qhh25sqpktwh@active`);
+      //console.log('Result: ', result)
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+})
 
 /**
  * Commenting out ratios and multipliers tests. Decided to leave these calls out of clio
