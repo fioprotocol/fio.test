@@ -999,7 +999,7 @@ describe('E. Confirm active producers and proxy cannot transfer address', () => 
 
 })
 
-describe('F. BRAVO ONLY: Confirm users with OBT records or Requests cannot transfer addresses', () => {
+describe('F. Confirm users with OBT records or Requests CAN transfer addresses (delta release FIP-1.b part 2)', () => {
 
     let user1, user2, user3, user4, transfer_fio_address_fee
 
@@ -1044,7 +1044,7 @@ describe('F. BRAVO ONLY: Confirm users with OBT records or Requests cannot trans
 
       it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
-    it(`Transfer user1.address to user2. Expect error 500 - assertion failure with message: Transfering a FIO address is currently disabled for some fio.addresses `, async () => {
+    it(`Transfer user1.address to user2. Expect success.`, async () => {
         try {
             const result = await user1.sdk.genericAction('transferFioAddress', {
                 fioAddress: user1.address,
@@ -1053,15 +1053,14 @@ describe('F. BRAVO ONLY: Confirm users with OBT records or Requests cannot trans
                 technologyProviderId: ''
             })
             //console.log('Result: ', result)
-            expect(result).to.equal(null)
+            expect(result.status).to.equal('OK')
         } catch (err) {
-            //console.log('Error: ', err.json.error.details)
-            expect(err.json.error.details[0].message).to.equal('assertion failure with message: Transfering a FIO address is currently disabled for some fio.addresses')
-            expect(err.errorCode).to.equal(500)
+            console.log('Error: ', err)
+            expect(err).to.equal(null)
         }
     })
 
-    it(`Transfer user2.address to user1. Expect error 500 - assertion failure with message: Transfering a FIO address is currently disabled for some fio.addresses`, async () => {
+    it(`Transfer user2.address to user1. Expect success.`, async () => {
         try {
             const result = await user2.sdk.genericAction('transferFioAddress', {
                 fioAddress: user2.address,
@@ -1070,11 +1069,10 @@ describe('F. BRAVO ONLY: Confirm users with OBT records or Requests cannot trans
                 technologyProviderId: ''
             })
             //console.log('Result: ', result)
-            expect(result).to.equal(null)
+            expect(result.status).to.equal('OK')
         } catch (err) {
-            //console.log('Error: ', err)
-            expect(err.json.error.details[0].message).to.equal('assertion failure with message: Transfering a FIO address is currently disabled for some fio.addresses')
-            expect(err.errorCode).to.equal(500)
+            console.log('Error: ', err)
+            expect(err).to.equal(null)
         }
     })
 
@@ -1102,7 +1100,7 @@ describe('F. BRAVO ONLY: Confirm users with OBT records or Requests cannot trans
         }
       })
 
-      it(`Transfer user3.address to user4. Expect error 500 - assertion failure with message: Transfering a FIO address is currently disabled for some fio.addresses`, async () => {
+      it(`Transfer user3.address to user4. Expect success.`, async () => {
         try {
             const result = await user3.sdk.genericAction('transferFioAddress', {
                 fioAddress: user3.address,
@@ -1111,11 +1109,10 @@ describe('F. BRAVO ONLY: Confirm users with OBT records or Requests cannot trans
                 technologyProviderId: ''
             })
             //console.log('Result: ', result)
-            expect(result).to.equal(null)
+            expect(result.status).to.equal('OK')
         } catch (err) {
-            //console.log('Error: ', err)
-            expect(err.json.error.details[0].message).to.equal('assertion failure with message: Transfering a FIO address is currently disabled for some fio.addresses')
-            expect(err.errorCode).to.equal(500)
+            console.log('Error: ', err)
+            expect(err).to.equal(null)
         }
     })
 

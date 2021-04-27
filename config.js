@@ -118,7 +118,7 @@ const config = {
             statusCode: 500
         },
         invalidContract: {
-            message: 'Invalid Contract',
+            message: 'Contract name invalid or not found',
             statusCode: 500
         },
         invalidActorAuth: {

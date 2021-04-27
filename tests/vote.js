@@ -765,6 +765,8 @@ describe('C. Test proxying to a user who is also proxying (should fail)', () => 
     }
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
   it(`proxyE1 votes for bp1@dapixdev`, async () => {
     try {
       const result = await proxyE1.sdk.genericAction('pushTransaction', {
@@ -1254,6 +1256,8 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
     voterG5 = await newUser(faucet);
     voterG6 = await newUser(faucet);
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`Get bp1@dapixdev total_votes`, async () => {
     try {
@@ -1939,7 +1943,7 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
   })
 
   it('Wait a few seconds.', async () => {
-    await timeout(3000);
+    await timeout(5000);
   })
 
   it(`Confirm proxy_vote fee for voterG8 = ${config.api.proxy_vote.fee}`, async () => {
@@ -2797,7 +2801,7 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
     proxyA1 = await newUser(faucet);
   })
 
-  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
   it(`Get initial total_voted_fio`, async () => {
     total_voted_fio = await getTotalVotedFio();
@@ -2920,6 +2924,8 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
       expect(err).to.equal('null')
     }
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
   it(`Proxy user1 votes to proxyA1`, async () => {
     try {
