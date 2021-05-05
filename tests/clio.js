@@ -1040,13 +1040,16 @@ describe(`H. clio error testing`, () => {
 describe.skip(`Load wallet test`, () => {
 
   let keypair;
+  let total = 0;
 
   it(`add keys`, async () => {
     for (i = 0; i < 10; i++) {
+
       keypair = await createKeypair();
-      //console.log('keypair.privateKey: ', keypair.privateKey);
+      total++
+      console.log('keypair.privateKey: ', keypair.privateKey);
       const result = await runClioWallet('wallet import -n fio --private-key ' + keypair.privateKey);
-      //console.log('Result: ', result);
+      console.log('Result: ', result);
     }
   })
 
