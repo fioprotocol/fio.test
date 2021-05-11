@@ -760,6 +760,7 @@ describe('D. transferFioAddress Error testing', () => {
         for (i = 0; i < 51; i++) {
             try {
                 const result = await userD3.sdk.genericAction('recordObtData', {
+                    fioRequestId: '',
                     payerFioAddress: userD3.address,
                     payeeFioAddress: userD2.address,
                     payerTokenPublicAddress: userD3.publicKey,
@@ -999,7 +1000,7 @@ describe('E. Confirm active producers and proxy cannot transfer address', () => 
 
 })
 
-describe('F. Confirm users with OBT records or Requests CAN transfer addresses (delta release FIP-1.b part 2)', () => {
+describe.only('F. Confirm users with OBT records or Requests CAN transfer addresses (delta release FIP-1.b part 2)', () => {
 
     let user1, user2, user3, user4, transfer_fio_address_fee
 

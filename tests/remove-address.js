@@ -877,6 +877,7 @@ describe(`E-2. Add and remove addresses with NO bundles remaining`, () => {
       for (i = 0; i < 51; i++) {
         try {
           const result = await userA1.sdk.genericAction('recordObtData', {
+            fioRequestId: '',
             payerFioAddress: userA1.address,
             payeeFioAddress: userA2.address,
             payerTokenPublicAddress: userA1.publicKey,
@@ -1313,6 +1314,7 @@ describe(`F. Sad - result in error`, () => {
     for (i = 0; i < 51; i++) {
       try {
         const result = await userA1.sdk.genericAction('recordObtData', {
+          fioRequestId: '',
           payerFioAddress: userA1.address,
           payeeFioAddress: userA2.address,
           payerTokenPublicAddress: userA1.publicKey,

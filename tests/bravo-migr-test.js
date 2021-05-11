@@ -44,7 +44,7 @@ before(async () => {
 
 describe.skip(`************************** bravo-migr-test.js ************************** \n    fiotrxtss (original table) scripts`, () => {
 
-  describe(`A. Load Requests and OBTs`, () => {
+  describe.skip(`A. Load Requests and OBTs`, () => {
       let user1, user2, user3;
       let payment = 3000000000;
       let requestMemo = 'We are here 2';
@@ -185,7 +185,8 @@ describe.skip(`************************** bravo-migr-test.js *******************
               }
 
             try {
-                  const result = await user1.sdk.genericAction('recordObtData', {
+              const result = await user1.sdk.genericAction('recordObtData', {
+                      fioRequestId: requestId,
                       payerFioAddress: user1.address,
                       payeeFioAddress: user2.address,
                       payerTokenPublicAddress: user1.publicKey,
@@ -194,7 +195,7 @@ describe.skip(`************************** bravo-migr-test.js *******************
                       chainCode: "FIO",
                       tokenCode: "FIO",
                       status: '',
-                      obtId: requestId,
+                      obtId: '',
                       maxFee: config.api.record_obt_data.fee,
                       technologyProviderId: '',
                       payeeFioPublicKey: user2.publicKey,
@@ -215,21 +216,22 @@ describe.skip(`************************** bravo-migr-test.js *******************
           for (i = 0; i < count; i++) {
               try {
                   const result = await user3.sdk.genericAction('recordObtData', {
-                      payerFioAddress: user3.address,
-                      payeeFioAddress: user1.address,
-                      payerTokenPublicAddress: user3.publicKey,
-                      payeeTokenPublicAddress: user1.publicKey,
-                      amount: payment,
-                      chainCode: "BTC",
-                      tokenCode: "BTC",
-                      status: '',
-                      obtId: '',
-                      maxFee: config.api.record_obt_data.fee,
-                      technologyProviderId: '',
-                      payeeFioPublicKey: user1.publicKey,
-                      memo: 'this is a test',
-                      hash: '',
-                      offLineUrl: ''
+                    fioRequestId: '',
+                    payerFioAddress: user3.address,
+                    payeeFioAddress: user1.address,
+                    payerTokenPublicAddress: user3.publicKey,
+                    payeeTokenPublicAddress: user1.publicKey,
+                    amount: payment,
+                    chainCode: "BTC",
+                    tokenCode: "BTC",
+                    status: '',
+                    obtId: '',
+                    maxFee: config.api.record_obt_data.fee,
+                    technologyProviderId: '',
+                    payeeFioPublicKey: user1.publicKey,
+                    memo: 'this is a test',
+                    hash: '',
+                    offLineUrl: ''
                   })
                   //console.log('Result: ', result)
                   expect(result.status).to.equal('sent_to_blockchain')
@@ -260,7 +262,7 @@ describe.skip(`************************** bravo-migr-test.js *******************
       })
   })
 
-  describe.skip(`B. xPerform single migrtrx to initialize migration`, () => {
+  describe(`B. xPerform single migrtrx to initialize migration`, () => {
 
     it(`Call single migrtrx (bp1) and confirm you can still do Requests and OBTs`, async () => {
         try {
@@ -321,7 +323,7 @@ describe.skip(`************************** bravo-migr-test.js *******************
       })
   })
 
-  describe.skip(`C. xInitial OBT record. Confirm new OBT Sends are going into both tables`, () => {
+  describe(`C. xInitial OBT record. Confirm new OBT Sends are going into both tables`, () => {
     let user1, user2, user3
     let payment = 3000000000;
 
@@ -338,7 +340,8 @@ describe.skip(`************************** bravo-migr-test.js *******************
 
     it(`user3 creates BTC OBT send record to user1`, async () => {
       try {
-          const result = await user3.sdk.genericAction('recordObtData', {
+        const result = await user3.sdk.genericAction('recordObtData', {
+              fioRequestId: '',
               payerFioAddress: user3.address,
               payeeFioAddress: user1.address,
               payerTokenPublicAddress: user3.publicKey,
@@ -436,7 +439,7 @@ describe.skip(`************************** bravo-migr-test.js *******************
 
   })
 
-  describe.skip(`E. xInitial FIO Request record. Confirm NEW Requests are going into both tables`, () => {
+  describe(`E. xInitial FIO Request record. Confirm NEW Requests are going into both tables`, () => {
     let user1, user2, user3, requestId, obtId
     let payment = 3000000000;
     let requestMemo = 'asdf';
@@ -549,7 +552,7 @@ describe.skip(`************************** bravo-migr-test.js *******************
 
   })
 
-  describe.skip(`F. Confirm REJECTED Requests are going into both tables`, () => {
+  describe(`F. Confirm REJECTED Requests are going into both tables`, () => {
       let user1, user2, user3, requestId
       let payment = 3000000000;
       let requestMemo = 'asdf';
@@ -704,21 +707,22 @@ describe.skip(`************************** bravo-migr-test.js *******************
 
             try {
                   const result = await user1.sdk.genericAction('recordObtData', {
-                      payerFioAddress: user1.address,
-                      payeeFioAddress: user2.address,
-                      payerTokenPublicAddress: user1.publicKey,
-                      payeeTokenPublicAddress: user2.publicKey,
-                      amount: payment,
-                      chainCode: "FIO",
-                      tokenCode: "FIO",
-                      status: '',
-                      obtId: requestId,
-                      maxFee: config.api.record_obt_data.fee,
-                      technologyProviderId: '',
-                      payeeFioPublicKey: user2.publicKey,
-                      memo: 'this is a test',
-                      hash: '',
-                      offLineUrl: ''
+                    fioRequestId: requestId,
+                    payerFioAddress: user1.address,
+                    payeeFioAddress: user2.address,
+                    payerTokenPublicAddress: user1.publicKey,
+                    payeeTokenPublicAddress: user2.publicKey,
+                    amount: payment,
+                    chainCode: "FIO",
+                    tokenCode: "FIO",
+                    status: '',
+                    obtId: '',
+                    maxFee: config.api.record_obt_data.fee,
+                    technologyProviderId: '',
+                    payeeFioPublicKey: user2.publicKey,
+                    memo: 'this is a test',
+                    hash: '',
+                    offLineUrl: ''
                   })
                   //console.log('Result: ', result)
                   expect(result.status).to.equal('sent_to_blockchain')
@@ -1323,21 +1327,22 @@ describe.skip(`Release v2.3.2 - fiotrxtss (NEW table) scripts`, () => {
               await timeout(2000);
             try {
                   const result = await user1.sdk.genericAction('recordObtData', {
-                      payerFioAddress: user1.address,
-                      payeeFioAddress: user2.address,
-                      payerTokenPublicAddress: user1.publicKey,
-                      payeeTokenPublicAddress: user2.publicKey,
-                      amount: payment,
-                      chainCode: "FIO",
-                      tokenCode: "FIO",
-                      status: '',
-                      obtId: requestId,
-                      maxFee: config.api.record_obt_data.fee,
-                      technologyProviderId: '',
-                      payeeFioPublicKey: user2.publicKey,
-                      memo: 'this is a test',
-                      hash: '',
-                      offLineUrl: ''
+                    fioRequestId: requestId,
+                    payerFioAddress: user1.address,
+                    payeeFioAddress: user2.address,
+                    payerTokenPublicAddress: user1.publicKey,
+                    payeeTokenPublicAddress: user2.publicKey,
+                    amount: payment,
+                    chainCode: "FIO",
+                    tokenCode: "FIO",
+                    status: '',
+                    obtId: '',
+                    maxFee: config.api.record_obt_data.fee,
+                    technologyProviderId: '',
+                    payeeFioPublicKey: user2.publicKey,
+                    memo: 'this is a test',
+                    hash: '',
+                    offLineUrl: ''
                   })
                   //console.log('Result: ', result)
                   expect(result.status).to.equal('sent_to_blockchain')
@@ -1352,21 +1357,22 @@ describe.skip(`Release v2.3.2 - fiotrxtss (NEW table) scripts`, () => {
           for (i = 0; i < count; i++) {
               try {
                   const result = await user3.sdk.genericAction('recordObtData', {
-                      payerFioAddress: user3.address,
-                      payeeFioAddress: user1.address,
-                      payerTokenPublicAddress: user3.publicKey,
-                      payeeTokenPublicAddress: user1.publicKey,
-                      amount: payment,
-                      chainCode: "BTC",
-                      tokenCode: "BTC",
-                      status: '',
-                      obtId: '',
-                      maxFee: config.api.record_obt_data.fee,
-                      technologyProviderId: '',
-                      payeeFioPublicKey: user1.publicKey,
-                      memo: 'this is a test',
-                      hash: '',
-                      offLineUrl: ''
+                    fioRequestId: '',
+                    payerFioAddress: user3.address,
+                    payeeFioAddress: user1.address,
+                    payerTokenPublicAddress: user3.publicKey,
+                    payeeTokenPublicAddress: user1.publicKey,
+                    amount: payment,
+                    chainCode: "BTC",
+                    tokenCode: "BTC",
+                    status: '',
+                    obtId: '',
+                    maxFee: config.api.record_obt_data.fee,
+                    technologyProviderId: '',
+                    payeeFioPublicKey: user1.publicKey,
+                    memo: 'this is a test',
+                    hash: '',
+                    offLineUrl: ''
                   })
                   //console.log('Result: ', result)
                   expect(result.status).to.equal('sent_to_blockchain')
@@ -1438,21 +1444,22 @@ describe.skip(`Release v2.3.2 - fiotrxtss (NEW table) scripts`, () => {
     it(`user3 creates BTC OBT send record to user1`, async () => {
       try {
           const result = await user3.sdk.genericAction('recordObtData', {
-              payerFioAddress: user3.address,
-              payeeFioAddress: user1.address,
-              payerTokenPublicAddress: user3.publicKey,
-              payeeTokenPublicAddress: user1.publicKey,
-              amount: payment,
-              chainCode: "BTC",
-              tokenCode: "BTC",
-              status: '',
-              obtId: '',
-              maxFee: config.api.record_obt_data.fee,
-              technologyProviderId: '',
-              payeeFioPublicKey: user1.publicKey,
-              memo: 'this is a test',
-              hash: '',
-              offLineUrl: ''
+            fioRequestId: '',
+            payerFioAddress: user3.address,
+            payeeFioAddress: user1.address,
+            payerTokenPublicAddress: user3.publicKey,
+            payeeTokenPublicAddress: user1.publicKey,
+            amount: payment,
+            chainCode: "BTC",
+            tokenCode: "BTC",
+            status: '',
+            obtId: '',
+            maxFee: config.api.record_obt_data.fee,
+            technologyProviderId: '',
+            payeeFioPublicKey: user1.publicKey,
+            memo: 'this is a test',
+            hash: '',
+            offLineUrl: ''
           })
           //console.log('Result: ', result)
           expect(result.status).to.equal('sent_to_blockchain')
@@ -1765,21 +1772,22 @@ describe.skip(`Release v2.3.2 - fiotrxtss (NEW table) scripts`, () => {
 
             try {
                   const result = await user1.sdk.genericAction('recordObtData', {
-                      payerFioAddress: user1.address,
-                      payeeFioAddress: user2.address,
-                      payerTokenPublicAddress: user1.publicKey,
-                      payeeTokenPublicAddress: user2.publicKey,
-                      amount: payment,
-                      chainCode: "FIO",
-                      tokenCode: "FIO",
-                      status: '',
-                      obtId: requestId,
-                      maxFee: config.api.record_obt_data.fee,
-                      technologyProviderId: '',
-                      payeeFioPublicKey: user2.publicKey,
-                      memo: 'this is a test',
-                      hash: '',
-                      offLineUrl: ''
+                    fioRequestId: requestId,
+                    payerFioAddress: user1.address,
+                    payeeFioAddress: user2.address,
+                    payerTokenPublicAddress: user1.publicKey,
+                    payeeTokenPublicAddress: user2.publicKey,
+                    amount: payment,
+                    chainCode: "FIO",
+                    tokenCode: "FIO",
+                    status: '',
+                    obtId: '',
+                    maxFee: config.api.record_obt_data.fee,
+                    technologyProviderId: '',
+                    payeeFioPublicKey: user2.publicKey,
+                    memo: 'this is a test',
+                    hash: '',
+                    offLineUrl: ''
                   })
                   //console.log('Result: ', result)
                   expect(result.status).to.equal('sent_to_blockchain')
@@ -2422,12 +2430,30 @@ describe.skip(`Release echo (migr/final-rc1) - remove migrtrx action, remove ref
 })
 
 describe.only(`Set up data for testing mainnet migration and time_stamp bug`, () => {
+  let count = 10;
 
   describe(`A. Load Requests and OBTs`, () => {
+    /**
+     * If you set count = 10 you should get:
+     *
+     * 10 requests = (creates: 10 entries in fioreqctxts)
+     * 10 requests + cancel = (creates: 10 entries in fioreqctxts, 10 entries in fioreqstss)
+     * 10 requests + rejects = (creates: 10 entries in fioreqctxts, 10 entries in fioreqstss)
+     * 10 requests + obtresponse = (creates: 10 entries in fioreqctxts, 10 entries in fioreqstss (the content for the response goes into the fioreqstss table))
+     * 10 straight obt = (creates: 10 entries in recordobts)
+     *
+     * Total: 40 entries in fioreqctxts, 30 entries in fioreqstss, 10 entries in recordobts
+     * 
+     * 0 = requested (only request content field)
+     * 1 = rejected (only request content field)
+     * 2 = sent_to_blockchain (should have both content fields and time fields)
+     * 3 = cancelled (only request content field)
+     * 4 = straight obt (should have single obt content field and time)
+     */
+
     let user1, user2, user3;
     let payment = 3000000000;
     let requestMemo = 'We are here';
-    let count = 20;
 
     it(`Create users`, async () => {
       user1 = await newUser(faucet);
@@ -2465,7 +2491,8 @@ describe.only(`Set up data for testing mainnet migration and time_stamp bug`, ()
       }
     })
 
-    it(`${count}x - user2 requests funds from user1`, async () => {
+    it(`${count}x - user2 requests funds from user1, user2 cancels requests`, async () => {
+      let requestId;
       for (i = 0; i < count; i++) {
         try {
           const result = await user2.sdk.genericAction('requestFunds', {
@@ -2483,9 +2510,28 @@ describe.only(`Set up data for testing mainnet migration and time_stamp bug`, ()
             offlineUrl: ''
           })
           //console.log('Result: ', result)
+          requestId = result.fio_request_id;
           expect(result.status).to.equal('requested')
         } catch (err) {
-          console.log('Error', err.json)
+          console.log('Error', err)
+          expect(err).to.equal(null)
+        }
+
+        try {
+          const result = await user2.sdk.genericAction('pushTransaction', {
+            action: 'cancelfndreq',
+            account: 'fio.reqobt',
+            data: {
+              fio_request_id: requestId,
+              max_fee: config.api.cancel_funds_request.fee,
+              tpid: '',
+              actor: user2.account
+            }
+          })
+          //console.log('Result:', result)
+          expect(result.status).to.equal('cancelled')
+        } catch (err) {
+          console.log('Error', err)
           expect(err).to.equal(null)
         }
       }
@@ -2513,7 +2559,7 @@ describe.only(`Set up data for testing mainnet migration and time_stamp bug`, ()
           requestId = result.fio_request_id;
           expect(result.status).to.equal('requested')
         } catch (err) {
-          console.log('Error', err.json)
+          console.log('Error', err)
           expect(err).to.equal(null)
         }
 
@@ -2551,12 +2597,11 @@ describe.only(`Set up data for testing mainnet migration and time_stamp bug`, ()
             memo: requestMemo,
             maxFee: config.api.new_funds_request.fee,
             payerFioPublicKey: user1.publicKey,
-            technologyProviderId: '',
-            hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
-            offlineUrl: ''
+            technologyProviderId: ''
           })
           //console.log('Result: ', result)
           requestId = result.fio_request_id;
+          //console.log('requestId: ', requestId)
           expect(result.status).to.equal('requested')
         } catch (err) {
           console.log('Error', err.json)
@@ -2565,6 +2610,7 @@ describe.only(`Set up data for testing mainnet migration and time_stamp bug`, ()
 
         try {
           const result = await user1.sdk.genericAction('recordObtData', {
+            fioRequestId: requestId,
             payerFioAddress: user1.address,
             payeeFioAddress: user2.address,
             payerTokenPublicAddress: user1.publicKey,
@@ -2573,13 +2619,11 @@ describe.only(`Set up data for testing mainnet migration and time_stamp bug`, ()
             chainCode: "FIO",
             tokenCode: "FIO",
             status: '',
-            obtId: requestId,
+            obtId: '',
             maxFee: config.api.record_obt_data.fee,
             technologyProviderId: '',
             payeeFioPublicKey: user2.publicKey,
-            memo: 'this is a test',
-            hash: '',
-            offLineUrl: ''
+            memo: 'this is a test'
           })
           //console.log('Result: ', result)
           expect(result.status).to.equal('sent_to_blockchain')
@@ -2594,6 +2638,7 @@ describe.only(`Set up data for testing mainnet migration and time_stamp bug`, ()
       for (i = 0; i < count; i++) {
         try {
           const result = await user3.sdk.genericAction('recordObtData', {
+            fioRequestId: '',
             payerFioAddress: user3.address,
             payeeFioAddress: user1.address,
             payerTokenPublicAddress: user3.publicKey,
@@ -2718,6 +2763,7 @@ describe.only(`Set up data for testing mainnet migration and time_stamp bug`, ()
     it(`user3 creates BTC OBT send record to user1`, async () => {
       try {
         const result = await user3.sdk.genericAction('recordObtData', {
+          fioRequestId: '',
           payerFioAddress: user3.address,
           payeeFioAddress: user1.address,
           payerTokenPublicAddress: user3.publicKey,
@@ -2928,7 +2974,7 @@ describe.only(`Set up data for testing mainnet migration and time_stamp bug`, ()
 
   })
 
-  describe(`E. Migrate currentobt and currentrq, but only migrate partial currentsta`, () => {0
+  describe.only(`E. Migrate currentobt and currentrq, but only migrate partial currentsta`, () => {0
 
     it('Echo migrledgers table', async () => {
       try {
@@ -2949,8 +2995,8 @@ describe.only(`Set up data for testing mainnet migration and time_stamp bug`, ()
       }
     })
 
-    it(`Call migrtrx (bp1) with amount = 3 until migrledgers isFinished = 1`, async () => {
-      for (i = 0; i < 13; i++) {
+    it(`Call migrtrx (bp1) ${count * 6 / 10} times with amount = 10. Should leave somre remaining fioreqstss items.`, async () => {
+      for (i = 0; i < count * 6 / 10; i++) { // count*6/10
         try {
           const result = await callFioApiSigned('push_transaction', {
             action: 'migrtrx',
@@ -3001,6 +3047,175 @@ describe.only(`Set up data for testing mainnet migration and time_stamp bug`, ()
         }
         ledger = await callFioApi("get_table_rows", json);
         console.log('migrledgers: ', ledger);
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
+
+  })
+
+  describe.skip(`F. Migrate ALL remaining requests and OBTs`, () => {
+    /**
+     * If you set count = 10 above you should get:
+     *
+     * Total: 50 total entries in fiotrxtss
+     */
+
+    let isFinished = 0
+
+    it('Echo initial migrledgers table', async () => {
+      try {
+        const json = {
+          json: true,
+          code: 'fio.reqobt',
+          scope: 'fio.reqobt',
+          table: 'migrledgers',
+          limit: 10,
+          reverse: false,
+          show_payer: false
+        }
+        ledger = await callFioApi("get_table_rows", json);
+        console.log('migrledgers: ', ledger);
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
+
+    it(`Call migrtrx (bp1) with amount = 3 until migrledgers isFinished = 1`, async () => {
+      while (!isFinished) {
+        try {
+          const result = await callFioApiSigned('push_transaction', {
+            action: 'migrtrx',
+            account: 'fio.reqobt',
+            actor: bp1.account,
+            privKey: bp1.privateKey,
+            data: {
+              amount: 3,
+              actor: bp1.account
+            }
+          })
+          //console.log('Result: ', result)
+          expect(result.transaction_id).to.exist
+        } catch (err) {
+          console.log('Error: ', err)
+          expect(err).to.equal(null)
+        }
+        await timeout(2000);
+        try {
+          const json = {
+            json: true,
+            code: 'fio.reqobt',
+            scope: 'fio.reqobt',
+            table: 'migrledgers',
+            limit: 10,
+            reverse: false,
+            show_payer: false
+          }
+          ledger = await callFioApi("get_table_rows", json);
+          isFinished = ledger.rows[0].isFinished
+          //console.log('isFinished: ', isFinished);
+        } catch (err) {
+          console.log('Error', err);
+          expect(err).to.equal(null);
+        }
+      }
+    })
+
+    it('Echo migrledgers table', async () => {
+      try {
+        const json = {
+          json: true,
+          code: 'fio.reqobt',
+          scope: 'fio.reqobt',
+          table: 'migrledgers',
+          limit: 10,
+          reverse: false,
+          show_payer: false
+        }
+        ledger = await callFioApi("get_table_rows", json);
+        console.log('migrledgers: ', ledger);
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
+
+  })
+
+  describe.skip(`G. Confirm table counts`, () => {
+
+    it(`Call get_table_rows from fioreqctxts: expect ${count} * 4 + 1  records`, async () => {
+      try {
+        const json = {
+          json: true,
+          code: 'fio.reqobt',
+          scope: 'fio.reqobt',
+          table: 'fioreqctxts', 
+          limit: 1000,
+          reverse: true,
+          show_payer: false
+        }
+        reqctxts = await callFioApi("get_table_rows", json);
+        expect(reqctxts.rows.length).to.equal(count * 4 + 1);
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
+
+    it(`Call get_table_rows from fioreqstss: expect ${count} * 3 records`, async () => {
+      try {
+        const json = {
+          json: true,
+          code: 'fio.reqobt',
+          scope: 'fio.reqobt',
+          table: 'fioreqstss',
+          limit: 1000,
+          reverse: true,
+          show_payer: false
+        }
+        obts = await callFioApi("get_table_rows", json);
+        expect(obts.rows.length).to.equal(count * 3);
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
+
+    it(`Call get_table_rows from recordobts: expect ${count} * 1 + 1 records`, async () => {
+      try {
+        const json = {
+          json: true,
+          code: 'fio.reqobt',
+          scope: 'fio.reqobt',
+          table: 'recordobts',
+          limit: 1000,
+          reverse: true,
+          show_payer: false
+        }
+        obts = await callFioApi("get_table_rows", json);
+        expect(obts.rows.length).to.equal(count * 1 + 1);
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    })
+
+    it(`Call get_table_rows from fiotrxtss: expect ${count} * 5 + 2 records`, async () => {
+      try {
+        const json = {
+          json: true,               // Get the response as json
+          code: 'fio.reqobt',      // Contract that we target
+          scope: 'fio.reqobt',         // Account that owns the data
+          table: 'fiotrxtss',        // Table name
+          limit: 1000,                // Maximum number of rows that we want to get
+          reverse: true,           // Optional: Get reversed data
+          show_payer: false          // Optional: Show ram payer
+        }
+        trxtss = await callFioApi("get_table_rows", json);
+        expect(trxtss.rows.length).to.equal(count * 5 + 2);
       } catch (err) {
         console.log('Error', err);
         expect(err).to.equal(null);
