@@ -840,7 +840,7 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
   it(`getFioBalance before `, async () => {
     const result = await userA1.sdk.genericAction('getFioBalance', {})
 
-    expect(result).to.have.all.keys('balance','available')
+    expect(result).to.have.all.keys('balance','available','staked','srps','roe')
     balancebefore = result.balance;
   })
 
@@ -906,7 +906,7 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
   it(`getFioBalance after, verify Fee transfer_locked_tokens was collected`, async () => {
     const result = await userA1.sdk.genericAction('getFioBalance', {})
 
-    expect(result).to.have.all.keys('balance', 'available')
+    expect(result).to.have.all.keys('balance','available','staked','srps','roe')
     balanceafter = result.balance;
     const result1 = await userA1.sdk.genericAction('getFee', {
       endPoint: 'transfer_locked_tokens',
@@ -938,7 +938,7 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
   it(`verify get balance results for locked funds`, async () => {
     const result = await locksdk.genericAction('getFioBalance', {})
 
-    expect(result).to.have.all.keys('balance','available')
+    expect(result).to.have.all.keys('balance','available','staked','srps','roe')
     expect(result.balance).to.be.a('number')
     expect(result.balance).to.equal(500000000000)
 
