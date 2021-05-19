@@ -340,7 +340,7 @@ describe(`E. Remap FIO Address`, () => {
       maxFee: config.api.add_pub_address.fee,
       walletFioAddress: ''
     })
-    //console.log('Result:', result)
+    console.log('Result:', result)
     expect(result.status).to.equal('OK')
   });
 });
@@ -407,9 +407,6 @@ describe(`F. (unhappy path) Add a new address`, () => {
         fioAddress: userF1.address,
         publicAddresses: [
           {
-            // chain_code: 'ELA',
-            // token_code: 'ELA',
-            // public_address: 'EQH6o4xfaR5fbhV8cDbDGRxwJRJn3qeo41',
             chain_code: 'BCH',
             token_code: 'BCH',
             public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
@@ -434,7 +431,7 @@ describe(`F. (unhappy path) Add a new address`, () => {
         fioAddress: userF1.address,
         publicAddresses: [
           {
-            chain_code: 'dogfish',    // presently it looks like it doesn't validate the contents... should it?
+            chain_code: 'dogfish',    // TODO: it looks like it doesn't validate publicAddress fields... should it?
             token_code: 'ELA',
             // public_address: 'EQH6o4xfaR5fbhV8cDbDGRxwJRJn3qeo41',
           }
@@ -482,7 +479,7 @@ describe(`F. (unhappy path) Add a new address`, () => {
       expect(result.public_addresses[0].chain_code).to.equal("FIO");
       expect(result.more).to.equal(false);
     } catch (err) {
-      // console.log('Error', err)
+      console.log('Error', err)
       expect(err).to.equal(null);
     }
   });
@@ -621,7 +618,7 @@ describe(`G. (unhappy path) Add multiple addresses`, () => {
       expect(result.public_addresses[0].chain_code).to.equal("FIO");
       expect(result.more).to.equal(false);
     } catch (err) {
-      // console.log('Error', err)
+      console.log('Error', err)
       expect(err).to.equal(null);
     }
   });
