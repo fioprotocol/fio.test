@@ -2974,7 +2974,7 @@ describe.only(`Set up data for testing mainnet migration and time_stamp bug`, ()
 
   })
 
-  describe.only(`E. Migrate currentobt and currentrq, but only migrate partial currentsta`, () => {0
+  describe(`E. Migrate currentobt and currentrq, but only migrate partial currentsta`, () => {0
 
     it('Echo migrledgers table', async () => {
       try {
@@ -3055,7 +3055,7 @@ describe.only(`Set up data for testing mainnet migration and time_stamp bug`, ()
 
   })
 
-  describe.skip(`F. Migrate ALL remaining requests and OBTs`, () => {
+  describe(`F. Migrate ALL remaining requests and OBTs`, () => {
     /**
      * If you set count = 10 above you should get:
      *

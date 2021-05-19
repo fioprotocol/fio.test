@@ -1000,7 +1000,7 @@ describe('E. Confirm active producers and proxy cannot transfer address', () => 
 
 })
 
-describe.only('F. Confirm users with OBT records or Requests CAN transfer addresses (delta release FIP-1.b part 2)', () => {
+describe('F. Confirm users with OBT records or Requests CAN transfer addresses (delta release FIP-1.b part 2)', () => {
 
     let user1, user2, user3, user4, transfer_fio_address_fee
 
