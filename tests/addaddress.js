@@ -1,4 +1,5 @@
 require('mocha')
+const fs = require("fs");
 const {expect} = require('chai')
 const {newUser, fetchJson, timeout, callFioApi} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
@@ -617,6 +618,280 @@ describe(`G. (unhappy path) Add multiple addresses`, () => {
       expect(result.public_addresses[0].token_code).to.equal("FIO");
       expect(result.public_addresses[0].chain_code).to.equal("FIO");
       expect(result.more).to.equal(false);
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null);
+    }
+  });
+});
+
+describe(`H. (unhappy path) Add too many addresses at one time`, () => {
+
+  let userH1;
+  // let userH2;
+  // let ethAddresses;
+
+  before(async () => {
+    userH1 = await newUser(faucet);
+    // userH2 = await newUser(faucet);
+    // ethAddresses = fs.readFileSync('assets/eth-addresses.txt', 'utf-8').split('\n').slice(0, 199)   // trying 199 first and adding multiple in one call
+                                                                                                                           // .slice(0, 200);;
+    // for (let i = 0; i < ethAddresses.length; i++) {
+    //   try {
+    //     const result = await userH2.sdk.genericAction('addPublicAddresses', {
+    //       fioAddress: userH2.address,
+    //       publicAddresses: [
+    //         {
+    //           chain_code: 'ETH',
+    //           token_code: 'ETH',
+    //           public_address: ethAddresses[i]
+    //         }
+    //       ],
+    //       maxFee: config.api.add_pub_address.fee,
+    //       technologyProviderId: ''
+    //     });
+    //     // debug
+    //     expect(result.status).to.equal('OK');
+    //   } catch (err) {
+    //     console.log('Error', err)
+    //     expect(err).to.equal(null);
+    //   }
+    // }
+  });
+
+  it(`Try to add more than five addresses at once. Expect Error`, async () => {
+    try {
+      const result = await userH1.sdk.genericAction('addPublicAddresses', {
+        fioAddress: userH1.address,
+        publicAddresses: [
+          {
+            chain_code: 'BCH',
+            token_code: 'BCH',
+            public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+          },
+          {
+            chain_code: 'DASH',
+            token_code: 'DASH',
+            public_address: 'XyCyPKzTWvW2XdcYjPaPXGQDCGk946ywEv',
+          },
+          {
+            chain_code: 'ELA',
+            token_code: 'ELA',
+            public_address: 'EQH6o4xfaR5fbhV8cDbDGRxwJRJn3qeo41',
+          },
+          {
+            chain_code: 'ETH',
+            token_code: 'ETH',
+            public_address: 'k0n0zuyaslx3c90q7n9g9cvbfockeahj56ufhghdfsgfsfdgh'
+          },
+          {
+            chain_code: 'ETH',
+            token_code: 'ETH',
+            public_address: 'fdsfsdfsdzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9'
+          },
+          {
+            chain_code: 'ETH',
+            token_code: '*',
+            public_address: 'j0xnwlffdn0zuyaslx3c90q7n9g9cvbfbjndghj56ufhghfdgh'
+          }
+        ],
+        maxFee: config.api.add_pub_address.fee,
+        technologyProviderId: ''
+      })
+      //console.log('Result:', result)
+      expect(result.status).to.equal('OK');
+      expect(result).to.have.property('fee_collected').which.is.a('number');
+    } catch (err) {
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.type).to.equal('invalid_input');
+      expect(err.json.fields[0].name).to.equal('public_addresses');
+      expect(err.json.fields[0].value).to.equal('public_addresses');
+      expect(err.json.fields[0].error).to.equal('Min 1, Max 5 public addresses are allowed');
+    }
+  });
+
+  // it(`Try to add more than 200 total addresses. Expect Error`, async () => {
+  //   for (let i = 0; i < ethAddresses.length; i++) {
+  //     try {
+  //       const result = await userH2.sdk.genericAction('addPublicAddresses', {
+  //         fioAddress: userH2.address,
+  //         publicAddresses: [
+  //           {
+  //             chain_code: 'ETH',
+  //             token_code: 'ETH',
+  //             public_address: ethAddresses[i]
+  //           }
+  //         ],
+  //         maxFee: config.api.add_pub_address.fee,
+  //         technologyProviderId: ''
+  //       });
+  //       // debug
+  //       expect(result.status).to.equal('OK');
+  //     } catch (err) {
+  //       console.log('Error', err)
+  //       expect(err).to.equal(null);
+  //     }
+  //   }
+  //
+  //   try {
+  //     const result = await userH2.sdk.genericAction('addPublicAddresses', {
+  //       fioAddress: userH2.address,
+  //       publicAddresses: [
+  //         {
+  //           chain_code: 'BCH',
+  //           token_code: 'BCH',
+  //           public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+  //         },
+  //         {
+  //           chain_code: 'DASH',
+  //           token_code: 'DASH',
+  //           public_address: 'XyCyPKzTWvW2XdcYjPaPXGQDCGk946ywEv',
+  //         },
+  //         {
+  //           chain_code: 'ELA',
+  //           token_code: 'ELA',
+  //           public_address: 'EQH6o4xfaR5fbhV8cDbDGRxwJRJn3qeo41',
+  //         }
+  //       ],
+  //       maxFee: config.api.add_pub_address.fee,
+  //       technologyProviderId: ''
+  //     })
+  //
+  //     expect(result.status).to.equal('OK');
+  //   } catch (err) {
+  //     expect(err.errorCode).to.equal(400);
+  //     expect(err.json.type).to.equal('invalid_input');
+  //     expect(err.json.fields[0].name).to.equal('public_addresses');
+  //     expect(err.json.fields[0].value).to.equal('public_addresses');
+  //     expect(err.json.fields[0].error).to.equal('Min 1, Max 5 public addresses are allowed');
+  //   }
+  // });
+
+  // it(`should not have added the extra addresses`, async () => {
+  //   const result = await callFioApi("get_pub_addresses", {
+  //     fio_address: userH2.address,
+  //     limit: 0,
+  //     offset: 0
+  //   });
+  //   expect(result.status).to.equal('OK');
+  // });
+
+  after(async () => {
+    try {
+      const result = await callFioApi("get_pub_addresses", {
+        fio_address: userH1.address,
+        limit: 0,
+        offset: 0
+      });
+      //  console.log('Result', result)
+      expect(result.public_addresses.length).to.equal(1)
+      expect(result.public_addresses[0].token_code).to.equal("FIO");
+      expect(result.public_addresses[0].chain_code).to.equal("FIO");
+      expect(result.more).to.equal(false);
+
+      // const result2 = await callFioApi("get_pub_addresses", {
+      //   fio_address: userH2.address,
+      //   limit: 0,
+      //   offset: 0
+      // });
+      //
+      // expect(result2.public_addresses.length).to.equal(1)
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null);
+    }
+  });
+});
+
+describe(`I. (unhappy path) Add too many addresses overall`, () => {
+
+  let userI1;
+  let ethAddresses;
+
+  before(async () => {
+    userI1 = await newUser(faucet);
+    ethAddresses = fs.readFileSync('assets/eth-addresses.txt', 'utf-8').split('\n').slice(0, 199);   // trying 199 first and adding multiple in one call
+
+    for (let i = 0; i < ethAddresses.length; i++) {
+      try {
+        // const result =
+        await userI1.sdk.genericAction('addPublicAddresses', {
+          fioAddress: userI1.address,
+          publicAddresses: [
+            {
+              chain_code: 'ETH',
+              token_code: 'ETH',
+              public_address: ethAddresses[i]
+            }
+          ],
+          maxFee: config.api.add_pub_address.fee,
+          technologyProviderId: ''
+        });
+        // debug
+        expect(result.status).to.equal('OK');
+
+        // it(`should not have added the extra addresses`, async () => {
+        const result = await callFioApi("get_pub_addresses", {
+          fio_address: userI1.address,
+          limit: 0,
+          offset: 0
+        });
+        expect(result.status).to.equal('OK');
+      } catch (err) {
+        console.log('Error', err)
+        expect(err).to.equal(null);
+      }
+    }
+  });
+
+  it(`Try to add more than 200 total addresses. Expect Error`, async () => {
+    try {
+      const result = await userI1.sdk.genericAction('addPublicAddresses', {
+        fioAddress: userI1.address,
+        publicAddresses: [
+          {
+            chain_code: 'BCH',
+            token_code: 'BCH',
+            public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+          },
+          {
+            chain_code: 'DASH',
+            token_code: 'DASH',
+            public_address: 'XyCyPKzTWvW2XdcYjPaPXGQDCGk946ywEv',
+          },
+          {
+            chain_code: 'ELA',
+            token_code: 'ELA',
+            public_address: 'EQH6o4xfaR5fbhV8cDbDGRxwJRJn3qeo41',
+          }
+        ],
+        maxFee: config.api.add_pub_address.fee,
+        technologyProviderId: ''
+      })
+
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.type).to.equal('invalid_input');
+      expect(err.json.fields[0].name).to.equal('public_addresses');
+      expect(err.json.fields[0].value).to.equal('public_addresses');
+      expect(err.json.fields[0].error).to.equal('Min 1, Max 5 public addresses are allowed');
+    }
+  });
+
+  after(async () => {
+    try {
+      const result = await callFioApi("get_pub_addresses", {
+        fio_address: userI1.address,
+        limit: 0,
+        offset: 0
+      });
+      //  console.log('Result', result)
+      expect(result.public_addresses.length).to.equal(199)
+      // expect(result.public_addresses[0].token_code).to.equal("FIO");
+      // expect(result.public_addresses[0].chain_code).to.equal("FIO");
+      // expect(result.more).to.equal(false);
+
     } catch (err) {
       console.log('Error', err)
       expect(err).to.equal(null);
