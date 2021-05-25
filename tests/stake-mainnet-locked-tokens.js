@@ -334,6 +334,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
       console.log("ERROR :", err.json)
     }
   })
+
   it(`Success, unstake 3 tokens `, async () => {
     try {
       const result = await locksdk.sdk.genericAction('pushTransaction', {
@@ -612,5 +613,6 @@ describe(`************************** stake-mainet-locked-tokens.js *************
       expect(err.json.fields[0].error).to.contain('Cannot unstake more than staked')
     }
   })
+
 })
 

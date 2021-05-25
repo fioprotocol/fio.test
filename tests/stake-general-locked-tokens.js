@@ -157,14 +157,48 @@ describe(`************************** stake-general-locked-tokens.js ************
       expect(result.status).to.equal('OK')
   })
 
-  it(`Success, unstake 110 tokens `, async () => {
+  it(`Success, unstake 100 tokens `, async () => {
 
     const result = await locksdk.sdk.genericAction('pushTransaction', {
       action: 'unstakefio',
       account: 'fio.staking',
       data: {
         fio_address: locksdk.fio_address,
-        amount: 110000000000,
+        amount: 100000000000,
+        actor: locksdk.account,
+        max_fee: config.maxFee,
+        tpid:''
+      }
+    })
+    // console.log('Result: ', result)
+    expect(result.status).to.equal('OK')
+  })
+
+  it(`Success, unstake 2 tokens `, async () => {
+
+    const result = await locksdk.sdk.genericAction('pushTransaction', {
+      action: 'unstakefio',
+      account: 'fio.staking',
+      data: {
+        fio_address: locksdk.fio_address,
+        amount: 2000000000,
+        actor: locksdk.account,
+        max_fee: config.maxFee,
+        tpid:''
+      }
+    })
+    // console.log('Result: ', result)
+    expect(result.status).to.equal('OK')
+  })
+
+  it(`Success, unstake 2 tokens `, async () => {
+
+    const result = await locksdk.sdk.genericAction('pushTransaction', {
+      action: 'unstakefio',
+      account: 'fio.staking',
+      data: {
+        fio_address: locksdk.fio_address,
+        amount: 2000000000,
         actor: locksdk.account,
         max_fee: config.maxFee,
         tpid:''
@@ -281,6 +315,7 @@ describe(`************************** stake-general-locked-tokens.js ************
   })
   //rapid fire unstaking forces the system to modify a pre existing period in the locks
   //with the unstaking lock info.
+
   it(`Success, unstake 5 tokens `, async () => {
     try {
       const result = await locksdk.sdk.genericAction('pushTransaction', {
@@ -635,7 +670,7 @@ describe(`************************** stake-general-locked-tokens.js ************
         account: 'fio.staking',
         data: {
           fio_address: locksdk.fio_address,
-          amount: 2000000000,
+          amount: 20000000000,
           actor: locksdk.account,
           max_fee: config.maxFee +1,
           tpid:''
@@ -648,6 +683,10 @@ describe(`************************** stake-general-locked-tokens.js ************
       expect(err.json.fields[0].error).to.contain('Cannot unstake more than staked')
     }
   })
+
+*/
+/*
+
   it(`Success, unstake 1 tokens `, async () => {
     try {
       const result = await locksdk.sdk.genericAction('pushTransaction', {
