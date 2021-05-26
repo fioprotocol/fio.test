@@ -81,7 +81,7 @@ describe('************************** addbundles.js ************************** \n
 
     it(`Get bundle count for user1 `, async () => {
         const result = await user1.sdk.genericAction('getFioNames', { fioPublicKey: user1.publicKey })
-        //console.log('Result: ', result)
+       // console.log('Result: ', result)
         user1BundleCount = result.fio_addresses[0].remaining_bundled_tx;
         expect(user1BundleCount).to.be.greaterThan(0)
       })
@@ -158,7 +158,7 @@ describe('************************** addbundles.js ************************** \n
     it(`Get bundle count for user1 `, async () => {
         let prevBundleCount = user1BundleCount;
         const result = await user1.sdk.genericAction('getFioNames', { fioPublicKey: user1.publicKey })
-        //console.log('Result: ', result)
+       // console.log('Result: ', result)
         user1BundleCount = result.fio_addresses[0].remaining_bundled_tx;
         expect(user1BundleCount).to.equal(prevBundleCount + (bundleSets * bundledVoteNumber));
       })
@@ -251,14 +251,15 @@ describe('B. Add 3 sets of bundled transactions for FIO Address owned by other u
 
     it(`Get bundle count for user1 `, async () => {
         const result = await user1.sdk.genericAction('getFioNames', { fioPublicKey: user1.publicKey })
-        //console.log('Result: ', result)
+      //  console.log('Result: ', result)
         user1BundleCount = result.fio_addresses[0].remaining_bundled_tx;
         expect(user1BundleCount).to.be.greaterThan(0);
     })
 
+
     it(`Get bundle count for user2 `, async () => {
         const result = await user2.sdk.genericAction('getFioNames', { fioPublicKey: user2.publicKey })
-        //console.log('Result: ', result)
+       // console.log('Result: ', result)
         user2BundleCount = result.fio_addresses[0].remaining_bundled_tx;
         expect(user2BundleCount).to.be.greaterThan(0);
     })
@@ -353,13 +354,32 @@ describe('B. Add 3 sets of bundled transactions for FIO Address owned by other u
         expect(user1BundleCount).to.equal(prevBundleCount); 
     })
 
+    it(`Confirm again using get_fio_addresses user1 bundle count is unchanged`, async () => {
+        let prevBundleCount = user1BundleCount;
+        const result = await user1.sdk.genericAction('getFioAddresses', { fioPublicKey: user1.publicKey })
+       // console.log(' Result: ', result)
+        user1BundleCount = result.fio_addresses[0].remaining_bundled_tx;
+        expect(user1BundleCount).to.equal(prevBundleCount);
+    })
+
     it(`Confirm user2 bundle count was increased by ${bundleSets} sets`, async () => {
         let prevBundleCount = user2BundleCount;
         const result = await user2.sdk.genericAction('getFioNames', { fioPublicKey: user2.publicKey })
-        //console.log('Result: ', result)
+       // console.log('Result: ', result)
         user2BundleCount = result.fio_addresses[0].remaining_bundled_tx;
         expect(user2BundleCount).to.equal(prevBundleCount + (bundleSets * bundledVoteNumber));  
     })
+
+    it(`Confirm user2 bundle count was increased by ${bundleSets} sets using get_fio_addresses`, async () => {
+        let desiredBundleCount = user2BundleCount;
+        const result = await user2.sdk.genericAction('getFioAddresses', { fioPublicKey: user2.publicKey })
+      //  console.log('Result: ', result)
+       // console.log(' desired bundle count : ', desiredBundleCount)
+        user2BundleCount = result.fio_addresses[0].remaining_bundled_tx;
+        expect(user2BundleCount).to.equal(desiredBundleCount);
+    })
+
+
 
 })
 
