@@ -617,6 +617,33 @@ describe(`************************** stake-general-locked-tokens.js ************
     }
   })
 
+  it(`Waiting 1 minutes for unlock`, async () => {
+    console.log("            waiting 60 seconds ")
+  })
+
+  it(` wait 60 seconds`, async () => {
+    try {
+      wait(60000)
+    } catch (err) {
+      console.log('Error', err)
+    }
+  })
+
+  it(`Success, Transfer 700 FIO to userA1 FIO public key`, async () => {
+
+    try {
+      const result = await locksdk.sdk.genericAction('transferTokens', {
+        payeeFioPublicKey: userA1.publicKey,
+        amount: 70000000000,
+        maxFee: config.api.transfer_tokens_pub_key.fee,
+        technologyProviderId: ''
+      })
+      expect(result.status).to.equal('OK')
+    }catch (err){
+      console.log("ERROR: ", err)
+    }
+  })
+
   //look at locks afterwards manually.
 /*
   it(`Call get_table_rows from locktokens and confirm: lock period added correctly`, async () => {
