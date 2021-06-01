@@ -29,7 +29,7 @@ describe('TEST SUITE', () => {
   require('./tests/transfer-locked-tokens.js');  // FIP-6 locking tests
   require('./tests/transfer-locked-tokens-account-tests.js');  // FIP-6 tests of generic account functionality
   require('./tests/addbundles.js');  // FIP-11.a
-  require('./tests/tpid.js');
+  // require('./tests/tpid.js');
   //require('./tests/clio.js');  // FIP-16  //Only works with local testing
   //require('./tests/performance-request-obt.js');
 
