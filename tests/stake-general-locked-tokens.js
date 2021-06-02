@@ -187,12 +187,13 @@ describe(`************************** stake-general-locked-tokens.js ************
         tpid:''
       }
     })
-    // console.log('Result: ', result)
+    console.log('Result: ', result)
     expect(result.status).to.equal('OK')
   })
 
   it(`Success, unstake 2 tokens `, async () => {
 
+    try {
     const result = await locksdk.sdk.genericAction('pushTransaction', {
       action: 'unstakefio',
       account: 'fio.staking',
@@ -200,12 +201,16 @@ describe(`************************** stake-general-locked-tokens.js ************
         fio_address: locksdk.fio_address,
         amount: 2000000000,
         actor: locksdk.account,
-        max_fee: config.maxFee,
+        max_fee: config.maxFee+1,
         tpid:''
       }
     })
-    // console.log('Result: ', result)
+     console.log('Result: ', result)
     expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
   })
 
    it(`Call get_table_rows from locktokens and confirm: lock period added correctly`, async () => {
@@ -214,14 +219,14 @@ describe(`************************** stake-general-locked-tokens.js ************
         json: true,
         code: 'eosio',
         scope: 'eosio',
-        table: 'locktokens',
+        table: 'locktokensv2',
         lower_bound: locksdk.account,
         upper_bound: locksdk.account,
         key_type: 'i64',
         index_position: '2'
       }
       result = await callFioApi("get_table_rows", json);
-      //console.log('Result: ', result);
+      console.log('Result: ', result);
       //console.log('periods : ', result.rows[0].periods)
       expect(result.rows[0].periods[2].duration - 604800).greaterThan(120);
      // expect(result.rows[0].periods[2].percent - 4.763).lessThan(0.001);
@@ -425,7 +430,7 @@ describe(`************************** stake-general-locked-tokens.js ************
           fio_address: locksdk.fio_address,
           amount: 5000000000,
           actor: locksdk.account,
-          max_fee: config.maxFee +1,
+          max_fee: config.maxFee +2,
           tpid:''
         }
       })
@@ -445,7 +450,7 @@ describe(`************************** stake-general-locked-tokens.js ************
           fio_address: locksdk.fio_address,
           amount: 4000000000,
           actor: locksdk.account,
-          max_fee: config.maxFee +1,
+          max_fee: config.maxFee +2,
           tpid:''
         }
       })
@@ -465,7 +470,7 @@ describe(`************************** stake-general-locked-tokens.js ************
           fio_address: locksdk.fio_address,
           amount: 3000000000,
           actor: locksdk.account,
-          max_fee: config.maxFee +1,
+          max_fee: config.maxFee +2,
           tpid:''
         }
       })
@@ -485,7 +490,7 @@ describe(`************************** stake-general-locked-tokens.js ************
           fio_address: locksdk.fio_address,
           amount: 2000000000,
           actor: locksdk.account,
-          max_fee: config.maxFee +1,
+          max_fee: config.maxFee +2,
           tpid:''
         }
       })
@@ -505,7 +510,7 @@ describe(`************************** stake-general-locked-tokens.js ************
           fio_address: locksdk.fio_address,
           amount: 1000000000,
           actor: locksdk.account,
-          max_fee: config.maxFee +1,
+          max_fee: config.maxFee +2,
           tpid:''
         }
       })
@@ -525,7 +530,7 @@ describe(`************************** stake-general-locked-tokens.js ************
           fio_address: locksdk.fio_address,
           amount: 5000000000,
           actor: locksdk.account,
-          max_fee: config.maxFee +1,
+          max_fee: config.maxFee +3,
           tpid:''
         }
       })
@@ -545,7 +550,7 @@ describe(`************************** stake-general-locked-tokens.js ************
           fio_address: locksdk.fio_address,
           amount: 4000000000,
           actor: locksdk.account,
-          max_fee: config.maxFee +1,
+          max_fee: config.maxFee +3,
           tpid:''
         }
       })
@@ -565,7 +570,7 @@ describe(`************************** stake-general-locked-tokens.js ************
           fio_address: locksdk.fio_address,
           amount: 3000000000,
           actor: locksdk.account,
-          max_fee: config.maxFee +1,
+          max_fee: config.maxFee +3,
           tpid:''
         }
       })
@@ -585,7 +590,7 @@ describe(`************************** stake-general-locked-tokens.js ************
           fio_address: locksdk.fio_address,
           amount: 2000000000,
           actor: locksdk.account,
-          max_fee: config.maxFee +1,
+          max_fee: config.maxFee +3,
           tpid:''
         }
       })
@@ -605,7 +610,7 @@ describe(`************************** stake-general-locked-tokens.js ************
           fio_address: locksdk.fio_address,
           amount: 1000000000,
           actor: locksdk.account,
-          max_fee: config.maxFee +1,
+          max_fee: config.maxFee +3,
           tpid:''
         }
       })
@@ -616,7 +621,7 @@ describe(`************************** stake-general-locked-tokens.js ************
       expect(err.json.fields[0].error).to.contain('Cannot unstake more than staked')
     }
   })
-
+/*
   it(`Waiting 1 minutes for unlock`, async () => {
     console.log("            waiting 60 seconds ")
   })
@@ -643,7 +648,7 @@ describe(`************************** stake-general-locked-tokens.js ************
       console.log("ERROR: ", err)
     }
   })
-
+*/
   //look at locks afterwards manually.
 /*
   it(`Call get_table_rows from locktokens and confirm: lock period added correctly`, async () => {

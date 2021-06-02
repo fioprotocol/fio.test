@@ -200,7 +200,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
         json: true,
         code: 'eosio',
         scope: 'eosio',
-        table: 'locktokens',
+        table: 'locktokensv2',
         lower_bound: locksdk.account,
         upper_bound: locksdk.account,
         key_type: 'i64',
@@ -210,7 +210,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
      // console.log('Result: ', result);
       //console.log('periods : ', result.rows[0].periods[0].duration)
       expect(result.rows[0].periods[0].duration).to.equal(604800);
-      expect(result.rows[0].periods[0].percent - 100).to.equal(0);
+     // expect(result.rows[0].periods[0].percent - 100).to.equal(0);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -276,7 +276,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
         json: true,
         code: 'eosio',
         scope: 'eosio',
-        table: 'locktokens',
+        table: 'locktokensv2',
         lower_bound: locksdk.account,
         upper_bound: locksdk.account,
         key_type: 'i64',
