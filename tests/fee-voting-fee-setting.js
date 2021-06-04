@@ -19,7 +19,7 @@
 require('mocha')
 const {expect} = require('chai')
 const {readProdFile, fetchJson, newUser, existingUser, generateFioAddress,generateFioDomain,timeout } = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
+const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
 let producersList = [], producers = [], newprods = [], sdkprods = []
@@ -265,7 +265,7 @@ describe('************************** fee-voting-fee-setting.js *****************
         }
       })
       console.log("regproducer")
-      
+
       result = await prodA1.sdk.genericAction('pushTransaction', {
         action: 'voteproducer',
         account: 'eosio',

@@ -1,7 +1,7 @@
 require('mocha')
 const {expect} = require('chai')
 const {callFioApi, fetchJson} = require('../../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK');
+const {FIOSDK } = require('@fioprotocol/fiosdk');
 config = require('../../config.js');
 const exec = require('child_process').exec;
 
@@ -47,8 +47,8 @@ describe('Create BP setcode msig', () => {
       prodsTable = result.rows;
       prodList = "";
       prodCount = 0
-      for (prod in prodsTable) { 
-        if (prodCount != 0) { prodList = prodList + ',' } 
+      for (prod in prodsTable) {
+        if (prodCount != 0) { prodList = prodList + ',' }
         nextprod = '{"actor":"' + prodsTable[prod].owner + '","permission":"active"}'
         prodList = prodList + nextprod
         prodCount++;

@@ -1,12 +1,9 @@
-const TESTURL = 'http://localhost:8889'
-//const TESTURL = 'http://testnet.fioprotocol.io'
-//const TESTURL = 'http://52.183.126.67:8889'  //dev1
-//const TESTURL = 'http://dev2.fio.dev:8889'
-//const TESTURL = 'http://dev3.fio.dev:8889'
-//const TESTURL = 'http://dev3.fio.dev:8080'  // 8080 is the history node
-//const TESTURL = 'http://dev4.fio.dev:8889' 
-//const TESTURL = 'https://fio.greymass.com' //Mainnet
-//const TESTURL = 'http://44.238.153.162:8889' //Devnet
+const TESTURL = 'http://localhost:8889'           // Localhost
+//const TESTURL = 'http://dev1.fio.dev:8888'          // DEV1
+//const TESTURL = 'http://44.238.153.162:8889'      // Devnet
+//const TESTURL = 'http://testnet.fioprotocol.io'   // Testnet
+//const TESTURL = 'https://fio.greymass.com'        // Mainnet
+//const TESTURL = 'http://34.222.201.72:8080'        // History
 
 const DEVTOOLSDIR = '../fio.devtools'
 
@@ -15,7 +12,7 @@ const config = {
     URL: TESTURL,
     BASE_URL: TESTURL + '/v1/',
     CLIO: DEVTOOLSDIR + '/bin/clio -u ' + TESTURL,
-    WALLETKEY: 'PW5JqTyLtZXzmDhVjP6jKK2yJ4tbXA4Gi9zaTepYF9b73U1DZhzmv', // Unlocks local FIO wallet
+    WALLETKEYFILE: DEVTOOLSDIR + '/walletkey.ini',
 
     //use this prod key file after you get a copy of the file from Ed, then you can run the
     //fee-voting-fee-setting.js.
@@ -121,7 +118,7 @@ const config = {
             statusCode: 500
         },
         invalidContract: {
-            message: 'Invalid Contract',
+            message: 'Contract name invalid or not found',
             statusCode: 500
         },
         invalidActorAuth: {

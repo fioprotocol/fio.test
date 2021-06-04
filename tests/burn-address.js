@@ -1,16 +1,16 @@
 require('mocha')
 const {expect} = require('chai')
 const {newUser, generateFioAddress, callFioApiSigned, callFioApi, getFees, timeout, fetchJson} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
+const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
 before(async () => {
     faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
 })
 
-describe('************************** burn-address.js ************************** \n A. Test Burn FIO Address using push_transaction with burnaddress action ', () => {
+describe('************************** burn-address.js ************************** \n    A. Test Burn FIO Address using push_transaction with burnaddress action ', () => {
 
-    let walletA1, walletA1FioNames, balance, walletA1OrigBalance, burn_fio_address_fee, feeCollected
+    let walletA1, walletA1FioNames, balance, prevBundleCount, walletA1OrigBalance, burn_fio_address_fee, feeCollected
 
     it(`Create users`, async () => {
         walletA1 = await newUser(faucet);
@@ -44,6 +44,32 @@ describe('************************** burn-address.js ************************** 
         }
     })
 
+    it('Call get_table_rows from fionames to get bundles remaining for walletA1. Verify NNN bundles', async () => {
+        try {
+            const json = {
+                json: true,               // Get the response as json
+                code: 'fio.address',      // Contract that we target
+                scope: 'fio.address',         // Account that owns the data
+                table: 'fionames',        // Table name
+                limit: 1000,                // Maximum number of rows that we want to get
+                reverse: false,           // Optional: Get reversed data
+                show_payer: false          // Optional: Show ram payer
+            }
+            fionames = await callFioApi("get_table_rows", json);
+            //console.log('fionames: ', fionames);
+            for (fioname in fionames.rows) {
+                if (fionames.rows[fioname].name == walletA1.address) {
+                    //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
+                    prevBundleCount = fionames.rows[fioname].bundleeligiblecountdown;
+                }
+            }
+            expect(prevBundleCount).to.equal(100);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
     it('Confirm burn_fio_address fee for walletA1 is zero (bundles remaining)', async () => {
         try {
             result = await walletA1.sdk.getFee('burn_fio_address', walletA1.address);
@@ -54,7 +80,7 @@ describe('************************** burn-address.js ************************** 
             expect(err).to.equal(null);
         }
     })
-    
+
     it(`Burn walletA1.address2. Expect status = 'OK'. Expect fee_collected = 0`, async () => {
         try {
             const result = await callFioApiSigned('push_transaction', {
@@ -107,9 +133,9 @@ describe('************************** burn-address.js ************************** 
           }
           fionames = await callFioApi("get_table_rows", json);
           //console.log('fionames: ', fionames);
-          for (name in fionames.rows) {
-            if (fionames.rows[name].name == walletA1.address2) {
-              //console.log('fioname: ', fionames.rows[name]); 
+          for (fioname in fionames.rows) {
+            if (fionames.rows[fioname].name == walletA1.address2) {
+              //console.log('fioname: ', fionames.rows[fioname]);
               inTable = true;
             }
           }
@@ -118,7 +144,7 @@ describe('************************** burn-address.js ************************** 
           console.log('Error', err);
           expect(err).to.equal(null);
         }
-      })
+    })
 
     it(`Use up all of walletA1's bundles with 51 record_obt_data transactions`, async () => {
         for (i = 0; i < 51; i++) {
@@ -163,13 +189,13 @@ describe('************************** burn-address.js ************************** 
           }
           fionames = await callFioApi("get_table_rows", json);
           //console.log('fionames: ', fionames);
-          for (name in fionames.rows) {
-            if (fionames.rows[name].name == walletA1.address) {
-              //console.log('bundleCount: ', fionames.rows[name].bundleeligiblecountdown); 
-              bundleCount = fionames.rows[name].bundleeligiblecountdown;
+          for (fioname in fionames.rows) {
+            if (fionames.rows[fioname].name == walletA1.address) {
+              //console.log('bundleCount: ', fionames.rows[fioname].bundleeligiblecountdown);
+              bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
             }
           }
-          expect(bundleCount).to.equal(0);  
+          expect(bundleCount).to.equal(0);
         } catch (err) {
           console.log('Error', err);
           expect(err).to.equal(null);
@@ -237,9 +263,9 @@ describe('************************** burn-address.js ************************** 
           }
           fionames = await callFioApi("get_table_rows", json);
           //console.log('fionames: ', fionames);
-          for (name in fionames.rows) {
-            if (fionames.rows[name].name == walletA1.address) {
-              //console.log('fioname: ', fionames.rows[name]); 
+          for (fioname in fionames.rows) {
+            if (fionames.rows[fioname].name == walletA1.address) {
+              //console.log('fioname: ', fionames.rows[fioname]);
               inTable = true;
             }
           }
@@ -524,10 +550,10 @@ describe('D. burnFioAddress Error testing', () => {
             }
             fionames = await callFioApi("get_table_rows", json);
             //console.log('fionames: ', fionames);
-            for (name in fionames.rows) {
-                if (fionames.rows[name].name == userD1.address) {
-                    //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown);
-                    bundleCount = fionames.rows[name].bundleeligiblecountdown;
+            for (fioname in fionames.rows) {
+                if (fionames.rows[fioname].name == userD1.address) {
+                    //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
+                    bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
                 }
             }
             expect(bundleCount).to.equal(0);
@@ -561,7 +587,7 @@ describe('D. burnFioAddress Error testing', () => {
 
 })
 
-describe.skip('E. Test burnfioaddress SDK call (uses chain/burn_fio_address endpoint)', () => {
+describe('E. Test burnfioaddress SDK call (uses chain/burn_fio_address endpoint)', () => {
 
     let walletA1, walletA1FioNames
 
@@ -607,7 +633,7 @@ describe.skip('E. Test burnfioaddress SDK call (uses chain/burn_fio_address endp
             expect(err).to.equal(null);
         }
     })
-    
+
     it(`(SDK) Burn walletA1.address2. Expect status = 'OK'. Expect fee_collected = 0`, async () => {
         try {
             const result = await walletA1.sdk.genericAction('burnFioAddress', {
@@ -653,9 +679,9 @@ describe.skip('E. Test burnfioaddress SDK call (uses chain/burn_fio_address endp
           }
           fionames = await callFioApi("get_table_rows", json);
           //console.log('fionames: ', fionames);
-          for (name in fionames.rows) {
-            if (fionames.rows[name].name == walletA1.address2) {
-              //console.log('fioname: ', fionames.rows[name]); 
+          for (fioname in fionames.rows) {
+            if (fionames.rows[fioname].name == walletA1.address2) {
+              //console.log('fioname: ', fionames.rows[fioname]);
               inTable = true;
             }
           }

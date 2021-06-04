@@ -4,7 +4,7 @@ const {performance} = require('perf_hooks');
 config = require('../../config.js');
 const {expect} = require('chai')
 const {newUser, fetchJson, generateFioDomain, generateFioAddress, createKeypair, callFioApi} = require('../../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
+const {FIOSDK } = require('@fioprotocol/fiosdk')
 
 
 before(async () => {
@@ -54,7 +54,7 @@ describe(`************************** performance-check.js **********************
           method: "POST",
           uri: servers[server] + "chain/" + apiCall,
           body: json,
-          json: true 
+          json: true
         };
         console.log("uri: " + options.uri);
         //console.log("\nWith stringified JSON: \n")

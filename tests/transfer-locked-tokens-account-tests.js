@@ -1,9 +1,11 @@
 require('mocha')
 const {expect} = require('chai')
-const {fetchJson, timeout, generateFioDomain, generateFioAddress, createKeypair, getTotalVotedFio, getAccountVoteWeight, getProdVoteTotal, callFioApi} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
-config = require('../config.js');
+const {FIOSDK } = require('@fioprotocol/fiosdk')
+const {newUser, fetchJson, timeout, generateFioDomain, generateFioAddress, createKeypair, getTestType, getTotalVotedFio, getAccountVoteWeight, getProdVoteTotal, callFioApi} = require('../utils.js');
+const config = require('../config.js');
+const testType = getTestType();
 
+let transfer_tokens_pub_key_fee
 let privateKey, publicKey, privateKey2, publicKey2, account, account2, testFioDomain, testFioAddressName, testFioAddressName2
 let fioSdk, fioSdk2, fioSdkFaucet
 
@@ -34,52 +36,28 @@ before(async () => {
   publicKey2 = keys2.publicKey
   account2 = keys2.account
   fioSdk2 = new FIOSDK(privateKey2, publicKey2, config.BASE_URL, fetchJson);
+
+  result = await fioSdkFaucet.getFee('transfer_tokens_pub_key');
+  transfer_tokens_pub_key_fee = result.fee;
 })
 
-describe(`************************** transfer-locked-tokens-account-tests.js ************************** \n A. Create accounts for tests`, () => {
+describe(`************************** transfer-locked-tokens-account-tests.js ************************** \n    A. Create accounts for tests`, () => {
 
+  /*
   it.skip(`Show keys`, async () => {
     console.log('privateKey: ', privateKey)
     console.log('publicKey: ', publicKey)
     console.log('privateKey2: ', privateKey2)
     console.log('publicKey2: ', publicKey2)
   })
+  */
 
-  it.skip(`(API) Create fioSdk account: transferLockedTokens ${lockedFundsAmount}, canvote false, (20,40%) and (40,60%)`, async () => {
-    try {
-      const result = await fioSdkFaucet.genericAction('transferLockedTokens', {
-        payeePublicKey: publicKey,
-        canVote: false,
-        periods: [
-          {
-            duration: 3600,
-            percent: 40.0,
-          },
-          {
-            duration: 3640,
-            percent: 60.0,
-          }
-        ],
-        amount: lockedFundsAmount,
-        maxFee: 400000000000,
-        tpid: '',
-
-      })
-      expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys( 'status', 'fee_collected')
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
-
-  it(`(pushTransaction) Create fioSdk account: transferLockedTokens ${lockedFundsAmount}, canvote false, (20,40%) and (40,60%)`, async () => {
-    try {
-      const result = await fioSdkFaucet.genericAction('pushTransaction', {
-        action: 'trnsloctoks',
-        account: 'fio.token',
-        data: {
-          payee_public_key: publicKey,
-          can_vote: 0,
+  it(`(${testType}) Create fioSdk account: transferLockedTokens ${lockedFundsAmount}, canvote false, (20,40%) and (40,60%)`, async () => {
+    if (testType == 'sdk') {
+      try {
+        const result = await fioSdkFaucet.genericAction('transferLockedTokens', {
+          payeePublicKey: publicKey,
+          canVote: false,
           periods: [
             {
               duration: 3600,
@@ -91,54 +69,54 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
             }
           ],
           amount: lockedFundsAmount,
-          max_fee: 400000000000,
+          maxFee: 400000000000,
           tpid: '',
-          actor: fioSdkFaucet.account,
-        }
 
-      })
-      expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys( 'status', 'fee_collected')
-    } catch (err) {
-      console.log(' Error', err)
-    }
-  })
-
-  it.skip(`(API) Create fioSdk account: transferLockedTokens ${lockedFundsAmount}, canvote false, (20,40%) and (40,60%)`, async () => {
-    try {
-      const result = await fioSdkFaucet.genericAction('transferLockedTokens', {
-        payeePublicKey: publicKey2,
-        canVote: false,
-        periods: [
-          {
-            duration: 3600,
-            percent: 30.0,
-          },
-          {
-            duration: 3640,
-            percent: 70.0,
+        })
+        expect(result.status).to.equal('OK')
+        expect(result).to.have.all.keys( 'status', 'fee_collected')
+      } catch (err) {
+        console.log('Error', err)
+      }
+    } else {  
+      try {
+        const result = await fioSdkFaucet.genericAction('pushTransaction', {
+          action: 'trnsloctoks',
+          account: 'fio.token',
+          data: {
+            payee_public_key: publicKey,
+            can_vote: 0,
+            periods: [
+              {
+                duration: 3600,
+                percent: 40.0,
+              },
+              {
+                duration: 3640,
+                percent: 60.0,
+              }
+            ],
+            amount: lockedFundsAmount,
+            max_fee: 400000000000,
+            tpid: '',
+            actor: fioSdkFaucet.account,
           }
-        ],
-        amount: lockedFundsAmount,
-        maxFee: 400000000000,
-        tpid: '',
 
-      })
-      expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys( 'status', 'fee_collected')
-    } catch (err) {
-      console.log('Error', err)
+        })
+        expect(result.status).to.equal('OK')
+        expect(result).to.have.all.keys( 'status', 'fee_collected')
+      } catch (err) {
+        console.log(' Error', err)
+      }
     }
   })
 
-  it(`(pushTransaction) Create fioSdk account: transferLockedTokens ${lockedFundsAmount}, canvote false, (20,40%) and (40,60%)`, async () => {
-    try {
-      const result = await fioSdkFaucet.genericAction('pushTransaction', {
-        action: 'trnsloctoks',
-        account: 'fio.token',
-        data: {
-          payee_public_key: publicKey2,
-          can_vote: 0,
+  it(`(${testType}) Create fioSdk account: transferLockedTokens ${lockedFundsAmount}, canvote false, (20,40%) and (40,60%)`, async () => {
+    if (testType == 'sdk') {
+      try {
+        const result = await fioSdkFaucet.genericAction('transferLockedTokens', {
+          payeePublicKey: publicKey2,
+          canVote: false,
           periods: [
             {
               duration: 3600,
@@ -150,23 +128,52 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
             }
           ],
           amount: lockedFundsAmount,
-          max_fee: 400000000000,
+          maxFee: 400000000000,
           tpid: '',
-          actor: fioSdkFaucet.account,
-        }
 
-      })
-      expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys( 'status', 'fee_collected')
-    } catch (err) {
-      console.log(' Error', err)
+        })
+        expect(result.status).to.equal('OK')
+        expect(result).to.have.all.keys( 'status', 'fee_collected')
+      } catch (err) {
+        console.log('Error', err)
+      }
+    } else {  
+      try {
+        const result = await fioSdkFaucet.genericAction('pushTransaction', {
+          action: 'trnsloctoks',
+          account: 'fio.token',
+          data: {
+            payee_public_key: publicKey2,
+            can_vote: 0,
+            periods: [
+              {
+                duration: 3600,
+                percent: 30.0,
+              },
+              {
+                duration: 3640,
+                percent: 70.0,
+              }
+            ],
+            amount: lockedFundsAmount,
+            max_fee: 400000000000,
+            tpid: '',
+            actor: fioSdkFaucet.account,
+          }
+
+        })
+        expect(result.status).to.equal('OK')
+        expect(result).to.have.all.keys( 'status', 'fee_collected')
+      } catch (err) {
+        console.log(' Error', err)
+      }
     }
   })
 
-  it.skip(`getFioBalance for fioSdk and confirm 'available' = 0`, async () => {
+  it(`getFioBalance for fioSdk and confirm 'available' = 0`, async () => {
     const result = await fioSdk.genericAction('getFioBalance', {})
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('balance')
+    expect(result).to.have.all.keys('balance', 'available')
     expect(result.available).equal(0)
   })
 
@@ -206,10 +213,10 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
     }
   })
 
-  it.skip(`getFioBalance for fioSdk2 and confirm 'available' = 0`, async () => {
+  it(`getFioBalance for fioSdk2 and confirm 'available' = 0`, async () => {
     const result = await fioSdk2.genericAction('getFioBalance', {})
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('balance')
+    expect(result).to.have.all.keys('balance', 'available')
     expect(result.available).equal(0)
   })
 
@@ -359,7 +366,7 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
   })
 })
 
-describe('Testing generic actions', () => {
+describe('B. Testing generic actions', () => {
   let pubKeyForTransfer
 
   const newFioDomain = generateFioDomain(8)
@@ -486,7 +493,7 @@ describe('Testing generic actions', () => {
   it(`getFioBalance`, async () => {
     const result = await fioSdk.genericAction('getFioBalance', {})
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('balance')
+    expect(result).to.have.all.keys('balance','available')
     expect(result.balance).to.be.a('number')
   })
 
@@ -773,7 +780,7 @@ describe('Testing generic actions', () => {
       fioPublicKey: publicKey2
     })
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('balance')
+    expect(result).to.have.all.keys('balance', 'available')
     expect(result.balance).to.be.a('number')
   })
 
@@ -811,7 +818,7 @@ describe('Testing generic actions', () => {
 
 })
 
-describe('Request funds, approve and send', () => {
+describe('C. Request funds, approve and send', () => {
   const fundsAmount = 3
   let requestId
   const memo = 'testing fund request'
@@ -881,7 +888,6 @@ describe('Request funds, approve and send', () => {
   it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
   it(`getPendingFioRequests`, async () => {
-    await timeout(4000)
     const result = await fioSdk.genericAction('getPendingFioRequests', {})
     //console.log('Result: ', result)
     expect(result).to.have.all.keys('requests', 'more')
@@ -918,17 +924,17 @@ describe('Request funds, approve and send', () => {
 
   it(`Wait a few seconds.`, async () => { await timeout(8000) })
 
-  it.skip(`BUG (bahamas): BD-2306 getSentFioRequests for fioSdk2`, async () => {
+  it(`getSentFioRequests for fioSdk2 (BD-2306)`, async () => {
     const result = await fioSdk2.genericAction('getSentFioRequests', {
       limit: '',
       offset: ''
     })
-    console.log('Result: ', result)
+    //console.log('Result: ', result)
     expect(result).to.have.all.keys('requests', 'more')
     expect(result.requests).to.be.a('array')
     expect(result.more).to.be.a('number')
     const pendingReq = result.requests.find(pr => parseInt(pr.fio_request_id) === parseInt(requestId))
-    console.log('pendingReq: ', pendingReq)
+    //console.log('pendingReq: ', pendingReq)
     expect(pendingReq).to.have.all.keys('fio_request_id', 'payer_fio_address', 'payee_fio_address', 'payee_fio_public_key', 'payer_fio_public_key', 'status', 'time_stamp', 'content')
     expect(pendingReq.fio_request_id).to.be.a('number')
     expect(pendingReq.fio_request_id).to.equal(requestId)
@@ -939,7 +945,6 @@ describe('Request funds, approve and send', () => {
   })
 
   it(`Payer getObtData`, async () => {
-    await timeout(10000)
     const result = await fioSdk.genericAction('getObtData', {})
     expect(result).to.have.all.keys('obt_data_records', 'more')
     expect(result.obt_data_records).to.be.a('array')
@@ -971,7 +976,7 @@ describe('Request funds, approve and send', () => {
 
 })
 
-describe('Request funds, cancel funds request', () => {
+describe('D. Request funds, cancel funds request', () => {
   const fundsAmount = 3
   let requestId
   const memo = 'testing fund request'
@@ -1035,7 +1040,7 @@ describe('Request funds, cancel funds request', () => {
 
 })
 
-describe('Request funds, reject', () => {
+describe('E. Request funds, reject', () => {
   const fundsAmount = 4
   let requestId
   const memo = 'testing fund request'
@@ -1100,7 +1105,7 @@ describe('Request funds, reject', () => {
 
 })
 
-describe('Transfer tokens', () => {
+describe('F. Transfer tokens', () => {
   const fundsAmount = FIOSDK.SUFUnit
   let fioBalance = 0
   let fioBalanceAfter = 0
@@ -1133,7 +1138,7 @@ describe('Transfer tokens', () => {
   })
 })
 
-describe('Record obt data, check', () => {
+describe('G. Record obt data, check getObtData', () => {
   const obtId = generateObtId()
   const fundsAmount = 4.5
 
@@ -1183,16 +1188,16 @@ describe('Record obt data, check', () => {
     expect(obtData.payee_fio_address).to.equal(testFioAddressName2)
   })
 
-  it.skip(`BUG BD-2305 (not all results getting returned) Payee getObtData`, async () => {
+  it(`Payee getObtData`, async () => {
     const result = await fioSdk2.genericAction('getObtData', { tokenCode: fioTokenCode })
-    console.log('result: ', result)
+    //console.log('result: ', result)
     expect(result).to.have.all.keys('obt_data_records', 'more')
     expect(result.obt_data_records).to.be.a('array')
     expect(result.more).to.be.a('number')
     const obtData = result.obt_data_records.find(pr => pr.content.obt_id === obtId)
-    console.log('obt_data_records[0]: ', result.obt_data_records[0])
-    console.log('obtId: ', obtId)
-    console.log('obtData: ', obtData)
+    //console.log('obt_data_records[0]: ', result.obt_data_records[0])
+    //console.log('obtId: ', obtId)
+    //console.log('obtData: ', obtData)
     expect(obtData).to.have.all.keys('fio_request_id', 'payer_fio_address', 'payee_fio_address', 'payee_fio_public_key', 'payer_fio_public_key', 'status', 'time_stamp', 'content')
     expect(obtData.content.obt_id).to.be.a('string')
     expect(obtData.content.obt_id).to.equal(obtId)
@@ -1204,9 +1209,13 @@ describe('Record obt data, check', () => {
 
 })
 
-describe(`Test locked token accounts with proxy voting`, () => {
+describe(`H. Test locked token accounts with proxy voting`, () => {
 
-  let total_voted_fio, total_bp_votes
+  let total_voted_fio, total_bp_votes, user1
+
+  it(`Create user`, async () => {
+    user1 = await newUser(fioSdkFaucet);
+  })
 
   it(`Get initial total_voted_fio`, async () => {
     total_voted_fio = await getTotalVotedFio();
@@ -1309,7 +1318,7 @@ describe(`Test locked token accounts with proxy voting`, () => {
     try {
       let prev_total_voted_fio = total_voted_fio
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio: ', total_voted_fio)
+      //console.log('total_voted_fio: ', total_voted_fio / config.BILLION)
       expect(total_voted_fio).to.equal(prev_total_voted_fio + fioSdk.last_vote_weight)
     } catch (err) {
       console.log('Error', err)
@@ -1329,8 +1338,8 @@ describe(`Test locked token accounts with proxy voting`, () => {
     }
   })
   
-  it('Transfer additional 500 FIO from faucet to fioSdk', async () => {
-    const result = await fioSdkFaucet.genericAction('transferTokens', {
+  it('Transfer additional 500 FIO from user1 to fioSdk', async () => {
+    const result = await user1.sdk.genericAction('transferTokens', {
       payeeFioPublicKey: publicKey,
       amount: 500000000000,
       maxFee: config.api.transfer_tokens_pub_key.fee,
@@ -1352,11 +1361,11 @@ describe(`Test locked token accounts with proxy voting`, () => {
     }
   })
 
-  it.skip(`(Bug? will address in most recent fio.test) total_voted_fio increased by 500 FIO`, async () => {
+  it(`total_voted_fio increased by 500 FIO`, async () => {
     try {
       let prev_total_voted_fio = total_voted_fio
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio: ', total_voted_fio)
+      //console.log('total_voted_fio: ', total_voted_fio / config.BILLION)
       expect(total_voted_fio).to.equal(prev_total_voted_fio + 500000000000)
     } catch (err) {
       console.log('Error', err)
@@ -1376,11 +1385,11 @@ describe(`Test locked token accounts with proxy voting`, () => {
     }
   })
 
-  it(`Transfer 200 FIO from fioSdk back to faucet`, async () => {
+  it(`Transfer 200 FIO from fioSdk back to user1 (to remove votes from the total)`, async () => {
     const result = await fioSdk.genericAction('transferTokens', {
-      payeeFioPublicKey: config.FAUCET_PUB_KEY,
+      payeeFioPublicKey: user1.publicKey,
       amount: 200000000000,
-      maxFee: config.api.transfer_tokens_pub_key.fee,
+      maxFee: config.maxFee,
     })
     //console.log('Result', result)
     expect(result.status).to.equal('OK')
@@ -1390,32 +1399,34 @@ describe(`Test locked token accounts with proxy voting`, () => {
 
   it(`Get fioSdk last_vote_weight (should be 200 + 2 fee = 202 less)`, async () => {
     try {
+      prevVoteWeight = fioSdk.last_vote_weight
       fioSdk.last_vote_weight = await getAccountVoteWeight(account);
       //console.log('fioSdk.last_vote_weight:', fioSdk.last_vote_weight)
+      expect(fioSdk.last_vote_weight).to.equal(prevVoteWeight- 200000000000 - transfer_tokens_pub_key_fee)
     } catch (err) {
-      console.log('Error: ', err.json)
+      console.log('Error: ', err)
       expect(err).to.equal('null')
     }
   })
 
-  it.skip(`(Bug? will address in most recent fio.test)total_voted_fio decreased by 200 - transfer_tokens_pub_key fee`, async () => {
+  it(`total_voted_fio decreased by 200 - transfer_tokens_pub_key fee`, async () => {
     try {
       let prev_total_voted_fio = total_voted_fio
       total_voted_fio = await getTotalVotedFio();
       //console.log('total_voted_fio: ', total_voted_fio)
-      expect(total_voted_fio).to.equal(prev_total_voted_fio - 200000000000 - config.api.transfer_tokens_pub_key.fee)
+      expect(total_voted_fio).to.equal(prev_total_voted_fio - 200000000000 - transfer_tokens_pub_key_fee)
     } catch (err) {
       console.log('Error', err)
       expect(err).to.equal('null')
     }
   })
 
-  it.skip(`(Bug? will address in most recent fio.test) bp1@dapixdev total_votes descreased by 200 - transfer_tokens_pub_key fee`, async () => {
+  it(`bp1@dapixdev total_votes decreased by 200 - transfer_tokens_pub_key fee`, async () => {
     try {
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
       //console.log('bp1@dapixdev total_votes:', total_bp_votes)
-      expect(total_bp_votes).to.equal(prev_total_bp_votes - 200000000000 - config.api.transfer_tokens_pub_key.fee)
+      expect(total_bp_votes).to.equal(prev_total_bp_votes - 200000000000 - transfer_tokens_pub_key_fee)
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal('null')

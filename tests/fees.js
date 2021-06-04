@@ -1,14 +1,14 @@
 require('mocha')
 const {expect} = require('chai')
 const {newUser, fetchJson} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
+const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
 })
 
-describe('************************** fees.js ************************** \n Test Transaction Fees', () => {
+describe('************************** fees.js ************************** \n    Test Transaction Fees', () => {
   let userA1
 
   it(`Create users`, async () => {
@@ -22,7 +22,7 @@ describe('************************** fees.js ************************** \n Test 
         //console.log('bundledEligible: ', config.api[fioEndpoint].bundledEligible)
         if (config.api[fioEndpoint].bundledEligible) {
           const result = await userA1.sdk.genericAction('getFee', {
-            endPoint: fioEndpoint, 
+            endPoint: fioEndpoint,
             fioAddress: userA1.address,
           })
           //console.log('Returned fee: ', result)
@@ -41,7 +41,7 @@ describe('************************** fees.js ************************** \n Test 
     }
   })
 
-  it.skip(`Test all fees UPPERCASE`, async () => {
+  it(`Test all fees UPPERCASE`, async () => {
     let fioEndpoint;
     for (fioEndpoint in config.api) {
       try {
@@ -49,7 +49,7 @@ describe('************************** fees.js ************************** \n Test 
         //console.log('bundledEligible: ', config.api[fioEndpoint].bundledEligible)
         if (config.api[fioEndpoint].bundledEligible) {
           const result = await userA1.sdk.genericAction('getFee', {
-            endPoint: fioEndpoint, 
+            endPoint: fioEndpoint,
             fioAddress: userA1.address.toUpperCase(),
           })
           //console.log('Returned fee: ', result)

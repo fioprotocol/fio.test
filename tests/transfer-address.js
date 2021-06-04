@@ -1,14 +1,14 @@
 require('mocha')
 const {expect} = require('chai')
 const {newUser, generateFioAddress, createKeypair, callFioApi, getFees, fetchJson, timeout} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
+const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
 before(async () => {
     faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
 })
 
-describe('************************** transfer-address.js ************************** \n A. Transfer an address to FIO Public Key which maps to existing account on FIO Chain using new endpoint (not push action)', () => {
+describe('************************** transfer-address.js ************************** \n    A. Transfer an address to FIO Public Key which maps to existing account on FIO Chain using new endpoint (not push action)', () => {
 
     let walletA1, walletA1FioNames, walletA1OrigBalance, walletA1OrigRam, walletA2, walletA2FioNames, walletA2OrigRam, transfer_fio_address_fee, origAddressExpire, feeCollected
 
@@ -854,7 +854,7 @@ describe('D. transferFioAddress Error testing', () => {
         }
     })
 
-    it(`For Bravo, this will fail because userD3 has OBT transactions. Will need to fix when all xferaddress are enabled. Transfer address with insufficient funds and no bundled transactions. Expect error type 400: ${config.error.insufficientFunds}`, async () => {
+    it.skip(`(For Bravo/v2.3.0 contracts, transferring the address will fail because userD3 has OBT transactions. Will need to fix when all xferaddress are enabled.) Transfer address with insufficient funds and no bundled transactions. Expect error type 400: ${config.error.insufficientFunds}`, async () => {
         try {
             const result = await userD3.sdk.genericAction('transferFioAddress', {
                 fioAddress: userD3.address,
@@ -865,14 +865,12 @@ describe('D. transferFioAddress Error testing', () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log('Error: ', err.json.error)
-            expect(err.json.code).to.equal(500);
-            //expect(err.json.fields[0].error).to.equal(config.error.insufficientFunds)
-            //expect(err.json.code).to.equal(400);
+            expect(err.json.fields[0].error).to.equal(config.error.insufficientFunds)
+            expect(err.json.code).to.equal(400);
         }
     })
 
 })
-
 
 describe('E. Confirm active producers and proxy cannot transfer address', () => {
 
@@ -953,7 +951,7 @@ describe('E. Confirm active producers and proxy cannot transfer address', () => 
         }
     })
 
-    it(`Wait a few seconds.`, async () => { await timeout(3000) })
+    it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
     it('Confirm is_proxy = 1 for proxy1 ', async () => {
         try {
@@ -1001,7 +999,7 @@ describe('E. Confirm active producers and proxy cannot transfer address', () => 
 
 })
 
-describe('BRAVO ONLY: Confirm users with OBT records or Requests cannot transfer addresses', () => {
+describe('F. BRAVO ONLY: Confirm users with OBT records or Requests cannot transfer addresses', () => {
 
     let user1, user2, user3, user4, transfer_fio_address_fee
 
@@ -1043,6 +1041,8 @@ describe('BRAVO ONLY: Confirm users with OBT records or Requests cannot transfer
           expect(err).to.equal(null)
         }
       })
+
+      it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
     it(`Transfer user1.address to user2. Expect error 500 - assertion failure with message: Transfering a FIO address is currently disabled for some fio.addresses `, async () => {
         try {

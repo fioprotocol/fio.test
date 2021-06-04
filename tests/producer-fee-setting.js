@@ -1,13 +1,13 @@
 require('mocha')
 const {expect} = require('chai')
 const {getBlock, readProdFile, getTopprods, getTable, timeout, callFioApi, callFioApiSigned, getFees, newUser, existingUser, fetchJson} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
+const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
 let producersList = [], producers = [], submit_fee_ratios_fee, submit_fee_multiplier_fee
 
 async function createProds() {
-  for (prod in producersList) {  
+  for (prod in producersList) {
     // Create the producers on the node and make a test sdk object for them
     //producers[prod] = await newUser(faucet, producersList[prod].account, producersList[prod].privateKey, producersList[prod].publicKey, producersList[prod].domain, producersList[prod].address);
     prodAccount = producersList[prod].account;
@@ -55,7 +55,7 @@ before(async () => {
 
 describe.skip('************************** producer_fee-setting.js ************************** \n A. Set fee ratio to zero for bp1 and confirm no exceptions thrown (MAS-1888).', () => {
   let bp = 'qbxn5zhw2ypw' // (bp1)
- 
+
   it('Get action_mroot from latest block and confirm it is not zero.', async () => {
     const fiourl = config.URL + "/v1/chain/";
     getInfo = await (await fetch(fiourl + 'get_info')).json();
@@ -81,7 +81,7 @@ describe.skip('************************** producer_fee-setting.js **************
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it('Set fee ratio to 0 for bp1', async () => {
@@ -102,7 +102,7 @@ describe.skip('************************** producer_fee-setting.js **************
     } catch (err) {
       console.log('Error: ', err.json.fields);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it('Call computefees action', async () => {
@@ -118,7 +118,7 @@ describe.skip('************************** producer_fee-setting.js **************
     } catch (err) {
       console.log('Error: ', err.json.fields);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it('Get action_mroot from latest block and confirm it is not zero.', async () => {
@@ -142,14 +142,14 @@ describe('B. Test 15 prod activation for fee setting.', () => {
       //console.log("topprods: ", topprods)
       if (topprods.rows.length == 3) {  // This is a first test run for a localhost 3 node test environment, so register the 21 producers
         firstRun = true;
-        for (prod in producersList) {  
+        for (prod in producersList) {
           // Create the producers on the node and make a test sdk object for them
           let prodAccount = producersList[prod].account;
-          producers[prodAccount] = await newUser(faucet, producersList[prod].account, producersList[prod].privateKey, producersList[prod].publicKey, producersList[prod].domain, producersList[prod].address);        
+          producers[prodAccount] = await newUser(faucet, producersList[prod].account, producersList[prod].privateKey, producersList[prod].publicKey, producersList[prod].domain, producersList[prod].address);
           // Register the producer
-          console.log('Register the producer'); 
-          console.log('ProdAccount: ', producers[prodAccount].sdk); 
-          console.log('ProdAccount: ', producers[prodAccount].privateKey); 
+          console.log('Register the producer');
+          console.log('ProdAccount: ', producers[prodAccount].sdk);
+          console.log('ProdAccount: ', producers[prodAccount].privateKey);
           const result1 = await producers[prodAccount].sdk.genericAction('pushTransaction', {
             action: 'regproducer',
             account: 'eosio',
@@ -163,7 +163,7 @@ describe('B. Test 15 prod activation for fee setting.', () => {
             }
           })
           // Have the producer vote for themselves
-          console.log('Have the producer vote for themselves'); 
+          console.log('Have the producer vote for themselves');
           const result2 = await producers[prodAccount].sdk.genericAction('pushTransaction', {
             action: 'voteproducer',
             account: 'eosio',
@@ -181,7 +181,7 @@ describe('B. Test 15 prod activation for fee setting.', () => {
         //console.log('Wait 60 seconds for topprods table to update');
         //await timeout(60000);
       } else { // Just create the test sdk objects for the existing producers
-        for (prod in producersList) {  
+        for (prod in producersList) {
           //console.log("producersList[prod]: ", producersList[prod])
           producers[producersList[prod].account] = await existingUser(producersList[prod].account, producersList[prod].privateKey, producersList[prod].publicKey, producersList[prod].domain, producersList[prod].address)
         }
@@ -189,8 +189,8 @@ describe('B. Test 15 prod activation for fee setting.', () => {
     } catch (err) {
       console.log('Error: ', err.json);
       expect(err).to.equal(null);
-    } 
-  }) 
+    }
+  })
 
   it('If first run wait 30 seconds for topprods table to update.', async () => {
     if (firstRun) {
@@ -211,7 +211,7 @@ describe('B. Test 15 prod activation for fee setting.', () => {
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it('Get top prods', async () => {
@@ -227,7 +227,7 @@ describe('B. Test 15 prod activation for fee setting.', () => {
     } catch (err) {
       console.log('Error: ', err.json);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it.skip('Confirm multipliers table is empty', async () => {
@@ -238,8 +238,8 @@ describe('B. Test 15 prod activation for fee setting.', () => {
     } catch (err) {
       console.log('Error: ', err.json)
       expect(err).to.equal(null);
-    } 
-  }) 
+    }
+  })
 
   it.skip('Confirm ratio table is empty', async () => {
     try {
@@ -249,8 +249,8 @@ describe('B. Test 15 prod activation for fee setting.', () => {
     } catch (err) {
       console.log('Error: ', err.json)
       expect(err).to.equal(null);
-    } 
-  }) 
+    }
+  })
 
   it('Set multipliers to 1 for topprods', async () => {
     let account;
@@ -259,7 +259,7 @@ describe('B. Test 15 prod activation for fee setting.', () => {
         json: true,
         code: 'eosio',
         scope: 'eosio',
-        table: 'topprods', 
+        table: 'topprods',
         limit: 1000,
         reverse: false,
         show_payer: false
@@ -284,7 +284,7 @@ describe('B. Test 15 prod activation for fee setting.', () => {
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
     it(`Show multipliers table.`, async () => {
@@ -293,7 +293,7 @@ describe('B. Test 15 prod activation for fee setting.', () => {
         json: true,
         code: 'fio.fee',
         scope: 'fio.fee',
-        table: 'feevoters', 
+        table: 'feevoters',
         limit: 1000,
         reverse: false,
         show_payer: false
@@ -314,7 +314,7 @@ describe('B. Test 15 prod activation for fee setting.', () => {
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it('Set register_fio_domain fee ratio for 1-7 prods to 100 FIO', async () => {
@@ -345,7 +345,7 @@ describe('B. Test 15 prod activation for fee setting.', () => {
     } catch (err) {
       console.log('Error: ', err.json.fields);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it('Call computefees action', async () => {
@@ -361,20 +361,20 @@ describe('B. Test 15 prod activation for fee setting.', () => {
     } catch (err) {
       console.log('Error: ', err.json.fields);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it('Confirm fees have not changed', async () => {
     try {
       let prevFees = fees;
       fees = await getFees();
-      for (endpoint in fees) { 
+      for (endpoint in fees) {
         expect(fees[endpoint]).to.equal(prevFees[endpoint]);
       }
     } catch (err) {
       console.log('Error: ', err.json);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it('Set register_fio_domain fee ratio for 8-14 prods to 200 FIO', async () => {
@@ -404,7 +404,7 @@ describe('B. Test 15 prod activation for fee setting.', () => {
     } catch (err) {
       console.log('Error: ', err.json);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it('Call computefees action', async () => {
@@ -420,20 +420,20 @@ describe('B. Test 15 prod activation for fee setting.', () => {
     } catch (err) {
       console.log('Error: ', err.json.fields);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it('Confirm fees have not changed (only 14 fee ratio votes)', async () => {
     try {
       let prevFees = fees;
       fees = await getFees();
-      for (endpoint in fees) { 
+      for (endpoint in fees) {
         expect(fees[endpoint]).to.equal(prevFees[endpoint]);
       }
     } catch (err) {
       console.log('Error: ', err.json);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it('Set register_fio_domain fee ratio for 15th prod to 100 FIO', async () => {
@@ -461,20 +461,20 @@ describe('B. Test 15 prod activation for fee setting.', () => {
     } catch (err) {
       console.log('Error: ', err.json);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it('Confirm fees have not changed since computefees has not been run', async () => {
     try {
       let prevFees = fees;
       fees = await getFees();
-      for (endpoint in fees) { 
+      for (endpoint in fees) {
         expect(fees[endpoint]).to.equal(prevFees[endpoint]);
       }
     } catch (err) {
       console.log('Error: ', err.json);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it(`Show ratios table.`, async () => {
@@ -483,7 +483,7 @@ describe('B. Test 15 prod activation for fee setting.', () => {
         json: true,
         code: 'fio.fee',
         scope: 'fio.fee',
-        table: 'feevotes2', 
+        table: 'feevotes2',
         limit: 1000,
         reverse: false,
         show_payer: false
@@ -512,7 +512,7 @@ describe('B. Test 15 prod activation for fee setting.', () => {
     } catch (err) {
       console.log('Error: ', err.json.fields);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it('Confirm only register_fio_domain fee changed to 100 FIO', async () => {
@@ -520,7 +520,7 @@ describe('B. Test 15 prod activation for fee setting.', () => {
       let value = 100000000000;
       let prevFees = fees;
       fees = await getFees();
-      for (endpoint in fees) { 
+      for (endpoint in fees) {
         console.log(endpoint + ' = ' + fees[endpoint])
         if (endpoint == 'register_fio_domain') {
           expect(fees[endpoint]).to.equal(value);
@@ -531,7 +531,7 @@ describe('B. Test 15 prod activation for fee setting.', () => {
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
-    } 
+    }
   })
 /*
   it('Set register_fio_domain fee ratio for 16th prod to 200 FIO', async () => {
@@ -559,7 +559,7 @@ describe('B. Test 15 prod activation for fee setting.', () => {
     } catch (err) {
       console.log('Error: ', err.json);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it('Call computefees action', async () => {
@@ -575,7 +575,7 @@ describe('B. Test 15 prod activation for fee setting.', () => {
     } catch (err) {
       console.log('Error: ', err.json.fields);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it('Confirm fees have not changed (even amount does what??)', async () => {
@@ -584,13 +584,13 @@ describe('B. Test 15 prod activation for fee setting.', () => {
       console.log('prevFees: ', prevFees)
       fees = await getFees();
       console.log('Fees: ', fees)
-      for (endpoint in fees) { 
+      for (endpoint in fees) {
         expect(fees[endpoint]).to.equal(prevFees[endpoint]);
       }
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
    it('Set register_fio_domain fee ratio for 17th prod to 200 FIO', async () => {
@@ -618,7 +618,7 @@ describe('B. Test 15 prod activation for fee setting.', () => {
     } catch (err) {
       console.log('Error: ', err.json);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it('Call computefees action', async () => {
@@ -634,7 +634,7 @@ describe('B. Test 15 prod activation for fee setting.', () => {
     } catch (err) {
       console.log('Error: ', err.json.fields);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it('Confirm only register_fio_domain fee changed to 200 FIO', async () => {
@@ -642,7 +642,7 @@ describe('B. Test 15 prod activation for fee setting.', () => {
       let value = 200000000000;
       let prevFees = fees;
       fees = await getFees();
-      for (endpoint in fees) { 
+      for (endpoint in fees) {
         console.log(endpoint + ' = ' + fees[endpoint])
         if (endpoint == 'register_fio_domain') {
           expect(fees[endpoint]).to.equal(value);
@@ -653,7 +653,7 @@ describe('B. Test 15 prod activation for fee setting.', () => {
     } catch (err) {
       console.log('Error: ', err.json);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it('Wait 60 seconds.', async () => {
@@ -671,7 +671,7 @@ describe('B. Test 15 prod activation for fee setting.', () => {
         json: true,
         code: 'eosio',
         scope: 'eosio',
-        table: 'topprods', 
+        table: 'topprods',
         limit: 1000,
         reverse: false,
         show_payer: false
@@ -696,7 +696,7 @@ describe('B. Test 15 prod activation for fee setting.', () => {
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it('Call computefees action', async () => {
@@ -712,7 +712,7 @@ describe('B. Test 15 prod activation for fee setting.', () => {
     } catch (err) {
       console.log('Error: ', err.json.fields);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it('Confirm only register_fio_domain fee changed to 400 FIO', async () => {
@@ -720,7 +720,7 @@ describe('B. Test 15 prod activation for fee setting.', () => {
       let value = 400000000000;
       let prevFees = fees;
       fees = await getFees();
-      for (endpoint in fees) { 
+      for (endpoint in fees) {
         console.log(endpoint + ' = ' + fees[endpoint])
         if (endpoint == 'register_fio_domain') {
           expect(fees[endpoint]).to.equal(value);
@@ -731,10 +731,10 @@ describe('B. Test 15 prod activation for fee setting.', () => {
     } catch (err) {
       console.log('Error: ', err.json);
       expect(err).to.equal(null);
-    } 
+    }
   })
 */
-  
+
 })
 
 describe('C. Test invalid multipliers and ratios (using producer #20)', () => {
@@ -745,15 +745,15 @@ describe('C. Test invalid multipliers and ratios (using producer #20)', () => {
       topprods = await getTopprods();
       //console.log("topprods: ", topprods)
       if (topprods.rows.length == 3) {  // This is a first test run for a localhost 3 node test environment, so register the 21 producers
-        for (prod in producersList) {  
+        for (prod in producersList) {
           // Create the producers on the node and make a test sdk object for them
           //producers[prod] = await newUser(faucet, producersList[prod].account, producersList[prod].privateKey, producersList[prod].publicKey, producersList[prod].domain, producersList[prod].address);
           let prodAccount = producersList[prod].account;
-          producers[prodAccount] = await newUser(faucet, producersList[prod].account, producersList[prod].privateKey, producersList[prod].publicKey, producersList[prod].domain, producersList[prod].address);        
+          producers[prodAccount] = await newUser(faucet, producersList[prod].account, producersList[prod].privateKey, producersList[prod].publicKey, producersList[prod].domain, producersList[prod].address);
           // Register the producer
-          console.log('Register the producer'); 
-          console.log('ProdAccount: ', producers[prodAccount].sdk); 
-          console.log('ProdAccount: ', producers[prodAccount].privateKey); 
+          console.log('Register the producer');
+          console.log('ProdAccount: ', producers[prodAccount].sdk);
+          console.log('ProdAccount: ', producers[prodAccount].privateKey);
           const result1 = await producers[prodAccount].sdk.genericAction('pushTransaction', {
             action: 'regproducer',
             account: 'eosio',
@@ -767,7 +767,7 @@ describe('C. Test invalid multipliers and ratios (using producer #20)', () => {
             }
           })
           // Have the producer vote for themselves
-          console.log('Have the producer vote for themselves'); 
+          console.log('Have the producer vote for themselves');
           const result2 = await producers[prodAccount].sdk.genericAction('pushTransaction', {
             action: 'voteproducer',
             account: 'eosio',
@@ -785,7 +785,7 @@ describe('C. Test invalid multipliers and ratios (using producer #20)', () => {
         console.log('Wait 60 seconds for topprods table to update');
         await timeout(60000);
       } else { // Just create the test sdk objects for the existing producers
-        for (prod in producersList) {  
+        for (prod in producersList) {
           //console.log("producersList[prod]: ", producersList[prod])
           //producers[prod] = await existingUser(producersList[prod].account, producersList[prod].privateKey, producersList[prod].publicKey, producersList[prod].domain, producersList[prod].address)
           producers[producersList[prod].account] = await existingUser(producersList[prod].account, producersList[prod].privateKey, producersList[prod].publicKey, producersList[prod].domain, producersList[prod].address)
@@ -794,10 +794,10 @@ describe('C. Test invalid multipliers and ratios (using producer #20)', () => {
     } catch (err) {
       console.log('Error: ', err.json);
       expect(err).to.equal(null);
-    } 
-  }) 
+    }
+  })
 
-  it.skip(`Bug: .Set fee ratio to negative number gives error: ${config.error.invalidRatioFeeError}`, async () => {
+  it.skip(`BUG: .Set fee ratio to negative number gives error: ${config.error.invalidRatioFeeError}`, async () => {
     try {
       let endpoint = 'register_fio_domain'
       let value = -400
@@ -820,7 +820,7 @@ describe('C. Test invalid multipliers and ratios (using producer #20)', () => {
     } catch (err) {
       //console.log('Error: ', err.message);
       expect(err.message).to.equal(config.error.invalidRatioFeeError)
-    } 
+    }
   })
 
   it(`Set fee ratio to float (123.456) number gives error: ${config.error.invalidRatioFeeError}`, async () => {
@@ -846,7 +846,7 @@ describe('C. Test invalid multipliers and ratios (using producer #20)', () => {
     } catch (err) {
       //console.log('Error: ', err.message);
       expect(err.message).to.equal(config.error.invalidRatioFeeError)
-    } 
+    }
   })
 
   it(`Set fee ratio to 1,000,000,000,000,000,000,000,000 number gives error: ${config.error.invalidRatioFeeError}`, async () => {
@@ -873,7 +873,7 @@ describe('C. Test invalid multipliers and ratios (using producer #20)', () => {
     } catch (err) {
       //console.log('Error: ', err.message);
       expect(err.message).to.equal(config.error.invalidRatioFeeError)
-    } 
+    }
   })
 
   it(`Set multiplier to negative number gives error: ${config.error.invalidMultiplierFeeError}`, async () => {
@@ -899,7 +899,7 @@ describe('C. Test invalid multipliers and ratios (using producer #20)', () => {
     } catch (err) {
       //console.log('Error: ', err);
       expect(err.message).to.equal(config.error.invalidMultiplierFeeError)
-    } 
+    }
   })
 
   it(`Set fee multiplier to 1,000,000,000,000,000,000 number gives error: ${config.error.invalidMultiplierFeeError}`, async () => {
@@ -925,7 +925,7 @@ describe('C. Test invalid multipliers and ratios (using producer #20)', () => {
     } catch (err) {
       //console.log('Error: ', err.message);
       expect(err.message).to.equal(config.error.invalidMultiplierFeeError)
-    } 
+    }
   })
-  
+
 })
