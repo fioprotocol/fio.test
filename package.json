@@ -37,6 +37,8 @@
     },
     "scripts": {
         "test": "node node_modules/mocha/bin/_mocha -t 5000000 index.js",
-        "testnet": "mocha -t 5000000 tests/testnet-smoketest.js"
+        "testnet": "mocha -t 5000000 tests/testnet-smoketest.js",
+        "copyERC20": "cp -R ../fio.erc20/contracts/wfio.sol contracts/",
+        "compileERC20": "npx hardhat compile"
     }
 }
