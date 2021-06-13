@@ -69,21 +69,22 @@ describe(`************************** stake-regression.js ***********************
         action: 'stakefio',
         account: 'fio.staking',
         data: {
-          fio_address: locksdk.fio_address,
+          fio_address: "stake@dapixdev",
           amount: 1000000000000,
           actor: locksdk.account,
           max_fee: config.maxFee,
-          tpid:''
+          tpid:'casey@dapixdev'
         }
       })
-     // console.log('Result: ', result)
+      console.log('Result: ', result)
       expect(result.status).to.not.equal('OK')
     } catch (err) {
-     // console.log("Error : ", err.json)
+      console.log("Error : ", err.json)
       expect(err.json.fields[0].error).to.contain('has not voted')
     }
   })
 
+  /*
   it(`Success, vote for producers.`, async () => {
 
     try {
@@ -236,6 +237,7 @@ describe(`************************** stake-regression.js ***********************
       expect(err.json.fields[0].error).to.contain('Cannot unstake more than staked')
     }
   })
+  */
 
 })
 
