@@ -528,19 +528,20 @@ describe('C. Error testing', () => {
         for (i = 0; i < 51; i++) {
             try {
                 const result = await user1.sdk.genericAction('recordObtData', {
-                payerFioAddress: user1.address,
-                payeeFioAddress: user2.address,
-                payerTokenPublicAddress: user1.publicKey,
-                payeeTokenPublicAddress: user2.publicKey,
-                amount: 5000000000,
-                chainCode: "BTC",
-                tokenCode: "BTC",
-                status: '',
-                obtId: '',
-                maxFee: config.api.record_obt_data.fee,
-                technologyProviderId: '',
-                payeeFioPublicKey: user2.publicKey,
-                memo: 'this is a test'
+                    fioRequestId: '',
+                    payerFioAddress: user1.address,
+                    payeeFioAddress: user2.address,
+                    payerTokenPublicAddress: user1.publicKey,
+                    payeeTokenPublicAddress: user2.publicKey,
+                    amount: 5000000000,
+                    chainCode: "BTC",
+                    tokenCode: "BTC",
+                    status: '',
+                    obtId: '',
+                    maxFee: config.api.record_obt_data.fee,
+                    technologyProviderId: '',
+                    payeeFioPublicKey: user2.publicKey,
+                    memo: 'this is a test'
                 })
                 //console.log('Result: ', result)
                 expect(result.status).to.equal('sent_to_blockchain')

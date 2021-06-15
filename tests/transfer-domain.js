@@ -733,6 +733,7 @@ describe('D. transferFioDomain Error testing', () => {
     for (i = 0; i < 51; i++) {
       try {
         const result = await userD3.sdk.genericAction('recordObtData', {
+          fioRequestId: '',
           payerFioAddress: userD3.address,
           payeeFioAddress: userD2.address,
           payerTokenPublicAddress: userD3.publicKey,
