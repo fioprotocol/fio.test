@@ -145,7 +145,7 @@ describe('************************** expired-address-domain.js *****************
     }
   })
 
-  it.skip(`(BUG BD-2475) Burn userA1.address. Expect error type 400: ${config.error.fioDomainNeedsRenew}`, async () => {
+  it(`Burn userA1.address. Expect error type 400: ${config.error.fioDomainNeedsRenew} (BD-2475)`, async () => {
     try {
         const result = await callFioApiSigned('push_transaction', {
             action: 'burnaddress',
