@@ -3,3 +3,4 @@ package-lock.json
 .DS_Store
 tests/.DS_Store
 .idea
+contracts/*
