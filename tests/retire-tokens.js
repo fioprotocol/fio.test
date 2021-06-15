@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, existingUser, fetchJson, generateFioDomain, generateFioAddress, createKeypair, callFioApi} = require('../utils.js');
+const {newUser, existingUser, fetchJson, generateFioDomain, generateFioAddress, createKeypair, callFioApi, timeout} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
@@ -9,7 +9,7 @@ before(async () => {
 })
 
 describe.only(`************************** retire-tokens.js ************************** \n    A. Retire FIO Tokens`, () => {
-  let userA, userA1, userA2, userA3, userA4, userA5, prevFundsAmount
+  let userA, userA1, userA2, userA3, userA4, userA5, userA6
 
   const RETIRETEST1 = {
     account: 'jbx4oaspu1h1',
@@ -39,6 +39,12 @@ describe.only(`************************** retire-tokens.js *********************
     account: 'tkvlcmcdftuv',
     publicKey: 'FIO5ZiPCxxtND2Z9NvYQYVphGYiXhwDRiH4mbg3ENp6Bh6pGR2WjB',
     privateKey: '5JY4WVpxVHcuWuvHpwDAxJL85xNR5nLeq2V2eyen2pcBybVhhnt'
+  }
+
+  const userA6Keys = {
+    account: 'isqotfueflhg',
+    publicKey: 'FIO5co2UAAAjVgwtaZMT8Uu7pAHHGAtWUzstqg7hZyJKVBWMW7ZDh',
+    privateKey: '5JdFRXbxXsKvXWFEuX2GTTakr5oqkhsDVjyXJuUvT8kakgQtmzG'
   }
 
   const fundsAmount = 1000000000000
@@ -71,7 +77,7 @@ Total tokens issued count is reduced by 1000
 */
 
 
-  it(`Happy Test, Retire ${fundsAmount} tokens from userA (empty memo)`, async () => {
+  it(`Happy Test, Retire ${fundsAmount} SUFs from userA (empty memo)`, async () => {
     try {
       const result = await userA.sdk.genericAction('pushTransaction', {
         action: 'retire',
@@ -98,7 +104,7 @@ Total tokens issued count is reduced by 1000
 Locks table is updated
 */
 // Lock set in fio.devtools 17_emplace_test_grants_into_locked_tokens.sh
-  it(`Happy Test, Retire ${fundsAmount} tokens from UserA1 (type 4 lock)`, async () => {
+  it(`Happy Test, Retire ${fundsAmount} SUFs from UserA1 (type 4 lock)`, async () => {
     try {
       const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'retire',
@@ -162,7 +168,7 @@ Locks table is updated
   Locks table is updated and unlocked tokens remain the same
   */
 
-  it(`Happy Test, Retire ${fundsAmount} tokens from UserA2 (type 1 lock)`, async () => {
+  it(`Happy Test, Retire ${fundsAmount} SUFs from UserA2 (type 1 lock)`, async () => {
     try {
       const result = await userA2.sdk.genericAction('pushTransaction', {
         action: 'retire',
@@ -236,12 +242,16 @@ Locks table is updated
           payee_public_key: userA5Keys.publicKey,
       	  can_vote: 0,
         	periods: [
-        		{
-        			"duration": 1000,
-        			"amount": 1000000000000
+        		{ // > 1000 are unlocked
+        			"duration": 1,
+        			"amount": 1100000000000
         		},
+            { // > 1000 are still locked
+              "duration": 10000,
+              "amount": 1100000000000
+            }
         	],
-        	amount: 1000000000000,
+        	amount: 2200000000000,
           max_fee: 40000000000,
         	tpid: "",
         	actor: userA4.account
@@ -249,14 +259,18 @@ Locks table is updated
       })
       //console.log(`Result: `, result);
       expect(result.status).to.equal('OK');
+
     } catch (err) {
      console.log(err.message);
      console.log(err.json);
     // expect(err).to.equal(null);
     }
+
+      await timeout(1000); // let those SUFs unlock
+
   })
 
-  it(`Happy Test, Retire ${fundsAmount} tokens from UserA5 (FIP-6 Lock)`, async () => {
+  it(`Happy Test, Retire ${fundsAmount} SUFs from UserA5 (FIP-6 Lock)`, async () => {
     try {
       //userA5 account is created on trnslocktoks to the new public key
       userA5 = await existingUser(userA5Keys.account, userA5Keys.privateKey, userA5Keys.publicKey,'','');
@@ -290,6 +304,75 @@ Locks table is updated
   Locks table is updated and both locked and unlocked tokens are adjusted
   */
 
+  it(`Set FIP-6 lock for UserA6)`, async () => {
+    try {
+      const result = await userA4.sdk.genericAction('pushTransaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        data: {
+          payee_public_key: userA6Keys.publicKey,
+          can_vote: 0,
+          periods: [
+            { // < 1000 are unlocked
+              "duration": 1,
+              "amount": 900000000000
+            },
+            { // > 1000 are still locked
+              "duration": 10000,
+              "amount": 1100000000000
+            }
+          ],
+          amount: 2000000000000,
+          max_fee: 40000000000,
+          tpid: "",
+          actor: userA4.account
+        }
+      })
+      //console.log(`Result: `, result);
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+     console.log(err.message);
+     console.log(err.json);
+    // expect(err).to.equal(null);
+    }
+
+      await timeout(1000); // let those SUFs unlock
+
+  })
+
+  it(`Happy Test, Retire ${fundsAmount} SUFs from UserA6 (FIP-6 Lock)`, async () => {
+    try {
+      //userA6 account is created on trnslocktoks to the new public key
+      userA6 = await existingUser(userA6Keys.account, userA6Keys.privateKey, userA6Keys.publicKey,'','');
+      const result = await userA6.sdk.genericAction('pushTransaction', {
+        action: 'retire',
+        account: 'fio.token',
+        data: {
+          quantity: fundsAmount,
+          memo: "test string",
+          actor: userA6.account,
+        }
+      })
+  //  console.log(`Result: `, result);
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+     console.log(err.message);
+     expect(err).to.equal(null);
+    }
+
+    try {
+      const result = await userA6.sdk.genericAction('getFioBalance', { fioPublicKey: userA6.publicKey } )
+      //console.log('Result: ', result)
+      expect(result.balance).to.equal(1000000000000);
+      expect(result.available).to.equal(0);
+    } catch (err) {
+      console.log(err.message);
+    }
+
+
+  })
+
+//************ SAD TESTS *************/
 
       it(`Sad Test, Retire 1 FIO token from userA4`, async () => {
         try {
@@ -309,7 +392,7 @@ Locks table is updated
         }
       })
 
-      it(`Sad Test, Retire ${fundsAmount} tokens from userA3 (Insufficient funds)`, async () => {
+      it(`Sad Test, Retire ${fundsAmount} SUFs from userA3 (Insufficient funds)`, async () => {
         try {
           const result = await userA3.sdk.genericAction('pushTransaction', {
             action: 'retire',
@@ -329,7 +412,7 @@ Locks table is updated
       })
 
 
-      it(`Sad Test, Retire ${fundsAmount} tokens from userA3 (memo > 256)`, async () => {
+      it(`Sad Test, Retire ${fundsAmount} SUFs from userA3 (memo > 256)`, async () => {
         try {
           const result = await userA3.sdk.genericAction('pushTransaction', {
             action: 'retire',
