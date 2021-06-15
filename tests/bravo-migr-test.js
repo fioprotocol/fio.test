@@ -9,7 +9,7 @@
 require('mocha')
 const {expect} = require('chai')
 const {newUser, fetchJson, existingUser, callFioApiSigned, callFioApi, timeout} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/fiosdk')
+const {FIOSDK } = require('@fioprotocol/fiosdk');
 config = require('../config.js');
 
 /*
@@ -54,6 +54,11 @@ describe.skip(`************************** bravo-migr-test.js *******************
           user1 = await newUser(faucet);
           user2 = await newUser(faucet);
           user3 = await newUser(faucet);
+        
+        //user2 = await existingUser('eyadddduu5a3', '5KVMKehpRVZ5pFHZ8TUjZQLcMBmkM85RnUhxw6V9XFCcBN5EPzP', 'FIO7eFQHnbtq3cGntFKdXsKcBkxtCb69rYaGZaV9JVDJ2CYgMGV8R', 'fiotestnet', 'requests@fiotestnet');
+        //user1 = await existingUser('ifnxuprs2uxv', '5KNMbAhXGTt2Leit3z5JdqqtTbLhxWNf6ypm4r3pZQusNHHKV7a', 'FIO6TWRA6o5UNeMVwG8oGxedvhizd8UpfGbnGKaXEiPH2kUWEPiEb', 'fiotestnet', 'etest6@fiotestnet');
+        //user3 = await existingUser('v2lgwcdkb5gn', '5Jw78NzS2QMvjcyemCgJ9XQv8SMSEvTEuLxF8TcKf27xWcX5fmw', 'FIO8k7N7jU9eyj57AfazGxMuvPGZG5hvXNUyxt9pBchnkXXx9KUuD', 'fiotestnet', 'ebtest1@fiotestnet');
+
 
           //console.log('user1: ' + user1.account + ', ' + user1.privateKey + ', ' + user1.publicKey)
           //console.log('user2: ' + user2.account + ', ' + user2.privateKey + ', ' + user2.publicKey)
@@ -2140,6 +2145,265 @@ describe.skip(`Release v2.3.2 - fiotrxtss (NEW table) scripts`, () => {
     })
 
   })
+})
+
+describe.skip(`OBT time_stamp fix validation (fioreqctxts, recordobts, fioreqstss)`, () => {
+  let isFinished = 0
+  let user1PubKey, user2PubKey, user3PubKey, requestId
+
+  it('Get request id from fioreqstss', async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'fio.reqobt',
+        scope: 'fio.reqobt',
+        table: 'fioreqstss',
+        limit: 1000,
+        reverse: false,
+        show_payer: false
+      }
+      fioreqstss = await callFioApi("get_table_rows", json);
+      //console.log('fioreqstss: ', fioreqstss.rows.length);
+      //console.log('fioreqstss: ', fioreqstss);
+      requestId = fioreqstss.rows[0].fio_request_id;
+      //console.log('requestId: ', requestId);
+      expect(fioreqstss.rows[0].time_stamp.toString().length).to.equal(16);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it('Echo size of fioreqctxts table', async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'fio.reqobt',
+        scope: 'fio.reqobt',
+        table: 'fioreqctxts',
+        limit: 1000,
+        reverse: false,
+        show_payer: false
+      }
+      fioreqctxts = await callFioApi("get_table_rows", json);
+      console.log('fioreqctxts: ', fioreqctxts.rows.length);
+      //console.log('fioreqctxts: ', fioreqctxts);
+      console.log('requestId: ', requestId);
+      for (request in fioreqctxts.rows) {
+        console.log('fioreqctxts.rows[request].fio_request_id: ', fioreqctxts.rows[request].fio_request_id)
+        if (fioreqctxts.rows[request].fio_request_id == requestId) {
+          user3PubKey = fioreqctxts.rows[request].payer_key;
+          console.log('user3PubKey: ', user3PubKey)
+        }
+      }
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Call get_obt_data for user3`, async () => {
+    try {
+      const json = {
+        fio_public_key: user3PubKey
+      }
+      result = await callFioApi("get_obt_data", json);
+      console.log('Result: ', result);
+      expect(result.obt_data_records[0].time_stamp).to.equal('1970-01-01T00:00:00');
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it('Echo size of recordobts table and get user1 and user2 Public Key', async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'fio.reqobt',
+        scope: 'fio.reqobt',
+        table: 'recordobts',
+        limit: 1000,
+        reverse: false,
+        show_payer: false
+      }
+      recordobts = await callFioApi("get_table_rows", json);
+      console.log('recordobts.length: ', recordobts.rows.length);
+      user1PubKey = recordobts.rows[0].payer_key
+      user2PubKey = recordobts.rows[0].payee_key
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Call get_obt_data for user1`, async () => {
+    try {
+      const json = {
+        fio_public_key: user1PubKey
+      }
+      result = await callFioApi("get_obt_data", json);
+      console.log('Result: ', result);
+      expect(result.obt_data_records[0].time_stamp).to.equal('1970-01-01T00:00:00');
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Call get_obt_data for user2`, async () => {
+    try {
+      const json = {
+        fio_public_key: user2PubKey
+      }
+      result = await callFioApi("get_obt_data", json);
+      console.log('Result: ', result);
+      expect(result.obt_data_records[0].time_stamp).to.equal('1970-01-01T00:00:00');
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+
+  it.skip(`Call migrtrx (bp1) with amount = 20 until (fioreqctxts, recordobts, fioreqstss) are empty`, async () => {
+    let fioreqctxtsIsFinished = false, recordobtsIsFinished = false, fioreqstssIsFinished = false;
+    while (!fioreqctxtsIsFinished || !recordobtsIsFinished || !fioreqstssIsFinished) {
+      try {
+        const result = await callFioApiSigned('push_transaction', {
+          action: 'migrtrx',
+          account: 'fio.reqobt',
+          actor: bp1.account,
+          privKey: bp1.privateKey,
+          data: {
+            amount: 20,
+            actor: bp1.account
+          }
+        })
+        //console.log('Result: ', result)
+        expect(result.transaction_id).to.exist
+      } catch (err) {
+        console.log('Error: ', err)
+        expect(err).to.equal(null)
+      }
+      await timeout(2000);
+      try {
+        const json = {
+          json: true,
+          code: 'fio.reqobt',
+          scope: 'fio.reqobt',
+          table: 'fioreqctxts',
+          limit: 1000,
+          reverse: false,
+          show_payer: false
+        }
+        fioreqctxts = await callFioApi("get_table_rows", json);
+        fioreqctxtsIsFinished = (fioreqctxts.rows.length == 0);
+        //console.log('fioreqctxts: ', fioreqctxts)
+        console.log('\nfioreqctxts table rows count: ', fioreqctxts.rows.length)
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+      try {
+        const json = {
+          json: true,
+          code: 'fio.reqobt',
+          scope: 'fio.reqobt',
+          table: 'recordobts',
+          limit: 1000,
+          reverse: false,
+          show_payer: false
+        }
+        recordobts = await callFioApi("get_table_rows", json);
+        recordobtsIsFinished = (recordobts.rows.length == 0);
+        //console.log('recordobts: ', recordobts)
+        console.log('recordobts table rows count: ', recordobts.rows.length)
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+      try {
+        const json = {
+          json: true,
+          code: 'fio.reqobt',
+          scope: 'fio.reqobt',
+          table: 'fioreqstss',
+          limit: 1000,
+          reverse: false,
+          show_payer: false
+        }
+        fioreqstss = await callFioApi("get_table_rows", json);
+        fioreqstssIsFinished = (fioreqstss.rows.length == 0);
+        //console.log('fioreqstss: ', fioreqstss)
+        console.log('fioreqstss table rows count: ', fioreqstss.rows.length)
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
+    }
+  })
+
+  it.skip('Confirm fioreqctxts table is empty', async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'fio.reqobt',
+        scope: 'fio.reqobt',
+        table: 'fioreqctxts',
+        limit: 10,
+        reverse: false,
+        show_payer: false
+      }
+      fioreqctxts = await callFioApi("get_table_rows", json);
+      console.log('fioreqctxts: ', fioreqctxts);
+      expect(fioreqctxts.rows.length).to.equal(0);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it.skip('Confirm recordobts table is empty', async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'fio.reqobt',
+        scope: 'fio.reqobt',
+        table: 'recordobts',
+        limit: 10,
+        reverse: false,
+        show_payer: false
+      }
+      recordobts = await callFioApi("get_table_rows", json);
+      console.log('recordobts: ', recordobts);
+      expect(recordobts.rows.length).to.equal(0);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it.skip('Confirm fioreqstss table is empty', async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'fio.reqobt',
+        scope: 'fio.reqobt',
+        table: 'fioreqstss',
+        limit: 10,
+        reverse: false,
+        show_payer: false
+      }
+      fioreqstss = await callFioApi("get_table_rows", json);
+      console.log('fioreqstss: ', fioreqstss);
+      expect(fioreqstss.rows.length).to.equal(0);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
 })
 
 describe.skip(`(Only works in environments with both tables. Need to update contract) Release delta (develop - migr2) - remove data from old tables (fioreqctxts, recordobts, fioreqstss)`, () => {
