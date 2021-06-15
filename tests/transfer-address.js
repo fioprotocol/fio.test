@@ -854,7 +854,7 @@ describe('D. transferFioAddress Error testing', () => {
         }
     })
 
-    it.skip(`(For Bravo/v2.3.0 contracts, transferring the address will fail because userD3 has OBT transactions. Will need to fix when all xferaddress are enabled.) Transfer address with insufficient funds and no bundled transactions. Expect error type 400: ${config.error.insufficientFunds}`, async () => {
+    it(`Transfer address with insufficient funds and no bundled transactions. Expect error type 400: ${config.error.insufficientFunds}`, async () => {
         try {
             const result = await userD3.sdk.genericAction('transferFioAddress', {
                 fioAddress: userD3.address,
@@ -864,9 +864,9 @@ describe('D. transferFioAddress Error testing', () => {
             })
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log('Error: ', err.json.error)
+            //console.log('Error: ', err.json.fields[0])
             expect(err.json.fields[0].error).to.equal(config.error.insufficientFunds)
-            expect(err.json.code).to.equal(400);
+            expect(err.errorCode).to.equal(400);
         }
     })
 
