@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, existingUser,callFioApi,fetchJson, generateFioDomain, generateFioAddress, createKeypair} = require('../utils.js');
+const {newUser, existingUser,callFioApi,fetchJson, generateFioDomain, getAccountFromKey,generateFioAddress, createKeypair} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
@@ -16,49 +16,71 @@ function wait(ms){
   }
 }
 
+
 describe(`************************** stake-general-locked-tokens.js ************************** \n    A. Stake tokens genesis lock account`, () => {
+  
 
-  //NOTE -- these tests use a general locked token holder account that is initialized
-  // by running the fio.devtools script named 20_debug_staking.sh. Init the chain then run this set
-  // of tests immediately after.
-  /*
-  #   try to transfer more fio than the user has available (this should error).
-#   try to transfer an amount that can be transferred (this should transfer)
-#   try to stake more than you have available unlocked( this should fail)
-#   try to stake 1/2 of the unlocked balance (this should succeed)
-#   try to unstake more than you have staked (this should fail)
-#   try to unstake less than what you have staked (this should succeed)
-#   verify contents of staking table after stake and unstake.
-#   verify the contents of the lock tokens table after unstake (the lock should be adapted and contain one new lock period)
-   */
-  //
-  /*
-# Create locked token account
-#Public key: 'FIO5xGfMyRCVSAhQW1ZAngvvJmwD12NwTf22sgvJoNT1YXcvsZ1Ei'
-#private key 5Jo3XKAh4yu8xyvkaRXjPLeSW4RWmcZwGF5EuoZTQ8CqHP8K5tq
-#FIO Public Address (actor name): 'gcz2iidl51fy'
-   */
+  let userA1, prevFundsAmount, locksdk,keys, accountnm,newFioDomain, newFioAddress
 
-  let userA1, prevFundsAmount, locksdk
   const fundsAmount = 1000000000000
 
 
   it(`Create users`, async () => {
+    //create a user and give it 10k fio.
+    //create
     userA1 = await newUser(faucet);
-    locksdk = await existingUser('gcz2iidl51fy', '5Jo3XKAh4yu8xyvkaRXjPLeSW4RWmcZwGF5EuoZTQ8CqHP8K5tq', 'FIO5xGfMyRCVSAhQW1ZAngvvJmwD12NwTf22sgvJoNT1YXcvsZ1Ei', 'dapixdev', 'general1@dapixdev');
+    keys = await createKeypair();
+    console.log("priv key ", keys.privateKey);
+    console.log("pub key ", keys.publicKey);
+    accountnm =  await getAccountFromKey(keys.publicKey);
+
+
+
+    const result = await faucet.genericAction('pushTransaction', {
+      action: 'trnsloctoks',
+      account: 'fio.token',
+      data: {
+        payee_public_key: keys.publicKey,
+        can_vote: 0,
+         periods: [
+          {
+            duration: 120,
+            amount: 5000000000000,
+          },
+          {
+            duration: 180,
+            amount: 4000000000000,
+          },
+          {
+            duration: 1204800,
+            amount: 1000000000000,
+          }
+        ],
+        amount: 10000000000000,
+        max_fee: 400000000000,
+        tpid: '',
+        actor: 'qhh25sqpktwh',
+      }
+    })
+    expect(result.status).to.equal('OK')
+   locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
 
   })
 
-  it(`getFioBalance for general lock token holder (gcz2iidl51fy), available balance 0 `, async () => {
-      const result = await locksdk.sdk.genericAction('getFioBalance', { })
-    //console.log(result)
+
+  it(`getFioBalance for general lock token holder, available balance 0 `, async () => {
+
+      const result = await locksdk.genericAction('getFioBalance', { })
+   // console.log(result)
       prevFundsAmount = result.balance
       expect(result.available).to.equal(0)
+
   })
+
 
   it(`Failure test Transfer 700 FIO to userA1 FIO public key, insufficient balance tokens locked`, async () => {
     try {
-    const result = await locksdk.sdk.genericAction('transferTokens', {
+    const result = await locksdk.genericAction('transferTokens', {
       payeeFioPublicKey: userA1.publicKey,
       amount: 70000000000,
       maxFee: config.api.transfer_tokens_pub_key.fee,
@@ -66,20 +88,108 @@ describe(`************************** stake-general-locked-tokens.js ************
     })
       expect(result.status).to.not.equal('OK')
     } catch (err) {
-      //console.log('Error: ', err)
+     // console.log('Error: ', err)
       expect(err.json.fields[0].error).to.contain('Funds locked')
     }
   })
 
-  it(`Failure test stake tokens before unlocking, Error Insufficient balance `, async () => {
+
+  it(`Transfer ${fundsAmount} FIO to locked account`, async () => {
     try {
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
+      const result = await userA1.sdk.genericAction('transferTokens', {
+        payeeFioPublicKey: keys.publicKey,
+        amount: 1000000000000,
+        maxFee: 400000000000,
+        tpid: '',
+      })
+    } catch (err) {
+      console.log('Error', err)
+    }
+  })
+
+
+  it(`Register domain for voting for locked account `, async () => {
+    try {
+      newFioDomain = generateFioDomain(15)
+      const result = await locksdk.genericAction('registerFioDomain', {
+        fioDomain: newFioDomain,
+        maxFee: 800000000000,
+        tpid: '',
+      })
+    } catch (err) {
+      console.log('Error', err)
+    }
+  })
+
+
+  it(`Register address for voting for locked account`, async () => {
+    try {
+      newFioAddress = generateFioAddress(newFioDomain,15)
+      const result = await locksdk.genericAction('registerFioAddress', {
+        fioAddress: newFioAddress,
+        maxFee: 400000000000,
+        tpid: '',
+      })
+    } catch (err) {
+      console.log('Error', err)
+    }
+  })
+
+  it(`Failure test stake tokens before user has voted, Error has not voted`, async () => {
+    try {
+      // console.log("address used ",userA1.address)
+      // console.log("account used ",userA1.account)
+      const result = await locksdk.genericAction('pushTransaction', {
         action: 'stakefio',
         account: 'fio.staking',
         data: {
-          fio_address: locksdk.fio_address,
+          fio_address: newFioAddress,
           amount: 1000000000000,
-          actor: locksdk.account,
+          actor: accountnm,
+          max_fee: config.maxFee,
+          tpid:''
+        }
+      })
+     // console.log('Result: ', result)
+      expect(result.status).to.not.equal('OK')
+    } catch (err) {
+      // console.log("Error : ", err)
+      expect(err.json.fields[0].error).to.contain('has not voted')
+    }
+  })
+
+  it(`Success, vote for producers.`, async () => {
+
+    try {
+      const result = await locksdk.genericAction('pushTransaction', {
+        action: 'voteproducer',
+        account: 'eosio',
+        data: {
+          producers: ["bp1@dapixdev"],
+          fio_address: newFioAddress,
+          actor: accountnm,
+          max_fee: config.maxFee
+        }
+      })
+      // console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+       console.log("Error : ", err.json)
+      expect(err.json.fields[0].error).to.contain('has not voted')
+    }
+  })
+
+
+  it(`Failure test stake tokens before unlocking, Error Insufficient balance `, async () => {
+    try {
+     // console.log("address is ",newFioAddress)
+      const result = await locksdk.genericAction('pushTransaction', {
+        action: 'stakefio',
+        account: 'fio.staking',
+        data: {
+          fio_address: newFioAddress,
+          amount: 1000000000000,
+          actor: accountnm,
           max_fee: config.maxFee,
           tpid:''
         }
@@ -92,26 +202,6 @@ describe(`************************** stake-general-locked-tokens.js ************
     }
   })
 
-  it(`Success, vote for producers.`, async () => {
-
-    try {
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
-        action: 'voteproducer',
-        account: 'eosio',
-        data: {
-          producers: ["bp1@dapixdev"],
-          fio_address:'general1@dapixdev',
-          actor: locksdk.account,
-          max_fee: config.maxFee
-        }
-      })
-      // console.log('Result: ', result)
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-      // console.log("Error : ", err.json)
-      expect(err.json.fields[0].error).to.contain('has not voted')
-    }
-  })
 
   it(`Waiting 2 minutes for unlock`, async () => {
     console.log("            waiting 120 seconds ")
@@ -128,7 +218,7 @@ describe(`************************** stake-general-locked-tokens.js ************
   it(`Success, Transfer 700 FIO to userA1 FIO public key`, async () => {
 
     try {
-      const result = await locksdk.sdk.genericAction('transferTokens', {
+      const result = await locksdk.genericAction('transferTokens', {
         payeeFioPublicKey: userA1.publicKey,
         amount: 70000000000,
         maxFee: config.api.transfer_tokens_pub_key.fee,
@@ -142,13 +232,13 @@ describe(`************************** stake-general-locked-tokens.js ************
 
   it(`Success, stake 1k tokens `, async () => {
 
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
+      const result = await locksdk.genericAction('pushTransaction', {
         action: 'stakefio',
         account: 'fio.staking',
         data: {
-          fio_address: locksdk.fio_address,
+          fio_address: newFioAddress,
           amount: 1000000000000,
-          actor: locksdk.account,
+          actor: accountnm,
           max_fee: config.maxFee,
           tpid:''
         }
@@ -157,15 +247,16 @@ describe(`************************** stake-general-locked-tokens.js ************
       expect(result.status).to.equal('OK')
   })
 
+  
   it(`Success, unstake 100 tokens `, async () => {
 
-    const result = await locksdk.sdk.genericAction('pushTransaction', {
+    const result = await locksdk.genericAction('pushTransaction', {
       action: 'unstakefio',
       account: 'fio.staking',
       data: {
-        fio_address: locksdk.fio_address,
+        fio_address: newFioAddress,
         amount: 100000000000,
-        actor: locksdk.account,
+        actor: accountnm,
         max_fee: config.maxFee,
         tpid:''
       }
@@ -176,36 +267,36 @@ describe(`************************** stake-general-locked-tokens.js ************
 
   it(`Success, unstake 2 tokens `, async () => {
 
-    const result = await locksdk.sdk.genericAction('pushTransaction', {
+    const result = await locksdk.genericAction('pushTransaction', {
       action: 'unstakefio',
       account: 'fio.staking',
       data: {
-        fio_address: locksdk.fio_address,
+        fio_address: newFioAddress,
         amount: 2000000000,
-        actor: locksdk.account,
+        actor: accountnm,
         max_fee: config.maxFee,
         tpid:''
       }
     })
-    console.log('Result: ', result)
+   // console.log('Result: ', result)
     expect(result.status).to.equal('OK')
   })
 
   it(`Success, unstake 2 tokens `, async () => {
 
     try {
-    const result = await locksdk.sdk.genericAction('pushTransaction', {
+    const result = await locksdk.genericAction('pushTransaction', {
       action: 'unstakefio',
       account: 'fio.staking',
       data: {
-        fio_address: locksdk.fio_address,
+        fio_address: newFioAddress,
         amount: 2000000000,
-        actor: locksdk.account,
+        actor: accountnm,
         max_fee: config.maxFee+1,
         tpid:''
       }
     })
-     console.log('Result: ', result)
+   //  console.log('Result: ', result)
     expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error', err);
@@ -220,13 +311,13 @@ describe(`************************** stake-general-locked-tokens.js ************
         code: 'eosio',
         scope: 'eosio',
         table: 'locktokensv2',
-        lower_bound: locksdk.account,
-        upper_bound: locksdk.account,
+        lower_bound: accountnm,
+        upper_bound: accountnm,
         key_type: 'i64',
         index_position: '2'
       }
       result = await callFioApi("get_table_rows", json);
-      console.log('Result: ', result);
+     // console.log('Result: ', result);
       //console.log('periods : ', result.rows[0].periods)
       expect(result.rows[0].periods[2].duration - 604800).greaterThan(120);
      // expect(result.rows[0].periods[2].percent - 4.763).lessThan(0.001);
@@ -238,13 +329,13 @@ describe(`************************** stake-general-locked-tokens.js ************
 
    it(`Failure, unstake 75M tokens, cannot unstake more than has been staked `, async () => {
    try {
-    const result = await locksdk.sdk.genericAction('pushTransaction', {
+    const result = await locksdk.genericAction('pushTransaction', {
       action: 'unstakefio',
       account: 'fio.staking',
       data: {
-        fio_address: locksdk.fio_address,
+        fio_address: newFioAddress,
         amount: 80000000000000000,
-        actor: locksdk.account,
+        actor: accountnm,
         max_fee: config.maxFee,
         tpid: ''
       }
@@ -258,13 +349,13 @@ describe(`************************** stake-general-locked-tokens.js ************
 
    it(`Success, unstake 190 tokens `, async () => {
    try {
-    const result = await locksdk.sdk.genericAction('pushTransaction', {
+    const result = await locksdk.genericAction('pushTransaction', {
       action: 'unstakefio',
       account: 'fio.staking',
       data: {
-        fio_address: locksdk.fio_address,
+        fio_address: newFioAddress,
         amount: 190000000000,
-        actor: locksdk.account,
+        actor: accountnm,
         max_fee: config.maxFee +1,
         tpid:''
       }
@@ -279,13 +370,13 @@ describe(`************************** stake-general-locked-tokens.js ************
 
    it(`Success, unstake 115 tokens `, async () => {
     try {
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
+      const result = await locksdk.genericAction('pushTransaction', {
         action: 'unstakefio',
         account: 'fio.staking',
         data: {
-          fio_address: locksdk.fio_address,
+          fio_address: newFioAddress,
           amount: 115000000000,
-          actor: locksdk.account,
+          actor: accountnm,
           max_fee: config.maxFee +1,
           tpid:''
         }
@@ -300,13 +391,13 @@ describe(`************************** stake-general-locked-tokens.js ************
 
    it(`Success, unstake 185 tokens `, async () => {
     try {
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
+      const result = await locksdk.genericAction('pushTransaction', {
         action: 'unstakefio',
         account: 'fio.staking',
         data: {
-          fio_address: locksdk.fio_address,
+          fio_address: newFioAddress,
           amount: 185000000000,
-          actor: locksdk.account,
+          actor: accountnm,
           max_fee: config.maxFee +1,
           tpid:''
         }
@@ -323,13 +414,13 @@ describe(`************************** stake-general-locked-tokens.js ************
 
   it(`Success, unstake 5 tokens `, async () => {
     try {
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
+      const result = await locksdk.genericAction('pushTransaction', {
         action: 'unstakefio',
         account: 'fio.staking',
         data: {
-          fio_address: locksdk.fio_address,
+          fio_address: newFioAddress,
           amount: 5000000000,
-          actor: locksdk.account,
+          actor: accountnm,
           max_fee: config.maxFee +1,
           tpid:''
         }
@@ -343,13 +434,13 @@ describe(`************************** stake-general-locked-tokens.js ************
   })
   it(`Success, unstake 4 tokens `, async () => {
     try {
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
+      const result = await locksdk.genericAction('pushTransaction', {
         action: 'unstakefio',
         account: 'fio.staking',
         data: {
-          fio_address: locksdk.fio_address,
+          fio_address: newFioAddress,
           amount: 4000000000,
-          actor: locksdk.account,
+          actor: accountnm,
           max_fee: config.maxFee +1,
           tpid:''
         }
@@ -363,13 +454,13 @@ describe(`************************** stake-general-locked-tokens.js ************
   })
   it(`Success, unstake 3 tokens `, async () => {
     try {
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
+      const result = await locksdk.genericAction('pushTransaction', {
         action: 'unstakefio',
         account: 'fio.staking',
         data: {
-          fio_address: locksdk.fio_address,
+          fio_address: newFioAddress,
           amount: 3000000000,
-          actor: locksdk.account,
+          actor: accountnm,
           max_fee: config.maxFee +1,
           tpid:''
         }
@@ -383,13 +474,13 @@ describe(`************************** stake-general-locked-tokens.js ************
   })
   it(`Success, unstake 2 tokens `, async () => {
     try {
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
+      const result = await locksdk.genericAction('pushTransaction', {
         action: 'unstakefio',
         account: 'fio.staking',
         data: {
-          fio_address: locksdk.fio_address,
+          fio_address: newFioAddress,
           amount: 2000000000,
-          actor: locksdk.account,
+          actor: accountnm,
           max_fee: config.maxFee +1,
           tpid:''
         }
@@ -403,13 +494,13 @@ describe(`************************** stake-general-locked-tokens.js ************
   })
   it(`Success, unstake 1 tokens `, async () => {
     try {
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
+      const result = await locksdk.genericAction('pushTransaction', {
         action: 'unstakefio',
         account: 'fio.staking',
         data: {
-          fio_address: locksdk.fio_address,
+          fio_address: newFioAddress,
           amount: 1000000000,
-          actor: locksdk.account,
+          actor: accountnm,
           max_fee: config.maxFee +1,
           tpid:''
         }
@@ -423,13 +514,13 @@ describe(`************************** stake-general-locked-tokens.js ************
   })
   it(`Success, unstake 5 tokens `, async () => {
     try {
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
+      const result = await locksdk.genericAction('pushTransaction', {
         action: 'unstakefio',
         account: 'fio.staking',
         data: {
-          fio_address: locksdk.fio_address,
+          fio_address: newFioAddress,
           amount: 5000000000,
-          actor: locksdk.account,
+          actor: accountnm,
           max_fee: config.maxFee +2,
           tpid:''
         }
@@ -443,13 +534,13 @@ describe(`************************** stake-general-locked-tokens.js ************
   })
   it(`Success, unstake 4 tokens `, async () => {
     try {
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
+      const result = await locksdk.genericAction('pushTransaction', {
         action: 'unstakefio',
         account: 'fio.staking',
         data: {
-          fio_address: locksdk.fio_address,
+          fio_address: newFioAddress,
           amount: 4000000000,
-          actor: locksdk.account,
+          actor: accountnm,
           max_fee: config.maxFee +2,
           tpid:''
         }
@@ -463,13 +554,13 @@ describe(`************************** stake-general-locked-tokens.js ************
   })
   it(`Success, unstake 3 tokens `, async () => {
     try {
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
+      const result = await locksdk.genericAction('pushTransaction', {
         action: 'unstakefio',
         account: 'fio.staking',
         data: {
-          fio_address: locksdk.fio_address,
+          fio_address: newFioAddress,
           amount: 3000000000,
-          actor: locksdk.account,
+          actor: accountnm,
           max_fee: config.maxFee +2,
           tpid:''
         }
@@ -483,13 +574,13 @@ describe(`************************** stake-general-locked-tokens.js ************
   })
   it(`Success, unstake 2 tokens `, async () => {
     try {
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
+      const result = await locksdk.genericAction('pushTransaction', {
         action: 'unstakefio',
         account: 'fio.staking',
         data: {
-          fio_address: locksdk.fio_address,
+          fio_address: newFioAddress,
           amount: 2000000000,
-          actor: locksdk.account,
+          actor: accountnm,
           max_fee: config.maxFee +2,
           tpid:''
         }
@@ -503,13 +594,13 @@ describe(`************************** stake-general-locked-tokens.js ************
   })
   it(`Success, unstake 1 tokens `, async () => {
     try {
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
+      const result = await locksdk.genericAction('pushTransaction', {
         action: 'unstakefio',
         account: 'fio.staking',
         data: {
-          fio_address: locksdk.fio_address,
+          fio_address: newFioAddress,
           amount: 1000000000,
-          actor: locksdk.account,
+          actor: accountnm,
           max_fee: config.maxFee +2,
           tpid:''
         }
@@ -523,13 +614,13 @@ describe(`************************** stake-general-locked-tokens.js ************
   })
   it(`Success, unstake 5 tokens `, async () => {
     try {
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
+      const result = await locksdk.genericAction('pushTransaction', {
         action: 'unstakefio',
         account: 'fio.staking',
         data: {
-          fio_address: locksdk.fio_address,
+          fio_address: newFioAddress,
           amount: 5000000000,
-          actor: locksdk.account,
+          actor: accountnm,
           max_fee: config.maxFee +3,
           tpid:''
         }
@@ -543,13 +634,13 @@ describe(`************************** stake-general-locked-tokens.js ************
   })
   it(`Success, unstake 4 tokens `, async () => {
     try {
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
+      const result = await locksdk.genericAction('pushTransaction', {
         action: 'unstakefio',
         account: 'fio.staking',
         data: {
-          fio_address: locksdk.fio_address,
+          fio_address: newFioAddress,
           amount: 4000000000,
-          actor: locksdk.account,
+          actor: accountnm,
           max_fee: config.maxFee +3,
           tpid:''
         }
@@ -563,13 +654,13 @@ describe(`************************** stake-general-locked-tokens.js ************
   })
   it(`Success, unstake 3 tokens `, async () => {
     try {
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
+      const result = await locksdk.genericAction('pushTransaction', {
         action: 'unstakefio',
         account: 'fio.staking',
         data: {
-          fio_address: locksdk.fio_address,
+          fio_address: newFioAddress,
           amount: 3000000000,
-          actor: locksdk.account,
+          actor: accountnm,
           max_fee: config.maxFee +3,
           tpid:''
         }
@@ -583,13 +674,13 @@ describe(`************************** stake-general-locked-tokens.js ************
   })
   it(`Success, unstake 2 tokens `, async () => {
     try {
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
+      const result = await locksdk.genericAction('pushTransaction', {
         action: 'unstakefio',
         account: 'fio.staking',
         data: {
-          fio_address: locksdk.fio_address,
+          fio_address: newFioAddress,
           amount: 2000000000,
-          actor: locksdk.account,
+          actor: accountnm,
           max_fee: config.maxFee +3,
           tpid:''
         }
@@ -603,13 +694,13 @@ describe(`************************** stake-general-locked-tokens.js ************
   })
   it(`Success, unstake 1 tokens `, async () => {
     try {
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
+      const result = await locksdk.genericAction('pushTransaction', {
         action: 'unstakefio',
         account: 'fio.staking',
         data: {
-          fio_address: locksdk.fio_address,
+          fio_address: newFioAddress,
           amount: 1000000000,
-          actor: locksdk.account,
+          actor: accountnm,
           max_fee: config.maxFee +3,
           tpid:''
         }
@@ -621,6 +712,7 @@ describe(`************************** stake-general-locked-tokens.js ************
       expect(err.json.fields[0].error).to.contain('Cannot unstake more than staked')
     }
   })
+
 /*
   it(`Waiting 1 minutes for unlock`, async () => {
     console.log("            waiting 60 seconds ")
@@ -658,8 +750,8 @@ describe(`************************** stake-general-locked-tokens.js ************
         code: 'eosio',
         scope: 'eosio',
         table: 'locktokens',
-        lower_bound: locksdk.account,
-        upper_bound: locksdk.account,
+        lower_bound: accountnm,
+        upper_bound: accountnm,
         key_type: 'i64',
         index_position: '2'
       }
@@ -683,9 +775,9 @@ describe(`************************** stake-general-locked-tokens.js ************
       action: 'unstakefio',
       account: 'fio.staking',
       data: {
-        fio_address: locksdk.fio_address,
+        fio_address: newFioAddress,
         amount: 110000000000,
-        actor: locksdk.account,
+        actor: accountnm,
         max_fee: config.maxFee,
         tpid:''
       }
@@ -701,9 +793,9 @@ describe(`************************** stake-general-locked-tokens.js ************
         action: 'unstakefio',
         account: 'fio.staking',
         data: {
-          fio_address: locksdk.fio_address,
+          fio_address: newFioAddress,
           amount: 20000000000,
-          actor: locksdk.account,
+          actor: accountnm,
           max_fee: config.maxFee +1,
           tpid:''
         }
@@ -725,9 +817,9 @@ describe(`************************** stake-general-locked-tokens.js ************
         action: 'unstakefio',
         account: 'fio.staking',
         data: {
-          fio_address: locksdk.fio_address,
+          fio_address: newFioAddress,
           amount: 1000000000,
-          actor: locksdk.account,
+          actor: accountnm,
           max_fee: config.maxFee +1,
           tpid:''
         }

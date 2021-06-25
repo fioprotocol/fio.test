@@ -58,28 +58,40 @@ describe(`************************** stake-regression.js ***********************
 
   it(`Create users`, async () => {
     userA1 = await newUser(faucet);
-    locksdk = await existingUser('ni1eyydbdpht', '5Ke8oZdtefgVEC6GDUeo7FW9xC7WgdxC9Fi92b3YmTrPynWb4Rb', 'FIO6ydLCnUfsEMpbp35kF8oaUbHvcmLEyswMUF75C4FQAm78DUhAi', 'dapixdev', 'stake@dapixdev');
+
+    //now transfer 1M fio from the faucet to this account
+    const result = await faucet.genericAction('transferTokens', {
+      payeeFioPublicKey: userA1.publicKey,
+      amount: 1000000000000000,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    })
+    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+
+   // locksdk = await existingUser('ni1eyydbdpht', '5Ke8oZdtefgVEC6GDUeo7FW9xC7WgdxC9Fi92b3YmTrPynWb4Rb', 'FIO6ydLCnUfsEMpbp35kF8oaUbHvcmLEyswMUF75C4FQAm78DUhAi', 'dapixdev', 'stake@dapixdev');
 
   })
 
 
   it(`Failure test stake tokens before user has voted, Error has not voted`, async () => {
     try {
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
+     // console.log("address used ",userA1.address)
+     // console.log("account used ",userA1.account)
+      const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'stakefio',
         account: 'fio.staking',
         data: {
-          fio_address: "stake@dapixdev",
+          fio_address: userA1.address,
           amount: 1000000000000,
-          actor: locksdk.account,
+          actor: userA1.account,
           max_fee: config.maxFee,
-          tpid:'casey@dapixdev'
+          tpid:''
         }
       })
       console.log('Result: ', result)
       expect(result.status).to.not.equal('OK')
     } catch (err) {
-      console.log("Error : ", err.json)
+     // console.log("Error : ", err)
       expect(err.json.fields[0].error).to.contain('has not voted')
     }
   })
