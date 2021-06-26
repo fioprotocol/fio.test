@@ -20,38 +20,42 @@ describe(`************************** stake-mainet-locked-tokens.js *************
 
 
 
-   // To test genesis locks.  please modify the following 2 files in the fio.contracts repository, to enable them
+  // To test genesis locks.  please modify the following 2 files in the fio.contracts repository, to enable them
   // to be placed into "test mode"
   //
-  // First, comment out the following lines in the fio.token.hpp computeremaininglockedtokens method.
+  // First, shorten the main net locking period to become 2 minutes,
+  // do this by commenting out the following lines in the fio.token.hpp computeremaininglockedtokens method.
 
-                    // TESTING ONLY!!! comment out genesis locking periods..DO NOT DELIVER THIS
-                   /* uint32_t daysSinceGrant = (int) ((present_time - lockiter->timestamp) / SECONDSPERDAY);
-                    uint32_t firstPayPeriod = 90;
-                    uint32_t payoutTimePeriod = 180;
-                    */
+  // TESTING ONLY!!! comment out genesis locking periods..DO NOT DELIVER THIS
+  /* uint32_t daysSinceGrant = (int) ((present_time - lockiter->timestamp) / SECONDSPERDAY);
+   uint32_t firstPayPeriod = 90;
+   uint32_t payoutTimePeriod = 180;
+   */
 
   //  then add the following code beneath what you commented out.
 
-                    //TEST LOCKED TOKENS
-                    // TESTING ONLY!!! shorten genesis locking periods..DO NOT DELIVER THIS
-   //               uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / 60);
-   //               uint32_t firstPayPeriod = 2;
-   //               uint32_t payoutTimePeriod = 2;
+  //TEST LOCKED TOKENS
+  // TESTING ONLY!!! shorten genesis locking periods..DO NOT DELIVER THIS
+  //               uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / 60);
+  //               uint32_t firstPayPeriod = 1;
+  //               uint32_t payoutTimePeriod = 1;
 
-   //also comment out the following line in the addlocked action of the fio.system.cpp file
+  //next permit anyone to call the addlocked action in the system contract.
+  // do this by commenting out the following line in the addlocked action of the fio.system.cpp file
 
-    //     // require_auth(_self);
+  //     // require_auth(_self);
 
-   // after making these modifications rebuild the contracts locally and restart your chain.
-   // hou may then proceed with genesis locks testing.
+  // after making these modifications rebuild the contracts locally and restart your chain.
+  // hou may then proceed with genesis locks testing.
 
   //
+
 
 
 
   let userA1, prevFundsAmount, locksdk, keys, accountnm,newFioDomain, newFioAddress
   const fundsAmount = 1000000000000
+  const lockdurationseconds = 60
 
 
   it(`Create users`, async () => {
@@ -213,13 +217,13 @@ describe(`************************** stake-mainet-locked-tokens.js *************
   })
 
 
-  it(`Waiting 2 minutes for unlock`, async () => {
-    console.log("            waiting 120 seconds ")
+  it(`Waiting for unlock`, async () => {
+    console.log("            waiting ",lockdurationseconds," seconds")
   })
 
-  it(` wait 120 seconds`, async () => {
+  it(` wait for lock period`, async () => {
     try {
-      wait(120000)
+      wait(lockdurationseconds * 1000)
     } catch (err) {
       console.log('Error', err)
     }
@@ -484,7 +488,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
           fio_address: newFioAddress,
           amount: 5000000000,
           actor: accountnm,
-          max_fee: config.maxFee +1,
+          max_fee: config.maxFee +2,
           tpid:''
         }
       })
@@ -503,7 +507,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
           fio_address: newFioAddress,
           amount: 4000000000,
           actor: accountnm,
-          max_fee: config.maxFee +1,
+          max_fee: config.maxFee +2,
           tpid:''
         }
       })
@@ -522,7 +526,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
           fio_address: newFioAddress,
           amount: 3000000000,
           actor: accountnm,
-          max_fee: config.maxFee +1,
+          max_fee: config.maxFee +2,
           tpid:''
         }
       })
@@ -542,7 +546,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
           fio_address: newFioAddress,
           amount: 2000000000,
           actor: accountnm,
-          max_fee: config.maxFee +1,
+          max_fee: config.maxFee +2,
           tpid:''
         }
       })
@@ -562,7 +566,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
           fio_address: newFioAddress,
           amount: 1000000000,
           actor: accountnm,
-          max_fee: config.maxFee +1,
+          max_fee: config.maxFee +2,
           tpid:''
         }
       })
@@ -582,7 +586,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
           fio_address: newFioAddress,
           amount: 5000000000,
           actor: accountnm,
-          max_fee: config.maxFee +1,
+          max_fee: config.maxFee +3,
           tpid:''
         }
       })
@@ -601,7 +605,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
           fio_address: newFioAddress,
           amount: 4000000000,
           actor: accountnm,
-          max_fee: config.maxFee +1,
+          max_fee: config.maxFee +3,
           tpid:''
         }
       })
@@ -620,7 +624,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
           fio_address: newFioAddress,
           amount: 3000000000,
           actor: accountnm,
-          max_fee: config.maxFee +1,
+          max_fee: config.maxFee +3,
           tpid:''
         }
       })
@@ -640,7 +644,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
           fio_address: newFioAddress,
           amount: 2000000000,
           actor: accountnm,
-          max_fee: config.maxFee +1,
+          max_fee: config.maxFee +3,
           tpid:''
         }
       })
@@ -660,7 +664,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
           fio_address: newFioAddress,
           amount: 1000000000,
           actor: accountnm,
-          max_fee: config.maxFee +1,
+          max_fee: config.maxFee +3,
           tpid:''
         }
       })
@@ -682,7 +686,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
           fio_address: newFioAddress,
           amount: 0010000000,
           actor: accountnm,
-          max_fee: config.maxFee +1,
+          max_fee: config.maxFee +3,
           tpid:''
         }
       })
