@@ -46,7 +46,7 @@ function wait(ms){
 //
 
 
-describe(`************************** stake-mainet-locked-tokens.js ************************** \n    A. Create large grant verify unlocking using voting`, () => {
+describe(`************************** stake-mainet-locked-tokens.js ************************** \n    A. Create large grant verify unlocking using voting \n       also test error cant transfer more than unlocked amount\n     also test multiple calls to voting do not have effect.`, () => {
 
   let userA1, prevFundsAmount, locksdk, keys, accountnm,newFioDomain, newFioAddress
   const fundsAmount = 1000000000000
@@ -120,7 +120,6 @@ describe(`************************** stake-mainet-locked-tokens.js *************
     }
   })
 
-
   it(`Success, vote for producers.`, async () => {
 
     try {
@@ -166,6 +165,66 @@ describe(`************************** stake-mainet-locked-tokens.js *************
     }
   })
 
+  it(`Success, vote for producers.`, async () => {
+
+    try {
+      const result = await locksdk.genericAction('pushTransaction', {
+        action: 'voteproducer',
+        account: 'eosio',
+        data: {
+          producers: ["bp2@dapixdev"],
+          fio_address: newFioAddress,
+          actor: accountnm,
+          max_fee: config.maxFee
+        }
+      })
+      // console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log("ERROR: ", err)
+    }
+  })
+
+  //check that 6% was unlocked.
+  it(`Call get_table_rows from lockedtokens and confirm: unlocked amount unchangd with multiple calls`, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'lockedtokens',
+        lower_bound: accountnm,
+        upper_bound: accountnm,
+        key_type: 'i64',
+        index_position: '1'
+      }
+      result = await callFioApi("get_table_rows", json);
+      // console.log('Result: ', result);
+
+      expect(result.rows[0].unlocked_period_count).to.equal(1);
+      expect(result.rows[0].remaining_locked_amount).to.equal(6650561216049387);
+
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Failure, Transfer 1M FIO to userA1 FIO public key`, async () => {
+
+    try {
+      const result = await locksdk.genericAction('transferTokens', {
+        payeeFioPublicKey: userA1.publicKey,
+        amount: 1000000000,
+        maxFee: config.api.transfer_tokens_pub_key.fee,
+        technologyProviderId: ''
+      })
+      expect(result.status).to.equal('OK')
+    }catch (err){
+      //console.log("ERROR: ", err)
+      expect(err.json.fields[0].error).to.contain(config.error.insufficientBalance)
+    }
+  })
 
   //wait for unlock 2
   it(`Waiting for unlock 2 of 6`, async () => {
@@ -456,6 +515,51 @@ describe(`************************** stake-mainet-locked-tokens.js *************
       expect(err).to.equal(null);
     }
   })
+
+  it(`Success, vote for producers.`, async () => {
+
+    try {
+      const result = await locksdk.genericAction('pushTransaction', {
+        action: 'voteproducer',
+        account: 'eosio',
+        data: {
+          producers: ["bp2@dapixdev"],
+          fio_address: newFioAddress,
+          actor: accountnm,
+          max_fee: config.maxFee
+        }
+      })
+      // console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log("ERROR: ", err)
+    }
+  })
+
+  it(`Call get_table_rows from lockedtokens and confirm: unlocked amount doesnt change`, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'lockedtokens',
+        lower_bound: accountnm,
+        upper_bound: accountnm,
+        key_type: 'i64',
+        index_position: '1'
+      }
+      result = await callFioApi("get_table_rows", json);
+      // console.log('Result: ', result);
+
+      expect(result.rows[0].unlocked_period_count).to.equal(6);
+      expect(result.rows[0].remaining_locked_amount).to.equal(0);
+
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
 
 })
 
