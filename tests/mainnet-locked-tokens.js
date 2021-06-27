@@ -57,9 +57,11 @@ describe(`************************** stake-mainet-locked-tokens.js *************
     userA1 = await newUser(faucet);
 
     keys = await createKeypair();
+
+    accountnm =  await getAccountFromKey(keys.publicKey);
     console.log("priv key ", keys.privateKey);
     console.log("pub key ", keys.publicKey);
-    accountnm =  await getAccountFromKey(keys.publicKey);
+    console.log(" account ",accountnm);
 
 
     const result = await faucet.genericAction('transferTokens', {
@@ -86,7 +88,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
 
   })
 
-  it(`getFioBalance for genesis lock token holder (xbfugtkzvowu), available balance 0 `, async () => {
+  it(`getFioBalance for genesis lock token holder, available balance 0 `, async () => {
       const result = await locksdk.genericAction('getFioBalance', { })
       prevFundsAmount = result.balance
       expect(result.available).to.equal(0)
@@ -252,7 +254,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
           max_fee: config.maxFee
         }
       })
-       console.log('Result: ', result)
+      // console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log("ERROR: ", err)
@@ -577,6 +579,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
     console.log("priv key ", keys.privateKey);
     console.log("pub key ", keys.publicKey);
     accountnm =  await getAccountFromKey(keys.publicKey);
+    console.log(" account ",accountnm);
 
 
     const result = await faucet.genericAction('transferTokens', {
@@ -603,7 +606,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
 
   })
 
-  it(`getFioBalance for genesis lock token holder (xbfugtkzvowu), available balance 0 `, async () => {
+  it(`getFioBalance for genesis lock token holder, available balance 0 `, async () => {
     const result = await locksdk.genericAction('getFioBalance', { })
     prevFundsAmount = result.balance
     expect(result.available).to.equal(0)
@@ -960,6 +963,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
     console.log("priv key ", keys.privateKey);
     console.log("pub key ", keys.publicKey);
     accountnm =  await getAccountFromKey(keys.publicKey);
+    console.log(" account ",accountnm);
 
 
     const result = await faucet.genericAction('transferTokens', {
@@ -986,7 +990,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
 
   })
 
-  it(`getFioBalance for genesis lock token holder (xbfugtkzvowu), available balance 0 `, async () => {
+  it(`getFioBalance for genesis lock token holder, available balance 0 `, async () => {
     const result = await locksdk.genericAction('getFioBalance', { })
     prevFundsAmount = result.balance
     expect(result.available).to.equal(0)
@@ -1140,6 +1144,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
     console.log("priv key ", keys.privateKey);
     console.log("pub key ", keys.publicKey);
     accountnm =  await getAccountFromKey(keys.publicKey);
+    console.log(" account ",accountnm);
 
 
     const result = await faucet.genericAction('transferTokens', {
@@ -1166,7 +1171,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
 
   })
 
-  it(`getFioBalance for genesis lock token holder (xbfugtkzvowu), available balance 0 `, async () => {
+  it(`getFioBalance for genesis lock token holder, available balance 0 `, async () => {
     const result = await locksdk.genericAction('getFioBalance', { })
     prevFundsAmount = result.balance
     expect(result.available).to.equal(0)
