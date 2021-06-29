@@ -11,7 +11,6 @@ before(async () => {
 describe.only(`************************** retire-tokens.js ************************** \n    A. Add NFTS`, () => {
   let userA1, userA2, userA3;
 
-
   const fundsAmount = 10000000000000
 
   it(`Create users`, async () => {
@@ -52,7 +51,25 @@ describe.only(`************************** retire-tokens.js *********************
       expect(result.status).to.equal('OK')
 
     } catch (err) {
-     console.log(err.message)
+     //console.log(err.message)
+     expect(err).to.equal(null);
+    }
+  })
+
+  it(`Verify userA1 NFT is present in table`, async () => {
+    try {
+        const json = {
+            "fio_address": userA1.address
+        }
+        result = await callFioApi("get_nfts_fio_address", json);
+        //console.log(`Result: `, result)
+        expect(result.nfts.length).to.not.equal(0)
+        expect(result.nfts[0].chain_code).to.equal("ETH")
+        expect(result.nfts[0].contract_address).to.equal("0x123456789ABCDEF")
+        expect(result.nfts[0].token_id).to.equal("1")
+    } catch (err) {
+        //console.log('Error', err)
+        expect(err).to.equal(null);
     }
   })
 
@@ -107,7 +124,8 @@ describe.only(`************************** retire-tokens.js *********************
       expect(result.status).to.equal('OK')
 
     } catch (err) {
-     console.log(err.message)
+     //console.log(err.message)
+     expect(err).to.equal(null);
     }
   })
 
@@ -159,7 +177,8 @@ describe.only(`************************** retire-tokens.js *********************
         expect(result.status).to.equal('OK')
 
       } catch (err) {
-       console.log(err.message)
+       //console.log(err.message)
+       expect(err).to.equal(null);
       }
     })
 
@@ -185,7 +204,8 @@ describe.only(`************************** retire-tokens.js *********************
         expect(result.status).to.equal('OK')
 
       } catch (err) {
-       console.log(err.message)
+       //console.log(err.message)
+       expect(err).to.equal(null);
       }
     })
 
