@@ -136,4 +136,71 @@ describe.only(`************************** retire-tokens.js *********************
       }
     })
 
+    it(`Add 3 NFTs to UserA2 FIO Address`, async () => {
+      try {
+        const result = await userA2.sdk.genericAction('pushTransaction', {
+          action: 'addnft',
+          account: 'fio.address',
+          data: {
+            fio_address: userA2.address,
+            nfts: [{
+                "chain_code":"ETH","contract_address":"0x123456789ABCDEF", "token_id":"10", "url":"", "hash":"","metadata":""
+              },{
+                "chain_code":"ETH","contract_address":"0x123456789ABCDEF", "token_id":"11", "url":"", "hash":"","metadata":""
+              },{
+                "chain_code":"ETH","contract_address":"0x123456789ABCDEF", "token_id":"12", "url":"", "hash":"","metadata":""
+              }],
+            max_fee: 5000000000,
+            actor: userA2.account,
+            tpid: ""
+          }
+        })
+        //console.log(`Result: `, result)
+        expect(result.status).to.equal('OK')
+
+      } catch (err) {
+       console.log(err.message)
+      }
+    })
+
+    it('Wait 2 seconds. (Slower test systems)', async () => {
+      await timeout(2000);
+    })
+
+
+    it(`Transfer address from UserA2 to UserA3`, async () => {
+      try {
+        const result = await userA2.sdk.genericAction('pushTransaction', {
+          action: 'xferaddress',
+          account: 'fio.address',
+          data: {
+            fio_address: userA2.address,
+            new_owner_fio_public_key: userA3.publicKey,
+            max_fee: 50000000000,
+            actor: userA2.account,
+            tpid: ""
+          }
+        })
+        //console.log(`Result: `, result)
+        expect(result.status).to.equal('OK')
+
+      } catch (err) {
+       console.log(err.message)
+      }
+    })
+
+  it(`Verify userA2 NFTs were burned on address transfer`, async () => {
+    try {
+        const json = {
+            "fio_address": userA2.address
+        }
+        result = await callFioApi("get_nfts_fio_address", json);
+    } catch (err) {
+        //console.log('Error', err)
+        expect(err.error.message).to.equal("No NFTS are mapped");
+        expect(err.statusCode).to.equal(404);
+    }
+  })
+
+
 })
