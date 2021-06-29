@@ -5,7 +5,7 @@ describe('TEST SUITE', () => {
 
   //require('./tests/bravo-migr-test.js'); //This is required when testing 2.3.0 (bravo) with fio bahamas (need to do the full table migration).
 
-  
+
   require('./tests/addaddress.js'); // v1.0.x  Also includes FIP-13 tests.
   require('./tests/fees.js'); // v1.0.x
   require('./tests/fio-request.js'); // v1.0.x
@@ -29,12 +29,13 @@ describe('TEST SUITE', () => {
   require('./tests/transfer-locked-tokens.js');  // FIP-6 locking tests
   require('./tests/transfer-locked-tokens-account-tests.js');  // FIP-6 tests of generic account functionality
   require('./tests/addbundles.js');  // FIP-11.a
-  require('./tests/tpid.js'); 
+  require('./tests/tpid.js');
+  require('./tests/add-remove-nfts.js'); //FIP-27
   //require('./tests/clio.js');  // FIP-16  //Only works with local testing
   //require('./tests/performance-request-obt.js');
 
   require('./tests/testnet-smoketest.js'); // Testnet smoketest. By default runs against local build.
-  
+
   //require('./tests/expired-address-domain.js'); // Requires manual updates to contracts to shorten expiration timing
   //require('./tests/history.js'); // Only run against history node.
 });
