@@ -19,19 +19,6 @@ describe.only(`************************** add-remote-nfts.js *******************
     userA3 = await newUser(faucet);
   })
 
-  it(`Transfer ${fundsAmount} FIO to userA1 FIO public key`, async () => {
-      const result = await faucet.genericAction('transferTokens', {
-      payeeFioPublicKey: userA1.publicKey,
-      amount: fundsAmount,
-      maxFee: config.api.transfer_tokens_pub_key.fee,
-      technologyProviderId: ''
-    })
-    //console.log('Result: ', result)
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
-
-  })
-
-
   it(`Add NFT to UserA1 FIO Address`, async () => {
     try {
       const result = await userA1.sdk.genericAction('pushTransaction', {
