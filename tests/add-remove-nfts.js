@@ -8,7 +8,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-describe.only(`************************** retire-tokens.js ************************** \n    A. Add NFTS`, () => {
+describe.only(`************************** add-remote-nfts.js ************************** \n    A. Add NFTS`, () => {
   let userA1, userA2, userA3;
 
   const fundsAmount = 10000000000000
