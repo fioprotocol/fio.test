@@ -209,5 +209,65 @@ describe.only(`************************** add-remote-nfts.js *******************
     }
   })
 
+  it(`Add NFT to UserA3 FIO Address`, async () => {
+    try {
+      const result = await userA3.sdk.genericAction('pushTransaction', {
+        action: 'addnft',
+        account: 'fio.address',
+        data: {
+          fio_address: userA3.address,
+          nfts: [{
+              "chain_code":"ETH","contract_address":"0x123456789ABCDEF", "token_id":"999", "url":"", "hash":"B8CB100B12807BD8A8267800477EE5BA4BD387E840BBEDF02E31787CA9430BB0","metadata":""
+            }],
+          max_fee: 5000000000,
+          actor: userA3.account,
+          tpid: ""
+        }
+      })
+      //console.log(`Result: `, result)
+      expect(result.status).to.equal('OK')
+
+    } catch (err) {
+     //console.log(err.message)
+     expect(err).to.equal(null);
+    }
+  })
+
+  it(`Verify userA3 has NFT with get_nfts_contract endpoint`, async () => {
+    try {
+        const json = {
+            "chain_code": "ETH",
+            "contract_address": "0x123456789ABCDEF",
+            "token_id":"999"
+        }
+        result = await callFioApi("get_nfts_contract", json);
+        expect(result.nfts.length).to.not.equal(0)
+        expect(result.nfts[0].chain_code).to.equal("ETH")
+        expect(result.nfts[0].contract_address).to.equal("0x123456789ABCDEF")
+        expect(result.nfts[0].token_id).to.equal("999")
+    } catch (err) {
+        //console.log('Error', err)
+        expect(err).to.equal(null);
+    }
+
+
+    })
+
+    it(`Verify userA3 has NFT with get_nfts_hash endpoint`, async () => {
+      try {
+          const json = {
+              "hash": "B8CB100B12807BD8A8267800477EE5BA4BD387E840BBEDF02E31787CA9430BB0",
+          }
+          result = await callFioApi("get_nfts_hash", json);
+          expect(result.nfts.length).to.not.equal(0)
+          expect(result.nfts[0].chain_code).to.equal("ETH")
+          expect(result.nfts[0].contract_address).to.equal("0x123456789ABCDEF")
+          expect(result.nfts[0].token_id).to.equal("999")
+      } catch (err) {
+          //console.log('Error', err)
+          expect(err).to.equal(null);
+      }
+
+    })
 
 })
