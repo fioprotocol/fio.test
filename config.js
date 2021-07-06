@@ -330,7 +330,6 @@ const config = {
         XFERDOMAINRAM: 512,
         XFERADDRESSRAM: 512,
         CANCELFUNDSRAM: 512,
-        BUNDLEVOTERAM: 0
     },
 
     public_addresses: [
