@@ -27,22 +27,19 @@ const largeGrantAmount = 100000000000000000
 describe(`************************** transfer-locked-tokens.js ************************** \n A. Create accounts for tests`, () => {
 
 
-  it.skip(`Create users`, async () => {
+  it(`Create users`, async () => {
     try {
       //NOTE -- these tests must be run on the local 3 node test net.
-      //        they use the account htjonrkf1lgs
-      //        furthermore, these tests require that the fio.devtools startup file be modified
-      //        modify the 08_token_issue.sh and modify the issue amount for htjonrkf1lgs to
-      //        become 120000000.000000000 also modify the account euwdcp13zlrj to become 2000000.000000000
-      //        with these values the chain will init, and then this set of tests can be run.
+      //        they use the faucet account
+      //       they assume the faucet is given more than 100M fio.
     //create SDK for the  htjonrkf1lgs account.
     keys = await createKeypair();
     console.log("priv key ", keys.privateKey);
     console.log("pub key ", keys.privateKey);
 
     userA1 = await newUser(faucet);
-
-    locksdk = await existingUser('htjonrkf1lgs', '5JCpqkvsrCzrAC3YWhx7pnLodr3Wr9dNMULYU8yoUrPRzu269Xz', 'FIO7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN', 'dapixdev', 'adam@dapixdev');
+    //we need to make a user with 100M fio.
+    //locksdk = await existingUser('htjonrkf1lgs', '5JCpqkvsrCzrAC3YWhx7pnLodr3Wr9dNMULYU8yoUrPRzu269Xz', 'FIO7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvN', 'dapixdev', 'adam@dapixdev');
     } catch (err) {
       console.log(err.message)
     }
@@ -55,9 +52,9 @@ describe(`A. Large grant tests`, () => {
 
 
 
-  it.skip(`Success Test, Transfer locked tokens,  create grant of 100M`, async () => {
+  it(`Success Test, Transfer locked tokens,  create grant of 100M`, async () => {
     try {
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
+      const result = await faucet.genericAction('pushTransaction', {
         action: 'trnsloctoks',
         account: 'fio.token',
         data: {
@@ -66,17 +63,17 @@ describe(`A. Large grant tests`, () => {
           periods: [
             {
               duration: 20,
-              percent: 50.0,
+              amount: 50000000000000000,
             },
             {
               duration: 40,
-              percent: 50.0,
+              amount: 50000000000000000,
             }
           ],
           amount: largeGrantAmount,
           max_fee: 400000000000,
           tpid: '',
-          actor: 'htjonrkf1lgs',
+          actor: 'qhh25sqpktwh',
         }
       })
       expect(result.status).to.equal('OK')
@@ -86,11 +83,11 @@ describe(`A. Large grant tests`, () => {
     }
   })
 
-  it.skip(`Waiting 25 seconds`, async () => {
+  it(`Waiting 25 seconds`, async () => {
     console.log("            waiting 25 seconds ")
   })
 
-  it.skip(` wait 25 seconds`, async () => {
+  it(` wait 25 seconds`, async () => {
     try {
       wait(25000)
     } catch (err) {
@@ -99,12 +96,11 @@ describe(`A. Large grant tests`, () => {
   })
 
   //one half should get unlocked
-  it.skip(`Transfer 4900000 FIO to another account`, async () => {
+  it(`Transfer 4900000 FIO to another account`, async () => {
     try {
     locksdk2 = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
     console.log("priv key: ",locksdk2.privateKey);
       console.log("pub key: ",locksdk2.publicKey);
-      console.log("account: ",locksdk2.accountHash);
     const result = await locksdk2.genericAction('transferTokens', {
       payeeFioPublicKey: userA1.publicKey,
       amount: 4900000000000000,
@@ -119,7 +115,7 @@ describe(`A. Large grant tests`, () => {
 
   it('Show lock amount for user', async () => {
     let timestamp
-    let accountnm =  await getAccountFromKey('FIO7Zq2qUduoQsQxmTvHTvKif8wMm7tX4XWKbQm59rAsU54GZPnSL');
+    let accountnm =  await getAccountFromKey(keys.publicKey);
 
     console.log("account is ",accountnm)
     try {
@@ -127,7 +123,7 @@ describe(`A. Large grant tests`, () => {
         json: true,               // Get the response as json
         code: 'eosio',      // Contract that we target
         scope: 'eosio',         // Account that owns the data
-        table: 'locktokens',        // Table name
+        table: 'locktokensv2',        // Table name
         limit: 1000,                // Maximum number of rows that we want to get
         reverse: false,           // Optional: Get reversed data
         show_payer: false          // Optional: Show ram payer
