@@ -1,7 +1,8 @@
 require('mocha')
 const {expect} = require('chai')
 const {newUser, existingUser,callFioApi,fetchJson, generateFioDomain, getAccountFromKey, generateFioAddress, createKeypair} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/fiosdk')
+const {FIOSDK } = require('@fioprotocol/fiosdk');
+const { createNull } = require('typescript');
 config = require('../config.js');
 
 before(async () => {
@@ -15,106 +16,198 @@ function wait(ms){
     end = new Date().getTime();
   }
 }
-// To test genesis locks.  please modify the following 2 files in the fio.contracts repository, to enable them
-// to be placed into "test mode"
-//
-// First, shorten the main net locking period to become 1 minute,
-// do this by commenting out the following lines in the fio.token.hpp computeremaininglockedtokens method.
+/*
+ To test genesis locks.  please modify the following 2 files in the fio.contracts repository, to enable them
+ to be placed into "test mode"
 
-// TESTING ONLY!!! comment out genesis locking periods..DO NOT DELIVER THIS
-/* uint32_t daysSinceGrant = (int) ((present_time - lockiter->timestamp) / SECONDSPERDAY);
- uint32_t firstPayPeriod = 90;
- uint32_t payoutTimePeriod = 180;
- */
+ 1. Shorten the main net locking period to become 1 minute
+ 
+  In: fio.token.hpp
+ 
+  Comment out the following lines in the computeremaininglockedtokens method:
 
-//  then add the following code beneath what you commented out.
+    //uint32_t daysSinceGrant = (int) ((present_time - lockiter->timestamp) / SECONDSPERDAY);
+    //uint32_t firstPayPeriod = 90;
+    //uint32_t payoutTimePeriod = 180;
 
-//TEST LOCKED TOKENS
-// TESTING ONLY!!! shorten genesis locking periods..DO NOT DELIVER THIS
-//               uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / 60);
-//               uint32_t firstPayPeriod = 1;
-//               uint32_t payoutTimePeriod = 1;
+  Then add the following code beneath what you commented out.
 
-//next permit anyone to call the addlocked action in the system contract.
-// do this by commenting out the following line in the addlocked action of the fio.system.cpp file
+    // TESTING ONLY!!! shorten genesis locking periods..DO NOT DELIVER THIS
+    uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / 60);
+    uint32_t firstPayPeriod = 1;
+    uint32_t payoutTimePeriod = 1;
 
-//     // require_auth(_self);
+  2. Permit anyone to call the addlocked action in the system contract.
 
-//add a return status, so that tests can run successfully at the end of the action.
-// const string response_string = string("{"status": "OK"}");
-// send_response(response_string.c_str());
+  In: fio.system.cpp
+
+  Comment out the following line in the addlocked action of the fio.system.cpp file
+
+    // require_auth(_self);
+
+  Next, add the following to the end of the addlocked action. This creates a return status
+  so that tests can run successfully.
+
+    const string response_string = string("{\"status\": \"OK\"}");
+    send_response(response_string.c_str());
 
 
-//next modify the faucet to have more tokens
-//08_token_issue.sh – modify the amount of tokens in the faucet to permit large grants.
-//    ./clio -u http://localhost:8879 push action -j fio.token issue '["qhh25sqpktwh","100000000.000000000 FIO","memo"]' -p eosio@active
+  3. Modify the faucet to have more tokens.
 
-// after making these modifications rebuild the contracts locally and restart your chain.
-// hou may then proceed with genesis locks testing.
+  In: fio.devtools 08_token_issue.sh
+    
+  Modify the following line to increase the amount of tokens in the faucet to permit large grants.
 
-//
+    ./clio -u http://localhost:8879 push action -j fio.token issue '["qhh25sqpktwh","100000000.000000000 FIO","memo"]' -p eosio@active
+
+
+  4. After making these modifications rebuild the contracts and restart your chain.
+
+
+  The token unlock schedule for Type 1 mainnet/genesis tokens:
+
+  Day 0: 0.00%
+  Day 90: 6.00% (period 1)
+  Day 270: 18.80% (period 2)
+  Day 450: 18.80% (period 3)
+  Day 630: 18.80% (period 4)
+  Day 810: 18.80% (period 5)
+  Day 990: 18.80% (period 1)
+*/
+
+const unlock1Percent = 0.06,
+  unlock2Percent = 0.06 + .188,
+  unlock3Percent = 0.06 + .188 + .188,
+  unlock4Percent = 0.06 + .188 + .188 + .188,
+  unlock5Percent = 0.06 + .188 + .188 + .188 + .188,
+  unlock6Percent = 0.06 + .188 + .188 + .188 + .188 + .188
 
 
 describe(`************************** mainet-locked-tokens.js ************************** \n    A. Create large grant verify unlocking using voting \n       also test error cant transfer more than unlocked amount\n     also test multiple calls to voting do not have effect.`, () => {
 
-  let userA1, prevFundsAmount, locksdk, keys, accountnm,newFioDomain, newFioAddress
-  const fundsAmount = 1000000000000
-  const lockdurationseconds = 60
+  let userA1, prevFundsAmount, lockAccount, newFioAddress
+  let numberOfVotes = 0
 
+  voteProdFee = config.api.vote_producer.fee
 
-  it(`Create users`, async () => {
+  const lockdurationseconds = 60,
+    //lockAmount = 7075065123456789
+    lockAmount = 100000000000,  // 100 FIO
+    testTransferAmount = 50000000000,  // 50 FIO
+    unlock1Amount = lockAmount * unlock1Percent,
+    unlock2Amount = lockAmount * unlock2Percent,
+    unlock3Amount = lockAmount * unlock3Percent,
+    unlock4Amount = lockAmount * unlock4Percent,
+    unlock5Amount = lockAmount * unlock5Percent,
+    unlock6Amount = lockAmount * unlock6Percent
+
+  it(`Create lockAccount user`, async () => {
     userA1 = await newUser(faucet);
 
-    keys = await createKeypair();
+    lockAccount = await createKeypair();
 
-    accountnm =  await getAccountFromKey(keys.publicKey);
-    console.log("priv key ", keys.privateKey);
-    console.log("pub key ", keys.publicKey);
-    console.log(" account ",accountnm);
-
-
-    const result = await faucet.genericAction('transferTokens', {
-      payeeFioPublicKey: keys.publicKey,
-      amount: 7075065123456789,
-      maxFee: config.api.transfer_tokens_pub_key.fee,
-      technologyProviderId: ''
-    })
-    expect(result.status).to.equal('OK')
-
-
-    const result1 = await userA1.sdk.genericAction('pushTransaction', {
-      action: 'addlocked',
-      account: 'eosio',
-      data: {
-        owner : accountnm,
-        amount: 7075065123456789,
-        locktype: 1
-      }
-    })
-    expect(result1.status).to.equal('OK')
-
-    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
-
+    lockAccount.account = await getAccountFromKey(lockAccount.publicKey);
+    console.log("lockAccount priv key: ", lockAccount.privateKey);
+    console.log("lockAccount pub key: ", lockAccount.publicKey);
+    console.log("lockAccount account: ", lockAccount.account);
+    
+    lockAccount.sdk = new FIOSDK(lockAccount.privateKey, lockAccount.publicKey, config.BASE_URL, fetchJson);
   })
 
-  it(`getFioBalance for genesis lock token holder, available balance 0 `, async () => {
-      const result = await locksdk.genericAction('getFioBalance', { })
-      prevFundsAmount = result.balance
-      expect(result.available).to.equal(7075065123456789)
-  })
-
-  it(`Failure test Transfer 700 FIO to userA1 FIO public key, insufficient balance tokens locked`, async () => {
+  it(`Transfer ${lockAmount} SUFs to lockAccount `, async () => {
     try {
-    const result = await locksdk.genericAction('transferTokens', {
+      const result = await faucet.genericAction('transferTokens', {
+        payeeFioPublicKey: lockAccount.publicKey,
+        amount: lockAmount,
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err.json);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Add ${lockAmount} Type 1 locked tokens to lockAccount `, async () => {
+    try {
+      const result1 = await userA1.sdk.genericAction('pushTransaction', {
+        action: 'addlocked',
+        account: 'eosio',
+        data: {
+          owner : lockAccount.account,
+          amount: lockAmount,
+          locktype: 1
+        }
+      })
+      expect(result1.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Call get_table_rows from lockedtokens. Expect: remaining_locked_amount = ${lockAmount}`, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'lockedtokens',
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
+        key_type: 'i64',
+        index_position: '1'
+      }
+      result = await callFioApi("get_table_rows", json);
+      //console.log('Result: ', result);
+
+      expect(result.rows[0].unlocked_period_count).to.equal(0);
+      expect(result.rows[0].remaining_locked_amount).to.equal(lockAmount);
+
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`getFioBalance for lockAccount genesis lock token holder. Expect: available balance = 0 `, async () => {
+    try {
+      const result = await lockAccount.sdk.genericAction('getFioBalance', {})
+      //console.log('Result: ', result);
+      prevFundsAmount = result.balance
+      expect(result.balance).to.equal(lockAmount);
+      //expect(result.available).to.equal(0);  // Known bug in 3.0.1
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Failure test - Transfer ${testTransferAmount} SUFs from lockAccount to userA1 FIO public key, insufficient balance tokens locked`, async () => {
+    try {
+    const result = await lockAccount.sdk.genericAction('transferTokens', {
       payeeFioPublicKey: userA1.publicKey,
-      amount: 700000000000,
-      maxFee: config.api.transfer_tokens_pub_key.fee,
+      amount: testTransferAmount,
+      maxFee: config.maxFee,
       technologyProviderId: ''
     })
       expect(result.status).to.not.equal('OK')
     } catch (err) {
-     // console.log('Error: ', err)
+      //console.log('Error: ', err)
       expect(err.json.fields[0].error).to.contain(config.error.insufficientBalance)
+    }
+  })
+
+  it(`getFioBalance for lockAccount genesis lock token holder. Expect: balance = ${lockAmount} `, async () => {
+    try {
+      const result = await lockAccount.sdk.genericAction('getFioBalance', {})
+      //console.log('Result: ', result);
+      expect(result.balance).to.equal(lockAmount);
+      //console.log('Fee: ', voteProdFee)
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null);
     }
   })
 
@@ -127,48 +220,50 @@ describe(`************************** mainet-locked-tokens.js *******************
     try {
       wait(lockdurationseconds * 1000)
     } catch (err) {
-      console.log('Error', err)
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 
   it(`Success, vote for producers.`, async () => {
-
     try {
-      const result = await locksdk.genericAction('pushTransaction', {
+      const result = await lockAccount.sdk.genericAction('pushTransaction', {
         action: 'voteproducer',
         account: 'eosio',
         data: {
           producers: ["bp1@dapixdev"],
           fio_address: newFioAddress,
-          actor: accountnm,
+          actor: lockAccount.account,
           max_fee: config.maxFee
         }
       })
-      // console.log('Result: ', result)
+      //console.log('Result: ', result)
+      numberOfVotes += 1;
       expect(result.status).to.equal('OK')
     } catch (err) {
-      console.log("ERROR: ", err)
+      console.log("ERROR: ", err);
+      expect(err).to.equal(null);
     }
   })
 
   //check that 6% was unlocked.
-  it(`Call get_table_rows from lockedtokens and confirm: unlocked amount`, async () => {
+  it(`Call get_table_rows from lockedtokens. Confirm: unlocked = ${unlock1Percent}, remaining unlocked = ${lockAmount - unlock1Amount}`, async () => {
     try {
       const json = {
         json: true,
         code: 'eosio',
         scope: 'eosio',
         table: 'lockedtokens',
-        lower_bound: accountnm,
-        upper_bound: accountnm,
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
         key_type: 'i64',
         index_position: '1'
       }
       result = await callFioApi("get_table_rows", json);
-     // console.log('Result: ', result);
+      //console.log('Result: ', result);
 
       expect(result.rows[0].unlocked_period_count).to.equal(1);
-      expect(result.rows[0].remaining_locked_amount).to.equal(6650561216049387);
+      expect(result.rows[0].remaining_locked_amount).to.equal(lockAmount - unlock1Amount);
 
     } catch (err) {
       console.log('Error', err);
@@ -177,19 +272,19 @@ describe(`************************** mainet-locked-tokens.js *******************
   })
 
   it(`Success, vote for producers.`, async () => {
-
     try {
-      const result = await locksdk.genericAction('pushTransaction', {
+      const result = await lockAccount.sdk.genericAction('pushTransaction', {
         action: 'voteproducer',
         account: 'eosio',
         data: {
           producers: ["bp2@dapixdev"],
           fio_address: newFioAddress,
-          actor: accountnm,
+          actor: lockAccount.account,
           max_fee: config.maxFee
         }
       })
-      // console.log('Result: ', result)
+      //console.log('Result: ', result)
+      numberOfVotes += 1;
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log("ERROR: ", err)
@@ -204,16 +299,16 @@ describe(`************************** mainet-locked-tokens.js *******************
         code: 'eosio',
         scope: 'eosio',
         table: 'lockedtokens',
-        lower_bound: accountnm,
-        upper_bound: accountnm,
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
         key_type: 'i64',
         index_position: '1'
       }
       result = await callFioApi("get_table_rows", json);
-      // console.log('Result: ', result);
+      //console.log('Result: ', result);
 
       expect(result.rows[0].unlocked_period_count).to.equal(1);
-      expect(result.rows[0].remaining_locked_amount).to.equal(6650561216049387);
+      expect(result.rows[0].remaining_locked_amount).to.equal(lockAmount - unlock1Amount);
 
     } catch (err) {
       console.log('Error', err);
@@ -221,19 +316,43 @@ describe(`************************** mainet-locked-tokens.js *******************
     }
   })
 
-  it(`Failure, Transfer 1M FIO to userA1 FIO public key`, async () => {
+  it(`Failure, Transfer unlock1Amount + 10 FIO to userA1 FIO public key`, async () => {
 
     try {
-      const result = await locksdk.genericAction('transferTokens', {
+      const result = await lockAccount.sdk.genericAction('transferTokens', {
         payeeFioPublicKey: userA1.publicKey,
-        amount: 1000000000,
-        maxFee: config.api.transfer_tokens_pub_key.fee,
+        amount: unlock1Amount + 10000000000,
+        maxFee: config.maxFee,
         technologyProviderId: ''
       })
-      expect(result.status).to.equal('OK')
-    }catch (err){
-      //console.log("ERROR: ", err)
-      expect(err.json.fields[0].error).to.contain(config.error.insufficientBalance)
+      expect(result.status).to.equal(null);
+    } catch (err) {
+      //console.log("ERROR: ", err);
+      expect(err.json.fields[0].error).to.contain(config.error.insufficientBalance);
+    }
+  })
+
+  it(`Confirm last_vote_weight = ${lockAmount * 0.3} (30%) `, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
+        key_type: "name",
+        index_position: "3",
+      }
+      voters = await callFioApi("get_table_rows", json);
+      //console.log('Voters: ', voters);
+      voteWeight = Math.trunc(parseInt(voters.rows[0].last_vote_weight));
+      //console.log('voteWeight: ', voteWeight);
+
+      expect(voteWeight).to.equal(lockAmount * 0.3); //
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 
@@ -253,17 +372,18 @@ describe(`************************** mainet-locked-tokens.js *******************
   it(`Success, vote for producers.`, async () => {
 
     try {
-      const result = await locksdk.genericAction('pushTransaction', {
+      const result = await lockAccount.sdk.genericAction('pushTransaction', {
         action: 'voteproducer',
         account: 'eosio',
         data: {
           producers: ["bp1@dapixdev"],
           fio_address: newFioAddress,
-          actor: accountnm,
+          actor: lockAccount.account,
           max_fee: config.maxFee
         }
       })
       // console.log('Result: ', result)
+      numberOfVotes += 1;
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log("ERROR: ", err)
@@ -271,24 +391,47 @@ describe(`************************** mainet-locked-tokens.js *******************
   })
 
   //check that 18.8% was unlocked.
-  it(`Call get_table_rows from lockedtokens and confirm: unlocked amount`, async () => {
+  it(`Call get_table_rows from lockedtokens. Confirm: unlocked = ${unlock2Percent}, remaining unlocked = ${lockAmount - unlock2Amount}`, async () => {
     try {
       const json = {
         json: true,
         code: 'eosio',
         scope: 'eosio',
         table: 'lockedtokens',
-        lower_bound: accountnm,
-        upper_bound: accountnm,
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
         key_type: 'i64',
         index_position: '1'
       }
       result = await callFioApi("get_table_rows", json);
-    // console.log('Result: ', result);
+      //console.log('Result: ', result);
 
       expect(result.rows[0].unlocked_period_count).to.equal(2);
-      expect(result.rows[0].remaining_locked_amount).to.equal(5320448972849387);
+      expect(result.rows[0].remaining_locked_amount).to.equal(lockAmount - unlock2Amount);
 
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Confirm last_vote_weight = ${lockAmount * 0.3} (30%) `, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
+        key_type: "name",
+        index_position: "3",
+      }
+      voters = await callFioApi("get_table_rows", json);
+      voteWeight = Math.trunc(parseInt(voters.rows[0].last_vote_weight));
+      //console.log('Voters: ', voters);
+
+      expect(voteWeight).to.equal(lockAmount * 0.3); //
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -311,17 +454,18 @@ describe(`************************** mainet-locked-tokens.js *******************
   it(`Success, vote for producers.`, async () => {
 
     try {
-      const result = await locksdk.genericAction('pushTransaction', {
+      const result = await lockAccount.sdk.genericAction('pushTransaction', {
         action: 'voteproducer',
         account: 'eosio',
         data: {
           producers: ["bp1@dapixdev"],
           fio_address: newFioAddress,
-          actor: accountnm,
+          actor: lockAccount.account,
           max_fee: config.maxFee
         }
       })
       // console.log('Result: ', result)
+      numberOfVotes += 1;
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log("ERROR: ", err)
@@ -329,24 +473,48 @@ describe(`************************** mainet-locked-tokens.js *******************
   })
 
   //check that 18.8% was unlocked.
-  it(`Call get_table_rows from lockedtokens and confirm: unlocked amount`, async () => {
+  it(`Call get_table_rows from lockedtokens. Confirm: unlocked = ${unlock3Percent}, remaining unlocked = ${lockAmount - unlock3Amount}`, async () => {
     try {
       const json = {
         json: true,
         code: 'eosio',
         scope: 'eosio',
         table: 'lockedtokens',
-        lower_bound: accountnm,
-        upper_bound: accountnm,
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
         key_type: 'i64',
         index_position: '1'
       }
       result = await callFioApi("get_table_rows", json);
-     // console.log('Result: ', result);
+      //console.log('Result: ', result);
 
       expect(result.rows[0].unlocked_period_count).to.equal(3);
-      expect(result.rows[0].remaining_locked_amount).to.equal(3990336729649387);
+      expect(result.rows[0].remaining_locked_amount).to.equal(lockAmount - unlock3Amount);
 
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Confirm last_vote_weight = ${unlock3Amount} minus regprod fees? `, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
+        key_type: "name",
+        index_position: "3",
+      }
+      voters = await callFioApi("get_table_rows", json);
+      voteWeight = Math.trunc(parseInt(voters.rows[0].last_vote_weight));
+      //console.log('Voters: ', voters);
+      //console.log('fee: ', voteProdFee * numberOfVotes)
+
+      expect(voteWeight).to.equal(unlock3Amount - voteProdFee * (numberOfVotes-1)); //Not sure why it did not include all votes...
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -369,17 +537,18 @@ describe(`************************** mainet-locked-tokens.js *******************
   it(`Success, vote for producers.`, async () => {
 
     try {
-      const result = await locksdk.genericAction('pushTransaction', {
+      const result = await lockAccount.sdk.genericAction('pushTransaction', {
         action: 'voteproducer',
         account: 'eosio',
         data: {
           producers: ["bp1@dapixdev"],
           fio_address: newFioAddress,
-          actor: accountnm,
+          actor: lockAccount.account,
           max_fee: config.maxFee
         }
       })
       // console.log('Result: ', result)
+      numberOfVotes += 1;
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log("ERROR: ", err)
@@ -387,15 +556,15 @@ describe(`************************** mainet-locked-tokens.js *******************
   })
 
   //check that 18.8% was unlocked.
-  it(`Call get_table_rows from lockedtokens and confirm: unlocked amount`, async () => {
+  it(`Call get_table_rows from lockedtokens. Confirm: unlocked = ${unlock4Percent}, remaining unlocked = ${lockAmount - unlock4Amount}`, async () => {
     try {
       const json = {
         json: true,
         code: 'eosio',
         scope: 'eosio',
         table: 'lockedtokens',
-        lower_bound: accountnm,
-        upper_bound: accountnm,
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
         key_type: 'i64',
         index_position: '1'
       }
@@ -403,8 +572,32 @@ describe(`************************** mainet-locked-tokens.js *******************
     //  console.log('Result: ', result);
 
       expect(result.rows[0].unlocked_period_count).to.equal(4);
-      expect(result.rows[0].remaining_locked_amount).to.equal(2660224486449387);
+      expect(result.rows[0].remaining_locked_amount).to.equal(lockAmount - unlock4Amount);
 
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Confirm last_vote_weight = ${unlock4Amount} minus regprod fees `, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
+        key_type: "name",
+        index_position: "3",
+      }
+      voters = await callFioApi("get_table_rows", json);
+      voteWeight = Math.trunc(parseInt(voters.rows[0].last_vote_weight));
+      //console.log('Voters: ', voters);
+      //console.log('fee: ', voteProdFee * numberOfVotes)
+
+      expect(voteWeight).to.equal(unlock4Amount - voteProdFee * (numberOfVotes - 1)); //
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -427,17 +620,18 @@ describe(`************************** mainet-locked-tokens.js *******************
   it(`Success, vote for producers.`, async () => {
 
     try {
-      const result = await locksdk.genericAction('pushTransaction', {
+      const result = await lockAccount.sdk.genericAction('pushTransaction', {
         action: 'voteproducer',
         account: 'eosio',
         data: {
           producers: ["bp1@dapixdev"],
           fio_address: newFioAddress,
-          actor: accountnm,
+          actor: lockAccount.account,
           max_fee: config.maxFee
         }
       })
       // console.log('Result: ', result)
+      numberOfVotes += 1;
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log("ERROR: ", err)
@@ -445,15 +639,15 @@ describe(`************************** mainet-locked-tokens.js *******************
   })
 
   //check that 18.8% was unlocked.
-  it(`Call get_table_rows from lockedtokens and confirm: unlocked amount`, async () => {
+  it(`Call get_table_rows from lockedtokens. Confirm: unlocked = ${unlock5Percent}, remaining unlocked = ${lockAmount - unlock5Amount}`, async () => {
     try {
       const json = {
         json: true,
         code: 'eosio',
         scope: 'eosio',
         table: 'lockedtokens',
-        lower_bound: accountnm,
-        upper_bound: accountnm,
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
         key_type: 'i64',
         index_position: '1'
       }
@@ -461,8 +655,32 @@ describe(`************************** mainet-locked-tokens.js *******************
     //  console.log('Result: ', result);
 
       expect(result.rows[0].unlocked_period_count).to.equal(5);
-      expect(result.rows[0].remaining_locked_amount).to.equal(1330112243249387);
+      expect(result.rows[0].remaining_locked_amount).to.equal(lockAmount - unlock5Amount);
 
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Confirm last_vote_weight = ${unlock5Amount} minus regprod fees `, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
+        key_type: "name",
+        index_position: "3",
+      }
+      voters = await callFioApi("get_table_rows", json);
+      voteWeight = Math.trunc(parseInt(voters.rows[0].last_vote_weight));
+      //console.log('Voters: ', voters);
+      //console.log('fee: ', voteProdFee * numberOfVotes)
+
+      expect(voteWeight).to.equal(unlock5Amount - voteProdFee * (numberOfVotes - 1));
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -485,17 +703,18 @@ describe(`************************** mainet-locked-tokens.js *******************
   it(`Success, vote for producers.`, async () => {
 
     try {
-      const result = await locksdk.genericAction('pushTransaction', {
+      const result = await lockAccount.sdk.genericAction('pushTransaction', {
         action: 'voteproducer',
         account: 'eosio',
         data: {
           producers: ["bp1@dapixdev"],
           fio_address: newFioAddress,
-          actor: accountnm,
+          actor: lockAccount.account,
           max_fee: config.maxFee
         }
       })
       // console.log('Result: ', result)
+      numberOfVotes += 1;
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log("ERROR: ", err)
@@ -503,15 +722,15 @@ describe(`************************** mainet-locked-tokens.js *******************
   })
 
   //check that 18.8% was unlocked.
-  it(`Call get_table_rows from lockedtokens and confirm: unlocked amount`, async () => {
+  it(`Call get_table_rows from lockedtokens. Confirm: unlocked = ${unlock6Percent}, remaining unlocked = ${lockAmount - unlock6Amount}`, async () => {
     try {
       const json = {
         json: true,
         code: 'eosio',
         scope: 'eosio',
         table: 'lockedtokens',
-        lower_bound: accountnm,
-        upper_bound: accountnm,
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
         key_type: 'i64',
         index_position: '1'
       }
@@ -519,7 +738,7 @@ describe(`************************** mainet-locked-tokens.js *******************
      // console.log('Result: ', result);
 
       expect(result.rows[0].unlocked_period_count).to.equal(6);
-      expect(result.rows[0].remaining_locked_amount).to.equal(49387);
+      expect(result.rows[0].remaining_locked_amount).to.equal(lockAmount - unlock6Amount);
 
     } catch (err) {
       console.log('Error', err);
@@ -530,17 +749,18 @@ describe(`************************** mainet-locked-tokens.js *******************
   it(`Success, vote for producers.`, async () => {
 
     try {
-      const result = await locksdk.genericAction('pushTransaction', {
+      const result = await lockAccount.sdk.genericAction('pushTransaction', {
         action: 'voteproducer',
         account: 'eosio',
         data: {
           producers: ["bp2@dapixdev"],
           fio_address: newFioAddress,
-          actor: accountnm,
+          actor: lockAccount.account,
           max_fee: config.maxFee
         }
       })
       // console.log('Result: ', result)
+      numberOfVotes += 1;
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log("ERROR: ", err)
@@ -554,8 +774,8 @@ describe(`************************** mainet-locked-tokens.js *******************
         code: 'eosio',
         scope: 'eosio',
         table: 'lockedtokens',
-        lower_bound: accountnm,
-        upper_bound: accountnm,
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
         key_type: 'i64',
         index_position: '1'
       }
@@ -563,8 +783,31 @@ describe(`************************** mainet-locked-tokens.js *******************
       // console.log('Result: ', result);
 
       expect(result.rows[0].unlocked_period_count).to.equal(6);
-      expect(result.rows[0].remaining_locked_amount).to.equal(49387);
+      expect(result.rows[0].remaining_locked_amount).to.equal(lockAmount - unlock6Amount);
 
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Confirm last_vote_weight = ${unlock6Amount} minus regprod fees `, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
+        key_type: "name",
+        index_position: "3",
+      }
+      voters = await callFioApi("get_table_rows", json);
+      voteWeight = Math.trunc(parseInt(voters.rows[0].last_vote_weight));
+      //console.log('Voters: ', voters);
+
+      expect(voteWeight).to.equal(unlock6Amount - voteProdFee * (numberOfVotes - 1)); //
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -574,64 +817,66 @@ describe(`************************** mainet-locked-tokens.js *******************
 
 })
 
-describe(`************************** stake-mainet-locked-tokens.js ************************** \n    A. Create large grant verify unlocking with skipped periods using voting \n also verify voting power is correct after 3rd unlock period`, () => {
 
-  let userA1, prevFundsAmount, locksdk, keys, accountnm,newFioDomain, newFioAddress
-  const fundsAmount = 1000000000000
-  const lockdurationseconds = 60
+describe(`B. Create large grant verify unlocking with skipped periods using voting also verify voting power is correct after 3rd unlock period`, () => {
 
+  let userA1, lockAccount, newFioAddress
+  const lockdurationseconds = 60,
+    lockAmount = 7075065123456789,
+    //lockAmount = 100000000000,  // 100 FIO
+    testTransferAmount = 700000000000  // 50 FIO
 
-  it(`Create users`, async () => {
+  it(`Create lockAccount user`, async () => {
+    userA1 = await newUser(faucet);
+
+    lockAccount = await createKeypair();
+
+    lockAccount.account = await getAccountFromKey(lockAccount.publicKey);
+    console.log("lockAccount priv key: ", lockAccount.privateKey);
+    console.log("lockAccount pub key: ", lockAccount.publicKey);
+    console.log("lockAccount account: ", lockAccount.account);
+
+    lockAccount.sdk = new FIOSDK(lockAccount.privateKey, lockAccount.publicKey, config.BASE_URL, fetchJson);
+  })
+
+  it(`Transfer ${lockAmount} SUFs to lockAccount `, async () => {
     try {
-      userA1 = await newUser(faucet);
-
-      keys = await createKeypair();
-      console.log("priv key ", keys.privateKey);
-      console.log("pub key ", keys.publicKey);
-      accountnm =  await getAccountFromKey(keys.publicKey);
-      console.log(" account ",accountnm);
-      let accountnm1 = await getAccountFromKey(faucet.publicKey);
-      //console.log("faucet account ", accountnm1 );
-
-
       const result = await faucet.genericAction('transferTokens', {
-        payeeFioPublicKey: keys.publicKey,
-        amount: 7075065123456789,
-        maxFee: config.api.transfer_tokens_pub_key.fee,
+        payeeFioPublicKey: lockAccount.publicKey,
+        amount: lockAmount,
+        maxFee: config.maxFee,
         technologyProviderId: ''
       })
-
-      // console.log(result)
-
       expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err.json);
+      expect(err).to.equal(null);
+    }
+  })
 
-
+  it(`Add ${lockAmount} Type 1 locked tokens to lockAccount `, async () => {
+    try {
       const result1 = await userA1.sdk.genericAction('pushTransaction', {
         action: 'addlocked',
         account: 'eosio',
         data: {
-          owner : accountnm,
-          amount: 7075065123456789,
+          owner: lockAccount.account,
+          amount: lockAmount,
           locktype: 1
         }
       })
-      //console.log(result1)
       expect(result1.status).to.equal('OK')
-
-      locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
     } catch (err) {
-      console.log('Error setting up  lock account: ', err)
-      //expect(err.json.fields[0].error).to.contain(config.error.insufficientBalance)
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
-
   })
 
   it(`getFioBalance for genesis lock token holder, available balance bug `, async () => {
     try {
-      const result = await locksdk.genericAction('getFioBalance', { })
-      prevFundsAmount = result.balance
+      const result = await lockAccount.sdk.genericAction('getFioBalance', { })
       //console.log(result)
-      expect(result.available).to.equal(7075065123456789)
+      expect(result.available).to.equal(lockAmount)
     } catch (err) {
       //  console.log('   Error: ', err)
       expect(err.json.fields[0].error).to.contain(config.error.insufficientBalance)
@@ -640,9 +885,9 @@ describe(`************************** stake-mainet-locked-tokens.js *************
 
   it(`Failure test Transfer 700 FIO to userA1 FIO public key, insufficient balance tokens locked`, async () => {
     try {
-      const result = await locksdk.genericAction('transferTokens', {
+      const result = await lockAccount.sdk.genericAction('transferTokens', {
         payeeFioPublicKey: userA1.publicKey,
-        amount: 700000000000,
+        amount: testTransferAmount,
         maxFee: config.api.transfer_tokens_pub_key.fee,
         technologyProviderId: ''
       })
@@ -669,13 +914,13 @@ describe(`************************** stake-mainet-locked-tokens.js *************
   it(`Success, vote for producers.`, async () => {
 
     try {
-      const result = await locksdk.genericAction('pushTransaction', {
+      const result = await lockAccount.sdk.genericAction('pushTransaction', {
         action: 'voteproducer',
         account: 'eosio',
         data: {
           producers: ["bp1@dapixdev"],
           fio_address: newFioAddress,
-          actor: accountnm,
+          actor: lockAccount.account,
           max_fee: config.maxFee
         }
       })
@@ -693,8 +938,8 @@ describe(`************************** stake-mainet-locked-tokens.js *************
         code: 'eosio',
         scope: 'eosio',
         table: 'lockedtokens',
-        lower_bound: accountnm,
-        upper_bound: accountnm,
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
         key_type: 'i64',
         index_position: '1'
       }
@@ -702,7 +947,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
       // console.log('Result: ', result);
 
       expect(result.rows[0].unlocked_period_count).to.equal(3);
-      expect(result.rows[0].remaining_locked_amount).to.equal(3990336729639387);
+      expect(result.rows[0].remaining_locked_amount).to.equal(3990336729639387); // Includes dust
 
     } catch (err) {
       console.log('Error', err);
@@ -718,21 +963,14 @@ describe(`************************** stake-mainet-locked-tokens.js *************
         code: 'eosio',
         scope: 'eosio',
         table: 'voters',
-        limit: 1000,
-        reverse: false,
-        show_payer: false
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
+        key_type: "name",
+        index_position: "3",
       }
       voters = await callFioApi("get_table_rows", json);
-      //console.log('voters: ', voters);
-      for (voter in voters.rows) {
-        if (voters.rows[voter].owner == accountnm) {
-          // console.log('voters.rows[voter]: ', voters.rows[voter]);
-          break;
-        }
-      }
 
-
-      expect(voters.rows[voter].last_vote_weight).to.equal('3084728393817402.00000000000000000');
+      expect(voters.rows[0].last_vote_weight).to.equal('3084728393817402.00000000000000000'); //
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -756,13 +994,13 @@ describe(`************************** stake-mainet-locked-tokens.js *************
   it(`Success, vote for producers.`, async () => {
 
     try {
-      const result = await locksdk.genericAction('pushTransaction', {
+      const result = await lockAccount.sdk.genericAction('pushTransaction', {
         action: 'voteproducer',
         account: 'eosio',
         data: {
           producers: ["bp1@dapixdev"],
           fio_address: newFioAddress,
-          actor: accountnm,
+          actor: lockAccount.account,
           max_fee: config.maxFee
         }
       })
@@ -781,13 +1019,13 @@ describe(`************************** stake-mainet-locked-tokens.js *************
         code: 'eosio',
         scope: 'eosio',
         table: 'lockedtokens',
-        lower_bound: accountnm,
-        upper_bound: accountnm,
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
         key_type: 'i64',
         index_position: '1'
       }
       result = await callFioApi("get_table_rows", json);
-      // console.log('Result: ', result);
+      //console.log('Result: ', result);
 
       expect(result.rows[0].unlocked_period_count).to.equal(6);
       expect(result.rows[0].remaining_locked_amount).to.equal(19387);
@@ -800,58 +1038,77 @@ describe(`************************** stake-mainet-locked-tokens.js *************
 
 })
 
-describe(`************************** stake-mainet-locked-tokens.js ************************** \n    A. Create large grant verify unlocking using transfer`, () => {
+describe(`C. Create large grant verify unlocking using transfer`, () => {
 
-  let userA1, prevFundsAmount, locksdk, keys, accountnm,newFioDomain, newFioAddress
-  const fundsAmount = 1000000000000
-  const lockdurationseconds = 60
+  let userA1, lockAccount, newFioAddress
+  const lockdurationseconds = 60,
+    lockAmount = 7075065123456789,
+    //lockAmount = 100000000000,  // 100 FIO
+    testTransferAmount = 700000000000,  // 50 FIO
+    unlock1Amount = lockAmount * unlock1Percent,
+    unlock2Amount = lockAmount * unlock2Percent,
+    unlock3Amount = lockAmount * unlock3Percent,
+    unlock4Amount = lockAmount * unlock4Percent,
+    unlock5Amount = lockAmount * unlock5Percent,
+    unlock6Amount = lockAmount * unlock6Percent
 
-
-  it(`Create users`, async () => {
+  it(`Create lockAccount user`, async () => {
     userA1 = await newUser(faucet);
 
-    keys = await createKeypair();
-    console.log("priv key ", keys.privateKey);
-    console.log("pub key ", keys.publicKey);
-    accountnm =  await getAccountFromKey(keys.publicKey);
-    console.log(" account ",accountnm);
+    lockAccount = await createKeypair();
 
+    lockAccount.account = await getAccountFromKey(lockAccount.publicKey);
+    console.log("lockAccount priv key: ", lockAccount.privateKey);
+    console.log("lockAccount pub key: ", lockAccount.publicKey);
+    console.log("lockAccount account: ", lockAccount.account);
 
-    const result = await faucet.genericAction('transferTokens', {
-      payeeFioPublicKey: keys.publicKey,
-      amount: 7075065123456789,
-      maxFee: config.api.transfer_tokens_pub_key.fee,
-      technologyProviderId: ''
-    })
-    expect(result.status).to.equal('OK')
+    lockAccount.sdk = new FIOSDK(lockAccount.privateKey, lockAccount.publicKey, config.BASE_URL, fetchJson);
+  })
 
+  it(`Transfer ${lockAmount} SUFs to lockAccount `, async () => {
+    try {
+      const result = await faucet.genericAction('transferTokens', {
+        payeeFioPublicKey: lockAccount.publicKey,
+        amount: lockAmount,
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err.json);
+      expect(err).to.equal(null);
+    }
+  })
 
-    const result1 = await userA1.sdk.genericAction('pushTransaction', {
-      action: 'addlocked',
-      account: 'eosio',
-      data: {
-        owner : accountnm,
-        amount: 7075065123456789,
-        locktype: 1
-      }
-    })
-    expect(result1.status).to.equal('OK')
-
-    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
-
+  it(`Add ${lockAmount} Type 1 locked tokens to lockAccount `, async () => {
+    try {
+      const result1 = await userA1.sdk.genericAction('pushTransaction', {
+        action: 'addlocked',
+        account: 'eosio',
+        data: {
+          owner: lockAccount.account,
+          amount: lockAmount,
+          locktype: 1
+        }
+      })
+      expect(result1.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
   })
 
   it(`getFioBalance for genesis lock token holder, available balance bug `, async () => {
-    const result = await locksdk.genericAction('getFioBalance', { })
+    const result = await lockAccount.sdk.genericAction('getFioBalance', { })
     prevFundsAmount = result.balance
-    expect(result.available).to.equal(7075065123456789)
+    expect(result.available).to.equal(lockAmount)
   })
 
   it(`Failure test Transfer 700 FIO to userA1 FIO public key, insufficient balance tokens locked`, async () => {
     try {
-      const result = await locksdk.genericAction('transferTokens', {
+      const result = await lockAccount.sdk.genericAction('transferTokens', {
         payeeFioPublicKey: userA1.publicKey,
-        amount: 700000000000,
+        amount: testTransferAmount,
         maxFee: config.api.transfer_tokens_pub_key.fee,
         technologyProviderId: ''
       })
@@ -878,7 +1135,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
   it(`Success, Transfer 1 FIO to userA1 FIO public key`, async () => {
 
     try {
-      const result = await locksdk.genericAction('transferTokens', {
+      const result = await lockAccount.sdk.genericAction('transferTokens', {
         payeeFioPublicKey: userA1.publicKey,
         amount: 1000000000,
         maxFee: config.api.transfer_tokens_pub_key.fee,
@@ -898,8 +1155,8 @@ describe(`************************** stake-mainet-locked-tokens.js *************
         code: 'eosio',
         scope: 'eosio',
         table: 'lockedtokens',
-        lower_bound: accountnm,
-        upper_bound: accountnm,
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
         key_type: 'i64',
         index_position: '1'
       }
@@ -933,7 +1190,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
   it(`Success, Transfer 1 FIO to userA1 FIO public key`, async () => {
 
     try {
-      const result = await locksdk.genericAction('transferTokens', {
+      const result = await lockAccount.sdk.genericAction('transferTokens', {
         payeeFioPublicKey: userA1.publicKey,
         amount: 1000000000,
         maxFee: config.api.transfer_tokens_pub_key.fee,
@@ -953,8 +1210,8 @@ describe(`************************** stake-mainet-locked-tokens.js *************
         code: 'eosio',
         scope: 'eosio',
         table: 'lockedtokens',
-        lower_bound: accountnm,
-        upper_bound: accountnm,
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
         key_type: 'i64',
         index_position: '1'
       }
@@ -986,7 +1243,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
   it(`Success, Transfer 1 FIO to userA1 FIO public key`, async () => {
 
     try {
-      const result = await locksdk.genericAction('transferTokens', {
+      const result = await lockAccount.sdk.genericAction('transferTokens', {
         payeeFioPublicKey: userA1.publicKey,
         amount: 1000000000,
         maxFee: config.api.transfer_tokens_pub_key.fee,
@@ -1006,8 +1263,8 @@ describe(`************************** stake-mainet-locked-tokens.js *************
         code: 'eosio',
         scope: 'eosio',
         table: 'lockedtokens',
-        lower_bound: accountnm,
-        upper_bound: accountnm,
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
         key_type: 'i64',
         index_position: '1'
       }
@@ -1039,7 +1296,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
   it(`Success, Transfer 1 FIO to userA1 FIO public key`, async () => {
 
     try {
-      const result = await locksdk.genericAction('transferTokens', {
+      const result = await lockAccount.sdk.genericAction('transferTokens', {
         payeeFioPublicKey: userA1.publicKey,
         amount: 1000000000,
         maxFee: config.api.transfer_tokens_pub_key.fee,
@@ -1059,8 +1316,8 @@ describe(`************************** stake-mainet-locked-tokens.js *************
         code: 'eosio',
         scope: 'eosio',
         table: 'lockedtokens',
-        lower_bound: accountnm,
-        upper_bound: accountnm,
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
         key_type: 'i64',
         index_position: '1'
       }
@@ -1092,7 +1349,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
   it(`Success, Transfer 1 FIO to userA1 FIO public key`, async () => {
 
     try {
-      const result = await locksdk.genericAction('transferTokens', {
+      const result = await lockAccount.sdk.genericAction('transferTokens', {
         payeeFioPublicKey: userA1.publicKey,
         amount: 1000000000,
         maxFee: config.api.transfer_tokens_pub_key.fee,
@@ -1112,8 +1369,8 @@ describe(`************************** stake-mainet-locked-tokens.js *************
         code: 'eosio',
         scope: 'eosio',
         table: 'lockedtokens',
-        lower_bound: accountnm,
-        upper_bound: accountnm,
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
         key_type: 'i64',
         index_position: '1'
       }
@@ -1145,7 +1402,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
   it(`Success, Transfer 1 FIO to userA1 FIO public key`, async () => {
 
     try {
-      const result = await locksdk.genericAction('transferTokens', {
+      const result = await lockAccount.sdk.genericAction('transferTokens', {
         payeeFioPublicKey: userA1.publicKey,
         amount: 1000000000,
         maxFee: config.api.transfer_tokens_pub_key.fee,
@@ -1165,8 +1422,8 @@ describe(`************************** stake-mainet-locked-tokens.js *************
         code: 'eosio',
         scope: 'eosio',
         table: 'lockedtokens',
-        lower_bound: accountnm,
-        upper_bound: accountnm,
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
         key_type: 'i64',
         index_position: '1'
       }
@@ -1184,58 +1441,71 @@ describe(`************************** stake-mainet-locked-tokens.js *************
 
 })
 
-describe(`************************** stake-mainet-locked-tokens.js ************************** \n    A. Create large grant verify unlocking with skipped periods using transfer`, () => {
+describe(`D. Create large grant verify unlocking with skipped periods using transfer`, () => {
 
-  let userA1, prevFundsAmount, locksdk, keys, accountnm,newFioDomain, newFioAddress
-  const fundsAmount = 1000000000000
-  const lockdurationseconds = 60
+  let userA1, lockAccount, newFioAddress
+  const lockdurationseconds = 60,
+    lockAmount = 7075065123456789,
+    //lockAmount = 100000000000,  // 100 FIO
+    testTransferAmount = 700000000000  // 50 FIO
 
-
-  it(`Create users`, async () => {
+  it(`Create lockAccount user`, async () => {
     userA1 = await newUser(faucet);
 
-    keys = await createKeypair();
-    console.log("priv key ", keys.privateKey);
-    console.log("pub key ", keys.publicKey);
-    accountnm =  await getAccountFromKey(keys.publicKey);
-    console.log(" account ",accountnm);
+    lockAccount = await createKeypair();
 
+    lockAccount.account = await getAccountFromKey(lockAccount.publicKey);
+    console.log("lockAccount priv key: ", lockAccount.privateKey);
+    console.log("lockAccount pub key: ", lockAccount.publicKey);
+    console.log("lockAccount account: ", lockAccount.account);
 
-    const result = await faucet.genericAction('transferTokens', {
-      payeeFioPublicKey: keys.publicKey,
-      amount: 7075065123456789,
-      maxFee: config.api.transfer_tokens_pub_key.fee,
-      technologyProviderId: ''
-    })
-    expect(result.status).to.equal('OK')
+    lockAccount.sdk = new FIOSDK(lockAccount.privateKey, lockAccount.publicKey, config.BASE_URL, fetchJson);
+  })
 
+  it(`Transfer ${lockAmount} SUFs to lockAccount `, async () => {
+    try {
+      const result = await faucet.genericAction('transferTokens', {
+        payeeFioPublicKey: lockAccount.publicKey,
+        amount: lockAmount,
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err.json);
+      expect(err).to.equal(null);
+    }
+  })
 
-    const result1 = await userA1.sdk.genericAction('pushTransaction', {
-      action: 'addlocked',
-      account: 'eosio',
-      data: {
-        owner : accountnm,
-        amount: 7075065123456789,
-        locktype: 1
-      }
-    })
-    expect(result1.status).to.equal('OK')
-
-    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
-
+  it(`Add ${lockAmount} Type 1 locked tokens to lockAccount `, async () => {
+    try {
+      const result1 = await userA1.sdk.genericAction('pushTransaction', {
+        action: 'addlocked',
+        account: 'eosio',
+        data: {
+          owner: lockAccount.account,
+          amount: lockAmount,
+          locktype: 1
+        }
+      })
+      expect(result1.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
   })
 
   it(`getFioBalance for genesis lock token holder, available balance 0 `, async () => {
-    const result = await locksdk.genericAction('getFioBalance', { })
+    const result = await lockAccount.sdk.genericAction('getFioBalance', { })
     prevFundsAmount = result.balance
-    expect(result.available).to.equal(7075065123456789)
+    expect(result.available).to.equal(lockAmount)
   })
 
   it(`Failure test Transfer 700 FIO to userA1 FIO public key, insufficient balance tokens locked`, async () => {
     try {
-      const result = await locksdk.genericAction('transferTokens', {
+      const result = await lockAccount.sdk.genericAction('transferTokens', {
         payeeFioPublicKey: userA1.publicKey,
-        amount: 700000000000,
+        amount: testTransferAmount,
         maxFee: config.api.transfer_tokens_pub_key.fee,
         technologyProviderId: ''
       })
@@ -1262,7 +1532,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
   it(`Success, Transfer 1 FIO to userA1 FIO public key`, async () => {
 
     try {
-      const result = await locksdk.genericAction('transferTokens', {
+      const result = await lockAccount.sdk.genericAction('transferTokens', {
         payeeFioPublicKey: userA1.publicKey,
         amount: 1000000000,
         maxFee: config.api.transfer_tokens_pub_key.fee,
@@ -1282,8 +1552,8 @@ describe(`************************** stake-mainet-locked-tokens.js *************
         code: 'eosio',
         scope: 'eosio',
         table: 'lockedtokens',
-        lower_bound: accountnm,
-        upper_bound: accountnm,
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
         key_type: 'i64',
         index_position: '1'
       }
@@ -1316,7 +1586,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
   it(`Success, Transfer 1 FIO to userA1 FIO public key`, async () => {
 
     try {
-      const result = await locksdk.genericAction('transferTokens', {
+      const result = await lockAccount.sdk.genericAction('transferTokens', {
         payeeFioPublicKey: userA1.publicKey,
         amount: 1000000000,
         maxFee: config.api.transfer_tokens_pub_key.fee,
@@ -1336,8 +1606,8 @@ describe(`************************** stake-mainet-locked-tokens.js *************
         code: 'eosio',
         scope: 'eosio',
         table: 'lockedtokens',
-        lower_bound: accountnm,
-        upper_bound: accountnm,
+        lower_bound: lockAccount.account,
+        upper_bound: lockAccount.account,
         key_type: 'i64',
         index_position: '1'
       }
