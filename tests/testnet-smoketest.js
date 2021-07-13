@@ -240,7 +240,7 @@ describe('************************** testnet-smoketest.js **********************
   it(`getFioBalance`, async () => {
     const result = await fioSdk.sdk.genericAction('getFioBalance', {})
 
-    expect(result).to.have.all.keys('balance', 'available')
+    expect(result).to.have.all.keys('balance','available','staked','srps','roe')
     expect(result.balance).to.be.a('number')
   })
 })
@@ -591,7 +591,7 @@ describe('B. Testing domain actions', () => {
       fioPublicKey: publicKey2
     })
 
-    expect(result).to.have.all.keys('balance', 'available')
+    expect(result).to.have.all.keys('balance','available','staked','srps','roe')
     expect(result.balance).to.be.a('number')
   })
 

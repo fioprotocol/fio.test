@@ -173,7 +173,7 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
   it(`getFioBalance for fioSdk and confirm 'available' = 0`, async () => {
     const result = await fioSdk.genericAction('getFioBalance', {})
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('balance', 'available')
+    expect(result).to.have.all.keys('balance','available','staked','srps','roe')
     expect(result.available).equal(0)
   })
 
@@ -216,7 +216,7 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
   it(`getFioBalance for fioSdk2 and confirm 'available' = 0`, async () => {
     const result = await fioSdk2.genericAction('getFioBalance', {})
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('balance', 'available')
+    expect(result).to.have.all.keys('balance','available','staked','srps','roe')
     expect(result.available).equal(0)
   })
 
@@ -269,7 +269,7 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
     const result = await fioSdk.genericAction('getFioBalance', {})
     //console.log('Result: ', result)
     balance1 = result.balance;
-    // Add back: expect(result).to.have.all.keys('balance', 'available')
+    // Add back: expect(result).to.have.all.keys('balance','available','staked','srps','roe')
     //expect(result.available).is.greaterThan(0)
   })
 
@@ -298,7 +298,7 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
     const result = await fioSdk2.genericAction('getFioBalance', {})
     //console.log('Result: ', result)
     balance2 = result.balance
-    // Add back: expect(result).to.have.all.keys('balance', 'available')
+    // Add back: expect(result).to.have.all.keys('balance','available','staked','srps','roe')
     //expect(result.available).is.greaterThan(0)
   })
 
@@ -493,7 +493,7 @@ describe('B. Testing generic actions', () => {
   it(`getFioBalance`, async () => {
     const result = await fioSdk.genericAction('getFioBalance', {})
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('balance','available')
+    expect(result).to.have.all.keys('balance','available','staked','srps','roe')
     expect(result.balance).to.be.a('number')
   })
 
@@ -780,7 +780,7 @@ describe('B. Testing generic actions', () => {
       fioPublicKey: publicKey2
     })
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('balance', 'available')
+    expect(result).to.have.all.keys('balance','available','staked','srps','roe')
     expect(result.balance).to.be.a('number')
   })
 
