@@ -16,53 +16,42 @@ function wait(ms){
   }
 }
 
-describe(`************************** stake-regression.js ************************** \n    A. Stake tokens genesis lock account`, () => {
+/********************* setting up these tests
+ *
+ *
+ * first you must shorten the unstake locking period to become 1 minute
+ *
+ *  go to the contract fio.staking.cpp and change the following lines
+ *
+ *  change
+ *
+ *  int64_t UNSTAKELOCKDURATIONSECONDS = 604800;
+ *
+ *    to become
+ *
+ *  int64_t UNSTAKELOCKDURATIONSECONDS = 60;
+ *
+ *
+ *  rebuild the contracts and restart your local chain.
+ *
+ *  you are now ready to run these staking tests!!!
+ */
 
-  //NOTE -- these tests are general regression tests for staking.
-  //they require the running of the 20_debug_staking script at chain startup.
-  /*
-     the use the following account
-     #create an account with 1M FIO
-     #Private key: 5Ke8oZdtefgVEC6GDUeo7FW9xC7WgdxC9Fi92b3YmTrPynWb4Rb
-     #Public key: FIO6ydLCnUfsEMpbp35kF8oaUbHvcmLEyswMUF75C4FQAm78DUhAi
-     #FIO Public Address (actor name): ni1eyydbdpht
-
-     to run these tests, init the chain, then run these tests.
-     to rerun, restart the chain cleanly then run these tests.
-   */
-
-  /*
-    first setup the chain with 1M in staking.
-       set up account with more than 1M in fio.
-       stake 1M fio.
-    parameter tests
-    stakefio -- parameters
-    stakefio -- nominal
-        stake all that the account has.
-        check that transfer fails.
-        check that staking attempts fail.
-    unstakefio --
-         unstake more than account has.
-         unstake less than the amount the account has.
-         unstake the rest of what the account has.
-         try to unstake again (fail).
+describe(`************************** stake-regression.js ************************** \n    A. Stake tokens using auto proxy without voting first, \n Then do a full pull through unstaking including testing the locking period.`, () => {
 
 
-
-   */
-
-
-  let userA1, prevFundsAmount, locksdk
+  let userA1, proxy1, prevFundsAmount, locksdk
   const fundsAmount = 1000000000000
 
 
   it(`Create users`, async () => {
     userA1 = await newUser(faucet);
+    proxy1 = await newUser(faucet);
 
-    //now transfer 1M fio from the faucet to this account
+    //now transfer 1k fio from the faucet to this account
     const result = await faucet.genericAction('transferTokens', {
       payeeFioPublicKey: userA1.publicKey,
-      amount: 1000000000000000,
+      amount: 1000000000000,
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     })
@@ -72,8 +61,115 @@ describe(`************************** stake-regression.js ***********************
 
   })
 
+  it('Confirm proxy1: not in the voters table', async () => {
+    let inVotersTable;
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        limit: 1000,
+        reverse: false,
+        show_payer: false
+      }
+      const voters = await callFioApi("get_table_rows", json);
+      //console.log('voters: ', voter);
+      inVotersTable = false;
+      for (voter in voters.rows) {
+        if (voters.rows[voter].owner == proxy1.account) {
+          inVotersTable = true;
+          break;
+        }
+      }
+      expect(inVotersTable).to.equal(false)
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
 
-  it(`Failure test stake tokens before user has voted, Error has not voted`, async () => {
+  it(`Register proxy1 as a proxy`, async () => {
+    try {
+      const result = await proxy1.sdk.genericAction('pushTransaction', {
+        action: 'regproxy',
+        account: 'eosio',
+        data: {
+          fio_address: proxy1.address,
+          actor: proxy1.account,
+          max_fee: config.maxFee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it('Confirm proxy1: is_proxy = 1, is_auto_proxy = 0', async () => {
+    let inVotersTable;
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        limit: 1000,
+        reverse: false,
+        show_payer: false
+      }
+      inVotersTable = false;
+      voters = await callFioApi("get_table_rows", json);
+      //console.log('voters: ', voter);
+      for (voter in voters.rows) {
+        if (voters.rows[voter].owner == proxy1.account) {
+          inVotersTable = true;
+          //console.log('voters.rows[voter].is_proxy: ', voters.rows[voter].is_proxy);
+          //console.log('voters.rows[voter].is_auto_proxy: ', voters.rows[voter].is_auto_proxy);
+          //console.log('voters.rows[voter].proxy: ', voters.rows[voter].proxy);
+          break;
+        }
+      }
+      expect(voters.rows[voter].is_auto_proxy).to.equal(0);
+      expect(voters.rows[voter].is_proxy).to.equal(1);
+      expect(inVotersTable).to.equal(true)
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it('Confirm userA1: not in voters table', async () => {
+    let inVotersTable;
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        limit: 1000,
+        reverse: false,
+        show_payer: false
+      }
+      const voters = await callFioApi("get_table_rows", json);
+      //console.log('voters: ', voter);
+      inVotersTable = false;
+      for (voter in voters.rows) {
+        if (voters.rows[voter].owner == userA1.account) {
+          inVotersTable = true;
+          break;
+        }
+      }
+      expect(inVotersTable).to.equal(false)
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Success userA1 stake 3k fio using tpid and auto proxy`, async () => {
     try {
      // console.log("address used ",userA1.address)
      // console.log("account used ",userA1.account)
@@ -82,109 +178,85 @@ describe(`************************** stake-regression.js ***********************
         account: 'fio.staking',
         data: {
           fio_address: userA1.address,
-          amount: 1000000000000,
+          amount: 3000000000000,
+          actor: userA1.account,
+          max_fee: config.maxFee,
+          tpid: proxy1.address
+        }
+      })
+
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log("Error : ", err)
+     // expect(err.json.fields[0].error).to.contain('has not voted')
+    }
+  })
+
+  it('Confirm userA1: is in the voters table and is_auto_proxy = 1, proxy is proxy1.account', async () => {
+    let inVotersTable;
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        limit: 1000,
+        reverse: false,
+        show_payer: false
+      }
+      const voters = await callFioApi("get_table_rows", json);
+     // console.log('voters: ', voters.rows);
+      inVotersTable = false;
+      for (voter in voters.rows) {
+        if (voters.rows[voter].owner == userA1.account) {
+          inVotersTable = true;
+          expect(voters.rows[voter].is_auto_proxy).to.equal(1)
+          expect(voters.rows[voter].proxy).to.equal(proxy1.account)
+          break;
+        }
+      }
+      expect(inVotersTable).to.equal(true)
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Failure, userA1 try to stake again, stake 900 tokens, insufficient balance `, async () => {
+    try {
+      const result = await userA1.sdk.genericAction('pushTransaction', {
+        action: 'stakefio',
+        account: 'fio.staking',
+        data: {
+          fio_address: userA1.address,
+          amount: 900000000000,
           actor: userA1.account,
           max_fee: config.maxFee,
           tpid:''
         }
       })
-      console.log('Result: ', result)
+      // console.log('Result: ', result)
       expect(result.status).to.not.equal('OK')
     } catch (err) {
-     // console.log("Error : ", err)
-      expect(err.json.fields[0].error).to.contain('has not voted')
+     //  console.log('Error: ', err)
+      expect(err.json.fields[0].error).to.contain('Insufficient balance')
     }
   })
 
-  /*
-  it(`Success, vote for producers.`, async () => {
+  it(`Failure , userA1 unstake 4k tokens, cannot unstake more than staked `, async () => {
 
     try {
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
-        action: 'voteproducer',
-        account: 'eosio',
-        data: {
-          producers: ["bp1@dapixdev"],
-          fio_address:'stake@dapixdev',
-          actor: locksdk.account,
-          max_fee: config.maxFee
-        }
-      })
-      // console.log('Result: ', result)
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-      console.log("ERROR: ", err)
-    }
-  })
-
-
-  it(`Success, stake 900k tokens `, async () => {
-
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
-        action: 'stakefio',
+      const result = await userA1.sdk.genericAction('pushTransaction', {
+        action: 'unstakefio',
         account: 'fio.staking',
         data: {
-          fio_address: locksdk.fio_address,
-          amount: 900000000000000,
-          actor: locksdk.account,
+          fio_address: userA1.address,
+          amount: 4000000000000,
+          actor: userA1.account,
           max_fee: config.maxFee,
           tpid:''
         }
       })
-      // console.log('Result: ', result)
-      expect(result.status).to.equal('OK')
-  })
-
-  it(`Failure test Transfer 700k FIO to userA1 FIO public key, insufficient balance staked tokens`, async () => {
-    try {
-      const result = await locksdk.sdk.genericAction('transferTokens', {
-        payeeFioPublicKey: userA1.publicKey,
-        amount: 700000000000000,
-        maxFee: config.api.transfer_tokens_pub_key.fee,
-        technologyProviderId: ''
-      })
-      expect(result.status).to.not.equal('OK')
-    } catch (err) {
-      //console.log('Error: ', err)
-      expect(err.json.fields[0].error).to.contain('Insufficient Funds')
-    }
-  })
-
-  it(`Failure, try to stake again, stake 1M tokens `, async () => {
-    try {
-        const result = await locksdk.sdk.genericAction('pushTransaction', {
-          action: 'stakefio',
-          account: 'fio.staking',
-          data: {
-            fio_address: locksdk.fio_address,
-            amount: 1000000000000000,
-            actor: locksdk.account,
-            max_fee: config.maxFee,
-            tpid:''
-          }
-        })
-        // console.log('Result: ', result)
-        expect(result.status).to.not.equal('OK')
-      } catch (err) {
-        // console.log('Error: ', err)
-         expect(err.json.fields[0].error).to.contain('Insufficient balance')
-      }
-  })
-
-  it(`Failure , unstake 1.1M tokens `, async () => {
-
-    try {
-        const result = await locksdk.sdk.genericAction('pushTransaction', {
-          action: 'unstakefio',
-          account: 'fio.staking',
-          data: {
-            fio_address: locksdk.fio_address,
-            amount: 1100000000000000,
-            actor: locksdk.account,
-            max_fee: config.maxFee,
-            tpid:''
-          }
-        })
       // console.log('Result: ', result)
       expect(result.status).to.not.equal('OK')
     } catch (err) {
@@ -193,15 +265,15 @@ describe(`************************** stake-regression.js ***********************
     }
   })
 
-  it(`success , unstake 450k tokens `, async () => {
+  it(`success , userA1 unstake 2k tokens `, async () => {
 
-    const result = await locksdk.sdk.genericAction('pushTransaction', {
+    const result = await userA1.sdk.genericAction('pushTransaction', {
       action: 'unstakefio',
       account: 'fio.staking',
       data: {
-        fio_address: locksdk.fio_address,
-        amount: 450000000000000,
-        actor: locksdk.account,
+        fio_address: userA1.address,
+        amount: 2000000000000,
+        actor: userA1.account,
         max_fee: config.maxFee,
         tpid:''
       }
@@ -210,46 +282,48 @@ describe(`************************** stake-regression.js ***********************
     expect(result.status).to.equal('OK')
   })
 
-  it(`success , unstake 450k more tokens `, async () => {
-
-    const result = await locksdk.sdk.genericAction('pushTransaction', {
-      action: 'unstakefio',
-      account: 'fio.staking',
-      data: {
-        fio_address: locksdk.fio_address,
-        amount: 450000000000000,
-        actor: locksdk.account,
-        max_fee: config.maxFee+1,
-        tpid:''
-      }
-    })
-    // console.log('Result: ', result)
-    expect(result.status).to.equal('OK')
-  })
-
-  it(`Failure , unstake 500k more tokens `, async () => {
+  it(`Failure, Transfer 2k FIO to proxy1 FIO public key from userA1`, async () => {
 
     try {
-
-      const result = await locksdk.sdk.genericAction('pushTransaction', {
-        action: 'unstakefio',
-        account: 'fio.staking',
-        data: {
-          fio_address: locksdk.fio_address,
-          amount: 500000000000000,
-          actor: locksdk.account,
-          max_fee: config.maxFee + 1,
-          tpid: ''
-        }
+      const result = await userA1.sdk.genericAction('transferTokens', {
+        payeeFioPublicKey: proxy1.publicKey,
+        amount: 2000000000000,
+        maxFee: config.api.transfer_tokens_pub_key.fee,
+        technologyProviderId: ''
       })
-      // console.log('Result: ', result)
       expect(result.status).to.not.equal('OK')
-    }catch (err) {
-      //console.log('Error: ', err)
-      expect(err.json.fields[0].error).to.contain('Cannot unstake more than staked')
+    }catch (err){
+     // console.log("ERROR: ", err)
+      expect(err.json.fields[0].error).to.contain('Funds locked')
     }
   })
-  */
 
+
+  it(`Waiting 1 minute for unlock`, async () => {
+    console.log("            waiting 60 seconds ")
+  })
+
+  it(` wait 60 seconds`, async () => {
+    try {
+      wait(60000)
+    } catch (err) {
+      console.log('Error', err)
+    }
+  })
+
+  it(`Success, Transfer 2000 FIO to proxy1 FIO public key from userA1`, async () => {
+
+    try {
+      const result = await userA1.sdk.genericAction('transferTokens', {
+        payeeFioPublicKey: proxy1.publicKey,
+        amount: 2000000000000,
+        maxFee: config.api.transfer_tokens_pub_key.fee,
+        technologyProviderId: ''
+      })
+      expect(result.status).to.equal('OK')
+    }catch (err){
+      console.log("ERROR: ", err)
+    }
+  })
 })
 
