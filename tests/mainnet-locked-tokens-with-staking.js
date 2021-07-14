@@ -47,7 +47,7 @@ function wait(ms){
 
 //
 
-describe.skip(`************************** mainet-locked-tokens-with-staking.js ************************** \n    A. Test genesis locked tokens with staked, unstaked (and including a general lock for the unstake, ensure all genesis locking works as expected using voting`, () => {
+describe(`************************** mainet-locked-tokens-with-staking.js ************************** \n    A. Test genesis locked tokens with staked, unstaked (and including a general lock for the unstake, ensure all genesis locking works as expected using voting`, () => {
 
 
 
