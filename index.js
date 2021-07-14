@@ -6,10 +6,10 @@ describe('TEST SUITE', () => {
   //require('./tests/bravo-migr-test.js'); //This is required when testing 2.3.0 (bravo) with fio bahamas (need to do the full table migration).
 
   //!!!!!!!!!!these staking tests requires special init of the local chain, see note in js file!!!!!!!!!
-  require('./tests/stake-mainnet-locked-tokens.js'); //FIP-21 tests.
-  require('./tests/transfer-locked-tokens-max-load.js');  // FIP-6 locking tests
-  require('./tests/transfer-locked-tokens.js');  // FIP-6 locking tests
-  require('./tests/stake-general-locked-tokens.js'); //FIP-21 tests.
+  // require('./tests/stake-mainnet-locked-tokens.js'); //FIP-21 tests.
+  // require('./tests/transfer-locked-tokens-max-load.js');  // FIP-6 locking tests
+  // require('./tests/transfer-locked-tokens.js');  // FIP-6 locking tests
+  // require('./tests/stake-general-locked-tokens.js'); //FIP-21 tests.
   require('./tests/stake-tokens.js');
 
   //!!!!!!!!!!these staking tests requires special init of the local chain, see note in js file!!!!!!!!!
