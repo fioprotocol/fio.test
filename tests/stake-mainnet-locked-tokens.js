@@ -23,7 +23,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
   // To test genesis locks.  please modify the following 2 files in the fio.contracts repository, to enable them
   // to be placed into "test mode"
   //
-  // First, shorten the main net locking period to become 2 minutes,
+  // First, shorten the main net locking period to become 1 minute,
   // do this by commenting out the following lines in the fio.token.hpp computeremaininglockedtokens method.
 
   // TESTING ONLY!!! comment out genesis locking periods..DO NOT DELIVER THIS
