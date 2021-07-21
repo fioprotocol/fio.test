@@ -16,38 +16,41 @@ function wait(ms){
   }
 }
 
+/*
+ MANUAL CONFIGURATION REQUIRED TO RUN TEST
 
-// To test genesis locks.  please modify the following 2 files in the fio.contracts repository, to enable them
-// to be placed into "test mode"
-//
-// First, shorten the main net locking period to become 1 minute,
-// do this by commenting out the following lines in the fio.token.hpp computeremaininglockedtokens method.
+ The following changes must be made to run these tests:
 
-// TESTING ONLY!!! comment out genesis locking periods..DO NOT DELIVER THIS
-/* uint32_t daysSinceGrant = (int) ((present_time - lockiter->timestamp) / SECONDSPERDAY);
- uint32_t firstPayPeriod = 90;
- uint32_t payoutTimePeriod = 180;
- */
+ 1. Shorten the main net locking period to become 1 minute
 
-//  then add the following code beneath what you commented out.
+  In: fio.token.hpp
 
-//TEST LOCKED TOKENS
-// TESTING ONLY!!! shorten genesis locking periods..DO NOT DELIVER THIS
-//               uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / 60);
-//               uint32_t firstPayPeriod = 1;
-//               uint32_t payoutTimePeriod = 1;
+  Comment out the following lines in the computeremaininglockedtokens method:
 
-//next permit anyone to call the addlocked action in the system contract.
-// do this by commenting out the following line in the addlocked action of the fio.system.cpp file
+    //uint32_t daysSinceGrant = (int) ((present_time - lockiter->timestamp) / SECONDSPERDAY);
+    //uint32_t firstPayPeriod = 90;
+    //uint32_t payoutTimePeriod = 180;
 
-//     // require_auth(_self);
+  Then add the following code beneath what you commented out.
 
-// after making these modifications rebuild the contracts locally and restart your chain.
-// you may then proceed with genesis locks testing.
+    // TESTING ONLY!!! shorten genesis locking periods..DO NOT DELIVER THIS
+    uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / 60);
+    uint32_t firstPayPeriod = 1;
+    uint32_t payoutTimePeriod = 1;
 
-//
+  2. Permit anyone to call the addlocked action in the system contract.
 
-describe(`************************** mainet-locked-tokens-with-staking.js ************************** \n    A. Test genesis locked tokens with staked, unstaked (and including a general lock for the unstake, ensure all genesis locking works as expected using voting`, () => {
+  In: fio.system.cpp
+
+  Comment out the following line in the addlocked action of the fio.system.cpp file
+
+    // require_auth(_self);
+*/
+
+
+//FIP-21 tests for genesis (mainnet) lock accounts performing staking
+
+describe(`************************** stake-mainet-locked-tokens-with-staking.js ************************** \n    A. Test genesis locked tokens with staked, unstaked (and including a general lock for the unstake, ensure all genesis locking works as expected using voting`, () => {
 
 
 
@@ -643,7 +646,7 @@ describe(`************************** mainet-locked-tokens-with-staking.js ******
 })
 
 
-describe(`************************** mainet-locked-tokens-with-staking.js ************************** \n    A. Test genesis locked tokens with staked, unstaked (and including a general lock for the unstake, ensure all genesis locking works as expected using transfer`, () => {
+describe(`B. Test genesis locked tokens with staked, unstaked (and including a general lock for the unstake, ensure all genesis locking works as expected using transfer`, () => {
 
 
 

@@ -16,14 +16,11 @@ function wait(ms){
   }
 }
 
-
 describe(`************************** stake-general-locked-tokens.js ************************** \n    A. Stake tokens genesis lock account`, () => {
-  
+  //FIP-21 tests for general lock accounts performing staking
 
   let userA1, prevFundsAmount, locksdk,keys, accountnm,newFioDomain, newFioAddress
-
   const fundsAmount = 1000000000000
-
 
   it(`Create users`, async () => {
     //create a user and give it 10k fio.
@@ -33,8 +30,6 @@ describe(`************************** stake-general-locked-tokens.js ************
     console.log("priv key ", keys.privateKey);
     console.log("pub key ", keys.publicKey);
     accountnm =  await getAccountFromKey(keys.publicKey);
-
-
 
     const result = await faucet.genericAction('pushTransaction', {
       action: 'trnsloctoks',
@@ -67,7 +62,6 @@ describe(`************************** stake-general-locked-tokens.js ************
 
   })
 
-
   it(`getFioBalance for general lock token holder, available balance 0 `, async () => {
 
       const result = await locksdk.genericAction('getFioBalance', { })
@@ -76,7 +70,6 @@ describe(`************************** stake-general-locked-tokens.js ************
       expect(result.available).to.equal(0)
 
   })
-
 
   it(`Failure test Transfer 700 FIO to userA1 FIO public key, insufficient balance tokens locked`, async () => {
     try {
@@ -93,7 +86,6 @@ describe(`************************** stake-general-locked-tokens.js ************
     }
   })
 
-
   it(`Transfer ${fundsAmount} FIO to locked account`, async () => {
     try {
       const result = await userA1.sdk.genericAction('transferTokens', {
@@ -107,7 +99,6 @@ describe(`************************** stake-general-locked-tokens.js ************
     }
   })
 
-
   it(`Register domain for voting for locked account `, async () => {
     try {
       newFioDomain = generateFioDomain(15)
@@ -120,7 +111,6 @@ describe(`************************** stake-general-locked-tokens.js ************
       console.log('Error', err)
     }
   })
-
 
   it(`Register address for voting for locked account`, async () => {
     try {
@@ -153,13 +143,12 @@ describe(`************************** stake-general-locked-tokens.js ************
      // console.log('Result: ', result)
       expect(result.status).to.not.equal('OK')
     } catch (err) {
-      // console.log("Error : ", err)
+      console.log("Error : ", err)
       expect(err.json.fields[0].error).to.contain('has not voted')
     }
   })
 
   it(`Success, vote for producers.`, async () => {
-
     try {
       const result = await locksdk.genericAction('pushTransaction', {
         action: 'voteproducer',
@@ -174,8 +163,8 @@ describe(`************************** stake-general-locked-tokens.js ************
       // console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
-       console.log("Error : ", err.json)
-      expect(err.json.fields[0].error).to.contain('has not voted')
+      console.log("Error : ", err.json)
+      expect(err).to.equal(null)
     }
   })
 
@@ -197,7 +186,7 @@ describe(`************************** stake-general-locked-tokens.js ************
       // console.log('Result: ', result)
       expect(result.status).to.not.equal('OK')
     } catch (err) {
-     // console.log("Error : ", err.json)
+      console.log("Error : ", err.json)
       expect(err.json.fields[0].error).to.contain('Insufficient balance')
     }
   })

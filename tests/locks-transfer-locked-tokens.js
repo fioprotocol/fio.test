@@ -24,7 +24,7 @@ const fundsAmount = 500000000000
 const maxTestFundsAmount = 5000000000
 const halfundsAmount = 220000000000
 
-describe(`************************** transfer-locked-tokens.js ************************** \n    A. Create accounts for tests`, () => {
+describe(`************************** locks-transfer-locked-tokens.js ************************** \n    A. Create accounts for tests`, () => {
 
 
   it(`Create users`, async () => {
@@ -61,8 +61,6 @@ describe(`************************** transfer-locked-tokens.js *****************
   })
   */
 })
-
-
 
 describe(`B. Parameter tests`, () => {
 
@@ -760,7 +758,7 @@ describe(`B. Parameter tests`, () => {
 
 })
 
-describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
+describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
 
   let rambefore, ramafter, balancebefore, balanceafter, feetransferlocked
 

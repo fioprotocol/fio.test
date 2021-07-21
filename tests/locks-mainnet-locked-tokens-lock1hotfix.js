@@ -16,9 +16,10 @@ function wait(ms){
     end = new Date().getTime();
   }
 }
-/*
- To test genesis locks.  please modify the following 2 files in the fio.contracts repository, to enable them
- to be placed into "test mode"
+/**
+ MANUAL CONFIGURATION REQUIRED TO RUN TEST
+ 
+ The following changes must be made to run these tests:
 
  1. Shorten the main net locking period to become 1 minute
  
@@ -45,24 +46,10 @@ function wait(ms){
 
     // require_auth(_self);
 
-  Next, add the following to the end of the addlocked action. This creates a return status
-  so that tests can run successfully.
+*/
 
-    const string response_string = string("{\"status\": \"OK\"}");
-    send_response(response_string.c_str());
-
-
-  3. Modify the faucet to have more tokens.
-
-  In: fio.devtools 08_token_issue.sh
-    
-  Modify the following line to increase the amount of tokens in the faucet to permit large grants.
-
-    ./clio -u http://localhost:8879 push action -j fio.token issue '["qhh25sqpktwh","100000000.000000000 FIO","memo"]' -p eosio@active
-
-
-  4. After making these modifications rebuild the contracts and restart your chain.
-
+/**
+  REFERENCE: 
 
   The token unlock schedule for Type 1 mainnet/genesis tokens:
 
@@ -83,7 +70,7 @@ const unlock1Percent = 0.06,
   unlock6Percent = 0.06 + .188 + .188 + .188 + .188 + .188
 
 
-describe(`************************** mainet-locked-tokens.js ************************** \n    A. Create large grant verify unlocking using voting \n       also test error cant transfer more than unlocked amount\n     also test multiple calls to voting do not have effect.`, () => {
+describe(`************************** locks-mainnet-locked-tokens-lock1hotfix.js ************************** \n    A. Create large grant verify unlocking using voting \n       also test error cant transfer more than unlocked amount\n     also test multiple calls to voting do not have effect.`, () => {
 
   let userA1, prevFundsAmount, lockAccount, newFioAddress
   let numberOfVotes = 0

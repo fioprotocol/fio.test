@@ -20,7 +20,7 @@ let userA1, keys, locksdk
 const fundsAmount = 50000000000 //50 fio
 
 
-describe(`************************** transfer-locked-tokens.js ************************** \n A. Create accounts for tests`, () => {
+describe(`************************** locks-transfer-locked-tokens-testnet-smoke-tests.js ************************** \n A. Create accounts for tests`, () => {
 
 //These tests are for test net only...
 // The userA1 account used must be funded through the test net faucet.
@@ -71,11 +71,11 @@ describe(`B. Parameter tests`, () => {
           periods: [
             {
               duration: 120,
-              percent: 50.30,
+              amount: fundsAmount * .503,
             },
             {
               duration: 240,
-              percent: 50.0,
+              amount: fundsAmount * .5,
             }
           ],
           amount: fundsAmount,
@@ -88,6 +88,7 @@ describe(`B. Parameter tests`, () => {
 
     } catch (err) {
       var expected = `Error 400`
+      console.log('Error: ', err.json.error)
       expect(err.message).to.include(expected)
     }
   })
@@ -103,11 +104,11 @@ describe(`B. Parameter tests`, () => {
           periods: [
             {
               duration: 120,
-              percent: 50.4444,
+              amount: fundsAmount * .504444,
             },
             {
               duration: 240,
-              percent: 49.5556,
+              amount: fundsAmount * .495556,
             }
           ],
           amount: fundsAmount,
@@ -136,11 +137,11 @@ describe(`B. Parameter tests`, () => {
           periods: [
             {
               duration: 240,
-              percent: 50.4444,
+              amount: fundsAmount * .504444,
             },
             {
               duration: 120,
-              percent: 49.5556,
+              amount: fundsAmount * .495556,
             }
           ],
           amount: fundsAmount,
@@ -169,11 +170,11 @@ describe(`B. Parameter tests`, () => {
           periods: [
             {
               duration: 0,
-              percent: 50.0,
+              amount: fundsAmount * .5,
             },
             {
               duration: 240,
-              percent: 50.0,
+              amount: fundsAmount * .5,
             }
           ],
           amount: fundsAmount,
@@ -201,11 +202,11 @@ describe(`B. Parameter tests`, () => {
           periods: [
             {
               duration: 0,
-              percent: 50.0,
+              amount: fundsAmount * .5,
             },
             {
               duration: 240,
-              percent: 50.0,
+              amount: fundsAmount * .5,
             }
           ],
           amount: fundsAmount,
@@ -233,207 +234,207 @@ describe(`B. Parameter tests`, () => {
           periods: [
             {
               duration: 1,
-              percent: 0.273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 2,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 3,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 4,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 5,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 6,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 7,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 8,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 9,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 10,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 11,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 12,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 13,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 14,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 15,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 16,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 17,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 18,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 19,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 20,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 21,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 22,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 23,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 24,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 25,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 26,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 27,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 28,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 29,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 30,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 31,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 32,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 33,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 34,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 35,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 36,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 37,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 38,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 39,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 40,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 41,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 42,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 43,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 44,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 45,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 46,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 47,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 48,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 49,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 50,
-              percent: .273,
+              amount: fundsAmount * .273,
             },
             {
               duration: 51,
-              percent: 86.35,
+              amount: fundsAmount * .8635,
             }
           ],
           amount: fundsAmount,
@@ -485,11 +486,11 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
           periods: [
             {
               duration: 20,
-              percent: 40.0,
+              amount: fundsAmount * .4,
             },
             {
               duration: 40,
-              percent: 60.0,
+              amount: fundsAmount * .6,
             }
           ],
           amount: fundsAmount,

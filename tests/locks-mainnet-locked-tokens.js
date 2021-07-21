@@ -46,11 +46,44 @@ function wait(ms){
 //
 
 
-describe(`************************** mainet-locked-tokens.js ************************** \n    A. Create large grant verify unlocking using voting \n       also test error cant transfer more than unlocked amount\n     also test multiple calls to voting do not have effect.`, () => {
+/*
+ MANUAL CONFIGURATION REQUIRED TO RUN TEST
+
+ The following changes must be made to run these tests:
+
+ 1. Shorten the main net locking period to become 1 minute
+
+  In: fio.token.hpp
+
+  Comment out the following lines in the computeremaininglockedtokens method:
+
+    //uint32_t daysSinceGrant = (int) ((present_time - lockiter->timestamp) / SECONDSPERDAY);
+    //uint32_t firstPayPeriod = 90;
+    //uint32_t payoutTimePeriod = 180;
+
+  Then add the following code beneath what you commented out.
+
+    // TESTING ONLY!!! shorten genesis locking periods..DO NOT DELIVER THIS
+    uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / 60);
+    uint32_t firstPayPeriod = 1;
+    uint32_t payoutTimePeriod = 1;
+
+  2. Permit anyone to call the addlocked action in the system contract.
+
+  In: fio.system.cpp
+
+  Comment out the following line in the addlocked action of the fio.system.cpp file
+
+    // require_auth(_self);
+*/
+
+
+describe(`************************** locks-mainet-locked-tokens.js ************************** \n    A. Create large 7075065.123456789 grant. Verify unlocking using voting, can't transfer more than unlocked amount, and multiple calls to voting do not have effect.`, () => {
 
   let userA1, prevFundsAmount, locksdk, keys, accountnm,newFioDomain, newFioAddress
   const fundsAmount = 1000000000000
   const lockdurationseconds = 60
+  const lockAmount = 7075065123456789
 
 
   it(`Create users`, async () => {
@@ -59,14 +92,14 @@ describe(`************************** mainet-locked-tokens.js *******************
     keys = await createKeypair();
 
     accountnm =  await getAccountFromKey(keys.publicKey);
-    console.log("priv key ", keys.privateKey);
-    console.log("pub key ", keys.publicKey);
-    console.log(" account ",accountnm);
+    //console.log("priv key ", keys.privateKey);
+    //console.log("pub key ", keys.publicKey);
+    //console.log(" account ",accountnm);
 
 
     const result = await faucet.genericAction('transferTokens', {
       payeeFioPublicKey: keys.publicKey,
-      amount: 7075065123456789,
+      amount: lockAmount,
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     })
@@ -78,7 +111,7 @@ describe(`************************** mainet-locked-tokens.js *******************
       account: 'eosio',
       data: {
         owner : accountnm,
-        amount: 7075065123456789,
+        amount: lockAmount,
         locktype: 1
       }
     })
@@ -94,7 +127,7 @@ describe(`************************** mainet-locked-tokens.js *******************
       expect(result.available).to.equal(0)
   })
 
-  it(`Failure test Transfer 700 FIO to userA1 FIO public key, insufficient balance tokens locked`, async () => {
+  it(`Failure test. Transfer 700 FIO to userA1 FIO public key. Expect error: ${config.error.insufficientBalance}`, async () => {
     try {
     const result = await locksdk.genericAction('transferTokens', {
       payeeFioPublicKey: userA1.publicKey,
@@ -143,7 +176,7 @@ describe(`************************** mainet-locked-tokens.js *******************
   })
 
   //check that 6% was unlocked.
-  it(`Call get_table_rows from lockedtokens and confirm: unlocked amount`, async () => {
+  it(`Call get_table_rows from lockedtokens and confirm: 6% unlocked amount`, async () => {
     try {
       const json = {
         json: true,
@@ -518,7 +551,7 @@ describe(`************************** mainet-locked-tokens.js *******************
     }
   })
 
-  it(`Success, vote for producers.`, async () => {
+  it(`Success, re-vote for producers.`, async () => {
 
     try {
       const result = await locksdk.genericAction('pushTransaction', {
@@ -538,7 +571,7 @@ describe(`************************** mainet-locked-tokens.js *******************
     }
   })
 
-  it(`Call get_table_rows from lockedtokens and confirm: unlocked amount doesnt change`, async () => {
+  it(`Call get_table_rows from lockedtokens and confirm: unlocked amount doesnt change due to re-vote`, async () => {
     try {
       const json = {
         json: true,
@@ -565,26 +598,27 @@ describe(`************************** mainet-locked-tokens.js *******************
 
 })
 
-describe(`************************** stake-mainet-locked-tokens.js ************************** \n    A. Create large grant verify unlocking using transfer`, () => {
+describe(`B. Create large 7075065.123456789 grant verify unlocking using transfer`, () => {
 
   let userA1, prevFundsAmount, locksdk, keys, accountnm,newFioDomain, newFioAddress
   const fundsAmount = 1000000000000
   const lockdurationseconds = 60
+  const lockAmount = 7075065123456789
 
 
   it(`Create users`, async () => {
     userA1 = await newUser(faucet);
 
     keys = await createKeypair();
-    console.log("priv key ", keys.privateKey);
-    console.log("pub key ", keys.publicKey);
+    //console.log("priv key ", keys.privateKey);
+    //console.log("pub key ", keys.publicKey);
     accountnm =  await getAccountFromKey(keys.publicKey);
-    console.log(" account ",accountnm);
+    //console.log(" account ",accountnm);
 
 
     const result = await faucet.genericAction('transferTokens', {
       payeeFioPublicKey: keys.publicKey,
-      amount: 7075065123456789,
+      amount: lockAmount,
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     })
@@ -596,7 +630,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
       account: 'eosio',
       data: {
         owner : accountnm,
-        amount: 7075065123456789,
+        amount: lockAmount,
         locktype: 1
       }
     })
@@ -949,26 +983,27 @@ describe(`************************** stake-mainet-locked-tokens.js *************
 
 })
 
-describe(`************************** stake-mainet-locked-tokens.js ************************** \n    A. Create large grant verify unlocking with skipped periods using voting`, () => {
+describe(`C. Create large grant verify unlocking with skipped periods using voting`, () => {
 
   let userA1, prevFundsAmount, locksdk, keys, accountnm,newFioDomain, newFioAddress
   const fundsAmount = 1000000000000
   const lockdurationseconds = 60
+  const lockAmount = 7075065123456789
 
 
   it(`Create users`, async () => {
     userA1 = await newUser(faucet);
 
     keys = await createKeypair();
-    console.log("priv key ", keys.privateKey);
-    console.log("pub key ", keys.publicKey);
+    //console.log("priv key ", keys.privateKey);
+    //console.log("pub key ", keys.publicKey);
     accountnm =  await getAccountFromKey(keys.publicKey);
-    console.log(" account ",accountnm);
+    //console.log(" account ",accountnm);
 
 
     const result = await faucet.genericAction('transferTokens', {
       payeeFioPublicKey: keys.publicKey,
-      amount: 7075065123456789,
+      amount: lockAmount,
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     })
@@ -980,7 +1015,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
       account: 'eosio',
       data: {
         owner : accountnm,
-        amount: 7075065123456789,
+        amount: lockAmount,
         locktype: 1
       }
     })
@@ -1130,26 +1165,27 @@ describe(`************************** stake-mainet-locked-tokens.js *************
 
 })
 
-describe(`************************** stake-mainet-locked-tokens.js ************************** \n    A. Create large grant verify unlocking with skipped periods using transfer`, () => {
+describe(`D. Create large grant verify unlocking with skipped periods using transfer`, () => {
 
   let userA1, prevFundsAmount, locksdk, keys, accountnm,newFioDomain, newFioAddress
   const fundsAmount = 1000000000000
   const lockdurationseconds = 60
+  const lockAmount = 7075065123456789
 
 
   it(`Create users`, async () => {
     userA1 = await newUser(faucet);
 
     keys = await createKeypair();
-    console.log("priv key ", keys.privateKey);
-    console.log("pub key ", keys.publicKey);
+    //console.log("priv key ", keys.privateKey);
+    //console.log("pub key ", keys.publicKey);
     accountnm =  await getAccountFromKey(keys.publicKey);
-    console.log(" account ",accountnm);
+    //console.log(" account ",accountnm);
 
 
     const result = await faucet.genericAction('transferTokens', {
       payeeFioPublicKey: keys.publicKey,
-      amount: 7075065123456789,
+      amount: lockAmount,
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     })
@@ -1161,7 +1197,7 @@ describe(`************************** stake-mainet-locked-tokens.js *************
       account: 'eosio',
       data: {
         owner : accountnm,
-        amount: 7075065123456789,
+        amount: lockAmount,
         locktype: 1
       }
     })
