@@ -143,7 +143,7 @@ describe(`************************** stake-general-locked-tokens.js ************
      // console.log('Result: ', result)
       expect(result.status).to.not.equal('OK')
     } catch (err) {
-      console.log("Error : ", err)
+      //console.log("Error : ", err.json)
       expect(err.json.fields[0].error).to.contain('has not voted')
     }
   })
@@ -186,7 +186,7 @@ describe(`************************** stake-general-locked-tokens.js ************
       // console.log('Result: ', result)
       expect(result.status).to.not.equal('OK')
     } catch (err) {
-      console.log("Error : ", err.json)
+      //console.log("Error : ", err.json)
       expect(err.json.fields[0].error).to.contain('Insufficient balance')
     }
   })
