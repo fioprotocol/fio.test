@@ -5,14 +5,19 @@ describe('TEST SUITE', () => {
 
   //require('./tests/bravo-migr-test.js'); //This is required when testing 2.3.0 (bravo) with fio bahamas (need to do the full table migration).
 
-  //!!!!!!!!!!these staking tests requires special init of the local chain, see note in js file!!!!!!!!!
- // require('./tests/stake-mainnet-locked-tokens.js'); //FIP-21 tests.
+  //FIP-21 staking testing notes.
+  //!!!!!!!!!!  see the notes in js files before running these tests
+  //!!!!!!!!!   mainnet locking tests require local contract changes to run the tests
+  //!!!!!!!!!   some staking tests (staking-regression.js) require modifying the contracts before running the tests
 
-  require('./tests/transfer-locked-tokens-max-load.js');  // FIP-6 locking tests
-  require('./tests/transfer-locked-tokens.js');  // FIP-6 locking tests
-
-  //require('./tests/stake-general-locked-tokens.js'); //FIP-21 tests.
-  //!!!!!!!!!!these staking tests requires special init of the local chain, see note in js file!!!!!!!!!
+  // require('./tests/mainnet-locked-tokens.js'); //FIP-21 tests for FIO genesis locks functionality.
+  // require('./tests/transfer-locked-tokens-max-load.js');  // FIP-21 tests that load the chain with lots of general locks, run this before other general locks tests when its desirable to test a loaded chain.
+  // require('./tests/transfer-locked-tokens.js');  //FIP-21 locking tests for general locks
+  // require('./tests/mainnet-locked-tokens-with-staking.js'); //FIP-21 tests for genesis lock accounts performing staking
+  // require('./tests/stake-general-locked-tokens.js'); //FIP-21 tests for general lock accounts performing staking
+  // require('./tests/stake-mainnet-locked-tokens.js'); //FIP-21 tests for rapid fire unstaking in succession
+  require('./tests/stake-tokens.js'); //FIP-21 tests for new account calling staking using auto proxy, and full pull through to spend after unstaking unlock
+  // in addition to this we need to possibly develop more tests for checking voting power when accounts have staked
 
  /* require('./tests/addaddress.js'); // v1.0.x  Also includes FIP-13 tests.
   require('./tests/fees.js'); // v1.0.x
