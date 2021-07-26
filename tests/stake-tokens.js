@@ -1050,7 +1050,7 @@ describe('B. Test stakefio Bundled transactions', () => {
   // })
 });
 
-describe.only('C. Test unstakefio Bundled transactions', () => {
+describe('C. Test unstakefio Bundled transactions', () => {
   let bp1, bp2, bp3, user1, user2, proxy1, bundleCount1, bundleCount2, locksdk, accountnm, keys;
   const fundsAmount = 1000000000000
 
