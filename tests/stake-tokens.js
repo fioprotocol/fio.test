@@ -887,15 +887,17 @@ describe('B. Test stakefio Bundled transactions', () => {
     expect(newCombinedTokenPool - combinedTokenPool).to.equal(stakeAmt);
     expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt);
 
-    let bundleCount = await getBundleCount(user1.sdk);
-    expect(bundleCount).to.equal(99);
+    let bundles = await getBundleCount(user1.sdk);
+    expect(bundles).to.equal(99);
   });
 
   it('stake small amounts of FIO so that all bundled tx get consumed', async () => {
     let stakeAmt = 1;
     let feeAmt = 3000000000;
     let bundles = await getBundleCount(user1.sdk)
+    process.stdout.write('\tconsuming remaining bundled transactions, this may take a while');
     while (bundles > 0) {
+      process.stdout.write('.');
       await user1.sdk.genericAction('pushTransaction', {
         action: 'stakefio',
         account: 'fio.staking',
@@ -910,8 +912,9 @@ describe('B. Test stakefio Bundled transactions', () => {
       wait(3000);
       bundles = await getBundleCount(user1.sdk);
     }
-    let bundleCount = await getBundleCount(user1.sdk);
-    expect(bundleCount).to.equal(0);
+    console.log('done');
+    bundles = await getBundleCount(user1.sdk);
+    expect(bundles).to.equal(0);
   });
 
   it(`stake FIO with no bundles remaining, expect fee_collected > 0`, async () => {
@@ -1128,7 +1131,9 @@ describe('C. Test unstakefio Bundled transactions', () => {
     let stakeAmt = 1;
     let feeAmt = 3000000000;
     let bundles = await getBundleCount(user1.sdk)
+    process.stdout.write('\tconsuming remaining bundled transactions, this may take a while');
     while (bundles > 0) {
+      process.stdout.write('.');
       await user1.sdk.genericAction('pushTransaction', {
         action: 'stakefio',
         account: 'fio.staking',
@@ -1143,6 +1148,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
       wait(3000);
       bundles = await getBundleCount(user1.sdk);
     }
+    console.log('done');
     bundles = await getBundleCount(user1.sdk);
     expect(bundles).to.equal(0);
   });
@@ -1815,7 +1821,6 @@ describe(`E. Unhappy Tests`, () => {
         data: {
           fio_address: '',
           amount: unstakeAmt,
-          // actor: accountnm,
           actor: userC.account,
           max_fee: config.maxFee +1,
           tpid:''
