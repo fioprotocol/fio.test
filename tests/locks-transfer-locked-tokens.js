@@ -1,8 +1,8 @@
 require('mocha')
 const {expect} = require('chai')
 const {newUser, getProdVoteTotal, fetchJson, generateFioDomain, callFioApi,  generateFioAddress, createKeypair, getTestType} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/fiosdk')
-config = require('../config.js');
+const {FIOSDK } = require('@fioprotocol/fiosdk');
+const config = require('../config.js');
 const testType = getTestType();
 
 before(async () => {
@@ -247,11 +247,11 @@ describe(`B. Parameter tests`, () => {
     }
   })
 
-  it(`(${testType}) Failure test, Transfer locked tokens, pub key account pre exists`, async () => {
+  it(`(${testType}) Failure test, Transfer locked tokens to an account that already exists. Expect Error 400`, async () => {
     if (testType == 'sdk') {
       try {
         const result = await userA1.sdk.genericAction('transferLockedTokens', {
-          payeePublicKey: keys.publicKey,
+          payeePublicKey: userA1.publicKey,
           canVote: 0,
           periods: [
             {
@@ -307,7 +307,7 @@ describe(`B. Parameter tests`, () => {
     }
   })
 
-  it(`(${testType}) success test,  many lock periods`, async () => {
+  it(`(${testType}) success test,  51 lock periods`, async () => {
     if (testType == 'sdk') {
       try {
         const result = await userA4.sdk.genericAction('transferLockedTokens', {
@@ -524,11 +524,10 @@ describe(`B. Parameter tests`, () => {
           tpid: '',
 
         })
-        expect(result.status).to.not.equal('OK')
+        expect(result.status).to.equal('OK')
       } catch (err) {
         //console.log('error: ', err)
-        var expected = `Error 400`
-        expect(err.message).to.include(expected)
+        expect(err).to.equal(null)
       }
     } else {
         const result = await userA4.sdk.genericAction('pushTransaction', {
@@ -750,9 +749,8 @@ describe(`B. Parameter tests`, () => {
           }
 
         })
-       // console.log(result);
+        //console.log(result);
         expect(result.status).to.equal('OK')
-
     }
   })
 
@@ -760,7 +758,7 @@ describe(`B. Parameter tests`, () => {
 
 describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
 
-  let rambefore, ramafter, balancebefore, balanceafter, feetransferlocked
+  let rambefore, ramafter, balancebefore, balanceafter, feetransferlocked, domainFee, addressFee
 
   it(`get account ram before `, async () => {
     try {
@@ -797,7 +795,7 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
             }
           ],
           amount: fundsAmount,
-          maxFee: 400000000000,
+          maxFee: config.maxFee,
           tpid: '',
 
         })
@@ -825,7 +823,7 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
               }
             ],
             amount: fundsAmount,
-            max_fee: 400000000000,
+            max_fee: config.maxFee,
             tpid: '',
             actor: userA1.account,
           }
@@ -877,7 +875,6 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
     expect(result).to.have.all.keys('balance','available','staked','srps','roe')
     expect(result.balance).to.be.a('number')
     expect(result.balance).to.equal(500000000000)
-
   })
 
   //try to transfer whole amount, fail.
@@ -903,19 +900,19 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
       ramafter = result.ram_quota
       let diffram = ramafter-rambefore
       expect(diffram).to.equal(1152)
-  } catch (err) {
-    console.log('Error', err)
-  }
+    } catch (err) {
+      console.log('Error', err)
+    }
   })
 
   it(`Test Case: Check that we arent able to vote with this lock`, async () => { })
 
-  it(`Transfer 1000000000000 FIO into locked funds account`, async () => {
+  it(`Transfer 1000 FIO into locked funds account`, async () => {
     try {
       const result = await userA3.sdk.genericAction('transferTokens', {
         payeeFioPublicKey: keys.publicKey,
         amount: 1000000000000,
-        maxFee: 400000000000,
+        maxFee: config.maxFee,
         tpid: '',
       })
     } catch (err) {
@@ -928,9 +925,11 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
       newFioDomain2 = generateFioDomain(15)
       const result = await locksdk.genericAction('registerFioDomain', {
         fioDomain: newFioDomain2,
-        maxFee: 800000000000,
+        maxFee: config.maxFee,
         tpid: '',
       })
+      //console.log('Result', result)
+      domainFee = result.fee_collected
     } catch (err) {
       console.log('Error', err)
     }
@@ -941,9 +940,11 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
       newFioAddress2 = generateFioAddress(newFioDomain2,15)
       const result = await locksdk.genericAction('registerFioAddress', {
         fioAddress: newFioAddress2,
-        maxFee: 400000000000,
+        maxFee: config.maxFee,
         tpid: '',
       })
+      //console.log('Result', result)
+      addressFee = result.fee_collected
     } catch (err) {
       console.log('Error', err)
     }
@@ -981,7 +982,7 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
     try {
       total_bp_votes_after = await getProdVoteTotal('bp1@dapixdev');
       let diff = total_bp_votes_after - total_bp_votes_before
-      expect(diff).to.equal(160000000000)
+      expect(diff).to.equal(1000000000000 - domainFee - addressFee)
     } catch (err) {
       console.log('Error: ', err)
     }
@@ -1010,7 +1011,7 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
             }
           ],
           amount: fundsAmount,
-          max_fee: 400000000000,
+          max_fee: config.maxFee,
           tpid: '',
           actor: userA1.account,
         }
@@ -1071,7 +1072,7 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
       const result = await domsdk.genericAction('transferFioDomain', {
         fioDomain: domsdk.domain2,
         newOwnerKey: userA1.publicKey,
-        maxFee: 400000000000,
+        maxFee: config.maxFee,
         technologyProviderId: ''
       })
       feeCollected = result.fee_collected;
@@ -1082,7 +1083,6 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
       expect(err).to.equal(null);
     }
   })
-
 
   //end check that we arent abl to vote with this lock
 })
@@ -1839,7 +1839,7 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
             }
           ],
           amount: fundsAmount,
-          max_fee: 400000000000,
+          max_fee: config.maxFee,
           tpid: '',
           actor: userA1.account,
         }
@@ -1857,7 +1857,7 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
       const result = await userA2.sdk.genericAction('transferTokens', {
         payeeFioPublicKey: keys3.publicKey,
         amount: 1000000000000,
-        maxFee: 400000000000,
+        maxFee: config.maxFee,
         tpid: '',
       })
     } catch (err) {
@@ -2151,7 +2151,7 @@ describe(`E. Token unlocking tests`, () => {
             }
           ],
           amount: 51000000000,
-          max_fee: 400000000000,
+          max_fee: config.maxFee,
           tpid: '',
           actor: userA1.account,
         }
@@ -2180,7 +2180,7 @@ describe(`E. Token unlocking tests`, () => {
     const result = await locksdk4.genericAction('transferTokens', {
       payeeFioPublicKey: userA1.publicKey,
       amount: 49000000000,
-      maxFee: config.api.transfer_tokens_pub_key.fee,
+      maxFee: config.maxFee,
       technologyProviderId: ''
     })
       expect(result.status).to.not.equal('OK')
@@ -2195,7 +2195,7 @@ it(`Transfer 1 FIO to another account`, async () => {
   const result = await locksdk4.genericAction('transferTokens', {
     payeeFioPublicKey: userA1.publicKey,
     amount: 1000000000,
-    maxFee: config.api.transfer_tokens_pub_key.fee,
+    maxFee: config.maxFee,
     technologyProviderId: ''
   })
   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
@@ -2218,7 +2218,7 @@ it(`Transfer 30 FIO to another account`, async () => {
   const result = await locksdk4.genericAction('transferTokens', {
     payeeFioPublicKey: userA1.publicKey,
     amount: 30000000000,
-    maxFee: config.api.transfer_tokens_pub_key.fee,
+    maxFee: config.maxFee,
     technologyProviderId: ''
   })
   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
@@ -2239,7 +2239,7 @@ it(`Transfer 30 FIO to another account`, async () => {
     const result = await locksdk4.genericAction('transferTokens', {
       payeeFioPublicKey: userA1.publicKey,
       amount: 13000000000,
-      maxFee: config.api.transfer_tokens_pub_key.fee,
+      maxFee: config.maxFee,
       technologyProviderId: ''
     })
 
