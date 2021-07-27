@@ -17,13 +17,19 @@ function wait(ms){
   }
 }
 
-let  userA4, keys,  locksdk
-const fundsAmount = 500000000000
-const maxTestFundsAmount = 5000000000
-const halfundsAmount = 220000000000
 
-describe(`************************** transfer-locked-tokens.js ************************** \n    A. Create accounts for tests`, () => {
 
+describe(`************************** locks-transfer-locked-tokens-max-load.js ************************** \n    A. Create 2400 General Locked Token grant accounts`, () => {
+
+  //to perform max tests, run this test to load the system with the desired amount of locks.
+  //then run normal regression tests on the general locks
+
+  let userA4, keys, locksdk
+  let accounts = [], privkeys = [], pubkeys = []
+  let numlocks = 0
+  const fundsAmount = 500000000000
+  const maxTestFundsAmount = 5000000000
+  const halfundsAmount = 220000000000
 
   it(`Create users`, async () => {
 
@@ -33,18 +39,6 @@ describe(`************************** transfer-locked-tokens.js *****************
     locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
 
   })
-
-})
-
-
-
-let accounts = [], privkeys = [], pubkeys = []
-let numlocks = 0
-
-//to perform max tests, run this test to load the system with the desired amount of locks.
-//then run normal regression tests on the general locks
-describe(`F. MAX tests`, () => {
-
 
   it(`load the protocol with 80 general grants`, async () => {
     try {
