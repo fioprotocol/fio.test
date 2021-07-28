@@ -75,7 +75,6 @@ describe(`************************** stake-general-locked-tokens.js ************
       }
     })
     expect(result.status).to.equal('OK')
-    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
   })
 
   it(`Call get_table_rows from locktokensv2 and confirm: three lock periods added correctly`, async () => {
@@ -261,7 +260,7 @@ describe(`************************** stake-general-locked-tokens.js ************
     }
   })
 
-  it(`Call get_table_rows from locktokensv2. Confirm: payouts_performed = 1, remaining_lock_amount increased`, async () => {
+  it(`Call get_table_rows from locktokensv2. Confirm: payouts_performed = 1, remaining_lock_amount decreased`, async () => {
     try {
       const json = {
         json: true,
@@ -1022,7 +1021,7 @@ describe(`************************** stake-general-locked-tokens.js ************
 })
 
 
-describe(`B. Stake/unstake tokens with general lock account, skip two periods of general lock`, () => {
+describe(`B. Insert stake period in middle of locktokensv2 general locks, then unlock and unstake, skip two periods of general lock`, () => {
 
   let userA1, locksdk, keys, accountnm, newFioDomain, newFioAddress, lockDuration
 
@@ -1078,7 +1077,6 @@ describe(`B. Stake/unstake tokens with general lock account, skip two periods of
       }
     })
     expect(result.status).to.equal('OK')
-    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
   })
 
   it(`Call get_table_rows from locktokensv2 and confirm: three lock periods added correctly`, async () => {
@@ -1249,7 +1247,7 @@ describe(`B. Stake/unstake tokens with general lock account, skip two periods of
     }
   })
 
-  it(`Call get_table_rows from locktokensv2. Confirm: payouts_performed = 2, remaining_lock_amount increased`, async () => {
+  it(`Call get_table_rows from locktokensv2. Confirm: payouts_performed = 2, remaining_lock_amount decreased`, async () => {
     try {
       const json = {
         json: true,
@@ -1470,12 +1468,12 @@ describe(`B. Stake/unstake tokens with general lock account, skip two periods of
 })
 
 
-describe(`C. Stake/unstake tokens with general lock account, insert stake at end before any unlock, then unlock and unstake`, () => {
+describe(`C. Insert stake period at END of locktokensv2 general locks, then unlock and unstake`, () => {
 
   let userA1, locksdk, keys, accountnm, newFioDomain, newFioAddress, lockDuration
 
-  const genLock1Dur = 60, genLock1Amount = 5000000000000,  // 30 seconds minute, 5000 FIO
-    genLock2Dur = 120, genLock2Amount = 4000000000000     // 1 minute, 4000 FIO
+  const genLock1Dur = 30, genLock1Amount = 5000000000000,  // 0.5 minute, 5000 FIO
+    genLock2Dur = 60, genLock2Amount = 4000000000000     // 1 minute, 4000 FIO
 
   const genLockTotal = genLock1Amount + genLock2Amount
 
@@ -1521,7 +1519,480 @@ describe(`C. Stake/unstake tokens with general lock account, insert stake at end
       }
     })
     expect(result.status).to.equal('OK')
+  })
+
+  it(`Call get_table_rows from locktokensv2 and confirm: two lock periods added correctly`, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'locktokensv2',
+        lower_bound: accountnm,
+        upper_bound: accountnm,
+        key_type: 'i64',
+        index_position: '2'
+      }
+      result = await callFioApi("get_table_rows", json);
+      //console.log('Result: ', result);
+      //console.log('periods : ', result.rows[0].periods)
+      expect(result.rows[0].lock_amount).to.equal(genLockTotal)
+      expect(result.rows[0].remaining_lock_amount).to.equal(genLockTotal)
+      expect(result.rows[0].payouts_performed).to.equal(0)
+      expect(result.rows[0].periods[0].duration).to.equal(genLock1Dur)
+      expect(result.rows[0].periods[0].amount).to.equal(genLock1Amount)
+      expect(result.rows[0].periods[1].duration).to.equal(genLock2Dur)
+      expect(result.rows[0].periods[1].amount).to.equal(genLock2Amount)
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`getFioBalance for locksdk general lock token holder Expect: available balance 0 `, async () => {
+    const result = await locksdk.genericAction('getFioBalance', {})
+    //console.log(result)
+    expect(result.available).to.equal(0)
+  })
+
+  it(`Transfer ${fundsAmount} FIO to locked account`, async () => {
+    try {
+      const result = await faucet.genericAction('transferTokens', {
+        payeeFioPublicKey: keys.publicKey,
+        amount: fundsAmount,
+        maxFee: config.maxFee,
+        tpid: '',
+      })
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Register domain for voting for locked account `, async () => {
+    try {
+      newFioDomain = generateFioDomain(15)
+      const result = await locksdk.genericAction('registerFioDomain', {
+        fioDomain: newFioDomain,
+        maxFee: config.maxFee,
+        tpid: '',
+      })
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Register address for voting for locked account`, async () => {
+    try {
+      newFioAddress = generateFioAddress(newFioDomain, 15)
+      const result = await locksdk.genericAction('registerFioAddress', {
+        fioAddress: newFioAddress,
+        maxFee: config.maxFee,
+        tpid: '',
+      })
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Success. locksdk vote for producers.`, async () => {
+    try {
+      const result = await locksdk.genericAction('pushTransaction', {
+        action: 'voteproducer',
+        account: 'eosio',
+        data: {
+          producers: ["bp1@dapixdev"],
+          fio_address: newFioAddress,
+          actor: accountnm,
+          max_fee: config.maxFee
+        }
+      })
+      // console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log("Error : ", err.json)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`getFioBalance for locksdk general lock token holder Expect: available balance 0 `, async () => {
+    const result = await locksdk.genericAction('getFioBalance', {})
+    //console.log(result)
+    expect(result.available).is.greaterThan(0)
+  })
+
+  it(`Success, stake ${stakeAmount / 1000000000} FIO `, async () => {
+    try {
+      const result = await locksdk.genericAction('pushTransaction', {
+        action: 'stakefio',
+        account: 'fio.staking',
+        data: {
+          fio_address: newFioAddress,
+          amount: stakeAmount,
+          actor: accountnm,
+          max_fee: config.maxFee,
+          tpid: ''
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log("Error : ", err.json)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Success, unstake ${unstake1 / 1000000000} FIO (BUG-2749)`, async () => {
+    try {
+      const result = await locksdk.genericAction('pushTransaction', {
+        action: 'unstakefio',
+        account: 'fio.staking',
+        data: {
+          fio_address: newFioAddress,
+          amount: unstake1,
+          actor: accountnm,
+          max_fee: config.maxFee,
+          tpid: ''
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log("Error : ", err.json)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Call get_table_rows from locktokensv2. Confirm: lock_amount updated, additional Staking period added at end`, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'locktokensv2',
+        lower_bound: accountnm,
+        upper_bound: accountnm,
+        key_type: 'i64',
+        index_position: '2'
+      }
+      result = await callFioApi("get_table_rows", json);
+      //console.log('Result: ', result);
+      //console.log('periods : ', result.rows[0].periods)
+      expect(result.rows[0].lock_amount).to.equal(genLockTotal + unstake1)  
+      expect(result.rows[0].remaining_lock_amount).to.equal(genLockTotal + unstake1)  
+      expect(result.rows[0].payouts_performed).to.equal(0) 
+      expect(result.rows[0].periods[0].duration).to.equal(genLock1Dur)
+      expect(result.rows[0].periods[0].amount).to.equal(genLock1Amount)
+      expect(result.rows[0].periods[1].duration).to.equal(genLock2Dur)
+      expect(result.rows[0].periods[1].amount).to.equal(genLock2Amount)
+      expect(result.rows[0].periods[2].duration).is.greaterThanOrEqual(UNSTAKELOCKDURATIONSECONDS)  // Hard to know this. It is 7 days + the time that has elapsed since the original record was created (the timestamp)
+      lockDuration = result.rows[0].periods[2].duration  // Grab this to make sure it does not change later
+      expect(result.rows[0].periods[2].amount).to.equal(unstake1)
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Failure. Re-Transfer ${fundsAmount} FIO to locked account. Expect: `, async () => {
+    try {
+      const result = await faucet.genericAction('transferTokens', {
+        payeeFioPublicKey: keys.publicKey,
+        amount: fundsAmount,
+        maxFee: config.maxFee,
+        tpid: '',
+      })
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Waiting 30 seconds for unlock of genlock1 (5000 FIO)`, async () => {
+    console.log("            waiting 35 seconds ")
+  })
+
+  it(` wait 35 seconds`, async () => {
+    try {
+      wait(35000)
+    } catch (err) {
+      console.log('Error', err)
+    }
+  })
+
+  it(`Transfer 1 FIO from locksdk to trigger update of locktokensv2`, async () => {
+    try {
+      const result = await locksdk.genericAction('transferTokens', {
+        payeeFioPublicKey: userA1.publicKey,
+        amount: 1000000000,
+        maxFee: config.maxFee,
+        tpid: '',
+      })
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Call get_table_rows from locktokensv2. Confirm: payouts_performed = 1, remaining_lock_amount decreased`, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'locktokensv2',
+        lower_bound: accountnm,
+        upper_bound: accountnm,
+        key_type: 'i64',
+        index_position: '2'
+      }
+      result = await callFioApi("get_table_rows", json);
+      //console.log('Result: ', result);
+      //console.log('periods : ', result.rows[0].periods)
+      expect(result.rows[0].lock_amount).to.equal(genLockTotal + unstake1) 
+      expect(result.rows[0].remaining_lock_amount).to.equal(genLockTotal + unstake1 - genLock1Amount)  // Subtract first lock amount.
+      expect(result.rows[0].payouts_performed).to.equal(1)  // Changed to 1 to reflect initial period unlock.
+      expect(result.rows[0].periods[0].duration).to.equal(genLock1Dur)
+      expect(result.rows[0].periods[0].amount).to.equal(genLock1Amount)
+      expect(result.rows[0].periods[1].duration).to.equal(genLock2Dur)
+      expect(result.rows[0].periods[1].amount).to.equal(genLock2Amount)
+      expect(result.rows[0].periods[2].duration).is.greaterThanOrEqual(lockDuration)
+      expect(result.rows[0].periods[2].amount).to.equal(unstake1)
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Success, unstake ${unstake2 / 1000000000} tokens `, async () => {
+    const result = await locksdk.genericAction('pushTransaction', {
+      action: 'unstakefio',
+      account: 'fio.staking',
+      data: {
+        fio_address: newFioAddress,
+        amount: unstake2,
+        actor: accountnm,
+        max_fee: config.maxFee,
+        tpid: ''
+      }
+    })
+    // console.log('Result: ', result)
+    expect(result.status).to.equal('OK')
+  })
+
+  it(`Call get_table_rows from locktokensv2. Confirm: existing Staking Amount updated, lock_amount and remaining_lock_amount updated, first lock removed`, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'locktokensv2',
+        lower_bound: accountnm,
+        upper_bound: accountnm,
+        key_type: 'i64',
+        index_position: '2'
+      }
+      result = await callFioApi("get_table_rows", json);
+      //console.log('Result: ', result);
+      //console.log('periods : ', result.rows[0].periods)
+      expect(result.rows[0].lock_amount).to.equal(genLockTotal + unstake1 + unstake2 - genLock1Amount)
+      expect(result.rows[0].remaining_lock_amount).to.equal(genLockTotal + unstake1 + unstake2 - genLock1Amount) 
+      expect(result.rows[0].payouts_performed).to.equal(0)  // Changed to 0 since unstake removes old locks.
+      expect(result.rows[0].periods[0].duration).to.equal(genLock2Dur)
+      expect(result.rows[0].periods[0].amount).to.equal(genLock2Amount)
+      expect(result.rows[0].periods[1].duration).is.greaterThanOrEqual(lockDuration)
+      expect(result.rows[0].periods[1].amount).to.equal(unstake1 + unstake2)
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Waiting 30 seconds for unlock of genlock2 (4000 FIO)`, async () => {
+    console.log("            waiting 35 seconds ")
+  })
+
+  it(` wait 35 seconds`, async () => {
+    try {
+      wait(35000)
+    } catch (err) {
+      console.log('Error', err)
+    }
+  })
+
+  it(`Transfer 1 FIO from locksdk to trigger update of locktokensv2`, async () => {
+    try {
+      const result = await locksdk.genericAction('transferTokens', {
+        payeeFioPublicKey: userA1.publicKey,
+        amount: 1000000000,
+        maxFee: config.maxFee,
+        tpid: '',
+      })
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Call get_table_rows from locktokensv2. Confirm: remaining_lock_amount updated, payouts_performed updated`, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'locktokensv2',
+        lower_bound: accountnm,
+        upper_bound: accountnm,
+        key_type: 'i64',
+        index_position: '2'
+      }
+      result = await callFioApi("get_table_rows", json);
+      //console.log('Result: ', result);
+      //console.log('periods : ', result.rows[0].periods)
+      expect(result.rows[0].lock_amount).to.equal(genLockTotal + unstake1 + unstake2 - genLock1Amount)
+      expect(result.rows[0].remaining_lock_amount).to.equal(genLockTotal + unstake1 + unstake2 - genLock1Amount - genLock2Amount)
+      expect(result.rows[0].payouts_performed).to.equal(1) 
+      expect(result.rows[0].periods[0].duration).to.equal(genLock2Dur)
+      expect(result.rows[0].periods[0].amount).to.equal(genLock2Amount)
+      expect(result.rows[0].periods[1].duration).is.greaterThanOrEqual(lockDuration)
+      expect(result.rows[0].periods[1].amount).to.equal(unstake1 + unstake2)
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Success, unstake ${unstake3 / 1000000000} tokens `, async () => {
+    try {
+      const result = await locksdk.genericAction('pushTransaction', {
+        action: 'unstakefio',
+        account: 'fio.staking',
+        data: {
+          fio_address: newFioAddress,
+          amount: unstake3,
+          actor: accountnm,
+          max_fee: config.maxFee + 1,
+          tpid: ''
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Call get_table_rows from locktokensv2. Confirm: existing Staking period periods[2] Amount updated`, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'locktokensv2',
+        lower_bound: accountnm,
+        upper_bound: accountnm,
+        key_type: 'i64',
+        index_position: '2'
+      }
+      result = await callFioApi("get_table_rows", json);
+      //console.log('Result: ', result);
+      //console.log('periods : ', result.rows[0].periods)
+      expect(result.rows[0].lock_amount).to.equal(genLockTotal + unstake1 + unstake2 + unstake3 - genLock1Amount - genLock2Amount)
+      expect(result.rows[0].remaining_lock_amount).to.equal(genLockTotal + unstake1 + unstake2 + unstake3 - genLock1Amount - genLock2Amount)
+      expect(result.rows[0].payouts_performed).to.equal(0)  // Changed to 0 since unstake removes old locks.
+      expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(lockDuration)
+      expect(result.rows[0].periods[0].amount).to.equal(unstake1 + unstake2 + unstake3)
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+})
+
+
+describe.only(`D. Insert stake period at BEGINNING of locktokensv2 general locks. No testing of unlock/unstake (would require update of unstake period)`, () => {
+
+  let locksdk, keys, accountnm, newFioDomain, newFioAddress
+
+  const genLock1Dur = UNSTAKELOCKDURATIONSECONDS + 10000, genLock1Amount = 5000000000000,  // 0.5 minute, 5000 FIO
+    genLock2Dur = UNSTAKELOCKDURATIONSECONDS + 20000, genLock2Amount = 4000000000000     // 1 minute, 4000 FIO
+
+  const genLockTotal = genLock1Amount + genLock2Amount
+
+  const fundsAmount = 3000000000000 // 3000
+  const stakeAmount = 800000000000 // 800 FIO
+  const unstake1 = 100000000000     // 100 FIO
+
+  it(`Create users`, async () => {
+
+    keys = await createKeypair();
+    accountnm = await getAccountFromKey(keys.publicKey);
     locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+
+    //console.log("locksdk priv key ", keys.privateKey);
+    //console.log("locksdk pub key ", keys.publicKey);
+    //console.log("locksdk Account name ", accountnm);
+  })
+
+  it(`trnsloctoks with three periods to locksdk: 5000 FIO - 1 min, 4000 FIO - 2 min`, async () => {
+    const result = await faucet.genericAction('pushTransaction', {
+      action: 'trnsloctoks',
+      account: 'fio.token',
+      data: {
+        payee_public_key: keys.publicKey,
+        can_vote: 0,
+        periods: [
+          {
+            duration: genLock1Dur,
+            amount: genLock1Amount,
+          },
+          {
+            duration: genLock2Dur,
+            amount: genLock2Amount,
+          }
+        ],
+        amount: genLockTotal,
+        max_fee: config.maxFee,
+        tpid: '',
+        actor: config.FAUCET_ACCOUNT,
+      }
+    })
+    expect(result.status).to.equal('OK')
+  })
+
+  it(`Try to do another trnsloctoks. Expect: `, async () => {
+    try { 
+      const result = await faucet.genericAction('pushTransaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        data: {
+          payee_public_key: keys.publicKey,
+          can_vote: 0,
+          periods: [
+            {
+              duration: genLock1Dur,
+              amount: genLock1Amount,
+            },
+            {
+              duration: genLock2Dur,
+              amount: genLock2Amount,
+            }
+          ],
+          amount: genLockTotal,
+          max_fee: config.maxFee,
+          tpid: '',
+          actor: config.FAUCET_ACCOUNT,
+        }
+      })
+      expect(result.status).to.not.equal('OK')
+    } catch (err) {
+      //console.log('Error', err);
+      expect(err.json.error.what).to.equal('Duplicate transaction');
+    }
   })
 
   it(`Call get_table_rows from locktokensv2 and confirm: two lock periods added correctly`, async () => {
@@ -1647,7 +2118,7 @@ describe(`C. Stake/unstake tokens with general lock account, insert stake at end
     }
   })
 
-  it(`BUG-2749 - Success, unstake ${unstake1 / 1000000000} FIO `, async () => {
+  it(`Success, unstake ${unstake1 / 1000000000} FIO (BUG-2749)`, async () => {
     try {
       const result = await locksdk.genericAction('pushTransaction', {
         action: 'unstakefio',
@@ -1660,7 +2131,7 @@ describe(`C. Stake/unstake tokens with general lock account, insert stake at end
           tpid: ''
         }
       })
-      console.log('Result: ', result)
+      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log("Error : ", err.json)
@@ -1668,7 +2139,7 @@ describe(`C. Stake/unstake tokens with general lock account, insert stake at end
     }
   })
 
-  it.skip(`Call get_table_rows from locktokensv2. Confirm: genlock1 removed from table, lock_amount updated, additional Staking period added at 2nd period`, async () => {
+  it(`Call get_table_rows from locktokensv2. Confirm: lock_amount updated, additional Staking period added at beginning`, async () => {
     try {
       const json = {
         json: true,
@@ -1683,208 +2154,20 @@ describe(`C. Stake/unstake tokens with general lock account, insert stake at end
       result = await callFioApi("get_table_rows", json);
       console.log('Result: ', result);
       console.log('periods : ', result.rows[0].periods)
-      expect(result.rows[0].lock_amount).to.equal(genLockTotal - genLock1Amount - genLock2Amount + unstake1)  // Unstake removes old locks, so this should update
-      expect(result.rows[0].remaining_lock_amount).to.equal(genLockTotal - genLock1Amount - genLock2Amount + unstake1)  // Updated to reflect new amount. Will be same as lock_amount.
-      expect(result.rows[0].payouts_performed).to.equal(0)  // Reset to 0 because genLock1 was removed and there are no longer any past payouts
-      expect(result.rows[0].periods[0].duration).to.equal(genLock1Dur)
-      expect(result.rows[0].periods[0].amount).to.equal(genLock1Amount)
-      expect(result.rows[0].periods[1].duration).to.equal(genLock2Dur)
-      expect(result.rows[0].periods[1].amount).to.equal(genLock2Amount)
-      expect(result.rows[0].periods[2].duration).is.greaterThanOrEqual(UNSTAKELOCKDURATIONSECONDS)  // Hard to know this. It is 7 days + the time that has elapsed since the original record was created (the timestamp)
-      lockDuration = result.rows[2].periods[0].duration  // Grab this to make sure it does not change later
-      expect(result.rows[0].periods[2].amount).to.equal(unstake1)
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
-  })
-
-/*
-  it(`Waiting 1 minute for unlock of genlock1 (5000 FIO)`, async () => {
-    console.log("            waiting 65 seconds ")
-  })
-
-  it(` wait 65 seconds`, async () => {
-    try {
-      wait(65000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
-
-  it(`Transfer 1 FIO from locksdk to trigger update of locktokensv2`, async () => {
-    try {
-      const result = await locksdk.genericAction('transferTokens', {
-        payeeFioPublicKey: userA1.publicKey,
-        amount: 1000000000,
-        maxFee: config.maxFee,
-        tpid: '',
-      })
-    } catch (err) {
-      console.log('Error', err)
-      expect(err).to.equal(null)
-    }
-  })
-
-  it(`Call get_table_rows from locktokensv2. Confirm: payouts_performed = 2, remaining_lock_amount increased`, async () => {
-    try {
-      const json = {
-        json: true,
-        code: 'eosio',
-        scope: 'eosio',
-        table: 'locktokensv2',
-        lower_bound: accountnm,
-        upper_bound: accountnm,
-        key_type: 'i64',
-        index_position: '2'
-      }
-      result = await callFioApi("get_table_rows", json);
-      console.log('Result: ', result);
-      console.log('periods : ', result.rows[0].periods)
-      expect(result.rows[0].lock_amount).to.equal(genLockTotal)
-      expect(result.rows[0].remaining_lock_amount).to.equal(genLockTotal - genLock1Amount - genLock2Amount)
-      expect(result.rows[0].payouts_performed).to.equal(2)
-      expect(result.rows[0].periods[0].duration).to.equal(genLock1Dur)
-      expect(result.rows[0].periods[0].amount).to.equal(genLock1Amount)
-      expect(result.rows[0].periods[1].duration).to.equal(genLock2Dur)
-      expect(result.rows[0].periods[1].amount).to.equal(genLock2Amount)
-      expect(result.rows[0].periods[2].duration).is.greaterThanOrEqual(lockDuration)  
-      expect(result.rows[0].periods[2].amount).to.equal(unstake1)
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
-  })
-
-  it(`Success. After unlock, transfer 700 FIO from locksdk to userA1`, async () => {
-    try {
-      const result = await locksdk.genericAction('transferTokens', {
-        payeeFioPublicKey: userA1.publicKey,
-        amount: 70000000000,
-        maxFee: config.maxFee,
-        technologyProviderId: ''
-      })
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-      console.log("ERROR: ", err)
-    }
-  })
-
-  it(`Success, unstake ${unstake2 / 1000000000} tokens `, async () => {
-    const result = await locksdk.genericAction('pushTransaction', {
-      action: 'unstakefio',
-      account: 'fio.staking',
-      data: {
-        fio_address: newFioAddress,
-        amount: unstake2,
-        actor: accountnm,
-        max_fee: config.maxFee,
-        tpid: ''
-      }
-    })
-    // console.log('Result: ', result)
-    expect(result.status).to.equal('OK')
-  })
-
-  it(`Call get_table_rows from locktokensv2. Confirm: existing Staking period periods[2] Amount updated`, async () => {
-    try {
-      const json = {
-        json: true,
-        code: 'eosio',
-        scope: 'eosio',
-        table: 'locktokensv2',
-        lower_bound: accountnm,
-        upper_bound: accountnm,
-        key_type: 'i64',
-        index_position: '2'
-      }
-      result = await callFioApi("get_table_rows", json);
-      console.log('Result: ', result);
-      console.log('periods : ', result.rows[0].periods)
-      expect(result.rows[0].lock_amount).to.equal(genLockTotal - genLock1Amount - genLock2Amount + unstake1 + unstake2)
-      expect(result.rows[0].remaining_lock_amount).to.equal(genLockTotal - genLock1Amount - genLock2Amount + unstake1 + unstake2)
+      expect(result.rows[0].lock_amount).to.equal(genLockTotal + unstake1)
+      expect(result.rows[0].remaining_lock_amount).to.equal(genLockTotal + unstake1)
       expect(result.rows[0].payouts_performed).to.equal(0)
-      expect(result.rows[0].periods[0].duration).to.equal(genLock1Dur)
-      expect(result.rows[0].periods[0].amount).to.equal(genLock1Amount)
-      expect(result.rows[0].periods[1].duration).to.equal(genLock2Dur)
-      expect(result.rows[0].periods[1].amount).to.equal(genLock2Amount)
-      expect(result.rows[0].periods[2].duration).is.greaterThanOrEqual(lockDuration)
-      expect(result.rows[0].periods[2].amount).to.equal(unstake1 + unstake2)
+      expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(UNSTAKELOCKDURATIONSECONDS)  // Hard to know this. It is 7 days + the time that has elapsed since the original record was created (the timestamp)
+      expect(result.rows[0].periods[0].amount).to.equal(unstake1)
+      expect(result.rows[0].periods[1].duration).to.equal(genLock1Dur)
+      expect(result.rows[0].periods[1].amount).to.equal(genLock1Amount)
+      expect(result.rows[0].periods[2].duration).to.equal(genLock2Dur)
+      expect(result.rows[0].periods[3].amount).to.equal(genLock2Amount)
+
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
     }
   })
 
-  it(`Success, unstake ${unstake3 / 1000000000} tokens `, async () => {
-    try {
-      const result = await locksdk.genericAction('pushTransaction', {
-        action: 'unstakefio',
-        account: 'fio.staking',
-        data: {
-          fio_address: newFioAddress,
-          amount: unstake3,
-          actor: accountnm,
-          max_fee: config.maxFee + 1,
-          tpid: ''
-        }
-      })
-      //console.log('Result: ', result)
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
-  })
-
-  it(`Call get_table_rows from locktokensv2. Confirm: existing Staking period periods[2] Amount updated`, async () => {
-    try {
-      const json = {
-        json: true,
-        code: 'eosio',
-        scope: 'eosio',
-        table: 'locktokensv2',
-        lower_bound: accountnm,
-        upper_bound: accountnm,
-        key_type: 'i64',
-        index_position: '2'
-      }
-      result = await callFioApi("get_table_rows", json);
-      console.log('Result: ', result);
-      console.log('periods : ', result.rows[0].periods)
-      expect(result.rows[0].lock_amount).to.equal(genLockTotal - genLock1Amount - genLock2Amount + unstake1 + unstake2 + unstake3)
-      expect(result.rows[0].remaining_lock_amount).to.equal(genLockTotal - genLock1Amount - genLock2Amount + unstake1 + unstake2 + unstake3)
-      expect(result.rows[0].payouts_performed).to.equal(0)
-      expect(result.rows[0].periods[0].duration).to.equal(genLock1Dur)
-      expect(result.rows[0].periods[0].amount).to.equal(genLock1Amount)
-      expect(result.rows[0].periods[1].duration).to.equal(genLock2Dur)
-      expect(result.rows[0].periods[1].amount).to.equal(genLock2Amount)
-      expect(result.rows[0].periods[2].duration).is.greaterThanOrEqual(lockDuration)
-      expect(result.rows[0].periods[2].amount).to.equal(unstake1 + unstake2 + unstake3)
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
-  })
-
-  it(`Failure, unstake 80M tokens, cannot unstake more than has been staked `, async () => {
-    try {
-      const result = await locksdk.genericAction('pushTransaction', {
-        action: 'unstakefio',
-        account: 'fio.staking',
-        data: {
-          fio_address: newFioAddress,
-          amount: 80000000000000000,
-          actor: accountnm,
-          max_fee: config.maxFee,
-          tpid: ''
-        }
-      })
-      //console.log('Result: ', result)
-      expect(result.status).to.not.equal('OK')
-    } catch (err) {
-      expect(err.json.fields[0].error).to.contain('Cannot unstake more than staked')
-    }
-  })
-*/
 })
