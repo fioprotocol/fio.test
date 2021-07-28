@@ -884,8 +884,8 @@ describe(`************************** stake-general-locked-tokens.js ************
         index_position: '2'
       }
       result = await callFioApi("get_table_rows", json);
-      console.log('Result: ', result);
-      console.log('periods : ', result.rows[0].periods)
+      //console.log('Result: ', result);
+      //console.log('periods : ', result.rows[0].periods)
       expect(result.rows[0].payouts_performed).to.equal(0)
       expect(result.rows[0].periods[0].duration).to.equal(genLock2Dur)
       expect(result.rows[0].periods[0].amount).to.equal(genLock2Amount)
@@ -2008,8 +2008,8 @@ describe(`D. Insert stake period at BEGINNING of locktokensv2 general locks. No 
         index_position: '2'
       }
       result = await callFioApi("get_table_rows", json);
-      console.log('Result: ', result);
-      console.log('periods : ', result.rows[0].periods)
+      //console.log('Result: ', result);
+      //console.log('periods : ', result.rows[0].periods)
       expect(result.rows[0].lock_amount).to.equal(genLockTotal)
       expect(result.rows[0].remaining_lock_amount).to.equal(genLockTotal)
       expect(result.rows[0].payouts_performed).to.equal(0)
@@ -2152,8 +2152,8 @@ describe(`D. Insert stake period at BEGINNING of locktokensv2 general locks. No 
         index_position: '2'
       }
       result = await callFioApi("get_table_rows", json);
-      console.log('Result: ', result);
-      console.log('periods : ', result.rows[0].periods)
+      //console.log('Result: ', result);
+      //console.log('periods : ', result.rows[0].periods)
       expect(result.rows[0].lock_amount).to.equal(genLockTotal + unstake1)
       expect(result.rows[0].remaining_lock_amount).to.equal(genLockTotal + unstake1)
       expect(result.rows[0].payouts_performed).to.equal(0)
@@ -2162,7 +2162,7 @@ describe(`D. Insert stake period at BEGINNING of locktokensv2 general locks. No 
       expect(result.rows[0].periods[1].duration).to.equal(genLock1Dur)
       expect(result.rows[0].periods[1].amount).to.equal(genLock1Amount)
       expect(result.rows[0].periods[2].duration).to.equal(genLock2Dur)
-      expect(result.rows[0].periods[3].amount).to.equal(genLock2Amount)
+      expect(result.rows[0].periods[2].amount).to.equal(genLock2Amount)
 
     } catch (err) {
       console.log('Error', err);
