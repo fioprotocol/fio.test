@@ -2247,3 +2247,93 @@ it(`Transfer 30 FIO to another account`, async () => {
   })
 
 })
+
+
+describe(`F. Test large numbers of lock periods`, () => {
+
+  let lock1, lock2, totalAmount
+  const maxPeriods = 365
+  let periods = []
+  const periodAmount = 10000000000  // 10 FIO
+
+  it(`Create users`, async () => {
+    keys1 = await createKeypair();
+    lock1 = new FIOSDK(keys1.privateKey, keys1.publicKey, config.BASE_URL, fetchJson);
+    console.log('lock1.publickey: ', lock1.publicKey)
+
+    keys2 = await createKeypair();
+    lock2 = new FIOSDK(keys2.privateKey, keys2.publicKey, config.BASE_URL, fetchJson);
+    console.log('lock2.publickey: ', lock2.publicKey)
+  })
+
+  it(`Transfer locked FIO with ${maxPeriods} lock periods to lock1. Expect success.`, async () => {
+    totalAmount = 0;
+    periods = [];
+    for (i = 1; i < maxPeriods; i++) {
+      periods.push({ duration: i, amount: periodAmount},)
+      totalAmount += periodAmount; 
+    }
+    periods.push({ duration: maxPeriods, amount: periodAmount })  // Final period without comma
+    totalAmount += periodAmount;
+
+    console.log('totalAmount: ', totalAmount)
+    console.log('Periods: ', periods)
+
+    try {
+      const result = await faucet.genericAction('pushTransaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        data: {
+          payee_public_key: lock1.publicKey,
+          can_vote: 0,
+          periods: periods,
+          amount: totalAmount,
+          max_fee: config.maxFee,
+          tpid: '',
+          actor: config.FAUCET_ACCOUNT,
+        }
+      })
+      expect(result.status).to.equal('OK')
+      expect(result).to.have.all.keys('status', 'fee_collected')
+    } catch (err) {
+      console.log('Error', err.json)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it.skip(`Transfer locked FIO with ${maxPeriods + 1} lock periods to lock2. Expect failure: 'Invalid number of unlock periods'`, async () => {
+    totalAmount = 0;
+    periods = [];
+    for (i = 1; i < maxPeriods + 1; i++) {
+      periods.push({ duration: i, amount: periodAmount },)
+      totalAmount += periodAmount;
+    }
+    periods.push({ duration: maxPeriods + 1, amount: periodAmount })  // Final period without comma
+    totalAmount += periodAmount;
+
+    //console.log('totalAmount: ', totalAmount)
+    //console.log('Periods: ', periods)
+
+    try {
+      const result = await faucet.genericAction('pushTransaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        data: {
+          payee_public_key: lock2.publicKey,
+          can_vote: 0,
+          periods: periods,
+          amount: totalAmount,
+          max_fee: config.maxFee,
+          tpid: '',
+          actor: config.FAUCET_ACCOUNT,
+        }
+      })
+      expect(result.status).to.not.equal('OK')
+      expect(result).to.have.all.keys('status', 'fee_collected')
+    } catch (err) {
+      //console.log('Error', err.json)
+      expect(err.json.fields[0].error).to.equal('Invalid number of unlock periods')
+    }
+  })
+
+})
