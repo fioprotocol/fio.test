@@ -1914,12 +1914,12 @@ describe(`C. Insert stake period at END of locktokensv2 general locks, then unlo
 })
 
 
-describe.only(`D. Insert stake period at BEGINNING of locktokensv2 general locks. No testing of unlock/unstake (would require update of unstake period)`, () => {
+describe(`D. Insert stake period at BEGINNING of locktokensv2 general locks. No testing of unlock/unstake (would require update of unstake period)`, () => {
 
   let locksdk, keys, accountnm, newFioDomain, newFioAddress
 
-  const genLock1Dur = UNSTAKELOCKDURATIONSECONDS + 10000, genLock1Amount = 5000000000000,  // 0.5 minute, 5000 FIO
-    genLock2Dur = UNSTAKELOCKDURATIONSECONDS + 20000, genLock2Amount = 4000000000000     // 1 minute, 4000 FIO
+  const genLock1Dur = UNSTAKELOCKDURATIONSECONDS + 100000, genLock1Amount = 5000000000000,  // 0.5 minute, 5000 FIO
+    genLock2Dur = UNSTAKELOCKDURATIONSECONDS + 200000, genLock2Amount = 4000000000000     // 1 minute, 4000 FIO
 
   const genLockTotal = genLock1Amount + genLock2Amount
 
@@ -1964,7 +1964,7 @@ describe.only(`D. Insert stake period at BEGINNING of locktokensv2 general locks
     expect(result.status).to.equal('OK')
   })
 
-  it(`Try to do another trnsloctoks. Expect: `, async () => {
+  it(`Try to do another trnsloctoks. Expect: Locked tokens can only be transferred to new account`, async () => {
     try { 
       const result = await faucet.genericAction('pushTransaction', {
         action: 'trnsloctoks',
@@ -1975,14 +1975,14 @@ describe.only(`D. Insert stake period at BEGINNING of locktokensv2 general locks
           periods: [
             {
               duration: genLock1Dur,
-              amount: genLock1Amount,
+              amount: genLock1Amount + 1,
             },
             {
               duration: genLock2Dur,
-              amount: genLock2Amount,
+              amount: genLock2Amount + 1,
             }
           ],
-          amount: genLockTotal,
+          amount: genLockTotal + 2,
           max_fee: config.maxFee,
           tpid: '',
           actor: config.FAUCET_ACCOUNT,
@@ -1990,8 +1990,8 @@ describe.only(`D. Insert stake period at BEGINNING of locktokensv2 general locks
       })
       expect(result.status).to.not.equal('OK')
     } catch (err) {
-      //console.log('Error', err);
-      expect(err.json.error.what).to.equal('Duplicate transaction');
+      //console.log('Error', err.json);
+      expect(err.json.fields[0].error).to.equal('Locked tokens can only be transferred to new account');
     }
   })
 
