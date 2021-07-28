@@ -615,7 +615,7 @@ describe(`************************** locks-mainet-locked-tokens.js *************
 
 })
 
-describe.only(`B. Create large 7075065.123456789 grant verify unlocking using transferTokens`, () => {
+describe(`B. Create large 7075065.123456789 grant verify unlocking using transferTokens`, () => {
 
   let userA1, locksdk, keys, accountnm
   const lockdurationseconds = 60
