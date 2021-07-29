@@ -111,6 +111,8 @@ describe(`************************** stake-regression.js ***********************
     })
     expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
 
+    console.log('userA1.publicKey: ', userA1.publicKey)
+
   })
 
    it('Confirm proxy1: not in the voters table', async () => {
@@ -222,13 +224,18 @@ describe(`************************** stake-regression.js ***********************
   })
 
   it(`getFioBalance for userA1`, async () => {
-    const result = await userA1.sdk.genericAction('getFioBalance', {})
-    //console.log(result)
-    prevBalance = result.balance
-    expect(result.available).to.equal(result.balance)
-    expect(result.staked).to.equal(0)
-    prevSrps = result.srps
-    expect(result.roe).to.equal(1)
+    try {
+      const result = await userA1.sdk.genericAction('getFioBalance', {})
+      //console.log(result)
+      prevBalance = result.balance
+      expect(result.available).to.equal(result.balance)
+      expect(result.staked).to.equal(0)
+      prevSrps = result.srps
+      expect(result.roe).to.equal('1.00000000000000000')
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
   })
 
   it(`Success userA1 stake ${stakeAmount1/1000000000} fio using tpid and auto proxy`, async () => {
@@ -262,7 +269,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevBalance - stakeAmount1)
       expect(result.staked).to.equal(stakeAmount1)
       expect(result.srps).to.equal(prevSrps + stakeAmount1 / result.roe)
-      expect(result.roe).to.equal(1)
+      expect(result.roe).to.equal('1.00000000000000000')
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -370,7 +377,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevBalance - stakeAmount1)
       expect(result.staked).to.equal(stakeAmount1 - unstake1)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake1 / prevStaked)))
-      expect(result.roe).to.equal(1)
+      expect(result.roe).to.equal('1.00000000000000000')
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -448,7 +455,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevBalance - stakeAmount1)
       expect(result.staked).to.equal(prevStaked - unstake2)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake2 / prevStaked)))
-      expect(result.roe).to.equal(1)
+      expect(result.roe).to.equal('1.00000000000000000')
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -569,7 +576,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable)
       expect(result.staked).to.equal(prevStaked - unstake3)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake3 / prevStaked)))
-      expect(result.roe).to.equal(1)
+      expect(result.roe).to.equal('1.00000000000000000')
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -641,7 +648,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable - stakeAmount2)
       expect(result.staked).to.equal(prevStaked + stakeAmount2)
       expect(result.srps).to.equal(prevSrps + stakeAmount2 / result.roe)
-      expect(result.roe).to.equal(1)
+      expect(result.roe).to.equal('1.00000000000000000')
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -677,7 +684,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable)
       expect(result.staked).to.equal(prevStaked - unstake4)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake4 / prevStaked)))
-      expect(result.roe).to.equal(1)
+      expect(result.roe).to.equal('1.00000000000000000')
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -754,7 +761,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable)
       expect(result.staked).to.equal(prevStaked - unstake5)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake5 / prevStaked)))
-      expect(result.roe).to.equal(1)
+      expect(result.roe).to.equal('1.00000000000000000')
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -836,7 +843,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable)
       expect(result.staked).to.equal(prevStaked - unstake6)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake6 / prevStaked)))
-      expect(result.roe).to.equal(1)
+      expect(result.roe).to.equal('1.00000000000000000')
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -920,7 +927,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable)
       expect(result.staked).to.equal(prevStaked - unstake7)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake7 / prevStaked)))
-      expect(result.roe).to.equal(1)
+      expect(result.roe).to.equal('1.00000000000000000')
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -1005,7 +1012,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable)
       expect(result.staked).to.equal(prevStaked - unstake8)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake8 / prevStaked)))
-      expect(result.roe).to.equal(1)
+      expect(result.roe).to.equal('1.00000000000000000')
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -1092,7 +1099,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable)
       expect(result.staked).to.equal(prevStaked - unstake9)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake9 / prevStaked)))
-      expect(result.roe).to.equal(1)
+      expect(result.roe).to.equal('1.00000000000000000')
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -1186,7 +1193,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable)
       expect(result.staked).to.equal(prevStaked - unstake10)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake10 / prevStaked)))
-      expect(result.roe).to.equal(1)
+      expect(result.roe).to.equal('1.00000000000000000')
 
       prevBalance = result.balance
       prevAvailable = result.available
