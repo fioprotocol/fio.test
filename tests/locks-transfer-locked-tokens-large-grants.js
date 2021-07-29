@@ -24,7 +24,7 @@ const maxTestFundsAmount = 5000000000
 const halfundsAmount = 220000000000
 const largeGrantAmount = 100000000000000000
 
-describe(`************************** transfer-locked-tokens.js ************************** \n A. Create accounts for tests`, () => {
+describe(`************************** locks-transfer-locked-tokens-large-grants.js ************************** \n A. Create accounts for tests`, () => {
 
 
   it(`Create users`, async () => {
@@ -34,8 +34,8 @@ describe(`************************** transfer-locked-tokens.js *****************
       //       they assume the faucet is given more than 100M fio.
     //create SDK for the  htjonrkf1lgs account.
     keys = await createKeypair();
-    console.log("priv key ", keys.privateKey);
-    console.log("pub key ", keys.privateKey);
+    //console.log("priv key ", keys.privateKey);
+    //console.log("pub key ", keys.privateKey);
 
     userA1 = await newUser(faucet);
     //we need to make a user with 100M fio.
@@ -49,8 +49,6 @@ describe(`************************** transfer-locked-tokens.js *****************
 
 
 describe(`A. Large grant tests`, () => {
-
-
 
   it(`Success Test, Transfer locked tokens,  create grant of 100M`, async () => {
     try {
@@ -99,8 +97,8 @@ describe(`A. Large grant tests`, () => {
   it(`Transfer 4900000 FIO to another account`, async () => {
     try {
     locksdk2 = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
-    console.log("priv key: ",locksdk2.privateKey);
-      console.log("pub key: ",locksdk2.publicKey);
+    //console.log("priv key: ",locksdk2.privateKey);
+    //console.log("pub key: ",locksdk2.publicKey);
     const result = await locksdk2.genericAction('transferTokens', {
       payeeFioPublicKey: userA1.publicKey,
       amount: 4900000000000000,
@@ -117,7 +115,7 @@ describe(`A. Large grant tests`, () => {
     let timestamp
     let accountnm =  await getAccountFromKey(keys.publicKey);
 
-    console.log("account is ",accountnm)
+    //console.log("account is ",accountnm)
     try {
       const json = {
         json: true,               // Get the response as json
@@ -133,11 +131,11 @@ describe(`A. Large grant tests`, () => {
       for (lockedAccount in lockedAccounts.rows) {
         //if (lockedAccounts.rows[lockedAccount].owner == accounts[0].account) {
        if (lockedAccounts.rows[lockedAccount].owner_account == accountnm) {
-          console.log('Count: ', lockedAccount)
-          console.log('lockedAccounts.rows[lockedAccount].owner_account: ', lockedAccounts.rows[lockedAccount].owner_account);
-          console.log('lockedAccounts.rows[lockedAccount].lock_amount: ', lockedAccounts.rows[lockedAccount].lock_amount);
-          console.log('lockedAccounts.rows[lockedAccount].payouts_performed: ', lockedAccounts.rows[lockedAccount].payouts_performed);
-          console.log('lockedAccounts.rows[lockedAccount].remaining_lock_amount: ', lockedAccounts.rows[lockedAccount].remaining_lock_amount);
+          //console.log('Count: ', lockedAccount)
+          //console.log('lockedAccounts.rows[lockedAccount].owner_account: ', lockedAccounts.rows[lockedAccount].owner_account);
+          //console.log('lockedAccounts.rows[lockedAccount].lock_amount: ', lockedAccounts.rows[lockedAccount].lock_amount);
+          //console.log('lockedAccounts.rows[lockedAccount].payouts_performed: ', lockedAccounts.rows[lockedAccount].payouts_performed);
+          //console.log('lockedAccounts.rows[lockedAccount].remaining_lock_amount: ', lockedAccounts.rows[lockedAccount].remaining_lock_amount);
           break;
         }
       }

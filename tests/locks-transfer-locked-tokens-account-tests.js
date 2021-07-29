@@ -41,16 +41,18 @@ before(async () => {
   transfer_tokens_pub_key_fee = result.fee;
 })
 
-describe(`************************** transfer-locked-tokens-account-tests.js ************************** \n    A. Create accounts for tests`, () => {
+describe(`************************** locks-transfer-locked-tokens-account-tests.js ************************** \n    A. Create accounts for tests`, () => {
 
-  /*
-  it.skip(`Show keys`, async () => {
-    console.log('privateKey: ', privateKey)
-    console.log('publicKey: ', publicKey)
-    console.log('privateKey2: ', privateKey2)
-    console.log('publicKey2: ', publicKey2)
+  
+  it(`Show keys`, async () => {
+    //console.log('privateKey: ', privateKey)
+    //console.log('publicKey: ', publicKey)
+    //console.log('account: ', account)
+    //console.log('privateKey2: ', privateKey2)
+    //console.log('publicKey2: ', publicKey2)
+    //console.log('account2: ', account2)
   })
-  */
+  
 
   it(`(${testType}) Create fioSdk account: transferLockedTokens ${lockedFundsAmount}, canvote false, (20,40%) and (40,60%)`, async () => {
     if (testType == 'sdk') {
@@ -61,11 +63,11 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
           periods: [
             {
               duration: 3600,
-              percent: 40.0,
+              amount: lockedFundsAmount * 0.4,
             },
             {
               duration: 3640,
-              percent: 60.0,
+              amount: lockedFundsAmount * 0.6,
             }
           ],
           amount: lockedFundsAmount,
@@ -89,11 +91,11 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
             periods: [
               {
                 duration: 3600,
-                percent: 40.0,
+                amount: lockedFundsAmount * 0.4,
               },
               {
                 duration: 3640,
-                percent: 60.0,
+                amount: lockedFundsAmount * 0.6,
               }
             ],
             amount: lockedFundsAmount,
@@ -120,11 +122,11 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
           periods: [
             {
               duration: 3600,
-              percent: 30.0,
+              amount: lockedFundsAmount * 0.3,
             },
             {
               duration: 3640,
-              percent: 70.0,
+              amount: lockedFundsAmount * 0.7,
             }
           ],
           amount: lockedFundsAmount,
@@ -148,11 +150,11 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
             periods: [
               {
                 duration: 3600,
-                percent: 30.0,
+                amount: lockedFundsAmount * 0.3,
               },
               {
                 duration: 3640,
-                percent: 70.0,
+                amount: lockedFundsAmount * 0.7,
               }
             ],
             amount: lockedFundsAmount,
@@ -183,10 +185,11 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
         json: true,
         code: 'eosio', 
         scope: 'eosio',   
-        table: 'locktokens',   
+        table: 'locktokensv2',   
         lower_bound: account,     
         upper_bound: account,
-        key_type: 'i64',       
+        key_type: 'i64',
+        reverse: true,
         index_position: '2' 
       }
       result = await callFioApi("get_table_rows", json);
@@ -226,11 +229,12 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
         json: true,
         code: 'eosio', 
         scope: 'eosio',   
-        table: 'locktokens',   
+        table: 'locktokensv2',
         lower_bound: account2,     
         upper_bound: account2,
         key_type: 'i64',       
-        index_position: '2' 
+        reverse: true,
+        index_position: '2'
       }
       result = await callFioApi("get_table_rows", json);
       //console.log('Result: ', result);
@@ -279,11 +283,12 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
         json: true,
         code: 'eosio', 
         scope: 'eosio',   
-        table: 'locktokens',   
+        table: 'locktokensv2',
         lower_bound: account,     
         upper_bound: account,
         key_type: 'i64',       
-        index_position: '2' 
+        reverse: true,
+        index_position: '2'
       }
       result = await callFioApi("get_table_rows", json);
       //console.log('Result: ', result);
@@ -308,11 +313,12 @@ describe(`************************** transfer-locked-tokens-account-tests.js ***
         json: true,
         code: 'eosio', 
         scope: 'eosio',   
-        table: 'locktokens',   
+        table: 'locktokensv2',
         lower_bound: account2,     
         upper_bound: account2,
         key_type: 'i64',       
-        index_position: '2' 
+        reverse: true,
+        index_position: '2'
       }
       result = await callFioApi("get_table_rows", json);
       //console.log('Result: ', result);
