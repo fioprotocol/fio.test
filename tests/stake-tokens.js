@@ -956,8 +956,8 @@ describe('B. Test stakefio Bundled transactions', () => {
   });
 });
 
-describe('C. Test unstakefio Bundled transactions', () => {
-  let bp1, bp2, bp3, user1, user2, proxy1, bundleCount1, bundleCount2, locksdk, accountnm, keys;
+describe.only('C. Test unstakefio Bundled transactions', () => {
+  let bp1, bp2, bp3, user1, user2, user3, proxy1, bundleCount1, accountnm, keys;
   const fundsAmount = 1000000000000
 
   before(async () => {
@@ -967,6 +967,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
     bp3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
 
     user1 = await newUser(faucet);
+    user3 = await newUser(faucet);
 
     keys = await createKeypair();
     // console.log("priv key ", keys.privateKey);
@@ -975,34 +976,13 @@ describe('C. Test unstakefio Bundled transactions', () => {
 
     const transfer = await faucet.genericAction('transferTokens', {
       payeeFioPublicKey: keys.publicKey,
-      // amount: 7075065123456789,
       amount: fundsAmount,
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     });
     expect(transfer.status).to.equal('OK');
 
-    // const result1 = await userA1.sdk.genericAction('pushTransaction', {
-    //   action: 'addlocked',
-    //   account: 'eosio',
-    //   data: {
-    //     owner : accountnm,
-    //     amount: 7075065123456789,
-    //     locktype: 1
-    //   }
-    // })
-    // expect(result1.status).to.equal('OK')
-
     proxy1 = await newUser(faucet);
-    //now transfer 1k fio from the faucet to this account
-    // const result = await faucet.genericAction('transferTokens', {
-    //   payeeFioPublicKey: user1.publicKey,
-    //   amount: 1000000000000,
-    //   maxFee: config.api.transfer_tokens_pub_key.fee,
-    //   technologyProviderId: ''
-    // });
-    // expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected');
-
     // locksdk = await existingUser('ni1eyydbdpht', '5Ke8oZdtefgVEC6GDUeo7FW9xC7WgdxC9Fi92b3YmTrPynWb4Rb', 'FIO6ydLCnUfsEMpbp35kF8oaUbHvcmLEyswMUF75C4FQAm78DUhAi', 'dapixdev', 'stake@dapixdev');
     user2 = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
   });
@@ -1153,6 +1133,12 @@ describe('C. Test unstakefio Bundled transactions', () => {
     expect(bundles).to.equal(0);
   });
 
+  it(`get locks for user1`, async () => {
+    let locks = await user1.sdk.genericAction('getLocks', {fio_public_key: user1.publicKey});
+    console.log(locks)
+
+  });
+
   it(`unstake FIO with no bundles remaining, expect fee_collected > 0`, async () => {
     let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
     stakeAmt = 20000000000;
@@ -1194,9 +1180,142 @@ describe('C. Test unstakefio Bundled transactions', () => {
     }
   });
 
+  // it.skip(`stake 10000000000 of user3's FIO balance`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 50000000000;
+  //   feeAmt = 3000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //   let bal = await user3.sdk.genericAction('getFioBalance', { });
+  //   expect(bal.staked).to.equal(0);
+  //
+  //   const result = await user3.sdk.genericAction('pushTransaction', {
+  //     action: 'stakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: user3.address,
+  //       amount: stakeAmt,
+  //       actor: user3.address,
+  //       max_fee: feeAmt,
+  //       tpid: proxy1.address
+  //     }
+  //   });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   let newBal = await user3.sdk.genericAction('getFioBalance', { });
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   expect(newBal.staked - bal.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
+  //   expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
+  //   expect(newCombinedTokenPool - combinedTokenPool).to.equal(stakeAmt);
+  //   expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt);
+  //
+  //   let bundles = await getBundleCount(user3.sdk);
+  //   expect(bundles).to.equal(99);
+  // });
 
-  //TODO: Test unstaking with staked balance = 0
+  it(`try to unstake with 0 staked balance, expect error`, async () => {
+    let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+    stakeAmt = 20000000000;
+    feeAmt = 3000000000;
+    stakedTokenPool = await getStakedTokenPool();
+    combinedTokenPool = await getCombinedTokenPool();
+    globalSrpCount = await getGlobalSrpCount();
+    let bal = await user3.sdk.genericAction('getFioBalance', { });
+    expect(bal.staked).to.be.greaterThanOrEqual(0);
 
+    try {
+      const result = await user3.sdk.genericAction('pushTransaction', {
+        action: 'unstakefio',
+        account: 'fio.staking',
+        data: {
+          fio_address: '',
+          amount: stakeAmt,
+          actor: user3.account,
+          max_fee: feeAmt,
+          tpid: proxy1.address
+        }
+      });
+    } catch (err) {
+      newStakedTokenPool = await getStakedTokenPool();
+      newCombinedTokenPool = await getCombinedTokenPool();
+      newGlobalSrpCount = await getGlobalSrpCount();
+      let newBal = await user3.sdk.genericAction('getFioBalance', {});
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('code', 'message', 'error');
+      expect(err.json.error.details[0].message).to.contain('incacctstake, actor has no accountstake record');
+      expect(newStakedTokenPool).to.equal(stakedTokenPool);
+      expect(newCombinedTokenPool).to.equal(combinedTokenPool);
+      expect(newGlobalSrpCount).to.equal(globalSrpCount);
+      expect(newBal.staked).to.equal(bal.staked);
+      expect(await getBundleCount(user3.sdk)).to.equal(100);
+    }
+  });
+
+  // //TODO: Test unstaking with staked balance = 0 and also available balance also = 0
+  // it.skip(`try to unstake with 0 staked balance and 0 available balance, expect error`, async () => {
+  //
+  // });
+
+  //TODO: Repeat both of the above with user1 (no bundles)
+  it(`try to unstake with 0 bundles and 0 staked balance, expect error`, async () => {
+    let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+    stakeAmt = 20000000000;
+    feeAmt = 3000000000;
+    stakedTokenPool = await getStakedTokenPool();
+    combinedTokenPool = await getCombinedTokenPool();
+    globalSrpCount = await getGlobalSrpCount();
+    let bal = await user1.sdk.genericAction('getFioBalance', { });
+    // expect(bal.staked).to.be.greaterThanOrEqual(0);
+    stakeAmt = bal.staked - feeAmt;
+    const unstake = await user1.sdk.genericAction('pushTransaction', {
+      action: 'unstakefio',
+      account: 'fio.staking',
+      data: {
+        fio_address: user1.address,
+        amount: stakeAmt,
+        actor: user1.account,
+        max_fee: feeAmt,
+        tpid: proxy1.address
+      }
+    });
+    expect(unstake.status).to.equal('OK');    //TODO: assertion failure with message: unstakefio,  internal error decrementing payouts.
+
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'unstakefio',
+        account: 'fio.staking',
+        data: {
+          fio_address: user1.address,
+          amount: stakeAmt,
+          actor: user1.account,
+          max_fee: feeAmt,
+          tpid: proxy1.address
+        }
+      });
+    } catch (err) {
+      newStakedTokenPool = await getStakedTokenPool();
+      newCombinedTokenPool = await getCombinedTokenPool();
+      newGlobalSrpCount = await getGlobalSrpCount();
+      let newBal = await user3.sdk.genericAction('getFioBalance', {});
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('code', 'message', 'error');
+      expect(err.json.error.details[0].message).to.contain('incacctstake, actor has no accountstake record');
+      expect(newStakedTokenPool).to.equal(stakedTokenPool);
+      expect(newCombinedTokenPool).to.equal(combinedTokenPool);
+      expect(newGlobalSrpCount).to.equal(globalSrpCount);
+      expect(newBal.staked).to.equal(bal.staked);
+      expect(await getBundleCount(user3.sdk)).to.equal(100);
+    }
+  });
+
+  // it.skip(`try to unstake with 0 bundles, 0 staked balance and 0 available balance, expect error`, async () => {
+  //
+  // });
 });
 
 // auto-proxy tests taken from stake-regression.js
