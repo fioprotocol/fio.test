@@ -2252,7 +2252,7 @@ it(`Transfer 30 FIO to another account`, async () => {
 describe(`F. Test large numbers of lock periods`, () => {
 
   let lock1, lock2, totalAmount
-  const maxPeriods = 365
+  const maxPeriods = 50
   let periods = []
   const periodAmount = 10000000000  // 10 FIO
 
