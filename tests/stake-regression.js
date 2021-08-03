@@ -1094,7 +1094,7 @@ describe(`************************** stake-regression.js ***********************
   it(`getFioBalance for userA1`, async () => {
     try {
       const result = await userA1.sdk.genericAction('getFioBalance', {})
-      console.log(result)
+      //console.log(result)
       expect(result.balance).to.equal(prevBalance)
       expect(result.available).to.equal(prevAvailable)
       expect(result.staked).to.equal(prevStaked - unstake9)
@@ -1124,8 +1124,8 @@ describe(`************************** stake-regression.js ***********************
         index_position: '2'
       }
       result = await callFioApi("get_table_rows", json);
-      console.log('Result: ', result);
-      console.log('periods : ', result.rows[0].periods)
+      //console.log('Result: ', result);
+      //console.log('periods : ', result.rows[0].periods)
       expect(result.rows[0].lock_amount).to.equal(unstake1 + unstake2 + unstake3 + unstake4 + unstake5 + unstake6 + unstake7 + unstake8 + unstake9)
       expect(result.rows[0].remaining_lock_amount).to.equal(unstake1 + unstake2 + unstake3 + unstake4 + unstake5 + unstake6 + unstake7 + unstake8 + unstake9)
       expect(result.rows[0].payouts_performed).to.equal(0)
@@ -1164,7 +1164,7 @@ describe(`************************** stake-regression.js ***********************
     }
   })
 
-  it(`success , userA1 unstake ${unstake10 / 1000000000} tokens `, async () => {
+  it(`success , userA1 unstake ${unstake10 / 1000000000} tokens (BUG BD-2755)`, async () => {
     try {
       const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'unstakefio',
@@ -1185,12 +1185,12 @@ describe(`************************** stake-regression.js ***********************
     }
   })
 
-  it.skip(`getFioBalance for userA1`, async () => {
+  it(`getFioBalance for userA1`, async () => {
     try {
       const result = await userA1.sdk.genericAction('getFioBalance', {})
-      console.log(result)
+      //console.log(result)
       expect(result.balance).to.equal(prevBalance)
-      expect(result.available).to.equal(prevAvailable)
+      expect(result.available).to.equal(prevAvailable + unstake1 + unstake2)
       expect(result.staked).to.equal(prevStaked - unstake10)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake10 / prevStaked)))
       expect(result.roe).to.equal('1.00000000000000000')
@@ -1205,7 +1205,7 @@ describe(`************************** stake-regression.js ***********************
     }
   })
 
-  it.skip(`Call get_table_rows from locktokensv2 and confirm: lock_amount and remaining_lock_amount updated, 2nd staking lock period added correctly`, async () => {
+  it(`Call get_table_rows from locktokensv2 and confirm: lock_amount and remaining_lock_amount updated, 2nd staking lock period added correctly`, async () => {
     try {
       const json = {
         json: true,
@@ -1218,29 +1218,26 @@ describe(`************************** stake-regression.js ***********************
         index_position: '2'
       }
       result = await callFioApi("get_table_rows", json);
-      console.log('Result: ', result);
-      console.log('periods : ', result.rows[0].periods)
-      expect(result.rows[0].lock_amount).to.equal(unstake1 + unstake2 + unstake3 + unstake4 + unstake5 + unstake6 + unstake7 + unstake8 + unstake9 + unstake10)
-      expect(result.rows[0].remaining_lock_amount).to.equal(unstake1 + unstake2 + unstake3 + unstake4 + unstake5 + unstake6 + unstake7 + unstake8 + unstake9 + unstake10)
+      //console.log('Result: ', result);
+      //console.log('periods : ', result.rows[0].periods)
+      expect(result.rows[0].lock_amount).to.equal(unstake3 + unstake4 + unstake5 + unstake6 + unstake7 + unstake8 + unstake9 + unstake10)  // Remove unstake1 and unstake2 since it was paid
+      expect(result.rows[0].remaining_lock_amount).to.equal(unstake3 + unstake4 + unstake5 + unstake6 + unstake7 + unstake8 + unstake9 + unstake10)
       expect(result.rows[0].payouts_performed).to.equal(0)
-      expect(result.rows[0].periods[0].amount).to.equal(unstake1 + unstake2)
-      expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(lockDuration)
-      expect(result.rows[0].periods[1].amount).to.equal(unstake3 + unstake4)
-      expect(result.rows[0].periods[1].duration).to.equal(durActual1);
-      expect(result.rows[0].periods[2].amount).to.equal(unstake5)
-      expect(result.rows[0].periods[2].duration).to.equal(durActual2);
-      expect(result.rows[0].periods[3].amount).to.equal(unstake6)
-      expect(result.rows[0].periods[3].duration).to.equal(durActual3);
-      expect(result.rows[0].periods[4].amount).to.equal(unstake7)
-      expect(result.rows[0].periods[4].duration).to.equal(durActual4);
-      expect(result.rows[0].periods[5].amount).to.equal(unstake8)
-      expect(result.rows[0].periods[5].duration).to.equal(durActual5);
-      expect(result.rows[0].periods[6].amount).to.equal(unstake9)
-      expect(result.rows[0].periods[6].duration).to.equal(durActual6);
-      expect(result.rows[0].periods[7].amount).to.equal(unstake10)
+      expect(result.rows[0].periods[0].amount).to.equal(unstake3 + unstake4)
+      expect(result.rows[0].periods[0].duration).to.equal(durActual1);
+      expect(result.rows[0].periods[1].amount).to.equal(unstake5)
+      expect(result.rows[0].periods[1].duration).to.equal(durActual2);
+      expect(result.rows[0].periods[2].amount).to.equal(unstake6)
+      expect(result.rows[0].periods[2].duration).to.equal(durActual3);
+      expect(result.rows[0].periods[3].amount).to.equal(unstake7)
+      expect(result.rows[0].periods[3].duration).to.equal(durActual4);
+      expect(result.rows[0].periods[4].amount).to.equal(unstake8)
+      expect(result.rows[0].periods[4].duration).to.equal(durActual5);
+      expect(result.rows[0].periods[5].amount).to.equal(unstake9)
+      expect(result.rows[0].periods[5].duration).to.equal(durActual6);
+      expect(result.rows[0].periods[6].amount).to.equal(unstake10)
       durEstimate = UNSTAKELOCKDURATIONSECONDS + (dayNumber * SECONDSPERDAY)
-      expect(result.rows[0].periods[7].duration).is.greaterThan(durEstimate - 3).and.lessThan(durEstimate + 3);
-      durActual7 = result.rows[0].periods[7].duration
+      expect(result.rows[0].periods[6].duration).is.greaterThan(durEstimate - 3).and.lessThan(durEstimate + 3);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
