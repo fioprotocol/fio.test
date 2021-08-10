@@ -307,7 +307,7 @@ describe(`B. Parameter tests`, () => {
     }
   })
 
-  it(`(${testType}) success test,  51 lock periods`, async () => {
+  it(`(${testType}) success test,  50 lock periods`, async () => {
     if (testType == 'sdk') {
       try {
         const result = await userA4.sdk.genericAction('transferLockedTokens', {
@@ -513,13 +513,9 @@ describe(`B. Parameter tests`, () => {
             {
               duration: 50,
               amount: 1000000000,
-            },
-            {
-              duration: 51,
-              amount: 1000000000,
             }
           ],
-          amount: 51000000000,
+          amount: 50000000000,
           maxFee: 400000000000,
           tpid: '',
 
@@ -736,13 +732,9 @@ describe(`B. Parameter tests`, () => {
               {
                 duration: 50,
                 amount: 1000000000,
-              },
-              {
-                duration: 51,
-                amount: 1000000000,
               }
             ],
-            amount: 51000000000,
+            amount: 50000000000,
             max_fee: 400000000000,
             tpid: '',
             actor: userA4.account,
@@ -778,7 +770,7 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
     balancebefore = result.balance;
   })
 
-  it(`(${testType}) SUCCESS transferLockedTokens ${fundsAmount}, canvote false, (20,40 seconds) and (40,60%)`, async () => {
+  it(`(${testType}) SUCCESS transferLockedTokens ${fundsAmount}, canvote true, (20,40 seconds) and (40,60%)`, async () => {
     if (testType == 'sdk') {
       try {
         const result = await userA1.sdk.genericAction('transferLockedTokens', {
@@ -1852,6 +1844,22 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
     }
   })
 
+  it(`Verify locks were set with get_locks`, async () => {
+    try {
+      const result = await userA1.sdk.genericAction('getLocks', { fioPublicKey: keys3.publicKey })
+
+      expect(result).to.have.all.keys('lock_amount', 'remaining_lock_amount',
+        'time_stamp', 'payouts_performed', 'can_vote', 'unlock_periods')
+
+      expect(result.lock_amount).to.equal(500000000000)
+      expect(result.can_vote).to.equal(1)
+      expect(result.unlock_periods[0].amount).to.equal(250000000000)
+      expect(result.unlock_periods[1].amount).to.equal(250000000000)
+    } catch (err) {
+      console.log('Error', err)
+    }
+  })
+
   it(`Transfer ${fundsAmount} FIO to locked account`, async () => {
     try {
       const result = await userA2.sdk.genericAction('transferTokens', {
@@ -2144,13 +2152,9 @@ describe(`E. Token unlocking tests`, () => {
             {
               duration: 50,
               amount: 1000000000,
-            },
-            {
-              duration: 51,
-              amount: 1000000000,
             }
           ],
-          amount: 51000000000,
+          amount: 50000000000,
           max_fee: config.maxFee,
           tpid: '',
           actor: userA1.account,
@@ -2333,6 +2337,56 @@ describe(`F. Test 50 (max number) lock periods`, () => {
     } catch (err) {
       //console.log('Error', err.json)
       expect(err.json.fields[0].error).to.equal('Invalid number of unlock periods')
+    }
+  })
+
+})
+
+describe(`F. Test can_vote=1`, () => {
+
+  let lock1, lock2, totalAmount
+  const maxPeriods = 50
+  let periods = []
+  const periodAmount = 10000000000  // 10 FIO
+
+  it(`Create users`, async () => {
+    keys1 = await createKeypair();
+    lock1 = new FIOSDK(keys1.privateKey, keys1.publicKey, config.BASE_URL, fetchJson);
+    //console.log('lock1.publickey: ', lock1.publicKey)
+
+    keys2 = await createKeypair();
+    lock2 = new FIOSDK(keys2.privateKey, keys2.publicKey, config.BASE_URL, fetchJson);
+    //console.log('lock2.publickey: ', lock2.publicKey)
+  })
+
+  it(`Create lock with can_vote=1`, async () => {
+    try {
+      const result = await userA1.sdk.genericAction('pushTransaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        data: {
+          payee_public_key: keys.publicKey,
+          can_vote: 1,
+          periods: [
+            {
+              duration: 20,
+              amount: 200000000000,
+            },
+            {
+              duration: 40,
+              amount: 300000000000,
+            }
+          ],
+          amount: fundsAmount,
+          max_fee: config.maxFee,
+          tpid: '',
+          actor: userA1.account,
+        }
+      })
+      expect(result.status).to.equal('OK')
+      expect(result).to.have.all.keys('status', 'fee_collected')
+    } catch (err) {
+      console.log(' Error', err)
     }
   })
 
