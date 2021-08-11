@@ -819,9 +819,9 @@ describe(`B. Create large grant verify unlocking with skipped periods using voti
     lockAccount = await createKeypair();
 
     lockAccount.account = await getAccountFromKey(lockAccount.publicKey);
-    console.log("lockAccount priv key: ", lockAccount.privateKey);
-    console.log("lockAccount pub key: ", lockAccount.publicKey);
-    console.log("lockAccount account: ", lockAccount.account);
+    //console.log("lockAccount priv key: ", lockAccount.privateKey);
+    //console.log("lockAccount pub key: ", lockAccount.publicKey);
+    //console.log("lockAccount account: ", lockAccount.account);
 
     lockAccount.sdk = new FIOSDK(lockAccount.privateKey, lockAccount.publicKey, config.BASE_URL, fetchJson);
   })
@@ -837,6 +837,17 @@ describe(`B. Create large grant verify unlocking with skipped periods using voti
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error', err.json);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`getFioBalance for genesis lock token holder. Expect available = lockAmount `, async () => {
+    try {
+      const result = await lockAccount.sdk.genericAction('getFioBalance', {})
+      //console.log(result)
+      expect(result.available).to.equal(lockAmount)
+    } catch (err) {
+      console.log('   Error: ', err)
       expect(err).to.equal(null);
     }
   })
@@ -859,14 +870,14 @@ describe(`B. Create large grant verify unlocking with skipped periods using voti
     }
   })
 
-  it(`getFioBalance for genesis lock token holder, available balance bug `, async () => {
+  it(`getFioBalance for genesis lock token holder. Expect available = 0 (100% locked) `, async () => {
     try {
       const result = await lockAccount.sdk.genericAction('getFioBalance', { })
       //console.log(result)
-      expect(result.available).to.equal(lockAmount)
+      expect(result.available).to.equal(0)
     } catch (err) {
-      //  console.log('   Error: ', err)
-      expect(err.json.fields[0].error).to.contain(config.error.insufficientBalance)
+      console.log('   Error: ', err)
+      expect(err).to.equal(null);
     }
   })
 
@@ -1045,9 +1056,9 @@ describe(`C. Create large grant verify unlocking using transfer`, () => {
     lockAccount = await createKeypair();
 
     lockAccount.account = await getAccountFromKey(lockAccount.publicKey);
-    console.log("lockAccount priv key: ", lockAccount.privateKey);
-    console.log("lockAccount pub key: ", lockAccount.publicKey);
-    console.log("lockAccount account: ", lockAccount.account);
+    //console.log("lockAccount priv key: ", lockAccount.privateKey);
+    //console.log("lockAccount pub key: ", lockAccount.publicKey);
+    //console.log("lockAccount account: ", lockAccount.account);
 
     lockAccount.sdk = new FIOSDK(lockAccount.privateKey, lockAccount.publicKey, config.BASE_URL, fetchJson);
   })
@@ -1085,10 +1096,11 @@ describe(`C. Create large grant verify unlocking using transfer`, () => {
     }
   })
 
-  it(`getFioBalance for genesis lock token holder, available balance bug `, async () => {
+  it(`getFioBalance for genesis lock token holder. Expect available = 0 (100% locked) `, async () => {
     const result = await lockAccount.sdk.genericAction('getFioBalance', { })
     prevFundsAmount = result.balance
-    expect(result.available).to.equal(lockAmount)
+    expect(result.balance).to.equal(lockAmount)
+    expect(result.available).to.equal(0)
   })
 
   it(`Failure test Transfer 700 FIO to userA1 FIO public key, insufficient balance tokens locked`, async () => {
@@ -1442,9 +1454,9 @@ describe(`D. Create large grant verify unlocking with skipped periods using tran
     lockAccount = await createKeypair();
 
     lockAccount.account = await getAccountFromKey(lockAccount.publicKey);
-    console.log("lockAccount priv key: ", lockAccount.privateKey);
-    console.log("lockAccount pub key: ", lockAccount.publicKey);
-    console.log("lockAccount account: ", lockAccount.account);
+    //console.log("lockAccount priv key: ", lockAccount.privateKey);
+    //console.log("lockAccount pub key: ", lockAccount.publicKey);
+    //console.log("lockAccount account: ", lockAccount.account);
 
     lockAccount.sdk = new FIOSDK(lockAccount.privateKey, lockAccount.publicKey, config.BASE_URL, fetchJson);
   })
@@ -1485,7 +1497,7 @@ describe(`D. Create large grant verify unlocking with skipped periods using tran
   it(`getFioBalance for genesis lock token holder, available balance 0 `, async () => {
     const result = await lockAccount.sdk.genericAction('getFioBalance', { })
     prevFundsAmount = result.balance
-    expect(result.available).to.equal(lockAmount)
+    expect(result.available).to.equal(0)
   })
 
   it(`Failure test Transfer 700 FIO to userA1 FIO public key, insufficient balance tokens locked`, async () => {
