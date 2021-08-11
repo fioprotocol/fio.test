@@ -53,6 +53,7 @@ describe('TEST SUITE', () => {
   //require('./tests/stake-mainnet-locked-tokens-with-staking.js'); //FIP-21 tests for genesis lock accounts performing staking
   //require('./tests/stake-rapid-unstake-with-mainnet-locks.js'); //FIP-21 tests for rapid fire unstaking in succession
   //require('./tests/stake-regression.js'); //FIP-21 tests for new account calling staking using auto proxy, and full pull through to spend after unstaking unlock
+  //require('./tests/stake-timing.js');
 
   /**
    * clio tests. Only works with local testing since it accesses the fio.devtools/bin directory
