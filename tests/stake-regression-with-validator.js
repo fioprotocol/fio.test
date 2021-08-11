@@ -487,7 +487,15 @@ describe(`************************** stake-regression.js ***********************
     let expectedSrps = prevSrps - (prevSrps * (unstake2 / prevStaked));
 
     userA1 = await validator.validateStakingBalances(userA1, expectedBalance, expectedAvailable, expectedStaked, expectedSrps);
-    const result = await validator.validateStakingLockPeriods(userA1, stakeAmount1, unstake1, unstake1, dayNumber, prevBalance, prevAvailable, prevStaked, prevSrps);
+    let expectedLockAmt = unstake1 + unstake2;
+    let expectedRemainingLockAmt = unstake1 + unstake2;
+    let expectedPayouts = 0;
+    let expectedDuration = lockDuration;
+    let periodAmounts = [unstake1, unstake2];
+
+    //TODO: some calls to validateStakingLockPeriods in this test suite may still have incorrect args,
+    // make these match the new method signature by setting expected test values (above) and passing them as args
+    const result = await validator.validateStakingLockPeriods(expectedLockAmt, expectedRemainingLockAmt, expectedPayouts, expectedDuration, periodAmounts);   //(userA1, stakeAmount1, unstake1, unstake1, dayNumber, prevBalance, prevAvailable, prevStaked, prevSrps);
     expect(result.validUnlockPeriods).to.equal(true);
     prevBalance = result.balance.balance;
     prevAvailable = result.balance.available;
