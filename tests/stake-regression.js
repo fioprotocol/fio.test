@@ -32,48 +32,48 @@ function wait(ms){
  *  int64_t UNSTAKELOCKDURATIONSECONDS = 70;
  *
  * Next, update both instances of SECONDSPERDAY in the unstakefio function to 10:
- * 
+ *
  *   //the days since launch.
  *   uint32_t insertday = (lockiter->timestamp + insertperiod) / SECONDSPERDAY;
- * 
+ *
  *     to become
- * 
+ *
  *   //the days since launch.
  *   uint32_t insertday = (lockiter->timestamp + insertperiod) / 10;
- * 
+ *
  *     and
- * 
+ *
  *   daysforperiod = (lockiter->timestamp + lockiter->periods[i].duration)/SECONDSPERDAY;
  *
  *     to become
  *
  *   daysforperiod = (lockiter->timestamp + lockiter->periods[i].duration)/10;
- * 
- * 
+ *
+ *
  *  rebuild the contracts and restart your local chain.
  *
  *  you are now ready to run these staking tests!!!
  */
 
 /********************* Calculations
- * 
- * For getFioBalance:  
- *   balance = 
- * 
+ *
+ * For getFioBalance:
+ *   balance =
+ *
  *   available = balance - staked - unstaked & locked
- * 
+ *
  *   staked = Total staked. Changes when staking/unstaking.
- * 
- *   srps = 
+ *
+ *   srps =
  *     When Staking: srps = prevSrps + stakeAmount/roe
  *     When Unstaking: srps = prevSrps - (prevSrps * (unstakeAmount/totalStaked))
- * 
+ *
  *   roe = Calculated (1 SRP = [ Tokens in Combined Token Pool / Global SRPs ] FIO)
  */
 
 
-const UNSTAKELOCKDURATIONSECONDS = 70;
-const SECONDSPERDAY = 10;
+const UNSTAKELOCKDURATIONSECONDS = config.UNSTAKELOCKDURATIONSECONDS;
+const SECONDSPERDAY = config.SECONDSPERDAY;
 
 describe(`************************** stake-regression.js ************************** \n    A. Stake tokens using auto proxy without voting first, \n Then do a full pull through unstaking including testing the locking period.`, () => {
 
@@ -98,7 +98,7 @@ describe(`************************** stake-regression.js ***********************
     unstake9 = 90000000000,          // 90 FIO
     unstake10 = 10000000000          // 10 FIO
 
-  it(`Create users`, async () => {
+  before(async () => {
     userA1 = await newUser(faucet);
     proxy1 = await newUser(faucet);
 
@@ -115,7 +115,7 @@ describe(`************************** stake-regression.js ***********************
 
   })
 
-   it('Confirm proxy1: not in the voters table', async () => {
+  it('Confirm proxy1: not in the voters table', async () => {
     let inVotersTable;
     try {
       const json = {
@@ -486,7 +486,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.rows[0].remaining_lock_amount).to.equal(unstake1 + unstake2)
       expect(result.rows[0].payouts_performed).to.equal(0)
       expect(result.rows[0].periods[0].amount).to.equal(unstake1 + unstake2)
-      expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(lockDuration) 
+      expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(lockDuration)
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -717,7 +717,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.rows[0].periods[0].amount).to.equal(unstake1 + unstake2)
       expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(lockDuration)
       expect(result.rows[0].periods[1].amount).to.equal(unstake3 + unstake4)
-      expect(result.rows[0].periods[1].duration).to.equal(durActual1); 
+      expect(result.rows[0].periods[1].duration).to.equal(durActual1);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -1150,7 +1150,7 @@ describe(`************************** stake-regression.js ***********************
       expect(err).to.equal(null);
     }
   })
-  
+
   it(`Waiting ${SECONDSPERDAY} seconds for unlock`, async () => {
     dayNumber++;
     console.log("            DAY #" + dayNumber + ": waiting " + SECONDSPERDAY + " seconds ")
@@ -1190,6 +1190,7 @@ describe(`************************** stake-regression.js ***********************
       const result = await userA1.sdk.genericAction('getFioBalance', {})
       //console.log(result)
       expect(result.balance).to.equal(prevBalance)
+      //expect(result.available).to.equal(prevAvailable)
       expect(result.available).to.equal(prevAvailable + unstake1 + unstake2)
       expect(result.staked).to.equal(prevStaked - unstake10)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake10 / prevStaked)))

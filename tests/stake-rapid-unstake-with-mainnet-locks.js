@@ -4,6 +4,8 @@ const {newUser, existingUser,callFioApi,fetchJson, generateFioDomain, getAccount
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
+const GENESIS_LOCK_PERIOD = 60;
+
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
@@ -291,7 +293,7 @@ describe(`************************** stake-rapid-unstake-with-mainnet-locks.js *
       result = await callFioApi("get_table_rows", json);
      // console.log('Result: ', result);
       //console.log('periods : ', result.rows[0].periods[0].duration)
-      expect(result.rows[0].periods[0].duration).to.equal(604800);
+      expect(result.rows[0].periods[0].duration).to.equal(GENESIS_LOCK_PERIOD);
      // expect(result.rows[0].periods[0].percent - 100).to.equal(0);
     } catch (err) {
       console.log('Error', err);
@@ -367,7 +369,7 @@ describe(`************************** stake-rapid-unstake-with-mainnet-locks.js *
       result = await callFioApi("get_table_rows", json);
       // console.log('Result: ', result);
       //console.log('periods : ', result.rows[0].periods[0].duration)
-      expect(result.rows[0].periods[0].duration).to.equal(604800);
+      expect(result.rows[0].periods[0].duration).to.equal(GENESIS_LOCK_PERIOD);
      // expect(result.rows[0].periods[0].percent - 50).to.equal(0);
      // expect(result.rows[0].periods[1].duration - 604800 ).greaterThan(4);
      // expect(result.rows[0].periods[1].percent - 50).to.equal(0);

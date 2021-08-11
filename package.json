@@ -5,6 +5,7 @@
     "dependencies": {
         "@fioprotocol/fiosdk": "github:fioprotocol/fiosdk_typescript#develop",
         "child_process": "",
+        "process": "^0.11.10",
         "request": "^2.34.0",
         "request-promise": "",
         "semver": "^7.1.1",

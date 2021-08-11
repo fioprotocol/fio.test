@@ -16,17 +16,21 @@ const config = {
 
     //use this prod key file after you get a copy of the file from Ed, then you can run the
     //fee-voting-fee-setting.js.
-   // PRODKEYFILE: DEVTOOLSDIR + '/scripts/launch/producers/keys_producers_devnet.csv',
+    // PRODKEYFILE: DEVTOOLSDIR + '/scripts/launch/producers/keys_producers_devnet.csv',
     PRODKEYFILE: DEVTOOLSDIR + '/scripts/launch/producers/keys.csv',
 
     FAUCET_PRIV_KEY: '5KF2B21xT5pE5G3LNA6LKJc6AP2pAd2EnfpAUrJH12SFV8NtvCD',
     FAUCET_PUB_KEY: 'FIO6zwqqzHQcqCc2MB4jpp1F73MXpisEQe2SDghQFSGQKoAPjvQ3H',
-    FAUCET_ACCOUNT: 'qhh25sqpktwh', 
+    FAUCET_ACCOUNT: 'qhh25sqpktwh',
 
     FUNDS: 3000000000000,
     BILLION: 1000000000,
     maxFee: 800000000000,
     defaultBundleCount: 100,
+
+    // lock duration periods for local testing
+    UNSTAKELOCKDURATIONSECONDS: 70,
+    SECONDSPERDAY: 10,
 
     error: {
         validationError: 'ValidationError',
@@ -331,7 +335,6 @@ const config = {
         XFERDOMAINRAM: 512,
         XFERADDRESSRAM: 512,
         CANCELFUNDSRAM: 512,
-        BUNDLEVOTERAM: 0
     },
 
     public_addresses: [
