@@ -3143,3 +3143,190 @@ describe(`K. regproxy results in faulty record in voters table if account alread
 
 })
 
+
+describe.only(`J. Test total_voted_fio when user changes votes`, () => {
+
+  let user1, total_voted_fio, totalVotesBP1, totalVotesBP2, totalVotesBP3
+
+  it(`Create users`, async () => {
+    user1 = await newUser(faucet);
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+  it(`Get initial total_voted_fio`, async () => {
+    total_voted_fio = await getTotalVotedFio();
+    console.log('total_voted_fio:', total_voted_fio / 1000000000)
+  })
+
+  it(`Get bp1@dapixdev total_votes`, async () => {
+    try {
+      totalVotesBP1 = await getProdVoteTotal('bp1@dapixdev');
+      console.log('bp1@dapixdev total_votes:', totalVotesBP1 / 1000000000)
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`Get bp2@dapixdev total_votes`, async () => {
+    try {
+      totalVotesBP2 = await getProdVoteTotal('bp2@dapixdev');
+      console.log('bp2@dapixdev total_votes:', totalVotesBP2 / 1000000000)
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`Get bp3@dapixdev total_votes`, async () => {
+    try {
+      totalVotesBP3 = await getProdVoteTotal('bp3@dapixdev');
+      //console.log('bp1@dapixdev total_votes:', totalVotesBP3)
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`Get user1.last_vote_weight`, async () => {
+    try {
+      user1.last_vote_weight = await getAccountVoteWeight(user1.account);
+      console.log('user1.last_vote_weight: ', user1.last_vote_weight / 1000000000)
+    } catch (err) {
+      console.log('Error: ', err.json)
+    }
+  })
+
+  it(`user1 votes for bp1 and bp2`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'voteproducer',
+        account: 'eosio',
+        data: {
+          "producers": [
+            'bp1@dapixdev',
+            'bp2@dapixdev'
+          ],
+          fio_address: user1.address,
+          actor: user1.account,
+          max_fee: config.maxFee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+  it(`Get user1.last_vote_weight`, async () => {
+    try {
+      user1.last_vote_weight = await getAccountVoteWeight(user1.account);
+      console.log('user1.last_vote_weight: ', user1.last_vote_weight / 1000000000)
+    } catch (err) {
+      console.log('Error: ', err.json)
+    }
+  })
+
+  it(`prev_total_voted_fio increased by 2 * user1 vote weight`, async () => {
+    try {
+      let prev_total_voted_fio = total_voted_fio;
+      console.log('prev_total_voted_fio:', prev_total_voted_fio / 1000000000)
+      total_voted_fio = await getTotalVotedFio();
+      console.log('total_voted_fio:', total_voted_fio / 1000000000)
+      expect(total_voted_fio).to.equal(prev_total_voted_fio + (2 * user1.last_vote_weight))
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`Expect: totalVotesBP1 increases by user1.last_vote_weight`, async () => {
+    try {
+      let prevVotes = totalVotesBP1
+      totalVotesBP1 = await getProdVoteTotal('bp1@dapixdev');
+      console.log('bp1@dapixdev total_votes:', totalVotesBP1 / 1000000000)
+      expect(totalVotesBP1).to.equal(prevVotes + user1.last_vote_weight)
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`Expect: totalVotesBP2 increases by user1.last_vote_weight`, async () => {
+    try {
+      let prevVotes = totalVotesBP2
+      totalVotesBP2 = await getProdVoteTotal('bp2@dapixdev');
+      console.log('bp2@dapixdev total_votes:', totalVotesBP2 / 1000000000)
+      expect(totalVotesBP2).to.equal(prevVotes + user1.last_vote_weight)
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal('null')
+    }
+  })
+ /*
+  it(`faucet votes for bp1 only`, async () => {
+    try {
+      const result = await faucet.genericAction('pushTransaction', {
+        action: 'voteproducer',
+        account: 'eosio',
+        data: {
+          "producers": [
+            'bp1@dapixdev'
+          ],
+          fio_address: faucet.address,
+          actor: faucet.account,
+          max_fee: config.maxFee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+  it(`prev_total_voted_fio decreased by faucet vote weight`, async () => {
+    try {
+      let prev_total_voted_fio = total_voted_fio;
+      total_voted_fio = await getTotalVotedFio();
+      //console.log('total_voted_fio:', total_voted_fio)
+      expect(total_voted_fio).to.equal(prev_total_voted_fio - faucet.last_vote_weight)
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`Expect: totalVotesBP1 to stay the same`, async () => {
+    try {
+      let prevVotes = totalVotesBP1
+      totalVotesBP1 = await getProdVoteTotal('bp1@dapixdev');
+      //console.log('bp1@dapixdev total_votes:', totalVotesBP1)
+      expect(totalVotesBP1).to.equal(prevVotes)
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`Expect: totalVotesBP2 decrease by faucet.last_vote_weight`, async () => {
+    try {
+      let prevVotes = totalVotesBP2
+      totalVotesBP2 = await getProdVoteTotal('bp2@dapixdev');
+      //console.log('bp2@dapixdev total_votes:', totalVotesBP2)
+      expect(totalVotesBP2).to.equal(prevVotes - faucet.last_vote_weight)
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal('null')
+    }
+  })
+*/
+})
