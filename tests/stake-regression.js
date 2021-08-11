@@ -32,48 +32,48 @@ function wait(ms){
  *  int64_t UNSTAKELOCKDURATIONSECONDS = 70;
  *
  * Next, update both instances of SECONDSPERDAY in the unstakefio function to 10:
- * 
+ *
  *   //the days since launch.
  *   uint32_t insertday = (lockiter->timestamp + insertperiod) / SECONDSPERDAY;
- * 
+ *
  *     to become
- * 
+ *
  *   //the days since launch.
  *   uint32_t insertday = (lockiter->timestamp + insertperiod) / 10;
- * 
+ *
  *     and
- * 
+ *
  *   daysforperiod = (lockiter->timestamp + lockiter->periods[i].duration)/SECONDSPERDAY;
  *
  *     to become
  *
  *   daysforperiod = (lockiter->timestamp + lockiter->periods[i].duration)/10;
- * 
- * 
+ *
+ *
  *  rebuild the contracts and restart your local chain.
  *
  *  you are now ready to run these staking tests!!!
  */
 
 /********************* Calculations
- * 
- * For getFioBalance:  
- *   balance = 
- * 
+ *
+ * For getFioBalance:
+ *   balance =
+ *
  *   available = balance - staked - unstaked & locked
- * 
+ *
  *   staked = Total staked. Changes when staking/unstaking.
- * 
- *   srps = 
+ *
+ *   srps =
  *     When Staking: srps = prevSrps + stakeAmount/roe
  *     When Unstaking: srps = prevSrps - (prevSrps * (unstakeAmount/totalStaked))
- * 
+ *
  *   roe = Calculated (1 SRP = [ Tokens in Combined Token Pool / Global SRPs ] FIO)
  */
 
 
-const UNSTAKELOCKDURATIONSECONDS = 70;
-const SECONDSPERDAY = 10;
+const UNSTAKELOCKDURATIONSECONDS = config.UNSTAKELOCKDURATIONSECONDS;
+const SECONDSPERDAY = config.SECONDSPERDAY;
 
 describe(`************************** stake-regression.js ************************** \n    A. Stake tokens using auto proxy without voting first, \n Then do a full pull through unstaking including testing the locking period.`, () => {
 
@@ -98,7 +98,7 @@ describe(`************************** stake-regression.js ***********************
     unstake9 = 90000000000,          // 90 FIO
     unstake10 = 10000000000          // 10 FIO
 
-  it(`Create users`, async () => {
+  before(async () => {
     userA1 = await newUser(faucet);
     proxy1 = await newUser(faucet);
 
@@ -111,9 +111,11 @@ describe(`************************** stake-regression.js ***********************
     })
     expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
 
+    console.log('userA1.publicKey: ', userA1.publicKey)
+
   })
 
-   it('Confirm proxy1: not in the voters table', async () => {
+  it('Confirm proxy1: not in the voters table', async () => {
     let inVotersTable;
     try {
       const json = {
@@ -222,13 +224,18 @@ describe(`************************** stake-regression.js ***********************
   })
 
   it(`getFioBalance for userA1`, async () => {
-    const result = await userA1.sdk.genericAction('getFioBalance', {})
-    //console.log(result)
-    prevBalance = result.balance
-    expect(result.available).to.equal(result.balance)
-    expect(result.staked).to.equal(0)
-    prevSrps = result.srps
-    expect(result.roe).to.equal(1)
+    try {
+      const result = await userA1.sdk.genericAction('getFioBalance', {})
+      //console.log(result)
+      prevBalance = result.balance
+      expect(result.available).to.equal(result.balance)
+      expect(result.staked).to.equal(0)
+      prevSrps = result.srps
+      expect(result.roe).to.equal('1.00000000000000000')
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
   })
 
   it(`Success userA1 stake ${stakeAmount1/1000000000} fio using tpid and auto proxy`, async () => {
@@ -262,7 +269,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevBalance - stakeAmount1)
       expect(result.staked).to.equal(stakeAmount1)
       expect(result.srps).to.equal(prevSrps + stakeAmount1 / result.roe)
-      expect(result.roe).to.equal(1)
+      expect(result.roe).to.equal('1.00000000000000000')
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -370,7 +377,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevBalance - stakeAmount1)
       expect(result.staked).to.equal(stakeAmount1 - unstake1)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake1 / prevStaked)))
-      expect(result.roe).to.equal(1)
+      expect(result.roe).to.equal('1.00000000000000000')
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -448,7 +455,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevBalance - stakeAmount1)
       expect(result.staked).to.equal(prevStaked - unstake2)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake2 / prevStaked)))
-      expect(result.roe).to.equal(1)
+      expect(result.roe).to.equal('1.00000000000000000')
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -479,7 +486,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.rows[0].remaining_lock_amount).to.equal(unstake1 + unstake2)
       expect(result.rows[0].payouts_performed).to.equal(0)
       expect(result.rows[0].periods[0].amount).to.equal(unstake1 + unstake2)
-      expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(lockDuration) 
+      expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(lockDuration)
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -569,7 +576,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable)
       expect(result.staked).to.equal(prevStaked - unstake3)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake3 / prevStaked)))
-      expect(result.roe).to.equal(1)
+      expect(result.roe).to.equal('1.00000000000000000')
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -641,7 +648,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable - stakeAmount2)
       expect(result.staked).to.equal(prevStaked + stakeAmount2)
       expect(result.srps).to.equal(prevSrps + stakeAmount2 / result.roe)
-      expect(result.roe).to.equal(1)
+      expect(result.roe).to.equal('1.00000000000000000')
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -677,7 +684,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable)
       expect(result.staked).to.equal(prevStaked - unstake4)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake4 / prevStaked)))
-      expect(result.roe).to.equal(1)
+      expect(result.roe).to.equal('1.00000000000000000')
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -710,7 +717,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.rows[0].periods[0].amount).to.equal(unstake1 + unstake2)
       expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(lockDuration)
       expect(result.rows[0].periods[1].amount).to.equal(unstake3 + unstake4)
-      expect(result.rows[0].periods[1].duration).to.equal(durActual1); 
+      expect(result.rows[0].periods[1].duration).to.equal(durActual1);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -754,7 +761,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable)
       expect(result.staked).to.equal(prevStaked - unstake5)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake5 / prevStaked)))
-      expect(result.roe).to.equal(1)
+      expect(result.roe).to.equal('1.00000000000000000')
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -836,7 +843,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable)
       expect(result.staked).to.equal(prevStaked - unstake6)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake6 / prevStaked)))
-      expect(result.roe).to.equal(1)
+      expect(result.roe).to.equal('1.00000000000000000')
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -920,7 +927,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable)
       expect(result.staked).to.equal(prevStaked - unstake7)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake7 / prevStaked)))
-      expect(result.roe).to.equal(1)
+      expect(result.roe).to.equal('1.00000000000000000')
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -1005,7 +1012,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable)
       expect(result.staked).to.equal(prevStaked - unstake8)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake8 / prevStaked)))
-      expect(result.roe).to.equal(1)
+      expect(result.roe).to.equal('1.00000000000000000')
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -1087,12 +1094,12 @@ describe(`************************** stake-regression.js ***********************
   it(`getFioBalance for userA1`, async () => {
     try {
       const result = await userA1.sdk.genericAction('getFioBalance', {})
-      console.log(result)
+      //console.log(result)
       expect(result.balance).to.equal(prevBalance)
       expect(result.available).to.equal(prevAvailable)
       expect(result.staked).to.equal(prevStaked - unstake9)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake9 / prevStaked)))
-      expect(result.roe).to.equal(1)
+      expect(result.roe).to.equal('1.00000000000000000')
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -1117,8 +1124,8 @@ describe(`************************** stake-regression.js ***********************
         index_position: '2'
       }
       result = await callFioApi("get_table_rows", json);
-      console.log('Result: ', result);
-      console.log('periods : ', result.rows[0].periods)
+      //console.log('Result: ', result);
+      //console.log('periods : ', result.rows[0].periods)
       expect(result.rows[0].lock_amount).to.equal(unstake1 + unstake2 + unstake3 + unstake4 + unstake5 + unstake6 + unstake7 + unstake8 + unstake9)
       expect(result.rows[0].remaining_lock_amount).to.equal(unstake1 + unstake2 + unstake3 + unstake4 + unstake5 + unstake6 + unstake7 + unstake8 + unstake9)
       expect(result.rows[0].payouts_performed).to.equal(0)
@@ -1143,7 +1150,7 @@ describe(`************************** stake-regression.js ***********************
       expect(err).to.equal(null);
     }
   })
-  
+
   it(`Waiting ${SECONDSPERDAY} seconds for unlock`, async () => {
     dayNumber++;
     console.log("            DAY #" + dayNumber + ": waiting " + SECONDSPERDAY + " seconds ")
@@ -1157,7 +1164,7 @@ describe(`************************** stake-regression.js ***********************
     }
   })
 
-  it(`success , userA1 unstake ${unstake10 / 1000000000} tokens `, async () => {
+  it(`success , userA1 unstake ${unstake10 / 1000000000} tokens (BUG BD-2755)`, async () => {
     try {
       const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'unstakefio',
@@ -1178,15 +1185,16 @@ describe(`************************** stake-regression.js ***********************
     }
   })
 
-  it.skip(`getFioBalance for userA1`, async () => {
+  it(`getFioBalance for userA1`, async () => {
     try {
       const result = await userA1.sdk.genericAction('getFioBalance', {})
-      console.log(result)
+      //console.log(result)
       expect(result.balance).to.equal(prevBalance)
-      expect(result.available).to.equal(prevAvailable)
+      //expect(result.available).to.equal(prevAvailable)
+      expect(result.available).to.equal(prevAvailable + unstake1 + unstake2)
       expect(result.staked).to.equal(prevStaked - unstake10)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake10 / prevStaked)))
-      expect(result.roe).to.equal(1)
+      expect(result.roe).to.equal('1.00000000000000000')
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -1198,7 +1206,7 @@ describe(`************************** stake-regression.js ***********************
     }
   })
 
-  it.skip(`Call get_table_rows from locktokensv2 and confirm: lock_amount and remaining_lock_amount updated, 2nd staking lock period added correctly`, async () => {
+  it(`Call get_table_rows from locktokensv2 and confirm: lock_amount and remaining_lock_amount updated, 2nd staking lock period added correctly`, async () => {
     try {
       const json = {
         json: true,
@@ -1211,29 +1219,26 @@ describe(`************************** stake-regression.js ***********************
         index_position: '2'
       }
       result = await callFioApi("get_table_rows", json);
-      console.log('Result: ', result);
-      console.log('periods : ', result.rows[0].periods)
-      expect(result.rows[0].lock_amount).to.equal(unstake1 + unstake2 + unstake3 + unstake4 + unstake5 + unstake6 + unstake7 + unstake8 + unstake9 + unstake10)
-      expect(result.rows[0].remaining_lock_amount).to.equal(unstake1 + unstake2 + unstake3 + unstake4 + unstake5 + unstake6 + unstake7 + unstake8 + unstake9 + unstake10)
+      //console.log('Result: ', result);
+      //console.log('periods : ', result.rows[0].periods)
+      expect(result.rows[0].lock_amount).to.equal(unstake3 + unstake4 + unstake5 + unstake6 + unstake7 + unstake8 + unstake9 + unstake10)  // Remove unstake1 and unstake2 since it was paid
+      expect(result.rows[0].remaining_lock_amount).to.equal(unstake3 + unstake4 + unstake5 + unstake6 + unstake7 + unstake8 + unstake9 + unstake10)
       expect(result.rows[0].payouts_performed).to.equal(0)
-      expect(result.rows[0].periods[0].amount).to.equal(unstake1 + unstake2)
-      expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(lockDuration)
-      expect(result.rows[0].periods[1].amount).to.equal(unstake3 + unstake4)
-      expect(result.rows[0].periods[1].duration).to.equal(durActual1);
-      expect(result.rows[0].periods[2].amount).to.equal(unstake5)
-      expect(result.rows[0].periods[2].duration).to.equal(durActual2);
-      expect(result.rows[0].periods[3].amount).to.equal(unstake6)
-      expect(result.rows[0].periods[3].duration).to.equal(durActual3);
-      expect(result.rows[0].periods[4].amount).to.equal(unstake7)
-      expect(result.rows[0].periods[4].duration).to.equal(durActual4);
-      expect(result.rows[0].periods[5].amount).to.equal(unstake8)
-      expect(result.rows[0].periods[5].duration).to.equal(durActual5);
-      expect(result.rows[0].periods[6].amount).to.equal(unstake9)
-      expect(result.rows[0].periods[6].duration).to.equal(durActual6);
-      expect(result.rows[0].periods[7].amount).to.equal(unstake10)
+      expect(result.rows[0].periods[0].amount).to.equal(unstake3 + unstake4)
+      expect(result.rows[0].periods[0].duration).to.equal(durActual1);
+      expect(result.rows[0].periods[1].amount).to.equal(unstake5)
+      expect(result.rows[0].periods[1].duration).to.equal(durActual2);
+      expect(result.rows[0].periods[2].amount).to.equal(unstake6)
+      expect(result.rows[0].periods[2].duration).to.equal(durActual3);
+      expect(result.rows[0].periods[3].amount).to.equal(unstake7)
+      expect(result.rows[0].periods[3].duration).to.equal(durActual4);
+      expect(result.rows[0].periods[4].amount).to.equal(unstake8)
+      expect(result.rows[0].periods[4].duration).to.equal(durActual5);
+      expect(result.rows[0].periods[5].amount).to.equal(unstake9)
+      expect(result.rows[0].periods[5].duration).to.equal(durActual6);
+      expect(result.rows[0].periods[6].amount).to.equal(unstake10)
       durEstimate = UNSTAKELOCKDURATIONSECONDS + (dayNumber * SECONDSPERDAY)
-      expect(result.rows[0].periods[7].duration).is.greaterThan(durEstimate - 3).and.lessThan(durEstimate + 3);
-      durActual7 = result.rows[0].periods[7].duration
+      expect(result.rows[0].periods[6].duration).is.greaterThan(durEstimate - 3).and.lessThan(durEstimate + 3);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
