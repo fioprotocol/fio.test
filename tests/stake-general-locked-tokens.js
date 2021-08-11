@@ -2171,3 +2171,112 @@ describe(`D. Insert stake period at BEGINNING of locktokensv2 general locks. No 
   })
 
 })
+
+describe(`E. Check ram quota for stakefio and unstakefio`, () => {
+
+  let ram
+  const transferAmount1 = 2000000000000  // 2000 FIO
+  const stakeAmount1 = 1000000000000  // 3000 FIO
+  const unstake1 = 500000000000     // 500 FIO
+
+  it(`Create users`, async () => {
+    userA1 = await newUser(faucet);
+
+    //now transfer 1k fio from the faucet to userA1 account
+    const result = await faucet.genericAction('transferTokens', {
+      payeeFioPublicKey: userA1.publicKey,
+      amount: transferAmount1,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    })
+    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  })
+
+  it(`Success, vote for producer`, async () => {
+    try {
+      const result = await userA1.sdk.genericAction('pushTransaction', {
+        action: 'voteproducer',
+        account: 'eosio',
+        data: {
+          producers: ["bp1@dapixdev"],
+          fio_address: userA1.address,
+          actor: userA1.account,
+          max_fee: config.maxFee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log("ERROR: ", err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`get account ram before `, async () => {
+    try {
+      const result = await userA1.sdk.genericAction('getAccount', { account: userA1.account })
+      ram = result.ram_quota
+      expect(result.ram_quota).to.be.a('number')
+    } catch (err) {
+      console.log('Error', err)
+    }
+  })
+
+  it(`Success userA1 stake ${stakeAmount1 / 1000000000} fio using tpid and auto proxy`, async () => {
+    try {
+      const result = await userA1.sdk.genericAction('pushTransaction', {
+        action: 'stakefio',
+        account: 'fio.staking',
+        data: {
+          fio_address: userA1.address,
+          amount: stakeAmount1,
+          actor: userA1.account,
+          max_fee: config.maxFee,
+          tpid: ''
+        }
+      })
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log("Error : ", err.json)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`get account ram after. Expect RAM After = RAM Before + 256  `, async () => {
+    try {
+      let rambefore = ram
+      const result = await userA1.sdk.genericAction('getAccount', { account: userA1.account })
+      ram = result.ram_quota
+      expect(result.ram_quota).to.equal(rambefore + 256)
+    } catch (err) {
+      console.log('Error', err)
+    }
+  })
+
+  it(`success , userA1 unstake ${unstake1 / 1000000000} tokens `, async () => {
+    const result = await userA1.sdk.genericAction('pushTransaction', {
+      action: 'unstakefio',
+      account: 'fio.staking',
+      data: {
+        fio_address: userA1.address,
+        amount: unstake1,
+        actor: userA1.account,
+        max_fee: config.maxFee,
+        tpid: ''
+      }
+    })
+    // console.log('Result: ', result)
+    expect(result.status).to.equal('OK')
+  })
+
+  it(`get account ram after. Expect RAM After = RAM Before + 256  `, async () => {
+    try {
+      let rambefore = ram
+      const result = await userA1.sdk.genericAction('getAccount', { account: userA1.account })
+      expect(result.ram_quota).to.equal(rambefore + 256)
+    } catch (err) {
+      console.log('Error', err)
+    }
+  })
+
+})
