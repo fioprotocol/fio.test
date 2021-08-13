@@ -1,7 +1,6 @@
 const { callFioApi, newUser } = require("../../utils.js");
 const config = require('../../config');
 
-
 class Staker {
   /**
    * A class of helpers to validate staking lock periods
@@ -92,7 +91,15 @@ class Staker {
     this.roe = prevRoe;
   }
 
-  async setPrevLockPeriods(prevOwnerAccount = '', prevLockAmount = 0, prevPayoutsPerformed = 0, prevCanVote = 0, prevPeriods = [], prevRemainingLockAmount = 0, prevTimestamp = 0) {
+  async printPrevBalances() {
+    console.log('prevBalance: ', this.prevBalance);
+    console.log('prevAvailable: ', this.prevAvailable);
+    console.log('prevStaked: ', this.prevStaked);
+    console.log('prevSrps: ', this.prevSrps);
+    console.log('prevRoe: ', this.roe);
+  }
+
+  async setPrevLockPeriods(prevOwnerAccount = '', prevLockAmount = 0, prevPayoutsPerformed = 0, prevCanVote = 0, prevPeriods = [], prevRemainingLockAmount = 0, prevTimestamp = 0, prevNumberOfPeriods = 0) {
     this.prevOwnerAccount = prevOwnerAccount;
     this.prevLockAmount = prevLockAmount;
     this.prevPayoutsPerformed = prevPayoutsPerformed;
@@ -100,8 +107,8 @@ class Staker {
     this.prevPeriods = prevPeriods;
     this.prevRemainingLockAmount = prevRemainingLockAmount;
     this.prevTimestamp = prevTimestamp;
+    this.prevNumberOfPeriods = prevNumberOfPeriods;  // Need to track this to do accurate unstake checking
   }
-
   
   async validateStakingBalances (user, expBalance, expAvailable, expStaked, expSrps) {
     /**
