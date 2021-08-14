@@ -35,6 +35,7 @@ class Staker {
     this.sdk = user.sdk
     this.domain = user.domain
     this.address = user.address
+    console.log('Staker pubkey: ', user.publicKey)
   }
 
   async stake(amount) {
@@ -88,15 +89,16 @@ class Staker {
     this.prevAvailable = prevAvailable;
     this.prevStaked = prevStaked;
     this.prevSrps = prevSrps;
-    this.roe = prevRoe;
+    this.prevRoe = prevRoe;
   }
 
   async printPrevBalances() {
+    console.log('PREVIOUS BALANCE');
     console.log('prevBalance: ', this.prevBalance);
     console.log('prevAvailable: ', this.prevAvailable);
     console.log('prevStaked: ', this.prevStaked);
     console.log('prevSrps: ', this.prevSrps);
-    console.log('prevRoe: ', this.roe);
+    console.log('prevRoe: ', this.prevRoe);
   }
 
   async setPrevLockPeriods(prevOwnerAccount = '', prevLockAmount = 0, prevPayoutsPerformed = 0, prevCanVote = 0, prevPeriods = [], prevRemainingLockAmount = 0, prevTimestamp = 0, prevNumberOfPeriods = 0) {

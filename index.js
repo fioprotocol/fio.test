@@ -3,9 +3,7 @@ const {expect} = require('chai')
 
 describe('TEST SUITE', () => {
 
-  //require('./tests/stake-regression-with-validator-generic.js');
-
-  require('./tests/ericstaketest.js');
+  require('./tests/stake-regression-with-validator-generic.js');
 
   /**
    * General Tests. Should work against all builds. Do not require additional configuration.
