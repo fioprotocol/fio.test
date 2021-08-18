@@ -35,7 +35,6 @@ class Staker {
     this.sdk = user.sdk
     this.domain = user.domain
     this.address = user.address
-    console.log('Staker pubkey: ', user.publicKey)
   }
 
   async stake(amount) {
@@ -100,6 +99,16 @@ class Staker {
     console.log('prevStaked: ', this.prevStaked);
     console.log('prevSrps: ', this.prevSrps);
     console.log('prevRoe: ', this.prevRoe);
+  }
+
+  async printCurrentBalances() {
+    const getBalance = await this.getUserBalance();
+    console.log('CURRENT BALANCE');
+    console.log(`   balance: ${getBalance.balance} (changed by ${(getBalance.balance - this.prevBalance) / 1000000000} FIO)`);
+    console.log(`   available: ${getBalance.available} (changed by ${(getBalance.available - this.prevAvailable) / 1000000000} FIO)`);
+    console.log(`   staked: ${getBalance.staked} (changed by ${(getBalance.staked - this.prevStaked) / 1000000000} FIO)`);
+    console.log(`   srps: ${getBalance.srps} (changed by ${(getBalance.srps - this.prevSrps) / 1000000000} srps)`);
+    console.log(`   roe: ${getBalance.roe} (changed by ${(getBalance.roe - this.prevRoe) / 1000000000} FIO)`);
   }
 
   async setPrevLockPeriods(prevOwnerAccount = '', prevLockAmount = 0, prevPayoutsPerformed = 0, prevCanVote = 0, prevPeriods = [], prevRemainingLockAmount = 0, prevTimestamp = 0, prevNumberOfPeriods = 0) {

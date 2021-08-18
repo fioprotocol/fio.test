@@ -3,12 +3,9 @@ const {expect} = require('chai')
 
 describe('TEST SUITE', () => {
 
-  require('./tests/stake-regression-with-validator-generic.js');
-
   /**
    * General Tests. Should work against all builds. Do not require additional configuration.
    */
-  /*
   require('./tests/addaddress.js'); // v1.0.x  Also includes FIP-13 tests.
   require('./tests/fees.js'); // v1.0.x
   require('./tests/fio-request.js'); // v1.0.x
@@ -30,15 +27,15 @@ describe('TEST SUITE', () => {
   require('./tests/addbundles.js');  // FIP-11.a
   require('./tests/tpid.js');
   require('./tests/testnet-smoketest.js'); // Testnet smoketest. By default runs against local build.
-  */
+  
   /** 
    * Locked token tests (FIP-6,21). Tests may require additional configuration.
    */
   //require('./tests/locks-transfer-locked-tokens-max-load.js');  // OPTIONAL PERFORMANCE TEST. Loads the chain with lots of general locks. Run this before other general locks tests when its desirable to test a loaded chain.
   //### These Lock tests do NOT require additional configuration.
-  //require('./tests/locks-transfer-locked-tokens-account-tests.js');  // FIP-6 tests of generic account functionality
-  //require('./tests/locks-transfer-locked-tokens-large-grants.js'); //FIP-21 tests for FIO genesis locks functionality.
-  //require('./tests/locks-transfer-locked-tokens.js');  //FIP-21 locking tests for general locks
+  require('./tests/locks-transfer-locked-tokens-account-tests.js');  // FIP-6 tests of generic account functionality
+  require('./tests/locks-transfer-locked-tokens-large-grants.js'); //FIP-21 tests for FIO genesis locks functionality.
+  require('./tests/locks-transfer-locked-tokens.js');  //FIP-21 locking tests for general locks
   //### These Lock tests require additional configuration.
   //require('./tests/locks-mainnet-locked-tokens-lock1hotfix.js'); //Release 2.4.1 Hotfix for Type 1 locks (was not calculating voting power correctly)
   //require('./tests/locks-mainnet-locked-tokens.js'); //FIP-21 tests for FIO genesis locks functionality.
@@ -51,7 +48,7 @@ describe('TEST SUITE', () => {
    * in addition to this we need to possibly develop more tests for checking voting power when accounts have staked
    */
   //###These Staking tests do NOT require additional configuration.
-  //require('./tests/stake-general-locked-tokens.js'); //FIP-21 tests for general lock accounts performing staking
+  require('./tests/stake-general-locked-tokens.js'); //FIP-21 tests for general lock accounts performing staking
   //###These Staking tests require additional configuration.
   //require('./tests/stake-mainnet-locked-tokens-with-staking.js'); //FIP-21 tests for genesis lock accounts performing staking
   //require('./tests/stake-rapid-unstake-with-mainnet-locks.js'); //FIP-21 tests for rapid fire unstaking in succession
