@@ -587,7 +587,7 @@ describe(`************************** stake-regression.js ***********************
               }
 
               const getBalance = await stakers[i].getUserBalance();
-              console.log(getBalance)
+              //console.log(getBalance)
               expect(getBalance.balance).to.equal(stakers[i].prevBalance)
               expect(getBalance.available).to.equal(expectedAvailable)
               expect(getBalance.staked).to.equal(stakers[i].prevStaked)
