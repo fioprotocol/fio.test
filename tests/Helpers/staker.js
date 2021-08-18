@@ -76,7 +76,7 @@ class Staker {
     }
   }
 
-  async setPrevBalances (prevBalance, prevAvailable, prevStaked, prevSrps, prevRoe) {
+  async setPrevBalances(prevBalance, prevAvailable, prevStaked, prevSrps, prevRoe, prevRoeDouble) {
     /**
      * Set validator instance balance vars to the values of args
      * @param {number} prevBalance a balance value taken from the results of getFioBalance
@@ -90,6 +90,7 @@ class Staker {
     this.prevStaked = prevStaked;
     this.prevSrps = prevSrps;
     this.prevRoe = prevRoe;
+    this.prevRoeDouble = prevRoeDouble;
   }
 
   async printPrevBalances() {
