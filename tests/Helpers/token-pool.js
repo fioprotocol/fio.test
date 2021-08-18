@@ -43,11 +43,18 @@ async function getStakingRewardsReservesMinted () {
   return result.rows[0].staking_rewards_reserves_minted;
 }
 
+async function getStakingRewardsActivated() {
+  const result = await getStakingTableRows();
+  return result.rows[0].staking_rewards_activated;
+}
+
 module.exports = {
+  getStakingTableRows,
   getStakedTokenPool,
   getCombinedTokenPool,
   getRewardsTokenPool,
   getGlobalSrpCount,
   getDailyStakingRewards,
-  getStakingRewardsReservesMinted
+  getStakingRewardsReservesMinted,
+  getStakingRewardsActivated
 }
