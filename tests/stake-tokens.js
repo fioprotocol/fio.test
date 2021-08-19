@@ -6,6 +6,9 @@ const config = require('../config.js');
 const {getStakedTokenPool, getCombinedTokenPool, getGlobalSrpCount} = require('./Helpers/token-pool.js');
 let faucet;
 
+const stakingFee = config.api.stakefio.fee;
+const unstakeFee = config.api.unstakefio.fee;
+
 function wait(ms){
   var start = new Date().getTime();
   var end = start;
@@ -23,7 +26,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 });
 
-describe(`************************** stake-tokens.js ************************** \n    A. Test staking and unstaking various amounts of tokens, including locked tokens.`, () => {
+describe(`************************** stake-tokens.js ************************** \n    A1. Verify staking preconditions`, () => {
   let bp1, bp2, bp3, userA, userB, userC, userP, prevFundsAmount, locksdk, keys, accountnm, newFioDomain1, newFioAddress1, newFioDomain2, newFioAddress2, total_bp_votes, total_voted_fio;
   const fundsAmount = 1000000000000;
 
@@ -112,7 +115,7 @@ describe(`************************** stake-tokens.js ************************** 
     expect(result.available).to.equal(fundsAmount);
   });
 
-  it(`transfer 100 tokens to account A`, async () => {
+  it(`transfer 100 tokens to userA`, async () => {
     let transferAmt = 100000000000;
     const result = await locksdk.genericAction('transferTokens', {
       payeeFioPublicKey: userA.publicKey,
@@ -127,7 +130,7 @@ describe(`************************** stake-tokens.js ************************** 
     expect(result.status).to.be.a('string').and.equal('OK');
   });
 
-  it(`transfer 100 tokens to account B`, async () => {
+  it(`transfer 100 tokens to userB`, async () => {
     let transferAmt = 100000000000;
     let userBal = await userB.sdk.genericAction('getFioBalance', {});
     let lockBal = await locksdk.genericAction('getFioBalance', {});
@@ -151,7 +154,7 @@ describe(`************************** stake-tokens.js ************************** 
     expect(lockBal.available - newLockBal.available).to.equal(transferAmt + config.api.transfer_tokens_pub_key.fee);
   });
 
-  it(`transfer 100 tokens to account C`, async () => {
+  it(`transfer 100 tokens to userC`, async () => {
     let transferAmt = 100000000000;
     let userBal = await userC.sdk.genericAction('getFioBalance', {});
     let lockBal = await locksdk.genericAction('getFioBalance', {});
@@ -175,7 +178,7 @@ describe(`************************** stake-tokens.js ************************** 
     expect(lockBal.available - newLockBal.available).to.equal(transferAmt + config.api.transfer_tokens_pub_key.fee);
   });
 
-  it(`Register domain for voting for account C `, async () => {
+  it(`Register domain for voting for userC `, async () => {
     newFioDomain1 = generateFioDomain(15);
     let bal = await userC.sdk.genericAction('getFioBalance', {});
     const result = await userC.sdk.genericAction('registerFioDomain', {
@@ -190,7 +193,7 @@ describe(`************************** stake-tokens.js ************************** 
     expect(bal.available - newBal.available).to.equal(config.api.register_fio_domain.fee);
   });
 
-  it(`Register address for voting for account C`, async () => {
+  it(`Register address for voting for userC`, async () => {
     newFioAddress1 = generateFioAddress(newFioDomain1,15)
     let bal = await userC.sdk.genericAction('getFioBalance', {});
     const result = await userC.sdk.genericAction('registerFioAddress', {
@@ -205,7 +208,7 @@ describe(`************************** stake-tokens.js ************************** 
     expect(bal.available - newBal.available).to.equal(config.api.register_fio_address.fee);
   });
 
-  it(`account C votes for bp1@dapixdev`, async () => {
+  it(`userC votes for bp1@dapixdev`, async () => {
     let totalBeforeVote = await getTotalVotedFio();
     const result = await userC.sdk.genericAction('pushTransaction', {
       action: 'voteproducer',
@@ -225,7 +228,7 @@ describe(`************************** stake-tokens.js ************************** 
     expect(totalAfterVote).to.be.greaterThan(totalBeforeVote);
   });
 
-  it(`transfer 100 tokens to account P`, async () => {
+  it(`transfer 100 tokens to userP`, async () => {
     let transferAmt = 100000000000;
     let userBal = await userP.sdk.genericAction('getFioBalance', {});
     let lockBal = await locksdk.genericAction('getFioBalance', {});
@@ -249,7 +252,7 @@ describe(`************************** stake-tokens.js ************************** 
     expect(lockBal.available - newLockBal.available).to.equal(transferAmt + config.api.transfer_tokens_pub_key.fee);
   });
 
-  it(`register a FIO address for account P`, async () => {
+  it(`register a FIO address for userP`, async () => {
     newFioDomain2 = generateFioDomain(15);
     await userP.sdk.genericAction('registerFioDomain', {
       fioDomain: newFioDomain2,
@@ -278,7 +281,7 @@ describe(`************************** stake-tokens.js ************************** 
     expect(result2.fee_collected).to.be.a('number').and.equal(config.api.set_fio_domain_public.fee);
   });
 
-  it(`register account P as proxy`, async () => {
+  it(`register userP as proxy`, async () => {
     let bal = await userP.sdk.genericAction('getFioBalance', {});
     const result = await userP.sdk.genericAction('pushTransaction', {
       action: 'regproxy',
@@ -296,7 +299,7 @@ describe(`************************** stake-tokens.js ************************** 
     expect(bal.available - newBal.available).to.equal(config.api.register_proxy.fee);
   });
 
-  it(`run add_pub_address for account A with account P's FIO address as TPID`, async () => {
+  it(`run add_pub_address for userA with userP's FIO address as TPID`, async () => {
     const result = await userA.sdk.genericAction('addPublicAddresses', {
       fioAddress: userA.address,
       publicAddresses: [{
@@ -334,7 +337,7 @@ describe(`************************** stake-tokens.js ************************** 
     expect(total_bp_votes).to.be.a('number').and.greaterThanOrEqual(0);
   });
 
-  it(`account B proxy votes to account P`, async () => {
+  it(`userB proxy votes to userP`, async () => {
     const result = await userB.sdk.genericAction('pushTransaction', {
       action: 'voteproxy',
       account: 'eosio',
@@ -349,7 +352,7 @@ describe(`************************** stake-tokens.js ************************** 
     expect(result.fee_collected).to.equal(0);
   });
 
-  it(`account B proxy votes to account P (empty fio_address, expect fee_collected to be ${config.api.proxy_vote.fee})`, async () => {
+  it(`userB proxy votes to userP (empty fio_address, expect fee_collected to be ${config.api.proxy_vote.fee})`, async () => {
     const result = await userB.sdk.genericAction('pushTransaction', {
       action: 'voteproxy',
       account: 'eosio',
@@ -373,16 +376,85 @@ describe(`************************** stake-tokens.js ************************** 
     total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
     expect(total_bp_votes).to.equal(prev_total_bp_votes)
   });
+});
 
-  it(`stake 50 tokens from account A`, async () => {
-    let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
-    stakeAmt = 50000000000;
-    stakedTokenPool = await getStakedTokenPool();
-    combinedTokenPool = await getCombinedTokenPool();
-    globalSrpCount = await getGlobalSrpCount();
+describe(`A2. Stake some FIO from userA`, () => {
+  let bp1, bp2, bp3, userA, userB, userC, userP, prevFundsAmount, locksdk, keys, accountnm, newFioDomain1, newFioAddress1, newFioDomain2, newFioAddress2, total_bp_votes, total_voted_fio;
+  const fundsAmount = 1000000000000;
+  const transferAmt = 100000000000;
+  const stakeAmt = 50000000000;
+  const stakingFee = 3000000000;
 
-    // proxy first so we can stake
-    const proxyvote = await userA.sdk.genericAction('pushTransaction', {
+  before(async () => {
+    // Create sdk objects for the orinigal localhost BPs
+    bp1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+    bp2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+    bp3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+    //create a user and give it 10k fio.
+    userA = await newUser(faucet);
+    userB = await newUser(faucet);
+    userC = await newUser(faucet);
+    userP = await newUser(faucet);
+    keys = await createKeypair();
+    // console.log("priv key ", keys.privateKey);
+    // console.log("pub key ", keys.publicKey);
+    accountnm =  await getAccountFromKey(keys.publicKey);
+    await faucet.genericAction('pushTransaction', {
+      action: 'trnsloctoks',
+      account: 'fio.token',
+      data: {
+        payee_public_key: keys.publicKey,
+        can_vote: 0,
+        periods: [
+          {
+            duration: 120,
+            amount: 5000000000000,
+          },
+          {
+            duration: 180,
+            amount: 4000000000000,
+          },
+          {
+            duration: 1204800,
+            amount: 1000000000000,
+          }
+        ],
+        amount: 10000000000000,
+        max_fee: 400000000000,
+        tpid: '',
+        actor: 'qhh25sqpktwh',
+      }
+    });
+    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+
+    // transfer some test FIO
+    await userA.sdk.genericAction('transferTokens', {
+      payeeFioPublicKey: keys.publicKey,
+      amount: fundsAmount,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      tpid: '',
+    });
+
+    await locksdk.genericAction('transferTokens', {
+      payeeFioPublicKey: userA.publicKey,
+      amount: transferAmt,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    });
+
+    // register our proxy
+    await userP.sdk.genericAction('pushTransaction', {
+      action: 'regproxy',
+      account: 'eosio',
+      data: {
+        fio_address: userP.address,
+        actor: userP.account,
+        max_fee: config.api.register_proxy.fee
+      }
+    });
+
+    // proxy first so userA can stake
+    await userA.sdk.genericAction('pushTransaction', {
       action: 'voteproxy',
       account: 'eosio',
       data: {
@@ -392,7 +464,14 @@ describe(`************************** stake-tokens.js ************************** 
         max_fee: config.api.proxy_vote.fee
       }
     });
-    expect(proxyvote.status).to.equal('OK');
+  });
+
+  it(`stake 50 tokens from userA`, async () => {
+    let stakedTokenPool, combinedTokenPool, globalSrpCount, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+    stakedTokenPool = await getStakedTokenPool();
+    combinedTokenPool = await getCombinedTokenPool();
+    globalSrpCount = await getGlobalSrpCount();
+
     let balA = await userA.sdk.genericAction('getFioBalance', { });
     expect(balA.staked).to.equal(0);
     const result = await userA.sdk.genericAction('pushTransaction', {
@@ -402,7 +481,7 @@ describe(`************************** stake-tokens.js ************************** 
         fio_address: userA.address,
         amount: stakeAmt,
         actor: userA.address,
-        max_fee: config.maxFee,
+        max_fee: stakingFee,
         tpid: userP.address
       }
     });
@@ -420,16 +499,14 @@ describe(`************************** stake-tokens.js ************************** 
     expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt);
   });
 
-  it(`stake 50 tokens from account A (no fio_address, expect fee_collected to be 3000000000)`, async () => {
-    let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
-    stakeAmt = 50000000000;
-    feeAmt = 3000000000;
+  it(`stake 50 tokens from userA (no fio_address, expect fee_collected to be 3000000000)`, async () => {
+    let stakedTokenPool, combinedTokenPool, globalSrpCount, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
     stakedTokenPool = await getStakedTokenPool();
     combinedTokenPool = await getCombinedTokenPool();
     globalSrpCount = await getGlobalSrpCount();
 
     let balA = await userA.sdk.genericAction('getFioBalance', { });
-    expect(balA.staked).to.equal(50000000000);
+    expect(balA.staked).to.equal(stakeAmt);
     const result = await userA.sdk.genericAction('pushTransaction', {
       action: 'stakefio',
       account: 'fio.staking',
@@ -437,7 +514,7 @@ describe(`************************** stake-tokens.js ************************** 
         fio_address: '',
         amount: stakeAmt,
         actor: userA.address,
-        max_fee: feeAmt,
+        max_fee: stakingFee,
         tpid: userP.address
       }
     });
@@ -447,15 +524,544 @@ describe(`************************** stake-tokens.js ************************** 
     newGlobalSrpCount = await getGlobalSrpCount();
     expect(result).to.have.all.keys('status', 'fee_collected');
     expect(result.status).to.equal('OK');
-    expect(result.fee_collected).to.equal(feeAmt);
+    expect(result.fee_collected).to.equal(stakingFee);
     expect(newBalA.staked - balA.staked).to.equal(stakeAmt);
     expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
     expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
     expect(newCombinedTokenPool - combinedTokenPool).to.be.greaterThanOrEqual(stakeAmt);
     expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt);
   });
+});
 
-  // Test 3
+describe(`A3. Verify staking rewards for block producer`, () => {
+  let bp1, bp2, bp3, userA, userB, userC, userP, prevFundsAmount, locksdk, keys, accountnm, newFioDomain1, newFioAddress1, newFioDomain2, newFioAddress2, total_bp_votes, total_voted_fio;
+  const fundsAmount = 1000000000000;
+  const transferAmt = 100000000000;
+  const stakeAmt = 50000000000;
+
+  before(async () => {
+    // Create sdk objects for the orinigal localhost BPs
+    bp1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+    bp2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+    bp3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+    //create a user and give it 10k fio.
+    userA = await newUser(faucet);
+    userB = await newUser(faucet);
+    userC = await newUser(faucet);
+    userP = await newUser(faucet);
+    keys = await createKeypair();
+    // console.log("priv key ", keys.privateKey);
+    // console.log("pub key ", keys.publicKey);
+    accountnm =  await getAccountFromKey(keys.publicKey);
+    await faucet.genericAction('pushTransaction', {
+      action: 'trnsloctoks',
+      account: 'fio.token',
+      data: {
+        payee_public_key: keys.publicKey,
+        can_vote: 0,
+        periods: [
+          {
+            duration: 120,
+            amount: 5000000000000,
+          },
+          {
+            duration: 180,
+            amount: 4000000000000,
+          },
+          {
+            duration: 1204800,
+            amount: 1000000000000,
+          }
+        ],
+        amount: 10000000000000,
+        max_fee: 400000000000,
+        tpid: '',
+        actor: 'qhh25sqpktwh',
+      }
+    });
+    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+
+    // transfer some test FIO
+    await userA.sdk.genericAction('transferTokens', {
+      payeeFioPublicKey: keys.publicKey,
+      amount: fundsAmount,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      tpid: '',
+    });
+
+    await locksdk.genericAction('transferTokens', {
+      payeeFioPublicKey: userA.publicKey,
+      amount: transferAmt,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    });
+
+    // register our proxy
+    await userP.sdk.genericAction('pushTransaction', {
+      action: 'regproxy',
+      account: 'eosio',
+      data: {
+        fio_address: userP.address,
+        actor: userP.account,
+        max_fee: config.api.register_proxy.fee
+      }
+    });
+
+    // proxy first so userA can stake
+    await userA.sdk.genericAction('pushTransaction', {
+      action: 'voteproxy',
+      account: 'eosio',
+      data: {
+        proxy: userP.address,
+        fio_address: userA.address,
+        actor: accountnm,
+        max_fee: config.api.proxy_vote.fee
+      }
+    });
+
+    // stake some FIO
+    await userA.sdk.genericAction('pushTransaction', {
+      action: 'stakefio',
+      account: 'fio.staking',
+      data: {
+        fio_address: '',
+        amount: stakeAmt,
+        actor: userA.address,
+        max_fee: stakingFee,
+        tpid: userP.address
+      }
+    });
+  });
+
+  // before(async () => {
+  //   // Create sdk objects for the orinigal localhost BPs
+  //   bp1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+  //   bp2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+  //   bp3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+  //   //create a user and give it 10k fio.
+  //   userA = await newUser(faucet);
+  //   userB = await newUser(faucet);
+  //   userC = await newUser(faucet);
+  //   userP = await newUser(faucet);
+  //   keys = await createKeypair();
+  //   // console.log("priv key ", keys.privateKey);
+  //   // console.log("pub key ", keys.publicKey);
+  //   accountnm =  await getAccountFromKey(keys.publicKey);
+  //   const locktokens = await faucet.genericAction('pushTransaction', {
+  //     action: 'trnsloctoks',
+  //     account: 'fio.token',
+  //     data: {
+  //       payee_public_key: keys.publicKey,
+  //       can_vote: 0,
+  //       periods: [
+  //         {
+  //           duration: 120,
+  //           amount: 5000000000000,
+  //         },
+  //         {
+  //           duration: 180,
+  //           amount: 4000000000000,
+  //         },
+  //         {
+  //           duration: 1204800,
+  //           amount: 1000000000000,
+  //         }
+  //       ],
+  //       amount: 10000000000000,
+  //       max_fee: 400000000000,
+  //       tpid: '',
+  //       actor: 'qhh25sqpktwh',
+  //     }
+  //   });
+  //   expect(locktokens.status).to.equal('OK');
+  //   locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+  // });
+
+  // it(`getFioBalance for general lock token holder, available balance 0 `, async () => {
+  //   const result = await locksdk.genericAction('getFioBalance', { });
+  //   prevFundsAmount = result.balance;
+  //   expect(result.available).to.equal(0);
+  // });
+  //
+  // it(`Failure test Transfer 700 FIO to userA FIO public key, insufficient balance tokens locked`, async () => {
+  //   try {
+  //     const result = await locksdk.genericAction('transferTokens', {
+  //       payeeFioPublicKey: userA.publicKey,
+  //       amount: 70000000000,
+  //       maxFee: config.api.transfer_tokens_pub_key.fee,
+  //       technologyProviderId: ''
+  //     })
+  //     expect(result.status).to.not.equal('OK')
+  //   } catch (err) {
+  //     expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+  //     expect(err.json).to.have.all.keys('type', 'message', 'fields');
+  //     expect(err.errorCode).to.equal(400);
+  //     expect(err.json.fields[0].error).to.contain('Funds locked');
+  //   }
+  // });
+  //
+  // it(`Transfer ${fundsAmount} FIO to locked account`, async () => {
+  //   const result = await userA.sdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: keys.publicKey,
+  //     amount: fundsAmount,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     tpid: '',
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.transfer_tokens_pub_key.fee);
+  // });
+  //
+  // it(`getFioBalance for general lock token holder, available balance 0 `, async () => {
+  //   const result = await locksdk.genericAction('getFioBalance', { });
+  //   prevFundsAmount = result.balance;
+  //   expect(result.available).to.equal(fundsAmount);
+  // });
+  //
+  // it(`transfer 100 tokens to userA`, async () => {
+  //   let transferAmt = 100000000000;
+  //   const result = await locksdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: userA.publicKey,
+  //     amount: transferAmt,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  //   expect(result.transaction_id).to.be.a('string');
+  //   expect(result.block_num).to.be.a('number');
+  //   expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
+  //   expect(result.status).to.be.a('string').and.equal('OK');
+  // });
+  //
+  // it(`transfer 100 tokens to userB`, async () => {
+  //   let transferAmt = 100000000000;
+  //   let userBal = await userB.sdk.genericAction('getFioBalance', {});
+  //   let lockBal = await locksdk.genericAction('getFioBalance', {});
+  //   const result = await locksdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: userB.publicKey,
+  //     amount: transferAmt,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  //   expect(result.transaction_id).to.be.a('string');
+  //   expect(result.block_num).to.be.a('number');
+  //   expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
+  //   expect(result.status).to.be.a('string').and.equal('OK');
+  //   let newUserBal = await userB.sdk.genericAction('getFioBalance', {});
+  //   let newLockBal = await locksdk.genericAction('getFioBalance', {});
+  //   expect(userBal.available).to.be.a('number');
+  //   expect(newUserBal.available).to.be.greaterThan(userBal.available);
+  //   expect(newUserBal.available - userBal.available).to.equal(transferAmt);
+  //   expect(newLockBal.available).to.be.lessThan(lockBal.available);
+  //   expect(lockBal.available - newLockBal.available).to.equal(transferAmt + config.api.transfer_tokens_pub_key.fee);
+  // });
+  //
+  // it(`transfer 100 tokens to userC`, async () => {
+  //   let transferAmt = 100000000000;
+  //   let userBal = await userC.sdk.genericAction('getFioBalance', {});
+  //   let lockBal = await locksdk.genericAction('getFioBalance', {});
+  //   const result = await locksdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: userC.publicKey,
+  //     amount: transferAmt,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  //   expect(result.transaction_id).to.be.a('string');
+  //   expect(result.block_num).to.be.a('number');
+  //   expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
+  //   expect(result.status).to.be.a('string').and.equal('OK');
+  //   let newUserBal = await userC.sdk.genericAction('getFioBalance', {});
+  //   let newLockBal = await locksdk.genericAction('getFioBalance', {});
+  //   expect(userBal.available).to.be.a('number');
+  //   expect(newUserBal.available).to.be.greaterThan(userBal.available);
+  //   expect(newUserBal.available - userBal.available).to.equal(transferAmt);
+  //   expect(newLockBal.available).to.be.lessThan(lockBal.available);
+  //   expect(lockBal.available - newLockBal.available).to.equal(transferAmt + config.api.transfer_tokens_pub_key.fee);
+  // });
+  //
+  // it(`Register domain for voting for userC `, async () => {
+  //   newFioDomain1 = generateFioDomain(15);
+  //   let bal = await userC.sdk.genericAction('getFioBalance', {});
+  //   const result = await userC.sdk.genericAction('registerFioDomain', {
+  //     fioDomain: newFioDomain1,
+  //     maxFee: config.api.register_fio_domain.fee,
+  //     tpid: '',
+  //   });
+  //   let newBal = await userC.sdk.genericAction('getFioBalance', {});
+  //   expect(result).to.have.all.keys('status', 'expiration', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_fio_domain.fee);
+  //   expect(bal.available - newBal.available).to.equal(config.api.register_fio_domain.fee);
+  // });
+  //
+  // it(`Register address for voting for userC`, async () => {
+  //   newFioAddress1 = generateFioAddress(newFioDomain1,15)
+  //   let bal = await userC.sdk.genericAction('getFioBalance', {});
+  //   const result = await userC.sdk.genericAction('registerFioAddress', {
+  //     fioAddress: newFioAddress1,
+  //     maxFee: config.api.register_fio_address.fee,
+  //     tpid: '',
+  //   });
+  //   let newBal = await userC.sdk.genericAction('getFioBalance', {});
+  //   expect(result).to.have.all.keys('status', 'expiration', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_fio_address.fee);
+  //   expect(bal.available - newBal.available).to.equal(config.api.register_fio_address.fee);
+  // });
+  //
+  // it(`userC votes for bp1@dapixdev`, async () => {
+  //   let totalBeforeVote = await getTotalVotedFio();
+  //   const result = await userC.sdk.genericAction('pushTransaction', {
+  //     action: 'voteproducer',
+  //     account: 'eosio',
+  //     data: {
+  //       producers: [bp1.address],
+  //       fio_address: newFioAddress1,
+  //       actor: accountnm,
+  //       max_fee: config.api.vote_producer.fee
+  //     }
+  //   });
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   // after vote
+  //   let totalAfterVote = await getTotalVotedFio()
+  //   expect(totalAfterVote).to.be.greaterThan(totalBeforeVote);
+  // });
+  //
+  // it(`transfer 100 tokens to userP`, async () => {
+  //   let transferAmt = 100000000000;
+  //   let userBal = await userP.sdk.genericAction('getFioBalance', {});
+  //   let lockBal = await locksdk.genericAction('getFioBalance', {});
+  //   const result = await locksdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: userP.publicKey,
+  //     amount: transferAmt,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  //   expect(result.transaction_id).to.be.a('string');
+  //   expect(result.block_num).to.be.a('number');
+  //   expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
+  //   expect(result.status).to.be.a('string').and.equal('OK');
+  //   let newUserBal = await userP.sdk.genericAction('getFioBalance', {});
+  //   let newLockBal = await locksdk.genericAction('getFioBalance', {});
+  //   expect(userBal.available).to.be.a('number');
+  //   expect(newUserBal.available).to.be.greaterThan(userBal.available);
+  //   expect(newUserBal.available - userBal.available).to.equal(transferAmt);
+  //   expect(newLockBal.available).to.be.lessThan(lockBal.available);
+  //   expect(lockBal.available - newLockBal.available).to.equal(transferAmt + config.api.transfer_tokens_pub_key.fee);
+  // });
+  //
+  // it(`register a FIO address for userP`, async () => {
+  //   newFioDomain2 = generateFioDomain(15);
+  //   await userP.sdk.genericAction('registerFioDomain', {
+  //     fioDomain: newFioDomain2,
+  //     maxFee: config.api.register_fio_domain.fee,
+  //     tpid: '',
+  //   });
+  //   newFioAddress2 = generateFioAddress(newFioDomain2,15)
+  //   const result = await userP.sdk.genericAction('registerFioAddress', {
+  //     fioAddress: newFioAddress2,
+  //     maxFee: config.api.register_fio_address.fee,
+  //     tpid: '',
+  //   });
+  //   expect(result).to.have.all.keys('status', 'expiration', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_fio_address.fee);
+  //
+  //   // make the domain public
+  //   const result2 = await userP.sdk.genericAction('setFioDomainVisibility', {
+  //     fioDomain: userP.domain,
+  //     isPublic: true,
+  //     maxFee: config.api.set_fio_domain_public.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result2).to.have.all.keys('status', 'fee_collected');
+  //   expect(result2.status).to.be.a('string').and.equal('OK');
+  //   expect(result2.fee_collected).to.be.a('number').and.equal(config.api.set_fio_domain_public.fee);
+  // });
+  //
+  // it(`register userP as proxy`, async () => {
+  //   let bal = await userP.sdk.genericAction('getFioBalance', {});
+  //   const result = await userP.sdk.genericAction('pushTransaction', {
+  //     action: 'regproxy',
+  //     account: 'eosio',
+  //     data: {
+  //       fio_address: userP.address,
+  //       actor: userP.account,
+  //       max_fee: config.api.register_proxy.fee
+  //     }
+  //   });
+  //   let newBal = await userP.sdk.genericAction('getFioBalance', {});
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_proxy.fee);
+  //   expect(bal.available - newBal.available).to.equal(config.api.register_proxy.fee);
+  // });
+  //
+  // it(`run add_pub_address for userA with userP's FIO address as TPID`, async () => {
+  //   const result = await userA.sdk.genericAction('addPublicAddresses', {
+  //     fioAddress: userA.address,
+  //     publicAddresses: [{
+  //       chain_code: 'ELA',
+  //       token_code: 'ELA',
+  //       public_address: 'EQH6o4xfaR5fbhV8cDbDGRxwJRJn3qeo41',
+  //     }],
+  //     technologyProviderId: userP.address,
+  //     maxFee: config.api.add_pub_address.fee
+  //   });
+  //
+  //   const result2 = await userA.sdk.genericAction('addPublicAddress', {
+  //     fioAddress: userA.address,
+  //     chainCode: 'BCH',
+  //     tokenCode: 'BCH',
+  //     publicAddress: 'bitcoincash:qzf8zha74adsfasdf0xnwlffdn0zuyaslx3c90q7n9g9',
+  //     technologyProviderId: userP.address,
+  //     maxFee: config.api.add_pub_address.fee,
+  //   });
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result2).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   expect(result2.status).to.equal('OK');
+  //   expect(result2.fee_collected).to.equal(0);
+  // });
+  //
+  // it(`Get total_voted_fio`, async () => {
+  //   total_voted_fio = await getTotalVotedFio();
+  //   expect(total_voted_fio).to.be.a('number').and.greaterThanOrEqual(0);
+  // });
+  //
+  // it(`Get bp1@dapixdev total_votes`, async () => {
+  //   total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
+  //   expect(total_bp_votes).to.be.a('number').and.greaterThanOrEqual(0);
+  // });
+  //
+  // it(`userB proxy votes to userP`, async () => {
+  //   const result = await userB.sdk.genericAction('pushTransaction', {
+  //     action: 'voteproxy',
+  //     account: 'eosio',
+  //     data: {
+  //       proxy: userP.address,
+  //       fio_address: userB.address,
+  //       actor: userB.account,
+  //       max_fee: config.api.proxy_vote.fee
+  //     }
+  //   });
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  // });
+  //
+  // it(`userB proxy votes to userP (empty fio_address, expect fee_collected to be ${config.api.proxy_vote.fee})`, async () => {
+  //   const result = await userB.sdk.genericAction('pushTransaction', {
+  //     action: 'voteproxy',
+  //     account: 'eosio',
+  //     data: {
+  //       proxy: userP.address,
+  //       fio_address: '',
+  //       actor: userB.account,
+  //       max_fee: config.api.proxy_vote.fee
+  //     }
+  //   });
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.proxy_vote.fee);
+  // });
+  //
+  // it(`Wait a few seconds.`, async () => {
+  //   wait(4000);
+  // });
+  //
+  // it(`bp1@dapixdev total_votes did not change (votes just shifted from direct vote to proxy vote via proxyA1)`, async () => {
+  //   let prev_total_bp_votes = total_bp_votes;
+  //   total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
+  //   expect(total_bp_votes).to.equal(prev_total_bp_votes)
+  // });
+  //
+  // //Test 2
+  // it(`stake 50 tokens from userA`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 50000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //
+  //   // proxy first so we can stake
+  //   const proxyvote = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'voteproxy',
+  //     account: 'eosio',
+  //     data: {
+  //       proxy: userP.address,
+  //       fio_address: userA.address,
+  //       actor: accountnm,
+  //       max_fee: config.api.proxy_vote.fee
+  //     }
+  //   });
+  //   expect(proxyvote.status).to.equal('OK');
+  //   let balA = await userA.sdk.genericAction('getFioBalance', { });
+  //   expect(balA.staked).to.equal(0);
+  //   const result = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'stakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: userA.address,
+  //       amount: stakeAmt,
+  //       actor: userA.address,
+  //       max_fee: config.maxFee,
+  //       tpid: userP.address
+  //     }
+  //   });
+  //   let newBalA = await userA.sdk.genericAction('getFioBalance', { });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   expect(newBalA.staked - balA.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
+  //   expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
+  //   expect(newCombinedTokenPool - combinedTokenPool).to.equal(stakeAmt);
+  //   expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt);
+  // });
+  //
+  // it(`stake 50 tokens from userA (no fio_address, expect fee_collected to be 3000000000)`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 50000000000;
+  //   feeAmt = 3000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //
+  //   let balA = await userA.sdk.genericAction('getFioBalance', { });
+  //   expect(balA.staked).to.equal(50000000000);
+  //   const result = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'stakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: '',
+  //       amount: stakeAmt,
+  //       actor: userA.address,
+  //       max_fee: feeAmt,
+  //       tpid: userP.address
+  //     }
+  //   });
+  //   let newBalA = await userA.sdk.genericAction('getFioBalance', { });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(feeAmt);
+  //   expect(newBalA.staked - balA.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
+  //   expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
+  //   expect(newCombinedTokenPool - combinedTokenPool).to.be.greaterThanOrEqual(stakeAmt);
+  //   expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt);
+  // });
+
   it(`register domain from any other account`, async () => {
     let newDomain = generateFioDomain(4);
     const result = await userA.sdk.genericAction('registerFioDomain', {
@@ -467,11 +1073,559 @@ describe(`************************** stake-tokens.js ************************** 
     expect(result.fee_collected).to.equal(config.api.register_fio_domain.fee);
   });
 
+  it(`wait for next BP claim`);
+
+  it(`run bpclaim from any other account, expect minted = 25000 - stake fees`);
+});
+
+describe(`A4. Unstake some staked FIO from userA, observe staking reward changes`, () => {
+  let bp1, bp2, bp3, userA, userB, userC, userP, prevFundsAmount, locksdk, keys, accountnm, newFioDomain1, newFioAddress1, newFioDomain2, newFioAddress2, total_bp_votes, total_voted_fio;
+  const fundsAmount = 1000000000000;
+  const transferAmt = 100000000000;
+  const stakeAmt = 50000000000;
+  const unstakeAmt = 25000000000;
+
+  before(async () => {
+    // Create sdk objects for the orinigal localhost BPs
+    bp1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+    bp2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+    bp3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+    //create a user and give it 10k fio.
+    userA = await newUser(faucet);
+    userB = await newUser(faucet);
+    userC = await newUser(faucet);
+    userP = await newUser(faucet);
+    keys = await createKeypair();
+    // console.log("priv key ", keys.privateKey);
+    // console.log("pub key ", keys.publicKey);
+    accountnm =  await getAccountFromKey(keys.publicKey);
+    await faucet.genericAction('pushTransaction', {
+      action: 'trnsloctoks',
+      account: 'fio.token',
+      data: {
+        payee_public_key: keys.publicKey,
+        can_vote: 0,
+        periods: [
+          {
+            duration: 120,
+            amount: 5000000000000,
+          },
+          {
+            duration: 180,
+            amount: 4000000000000,
+          },
+          {
+            duration: 1204800,
+            amount: 1000000000000,
+          }
+        ],
+        amount: 10000000000000,
+        max_fee: 400000000000,
+        tpid: '',
+        actor: 'qhh25sqpktwh',
+      }
+    });
+    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+
+    // transfer some test FIO
+    await userA.sdk.genericAction('transferTokens', {
+      payeeFioPublicKey: keys.publicKey,
+      amount: fundsAmount,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      tpid: '',
+    });
+
+    await locksdk.genericAction('transferTokens', {
+      payeeFioPublicKey: userA.publicKey,
+      amount: transferAmt,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    });
+
+    // register our proxy
+    await userP.sdk.genericAction('pushTransaction', {
+      action: 'regproxy',
+      account: 'eosio',
+      data: {
+        fio_address: userP.address,
+        actor: userP.account,
+        max_fee: config.api.register_proxy.fee
+      }
+    });
+
+    // proxy first so userA can stake
+    await userA.sdk.genericAction('pushTransaction', {
+      action: 'voteproxy',
+      account: 'eosio',
+      data: {
+        proxy: userP.address,
+        fio_address: userA.address,
+        actor: accountnm,
+        max_fee: config.api.proxy_vote.fee
+      }
+    });
+
+    // stake some FIO
+    await userA.sdk.genericAction('pushTransaction', {
+      action: 'stakefio',
+      account: 'fio.staking',
+      data: {
+        fio_address: '',
+        amount: stakeAmt,
+        actor: userA.address,
+        max_fee: stakingFee,
+        tpid: userP.address
+      }
+    });
+  });
+
+  // let bp1, bp2, bp3, userA, userB, userC, userP, prevFundsAmount, locksdk, keys, accountnm, newFioDomain1, newFioAddress1, newFioDomain2, newFioAddress2, total_bp_votes, total_voted_fio;
+  // const fundsAmount = 1000000000000;
+  //
+  // before(async () => {
+  //   // Create sdk objects for the orinigal localhost BPs
+  //   bp1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+  //   bp2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+  //   bp3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+  //   //create a user and give it 10k fio.
+  //   userA = await newUser(faucet);
+  //   userB = await newUser(faucet);
+  //   userC = await newUser(faucet);
+  //   userP = await newUser(faucet);
+  //   keys = await createKeypair();
+  //   // console.log("priv key ", keys.privateKey);
+  //   // console.log("pub key ", keys.publicKey);
+  //   accountnm =  await getAccountFromKey(keys.publicKey);
+  //   const locktokens = await faucet.genericAction('pushTransaction', {
+  //     action: 'trnsloctoks',
+  //     account: 'fio.token',
+  //     data: {
+  //       payee_public_key: keys.publicKey,
+  //       can_vote: 0,
+  //       periods: [
+  //         {
+  //           duration: 120,
+  //           amount: 5000000000000,
+  //         },
+  //         {
+  //           duration: 180,
+  //           amount: 4000000000000,
+  //         },
+  //         {
+  //           duration: 1204800,
+  //           amount: 1000000000000,
+  //         }
+  //       ],
+  //       amount: 10000000000000,
+  //       max_fee: 400000000000,
+  //       tpid: '',
+  //       actor: 'qhh25sqpktwh',
+  //     }
+  //   });
+  //   expect(locktokens.status).to.equal('OK');
+  //   locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+  // });
+
+  // it(`getFioBalance for general lock token holder, available balance 0 `, async () => {
+  //   const result = await locksdk.genericAction('getFioBalance', { });
+  //   prevFundsAmount = result.balance;
+  //   expect(result.available).to.equal(0);
+  // });
+  //
+  // it(`Failure test Transfer 700 FIO to userA FIO public key, insufficient balance tokens locked`, async () => {
+  //   try {
+  //     const result = await locksdk.genericAction('transferTokens', {
+  //       payeeFioPublicKey: userA.publicKey,
+  //       amount: 70000000000,
+  //       maxFee: config.api.transfer_tokens_pub_key.fee,
+  //       technologyProviderId: ''
+  //     })
+  //     expect(result.status).to.not.equal('OK')
+  //   } catch (err) {
+  //     expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+  //     expect(err.json).to.have.all.keys('type', 'message', 'fields');
+  //     expect(err.errorCode).to.equal(400);
+  //     expect(err.json.fields[0].error).to.contain('Funds locked');
+  //   }
+  // });
+  //
+  // it(`Transfer ${fundsAmount} FIO to locked account`, async () => {
+  //   const result = await userA.sdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: keys.publicKey,
+  //     amount: fundsAmount,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     tpid: '',
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.transfer_tokens_pub_key.fee);
+  // });
+  //
+  // it(`getFioBalance for general lock token holder, available balance 0 `, async () => {
+  //   const result = await locksdk.genericAction('getFioBalance', { });
+  //   prevFundsAmount = result.balance;
+  //   expect(result.available).to.equal(fundsAmount);
+  // });
+  //
+  // it(`transfer 100 tokens to userA`, async () => {
+  //   let transferAmt = 100000000000;
+  //   const result = await locksdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: userA.publicKey,
+  //     amount: transferAmt,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  //   expect(result.transaction_id).to.be.a('string');
+  //   expect(result.block_num).to.be.a('number');
+  //   expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
+  //   expect(result.status).to.be.a('string').and.equal('OK');
+  // });
+  //
+  // it(`transfer 100 tokens to userB`, async () => {
+  //   let transferAmt = 100000000000;
+  //   let userBal = await userB.sdk.genericAction('getFioBalance', {});
+  //   let lockBal = await locksdk.genericAction('getFioBalance', {});
+  //   const result = await locksdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: userB.publicKey,
+  //     amount: transferAmt,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  //   expect(result.transaction_id).to.be.a('string');
+  //   expect(result.block_num).to.be.a('number');
+  //   expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
+  //   expect(result.status).to.be.a('string').and.equal('OK');
+  //   let newUserBal = await userB.sdk.genericAction('getFioBalance', {});
+  //   let newLockBal = await locksdk.genericAction('getFioBalance', {});
+  //   expect(userBal.available).to.be.a('number');
+  //   expect(newUserBal.available).to.be.greaterThan(userBal.available);
+  //   expect(newUserBal.available - userBal.available).to.equal(transferAmt);
+  //   expect(newLockBal.available).to.be.lessThan(lockBal.available);
+  //   expect(lockBal.available - newLockBal.available).to.equal(transferAmt + config.api.transfer_tokens_pub_key.fee);
+  // });
+  //
+  // it(`transfer 100 tokens to userC`, async () => {
+  //   let transferAmt = 100000000000;
+  //   let userBal = await userC.sdk.genericAction('getFioBalance', {});
+  //   let lockBal = await locksdk.genericAction('getFioBalance', {});
+  //   const result = await locksdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: userC.publicKey,
+  //     amount: transferAmt,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  //   expect(result.transaction_id).to.be.a('string');
+  //   expect(result.block_num).to.be.a('number');
+  //   expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
+  //   expect(result.status).to.be.a('string').and.equal('OK');
+  //   let newUserBal = await userC.sdk.genericAction('getFioBalance', {});
+  //   let newLockBal = await locksdk.genericAction('getFioBalance', {});
+  //   expect(userBal.available).to.be.a('number');
+  //   expect(newUserBal.available).to.be.greaterThan(userBal.available);
+  //   expect(newUserBal.available - userBal.available).to.equal(transferAmt);
+  //   expect(newLockBal.available).to.be.lessThan(lockBal.available);
+  //   expect(lockBal.available - newLockBal.available).to.equal(transferAmt + config.api.transfer_tokens_pub_key.fee);
+  // });
+  //
+  // it(`Register domain for voting for userC `, async () => {
+  //   newFioDomain1 = generateFioDomain(15);
+  //   let bal = await userC.sdk.genericAction('getFioBalance', {});
+  //   const result = await userC.sdk.genericAction('registerFioDomain', {
+  //     fioDomain: newFioDomain1,
+  //     maxFee: config.api.register_fio_domain.fee,
+  //     tpid: '',
+  //   });
+  //   let newBal = await userC.sdk.genericAction('getFioBalance', {});
+  //   expect(result).to.have.all.keys('status', 'expiration', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_fio_domain.fee);
+  //   expect(bal.available - newBal.available).to.equal(config.api.register_fio_domain.fee);
+  // });
+  //
+  // it(`Register address for voting for userC`, async () => {
+  //   newFioAddress1 = generateFioAddress(newFioDomain1,15)
+  //   let bal = await userC.sdk.genericAction('getFioBalance', {});
+  //   const result = await userC.sdk.genericAction('registerFioAddress', {
+  //     fioAddress: newFioAddress1,
+  //     maxFee: config.api.register_fio_address.fee,
+  //     tpid: '',
+  //   });
+  //   let newBal = await userC.sdk.genericAction('getFioBalance', {});
+  //   expect(result).to.have.all.keys('status', 'expiration', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_fio_address.fee);
+  //   expect(bal.available - newBal.available).to.equal(config.api.register_fio_address.fee);
+  // });
+  //
+  // it(`userC votes for bp1@dapixdev`, async () => {
+  //   let totalBeforeVote = await getTotalVotedFio();
+  //   const result = await userC.sdk.genericAction('pushTransaction', {
+  //     action: 'voteproducer',
+  //     account: 'eosio',
+  //     data: {
+  //       producers: [bp1.address],
+  //       fio_address: newFioAddress1,
+  //       actor: accountnm,
+  //       max_fee: config.api.vote_producer.fee
+  //     }
+  //   });
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   // after vote
+  //   let totalAfterVote = await getTotalVotedFio()
+  //   expect(totalAfterVote).to.be.greaterThan(totalBeforeVote);
+  // });
+  //
+  // it(`transfer 100 tokens to userP`, async () => {
+  //   let transferAmt = 100000000000;
+  //   let userBal = await userP.sdk.genericAction('getFioBalance', {});
+  //   let lockBal = await locksdk.genericAction('getFioBalance', {});
+  //   const result = await locksdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: userP.publicKey,
+  //     amount: transferAmt,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  //   expect(result.transaction_id).to.be.a('string');
+  //   expect(result.block_num).to.be.a('number');
+  //   expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
+  //   expect(result.status).to.be.a('string').and.equal('OK');
+  //   let newUserBal = await userP.sdk.genericAction('getFioBalance', {});
+  //   let newLockBal = await locksdk.genericAction('getFioBalance', {});
+  //   expect(userBal.available).to.be.a('number');
+  //   expect(newUserBal.available).to.be.greaterThan(userBal.available);
+  //   expect(newUserBal.available - userBal.available).to.equal(transferAmt);
+  //   expect(newLockBal.available).to.be.lessThan(lockBal.available);
+  //   expect(lockBal.available - newLockBal.available).to.equal(transferAmt + config.api.transfer_tokens_pub_key.fee);
+  // });
+  //
+  // it(`register a FIO address for userP`, async () => {
+  //   newFioDomain2 = generateFioDomain(15);
+  //   await userP.sdk.genericAction('registerFioDomain', {
+  //     fioDomain: newFioDomain2,
+  //     maxFee: config.api.register_fio_domain.fee,
+  //     tpid: '',
+  //   });
+  //   newFioAddress2 = generateFioAddress(newFioDomain2,15)
+  //   const result = await userP.sdk.genericAction('registerFioAddress', {
+  //     fioAddress: newFioAddress2,
+  //     maxFee: config.api.register_fio_address.fee,
+  //     tpid: '',
+  //   });
+  //   expect(result).to.have.all.keys('status', 'expiration', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_fio_address.fee);
+  //
+  //   // make the domain public
+  //   const result2 = await userP.sdk.genericAction('setFioDomainVisibility', {
+  //     fioDomain: userP.domain,
+  //     isPublic: true,
+  //     maxFee: config.api.set_fio_domain_public.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result2).to.have.all.keys('status', 'fee_collected');
+  //   expect(result2.status).to.be.a('string').and.equal('OK');
+  //   expect(result2.fee_collected).to.be.a('number').and.equal(config.api.set_fio_domain_public.fee);
+  // });
+  //
+  // it(`register userP as proxy`, async () => {
+  //   let bal = await userP.sdk.genericAction('getFioBalance', {});
+  //   const result = await userP.sdk.genericAction('pushTransaction', {
+  //     action: 'regproxy',
+  //     account: 'eosio',
+  //     data: {
+  //       fio_address: userP.address,
+  //       actor: userP.account,
+  //       max_fee: config.api.register_proxy.fee
+  //     }
+  //   });
+  //   let newBal = await userP.sdk.genericAction('getFioBalance', {});
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_proxy.fee);
+  //   expect(bal.available - newBal.available).to.equal(config.api.register_proxy.fee);
+  // });
+  //
+  // it(`run add_pub_address for userA with userP's FIO address as TPID`, async () => {
+  //   const result = await userA.sdk.genericAction('addPublicAddresses', {
+  //     fioAddress: userA.address,
+  //     publicAddresses: [{
+  //       chain_code: 'ELA',
+  //       token_code: 'ELA',
+  //       public_address: 'EQH6o4xfaR5fbhV8cDbDGRxwJRJn3qeo41',
+  //     }],
+  //     technologyProviderId: userP.address,
+  //     maxFee: config.api.add_pub_address.fee
+  //   });
+  //
+  //   const result2 = await userA.sdk.genericAction('addPublicAddress', {
+  //     fioAddress: userA.address,
+  //     chainCode: 'BCH',
+  //     tokenCode: 'BCH',
+  //     publicAddress: 'bitcoincash:qzf8zha74adsfasdf0xnwlffdn0zuyaslx3c90q7n9g9',
+  //     technologyProviderId: userP.address,
+  //     maxFee: config.api.add_pub_address.fee,
+  //   });
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result2).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   expect(result2.status).to.equal('OK');
+  //   expect(result2.fee_collected).to.equal(0);
+  // });
+  //
+  // it(`Get total_voted_fio`, async () => {
+  //   total_voted_fio = await getTotalVotedFio();
+  //   expect(total_voted_fio).to.be.a('number').and.greaterThanOrEqual(0);
+  // });
+  //
+  // it(`Get bp1@dapixdev total_votes`, async () => {
+  //   total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
+  //   expect(total_bp_votes).to.be.a('number').and.greaterThanOrEqual(0);
+  // });
+  //
+  // it(`userB proxy votes to userP`, async () => {
+  //   const result = await userB.sdk.genericAction('pushTransaction', {
+  //     action: 'voteproxy',
+  //     account: 'eosio',
+  //     data: {
+  //       proxy: userP.address,
+  //       fio_address: userB.address,
+  //       actor: userB.account,
+  //       max_fee: config.api.proxy_vote.fee
+  //     }
+  //   });
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  // });
+  //
+  // it(`userB proxy votes to userP (empty fio_address, expect fee_collected to be ${config.api.proxy_vote.fee})`, async () => {
+  //   const result = await userB.sdk.genericAction('pushTransaction', {
+  //     action: 'voteproxy',
+  //     account: 'eosio',
+  //     data: {
+  //       proxy: userP.address,
+  //       fio_address: '',
+  //       actor: userB.account,
+  //       max_fee: config.api.proxy_vote.fee
+  //     }
+  //   });
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.proxy_vote.fee);
+  // });
+  //
+  // it(`Wait a few seconds.`, async () => {
+  //   wait(4000);
+  // });
+  //
+  // it(`bp1@dapixdev total_votes did not change (votes just shifted from direct vote to proxy vote via proxyA1)`, async () => {
+  //   let prev_total_bp_votes = total_bp_votes;
+  //   total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
+  //   expect(total_bp_votes).to.equal(prev_total_bp_votes)
+  // });
+  //
+  // //Test 2
+  // it(`stake 50 tokens from userA`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 50000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //
+  //   // proxy first so we can stake
+  //   const proxyvote = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'voteproxy',
+  //     account: 'eosio',
+  //     data: {
+  //       proxy: userP.address,
+  //       fio_address: userA.address,
+  //       actor: accountnm,
+  //       max_fee: config.api.proxy_vote.fee
+  //     }
+  //   });
+  //   expect(proxyvote.status).to.equal('OK');
+  //   let balA = await userA.sdk.genericAction('getFioBalance', { });
+  //   expect(balA.staked).to.equal(0);
+  //   const result = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'stakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: userA.address,
+  //       amount: stakeAmt,
+  //       actor: userA.address,
+  //       max_fee: config.maxFee,
+  //       tpid: userP.address
+  //     }
+  //   });
+  //   let newBalA = await userA.sdk.genericAction('getFioBalance', { });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   expect(newBalA.staked - balA.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
+  //   expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
+  //   expect(newCombinedTokenPool - combinedTokenPool).to.equal(stakeAmt);
+  //   expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt);
+  // });
+  //
+  // it(`stake 50 tokens from userA (no fio_address, expect fee_collected to be 3000000000)`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 50000000000;
+  //   feeAmt = 3000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //
+  //   let balA = await userA.sdk.genericAction('getFioBalance', { });
+  //   expect(balA.staked).to.equal(50000000000);
+  //   const result = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'stakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: '',
+  //       amount: stakeAmt,
+  //       actor: userA.address,
+  //       max_fee: feeAmt,
+  //       tpid: userP.address
+  //     }
+  //   });
+  //   let newBalA = await userA.sdk.genericAction('getFioBalance', { });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(feeAmt);
+  //   expect(newBalA.staked - balA.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
+  //   expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
+  //   expect(newCombinedTokenPool - combinedTokenPool).to.be.greaterThanOrEqual(stakeAmt);
+  //   expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt);
+  // });
+  //
+  // // Test 3
+  // it(`register domain from any other account`, async () => {
+  //   let newDomain = generateFioDomain(4);
+  //   const result = await userA.sdk.genericAction('registerFioDomain', {
+  //     fioDomain: newDomain,
+  //     maxFee: config.api.register_fio_domain.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_fio_domain.fee);
+  // });
+
   // test 4
-  it(`unstake 25 tokens (unstake_fio_tokens) from account A`, async () => {
-    let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
-    stakeAmt = 25000000000;
-    feeAmt = 3000000000;
+  it(`unstake 25 tokens (unstake_fio_tokens) from userA`, async () => {
+    let stakedTokenPool, combinedTokenPool, globalSrpCount, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
     stakedTokenPool = await getStakedTokenPool();
     combinedTokenPool = await getCombinedTokenPool();
     globalSrpCount = await getGlobalSrpCount();
@@ -481,9 +1635,9 @@ describe(`************************** stake-tokens.js ************************** 
       account: 'fio.staking',
       data: {
         fio_address: userA.address,
-        amount: stakeAmt,
+        amount: unstakeAmt,
         actor: userA.account,
-        max_fee: feeAmt,
+        max_fee: unstakeFee,
         tpid:''
       }
     });
@@ -493,17 +1647,15 @@ describe(`************************** stake-tokens.js ************************** 
     let newBal = await userA.sdk.genericAction('getFioBalance', {});
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(0);
-    expect(bal.staked - newBal.staked).to.equal(stakeAmt);
+    expect(bal.staked - newBal.staked).to.equal(unstakeAmt);
     expect(newStakedTokenPool).to.be.lessThan(stakedTokenPool);
-    expect(stakedTokenPool - newStakedTokenPool).to.equal(stakeAmt);
-    expect(combinedTokenPool - newCombinedTokenPool).to.equal(stakeAmt);
-    expect(globalSrpCount - newGlobalSrpCount).to.equal(stakeAmt);
+    expect(stakedTokenPool - newStakedTokenPool).to.equal(unstakeAmt);
+    expect(combinedTokenPool - newCombinedTokenPool).to.equal(unstakeAmt);
+    expect(globalSrpCount - newGlobalSrpCount).to.equal(unstakeAmt);
   });
 
-  it(`unstake 25 tokens from account A, no fio_address, fee_collected should be 3000000000`, async () => {
-    let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
-    stakeAmt = 25000000000;
-    feeAmt = 3000000000;
+  it(`unstake 25 tokens from userA, no fio_address, fee_collected should be 3000000000`, async () => {
+    let stakedTokenPool, combinedTokenPool, globalSrpCount, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
     stakedTokenPool = await getStakedTokenPool();
     combinedTokenPool = await getCombinedTokenPool();
     globalSrpCount = await getGlobalSrpCount();
@@ -513,9 +1665,9 @@ describe(`************************** stake-tokens.js ************************** 
       account: 'fio.staking',
       data: {
         fio_address: '',
-        amount: stakeAmt,
+        amount: unstakeAmt,
         actor: userA.account,
-        max_fee: feeAmt,
+        max_fee: unstakeFee,
         tpid:''
       }
     });
@@ -524,16 +1676,646 @@ describe(`************************** stake-tokens.js ************************** 
     newGlobalSrpCount = await getGlobalSrpCount();
     let newBal = await userA.sdk.genericAction('getFioBalance', {});
     expect(result.status).to.equal('OK');
-    expect(result.fee_collected).to.equal(feeAmt);
-    expect(bal.staked - newBal.staked).to.equal(stakeAmt);
+    expect(result.fee_collected).to.equal(unstakeFee);
+    expect(bal.staked - newBal.staked).to.equal(unstakeAmt);
     expect(newStakedTokenPool).to.be.lessThan(stakedTokenPool);
-    expect(stakedTokenPool - newStakedTokenPool).to.equal(stakeAmt);
-    expect(combinedTokenPool - newCombinedTokenPool).to.be.lessThan(stakeAmt);
-    expect(globalSrpCount - newGlobalSrpCount).to.equal(stakeAmt);
+    expect(stakedTokenPool - newStakedTokenPool).to.equal(unstakeAmt);
+    expect(combinedTokenPool - newCombinedTokenPool).to.be.lessThan(unstakeAmt);
+    expect(globalSrpCount - newGlobalSrpCount).to.equal(unstakeAmt);
+  });
+});
+
+describe(`A5. Stake some FIO from userB, observe staking reward changes`, () => {
+  let bp1, bp2, bp3, userA, userB, userC, userP, prevFundsAmount, locksdk, keys, accountnm, newFioDomain1, newFioAddress1, newFioDomain2, newFioAddress2, total_bp_votes, total_voted_fio;
+  const fundsAmount = 1000000000000;
+  const transferAmt = 100000000000;
+  const stakeAmt = 500000000000;
+  const stakingFee = 3000000000;
+
+  before(async () => {
+    // Create sdk objects for the orinigal localhost BPs
+    bp1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+    bp2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+    bp3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+    //create a user and give it 10k fio.
+    userA = await newUser(faucet);
+    userB = await newUser(faucet);
+    userC = await newUser(faucet);
+    userP = await newUser(faucet);
+    keys = await createKeypair();
+    // console.log("priv key ", keys.privateKey);
+    // console.log("pub key ", keys.publicKey);
+    accountnm =  await getAccountFromKey(keys.publicKey);
+    await faucet.genericAction('pushTransaction', {
+      action: 'trnsloctoks',
+      account: 'fio.token',
+      data: {
+        payee_public_key: keys.publicKey,
+        can_vote: 0,
+        periods: [
+          {
+            duration: 120,
+            amount: 5000000000000,
+          },
+          {
+            duration: 180,
+            amount: 4000000000000,
+          },
+          {
+            duration: 1204800,
+            amount: 1000000000000,
+          }
+        ],
+        amount: 10000000000000,
+        max_fee: 400000000000,
+        tpid: '',
+        actor: 'qhh25sqpktwh',
+      }
+    });
+    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+
+    // transfer some test FIO
+    await userA.sdk.genericAction('transferTokens', {
+      payeeFioPublicKey: keys.publicKey,
+      amount: fundsAmount,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      tpid: '',
+    });
+
+    await locksdk.genericAction('transferTokens', {
+      payeeFioPublicKey: userA.publicKey,
+      amount: transferAmt,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    });
+
+    // register our proxy
+    await userP.sdk.genericAction('pushTransaction', {
+      action: 'regproxy',
+      account: 'eosio',
+      data: {
+        fio_address: userP.address,
+        actor: userP.account,
+        max_fee: config.api.register_proxy.fee
+      }
+    });
+
+    // proxy first so userA can stake
+    await userA.sdk.genericAction('pushTransaction', {
+      action: 'voteproxy',
+      account: 'eosio',
+      data: {
+        proxy: userP.address,
+        fio_address: userA.address,
+        actor: accountnm,
+        max_fee: config.api.proxy_vote.fee
+      }
+    });
+
+    // stake some FIO for our first test acct
+    await userA.sdk.genericAction('pushTransaction', {
+      action: 'stakefio',
+      account: 'fio.staking',
+      data: {
+        fio_address: '',
+        amount: stakeAmt,
+        actor: userA.address,
+        max_fee: stakingFee,
+        tpid: userP.address
+      }
+    });
+
+    // transfer some FIO to the other test account
+    await locksdk.genericAction('transferTokens', {
+      payeeFioPublicKey: userB.publicKey,
+      amount: transferAmt,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    });
+
+    // vote with the other test account so it can stake
+    await userB.sdk.genericAction('pushTransaction', {
+      action: 'voteproxy',
+      account: 'eosio',
+      data: {
+        proxy: userP.address,
+        fio_address: userB.address,
+        actor: userB.account,
+        max_fee: config.api.proxy_vote.fee
+      }
+    });
   });
 
-  // test 5
-  it(`stake 500 tokens from account B`, async () => {
+  // let bp1, bp2, bp3, userA, userB, userC, userP, prevFundsAmount, locksdk, keys, accountnm, newFioDomain1, newFioAddress1, newFioDomain2, newFioAddress2, total_bp_votes, total_voted_fio;
+  // const fundsAmount = 1000000000000;
+  //
+  // before(async () => {
+  //   // Create sdk objects for the orinigal localhost BPs
+  //   bp1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+  //   bp2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+  //   bp3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+  //   //create a user and give it 10k fio.
+  //   userA = await newUser(faucet);
+  //   userB = await newUser(faucet);
+  //   userC = await newUser(faucet);
+  //   userP = await newUser(faucet);
+  //   keys = await createKeypair();
+  //   // console.log("priv key ", keys.privateKey);
+  //   // console.log("pub key ", keys.publicKey);
+  //   accountnm =  await getAccountFromKey(keys.publicKey);
+  //   const locktokens = await faucet.genericAction('pushTransaction', {
+  //     action: 'trnsloctoks',
+  //     account: 'fio.token',
+  //     data: {
+  //       payee_public_key: keys.publicKey,
+  //       can_vote: 0,
+  //       periods: [
+  //         {
+  //           duration: 120,
+  //           amount: 5000000000000,
+  //         },
+  //         {
+  //           duration: 180,
+  //           amount: 4000000000000,
+  //         },
+  //         {
+  //           duration: 1204800,
+  //           amount: 1000000000000,
+  //         }
+  //       ],
+  //       amount: 10000000000000,
+  //       max_fee: 400000000000,
+  //       tpid: '',
+  //       actor: 'qhh25sqpktwh',
+  //     }
+  //   });
+  //   expect(locktokens.status).to.equal('OK');
+  //   locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+  // });
+
+  // it(`getFioBalance for general lock token holder, available balance 0 `, async () => {
+  //   const result = await locksdk.genericAction('getFioBalance', { });
+  //   prevFundsAmount = result.balance;
+  //   expect(result.available).to.equal(0);
+  // });
+  //
+  // it(`Failure test Transfer 700 FIO to userA FIO public key, insufficient balance tokens locked`, async () => {
+  //   try {
+  //     const result = await locksdk.genericAction('transferTokens', {
+  //       payeeFioPublicKey: userA.publicKey,
+  //       amount: 70000000000,
+  //       maxFee: config.api.transfer_tokens_pub_key.fee,
+  //       technologyProviderId: ''
+  //     })
+  //     expect(result.status).to.not.equal('OK')
+  //   } catch (err) {
+  //     expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+  //     expect(err.json).to.have.all.keys('type', 'message', 'fields');
+  //     expect(err.errorCode).to.equal(400);
+  //     expect(err.json.fields[0].error).to.contain('Funds locked');
+  //   }
+  // });
+  //
+  // it(`Transfer ${fundsAmount} FIO to locked account`, async () => {
+  //   const result = await userA.sdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: keys.publicKey,
+  //     amount: fundsAmount,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     tpid: '',
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.transfer_tokens_pub_key.fee);
+  // });
+  //
+  // it(`getFioBalance for general lock token holder, available balance 0 `, async () => {
+  //   const result = await locksdk.genericAction('getFioBalance', { });
+  //   prevFundsAmount = result.balance;
+  //   expect(result.available).to.equal(fundsAmount);
+  // });
+  //
+  // it(`transfer 100 tokens to userA`, async () => {
+  //   let transferAmt = 100000000000;
+  //   const result = await locksdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: userA.publicKey,
+  //     amount: transferAmt,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  //   expect(result.transaction_id).to.be.a('string');
+  //   expect(result.block_num).to.be.a('number');
+  //   expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
+  //   expect(result.status).to.be.a('string').and.equal('OK');
+  // });
+  //
+  // it(`transfer 100 tokens to userB`, async () => {
+  //   let transferAmt = 100000000000;
+  //   let userBal = await userB.sdk.genericAction('getFioBalance', {});
+  //   let lockBal = await locksdk.genericAction('getFioBalance', {});
+  //   const result = await locksdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: userB.publicKey,
+  //     amount: transferAmt,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  //   expect(result.transaction_id).to.be.a('string');
+  //   expect(result.block_num).to.be.a('number');
+  //   expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
+  //   expect(result.status).to.be.a('string').and.equal('OK');
+  //   let newUserBal = await userB.sdk.genericAction('getFioBalance', {});
+  //   let newLockBal = await locksdk.genericAction('getFioBalance', {});
+  //   expect(userBal.available).to.be.a('number');
+  //   expect(newUserBal.available).to.be.greaterThan(userBal.available);
+  //   expect(newUserBal.available - userBal.available).to.equal(transferAmt);
+  //   expect(newLockBal.available).to.be.lessThan(lockBal.available);
+  //   expect(lockBal.available - newLockBal.available).to.equal(transferAmt + config.api.transfer_tokens_pub_key.fee);
+  // });
+  //
+  // it(`transfer 100 tokens to userC`, async () => {
+  //   let transferAmt = 100000000000;
+  //   let userBal = await userC.sdk.genericAction('getFioBalance', {});
+  //   let lockBal = await locksdk.genericAction('getFioBalance', {});
+  //   const result = await locksdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: userC.publicKey,
+  //     amount: transferAmt,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  //   expect(result.transaction_id).to.be.a('string');
+  //   expect(result.block_num).to.be.a('number');
+  //   expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
+  //   expect(result.status).to.be.a('string').and.equal('OK');
+  //   let newUserBal = await userC.sdk.genericAction('getFioBalance', {});
+  //   let newLockBal = await locksdk.genericAction('getFioBalance', {});
+  //   expect(userBal.available).to.be.a('number');
+  //   expect(newUserBal.available).to.be.greaterThan(userBal.available);
+  //   expect(newUserBal.available - userBal.available).to.equal(transferAmt);
+  //   expect(newLockBal.available).to.be.lessThan(lockBal.available);
+  //   expect(lockBal.available - newLockBal.available).to.equal(transferAmt + config.api.transfer_tokens_pub_key.fee);
+  // });
+  //
+  // it(`Register domain for voting for userC `, async () => {
+  //   newFioDomain1 = generateFioDomain(15);
+  //   let bal = await userC.sdk.genericAction('getFioBalance', {});
+  //   const result = await userC.sdk.genericAction('registerFioDomain', {
+  //     fioDomain: newFioDomain1,
+  //     maxFee: config.api.register_fio_domain.fee,
+  //     tpid: '',
+  //   });
+  //   let newBal = await userC.sdk.genericAction('getFioBalance', {});
+  //   expect(result).to.have.all.keys('status', 'expiration', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_fio_domain.fee);
+  //   expect(bal.available - newBal.available).to.equal(config.api.register_fio_domain.fee);
+  // });
+  //
+  // it(`Register address for voting for userC`, async () => {
+  //   newFioAddress1 = generateFioAddress(newFioDomain1,15)
+  //   let bal = await userC.sdk.genericAction('getFioBalance', {});
+  //   const result = await userC.sdk.genericAction('registerFioAddress', {
+  //     fioAddress: newFioAddress1,
+  //     maxFee: config.api.register_fio_address.fee,
+  //     tpid: '',
+  //   });
+  //   let newBal = await userC.sdk.genericAction('getFioBalance', {});
+  //   expect(result).to.have.all.keys('status', 'expiration', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_fio_address.fee);
+  //   expect(bal.available - newBal.available).to.equal(config.api.register_fio_address.fee);
+  // });
+  //
+  // it(`userC votes for bp1@dapixdev`, async () => {
+  //   let totalBeforeVote = await getTotalVotedFio();
+  //   const result = await userC.sdk.genericAction('pushTransaction', {
+  //     action: 'voteproducer',
+  //     account: 'eosio',
+  //     data: {
+  //       producers: [bp1.address],
+  //       fio_address: newFioAddress1,
+  //       actor: accountnm,
+  //       max_fee: config.api.vote_producer.fee
+  //     }
+  //   });
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   // after vote
+  //   let totalAfterVote = await getTotalVotedFio()
+  //   expect(totalAfterVote).to.be.greaterThan(totalBeforeVote);
+  // });
+  //
+  // it(`transfer 100 tokens to userP`, async () => {
+  //   let transferAmt = 100000000000;
+  //   let userBal = await userP.sdk.genericAction('getFioBalance', {});
+  //   let lockBal = await locksdk.genericAction('getFioBalance', {});
+  //   const result = await locksdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: userP.publicKey,
+  //     amount: transferAmt,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  //   expect(result.transaction_id).to.be.a('string');
+  //   expect(result.block_num).to.be.a('number');
+  //   expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
+  //   expect(result.status).to.be.a('string').and.equal('OK');
+  //   let newUserBal = await userP.sdk.genericAction('getFioBalance', {});
+  //   let newLockBal = await locksdk.genericAction('getFioBalance', {});
+  //   expect(userBal.available).to.be.a('number');
+  //   expect(newUserBal.available).to.be.greaterThan(userBal.available);
+  //   expect(newUserBal.available - userBal.available).to.equal(transferAmt);
+  //   expect(newLockBal.available).to.be.lessThan(lockBal.available);
+  //   expect(lockBal.available - newLockBal.available).to.equal(transferAmt + config.api.transfer_tokens_pub_key.fee);
+  // });
+  //
+  // it(`register a FIO address for userP`, async () => {
+  //   newFioDomain2 = generateFioDomain(15);
+  //   await userP.sdk.genericAction('registerFioDomain', {
+  //     fioDomain: newFioDomain2,
+  //     maxFee: config.api.register_fio_domain.fee,
+  //     tpid: '',
+  //   });
+  //   newFioAddress2 = generateFioAddress(newFioDomain2,15)
+  //   const result = await userP.sdk.genericAction('registerFioAddress', {
+  //     fioAddress: newFioAddress2,
+  //     maxFee: config.api.register_fio_address.fee,
+  //     tpid: '',
+  //   });
+  //   expect(result).to.have.all.keys('status', 'expiration', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_fio_address.fee);
+  //
+  //   // make the domain public
+  //   const result2 = await userP.sdk.genericAction('setFioDomainVisibility', {
+  //     fioDomain: userP.domain,
+  //     isPublic: true,
+  //     maxFee: config.api.set_fio_domain_public.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result2).to.have.all.keys('status', 'fee_collected');
+  //   expect(result2.status).to.be.a('string').and.equal('OK');
+  //   expect(result2.fee_collected).to.be.a('number').and.equal(config.api.set_fio_domain_public.fee);
+  // });
+  //
+  // it(`register userP as proxy`, async () => {
+  //   let bal = await userP.sdk.genericAction('getFioBalance', {});
+  //   const result = await userP.sdk.genericAction('pushTransaction', {
+  //     action: 'regproxy',
+  //     account: 'eosio',
+  //     data: {
+  //       fio_address: userP.address,
+  //       actor: userP.account,
+  //       max_fee: config.api.register_proxy.fee
+  //     }
+  //   });
+  //   let newBal = await userP.sdk.genericAction('getFioBalance', {});
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_proxy.fee);
+  //   expect(bal.available - newBal.available).to.equal(config.api.register_proxy.fee);
+  // });
+  //
+  // it(`run add_pub_address for userA with userP's FIO address as TPID`, async () => {
+  //   const result = await userA.sdk.genericAction('addPublicAddresses', {
+  //     fioAddress: userA.address,
+  //     publicAddresses: [{
+  //       chain_code: 'ELA',
+  //       token_code: 'ELA',
+  //       public_address: 'EQH6o4xfaR5fbhV8cDbDGRxwJRJn3qeo41',
+  //     }],
+  //     technologyProviderId: userP.address,
+  //     maxFee: config.api.add_pub_address.fee
+  //   });
+  //
+  //   const result2 = await userA.sdk.genericAction('addPublicAddress', {
+  //     fioAddress: userA.address,
+  //     chainCode: 'BCH',
+  //     tokenCode: 'BCH',
+  //     publicAddress: 'bitcoincash:qzf8zha74adsfasdf0xnwlffdn0zuyaslx3c90q7n9g9',
+  //     technologyProviderId: userP.address,
+  //     maxFee: config.api.add_pub_address.fee,
+  //   });
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result2).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   expect(result2.status).to.equal('OK');
+  //   expect(result2.fee_collected).to.equal(0);
+  // });
+  //
+  // it(`Get total_voted_fio`, async () => {
+  //   total_voted_fio = await getTotalVotedFio();
+  //   expect(total_voted_fio).to.be.a('number').and.greaterThanOrEqual(0);
+  // });
+  //
+  // it(`Get bp1@dapixdev total_votes`, async () => {
+  //   total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
+  //   expect(total_bp_votes).to.be.a('number').and.greaterThanOrEqual(0);
+  // });
+  //
+  // it(`userB proxy votes to userP`, async () => {
+  //   const result = await userB.sdk.genericAction('pushTransaction', {
+  //     action: 'voteproxy',
+  //     account: 'eosio',
+  //     data: {
+  //       proxy: userP.address,
+  //       fio_address: userB.address,
+  //       actor: userB.account,
+  //       max_fee: config.api.proxy_vote.fee
+  //     }
+  //   });
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  // });
+  //
+  // it(`userB proxy votes to userP (empty fio_address, expect fee_collected to be ${config.api.proxy_vote.fee})`, async () => {
+  //   const result = await userB.sdk.genericAction('pushTransaction', {
+  //     action: 'voteproxy',
+  //     account: 'eosio',
+  //     data: {
+  //       proxy: userP.address,
+  //       fio_address: '',
+  //       actor: userB.account,
+  //       max_fee: config.api.proxy_vote.fee
+  //     }
+  //   });
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.proxy_vote.fee);
+  // });
+  //
+  // it(`Wait a few seconds.`, async () => {
+  //   wait(4000);
+  // });
+  //
+  // it(`bp1@dapixdev total_votes did not change (votes just shifted from direct vote to proxy vote via proxyA1)`, async () => {
+  //   let prev_total_bp_votes = total_bp_votes;
+  //   total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
+  //   expect(total_bp_votes).to.equal(prev_total_bp_votes)
+  // });
+  //
+  // //Test 2
+  // it(`stake 50 tokens from userA`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 50000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //
+  //   // proxy first so we can stake
+  //   const proxyvote = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'voteproxy',
+  //     account: 'eosio',
+  //     data: {
+  //       proxy: userP.address,
+  //       fio_address: userA.address,
+  //       actor: accountnm,
+  //       max_fee: config.api.proxy_vote.fee
+  //     }
+  //   });
+  //   expect(proxyvote.status).to.equal('OK');
+  //   let balA = await userA.sdk.genericAction('getFioBalance', { });
+  //   expect(balA.staked).to.equal(0);
+  //   const result = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'stakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: userA.address,
+  //       amount: stakeAmt,
+  //       actor: userA.address,
+  //       max_fee: config.maxFee,
+  //       tpid: userP.address
+  //     }
+  //   });
+  //   let newBalA = await userA.sdk.genericAction('getFioBalance', { });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   expect(newBalA.staked - balA.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
+  //   expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
+  //   expect(newCombinedTokenPool - combinedTokenPool).to.equal(stakeAmt);
+  //   expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt);
+  // });
+  //
+  // it(`stake 50 tokens from userA (no fio_address, expect fee_collected to be 3000000000)`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 50000000000;
+  //   feeAmt = 3000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //
+  //   let balA = await userA.sdk.genericAction('getFioBalance', { });
+  //   expect(balA.staked).to.equal(50000000000);
+  //   const result = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'stakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: '',
+  //       amount: stakeAmt,
+  //       actor: userA.address,
+  //       max_fee: feeAmt,
+  //       tpid: userP.address
+  //     }
+  //   });
+  //   let newBalA = await userA.sdk.genericAction('getFioBalance', { });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(feeAmt);
+  //   expect(newBalA.staked - balA.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
+  //   expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
+  //   expect(newCombinedTokenPool - combinedTokenPool).to.be.greaterThanOrEqual(stakeAmt);
+  //   expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt);
+  // });
+  //
+  // // Test 3
+  // it(`register domain from any other account`, async () => {
+  //   let newDomain = generateFioDomain(4);
+  //   const result = await userA.sdk.genericAction('registerFioDomain', {
+  //     fioDomain: newDomain,
+  //     maxFee: config.api.register_fio_domain.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_fio_domain.fee);
+  // });
+  //
+  // // test 4
+  // it(`unstake 25 tokens (unstake_fio_tokens) from userA`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 25000000000;
+  //   feeAmt = 3000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //   let bal = await userA.sdk.genericAction('getFioBalance', {});
+  //   const result = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'unstakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: userA.address,
+  //       amount: stakeAmt,
+  //       actor: userA.account,
+  //       max_fee: feeAmt,
+  //       tpid:''
+  //     }
+  //   });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   let newBal = await userA.sdk.genericAction('getFioBalance', {});
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   expect(bal.staked - newBal.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.lessThan(stakedTokenPool);
+  //   expect(stakedTokenPool - newStakedTokenPool).to.equal(stakeAmt);
+  //   expect(combinedTokenPool - newCombinedTokenPool).to.equal(stakeAmt);
+  //   expect(globalSrpCount - newGlobalSrpCount).to.equal(stakeAmt);
+  // });
+  //
+  // it(`unstake 25 tokens from userA, no fio_address, fee_collected should be 3000000000`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 25000000000;
+  //   feeAmt = 3000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //   let bal = await userA.sdk.genericAction('getFioBalance', {});
+  //   const result = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'unstakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: '',
+  //       amount: stakeAmt,
+  //       actor: userA.account,
+  //       max_fee: feeAmt,
+  //       tpid:''
+  //     }
+  //   });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   let newBal = await userA.sdk.genericAction('getFioBalance', {});
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(feeAmt);
+  //   expect(bal.staked - newBal.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.lessThan(stakedTokenPool);
+  //   expect(stakedTokenPool - newStakedTokenPool).to.equal(stakeAmt);
+  //   expect(combinedTokenPool - newCombinedTokenPool).to.be.lessThan(stakeAmt);
+  //   expect(globalSrpCount - newGlobalSrpCount).to.equal(stakeAmt);
+  // });
+
+  it(`stake 500 tokens from userB`, async () => {
     let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
     stakeAmt = 500000000000;
     stakedTokenPool = await getStakedTokenPool();
@@ -564,17 +2346,764 @@ describe(`************************** stake-tokens.js ************************** 
     expect(newCombinedTokenPool - combinedTokenPool).to.be.greaterThanOrEqual(stakeAmt);
     expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt);
   });
+});
 
-  // test 7
-  it(`get_fio_balance for account A`, async () => {
-    const result = await userA.sdk.genericAction('getFioBalance', {});
-    expect(result.staked).to.equal(50000000000);
+describe(`A6. Verify next set of staking rewards for block producer`, () => {
+  let bp1, bp2, bp3, userA, userB, userC, userP, prevFundsAmount, locksdk, keys, accountnm, newFioDomain1, newFioAddress1, newFioDomain2, newFioAddress2, total_bp_votes, total_voted_fio;
+  const fundsAmount = 1000000000000;
+  const transferAmt = 100000000000;
+  const stakeAmt = 50000000000;
+
+  before(async () => {
+    // Create sdk objects for the orinigal localhost BPs
+    bp1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+    bp2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+    bp3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+    //create a user and give it 10k fio.
+    userA = await newUser(faucet);
+    userB = await newUser(faucet);
+    userC = await newUser(faucet);
+    userP = await newUser(faucet);
+    keys = await createKeypair();
+    // console.log("priv key ", keys.privateKey);
+    // console.log("pub key ", keys.publicKey);
+    accountnm =  await getAccountFromKey(keys.publicKey);
+    await faucet.genericAction('pushTransaction', {
+      action: 'trnsloctoks',
+      account: 'fio.token',
+      data: {
+        payee_public_key: keys.publicKey,
+        can_vote: 0,
+        periods: [
+          {
+            duration: 120,
+            amount: 5000000000000,
+          },
+          {
+            duration: 180,
+            amount: 4000000000000,
+          },
+          {
+            duration: 1204800,
+            amount: 1000000000000,
+          }
+        ],
+        amount: 10000000000000,
+        max_fee: 400000000000,
+        tpid: '',
+        actor: 'qhh25sqpktwh',
+      }
+    });
+    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+
+    // transfer some test FIO
+    await userA.sdk.genericAction('transferTokens', {
+      payeeFioPublicKey: keys.publicKey,
+      amount: fundsAmount,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      tpid: '',
+    });
+
+    await locksdk.genericAction('transferTokens', {
+      payeeFioPublicKey: userA.publicKey,
+      amount: transferAmt,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    });
+
+    // register our proxy
+    await userP.sdk.genericAction('pushTransaction', {
+      action: 'regproxy',
+      account: 'eosio',
+      data: {
+        fio_address: userP.address,
+        actor: userP.account,
+        max_fee: config.api.register_proxy.fee
+      }
+    });
+
+    // proxy first so userA can stake
+    await userA.sdk.genericAction('pushTransaction', {
+      action: 'voteproxy',
+      account: 'eosio',
+      data: {
+        proxy: userP.address,
+        fio_address: userA.address,
+        actor: accountnm,
+        max_fee: config.api.proxy_vote.fee
+      }
+    });
+
+    // stake some FIO
+    await userA.sdk.genericAction('pushTransaction', {
+      action: 'stakefio',
+      account: 'fio.staking',
+      data: {
+        fio_address: '',
+        amount: stakeAmt,
+        actor: userA.address,
+        max_fee: stakingFee,
+        tpid: userP.address
+      }
+    });
   });
 
-  // test 8
-  it(`unstake 25 tokens (unstake_fio_tokens) from account A`, async () => {
-    let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
-    stakeAmt = 25000000000;
+  it(`wait for next BP claim`);
+
+  it(`run bpclaim from any other account, expect minted = 25000 - stake fees`);
+});
+
+describe(`A8. Unstake some more FIO from userA, observe staking reward changes`, () => {
+  let bp1, bp2, bp3, userA, userB, userC, userP, prevFundsAmount, locksdk, keys, accountnm, newFioDomain1, newFioAddress1, newFioDomain2, newFioAddress2, total_bp_votes, total_voted_fio;
+  const fundsAmount = 1000000000000;
+  const transferAmt = 100000000000;
+  const stakeAmt = 50000000000;
+  const unstakeAmt = 25000000000;-
+
+  before(async () => {
+    // Create sdk objects for the orinigal localhost BPs
+    bp1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+    bp2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+    bp3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+    //create a user and give it 10k fio.
+    userA = await newUser(faucet);
+    userB = await newUser(faucet);
+    userC = await newUser(faucet);
+    userP = await newUser(faucet);
+    keys = await createKeypair();
+    // console.log("priv key ", keys.privateKey);
+    // console.log("pub key ", keys.publicKey);
+    accountnm =  await getAccountFromKey(keys.publicKey);
+    await faucet.genericAction('pushTransaction', {
+      action: 'trnsloctoks',
+      account: 'fio.token',
+      data: {
+        payee_public_key: keys.publicKey,
+        can_vote: 0,
+        periods: [
+          {
+            duration: 120,
+            amount: 5000000000000,
+          },
+          {
+            duration: 180,
+            amount: 4000000000000,
+          },
+          {
+            duration: 1204800,
+            amount: 1000000000000,
+          }
+        ],
+        amount: 10000000000000,
+        max_fee: 400000000000,
+        tpid: '',
+        actor: 'qhh25sqpktwh',
+      }
+    });
+    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+
+    // transfer some test FIO
+    await userA.sdk.genericAction('transferTokens', {
+      payeeFioPublicKey: keys.publicKey,
+      amount: fundsAmount,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      tpid: '',
+    });
+
+    await locksdk.genericAction('transferTokens', {
+      payeeFioPublicKey: userA.publicKey,
+      amount: transferAmt,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    });
+
+    // register our proxy
+    await userP.sdk.genericAction('pushTransaction', {
+      action: 'regproxy',
+      account: 'eosio',
+      data: {
+        fio_address: userP.address,
+        actor: userP.account,
+        max_fee: config.api.register_proxy.fee
+      }
+    });
+
+    // proxy first so userA can stake
+    await userA.sdk.genericAction('pushTransaction', {
+      action: 'voteproxy',
+      account: 'eosio',
+      data: {
+        proxy: userP.address,
+        fio_address: userA.address,
+        actor: accountnm,
+        max_fee: config.api.proxy_vote.fee
+      }
+    });
+
+    // stake some FIO
+    await userA.sdk.genericAction('pushTransaction', {
+      action: 'stakefio',
+      account: 'fio.staking',
+      data: {
+        fio_address: '',
+        amount: stakeAmt,
+        actor: userA.address,
+        max_fee: stakingFee,
+        tpid: userP.address
+      }
+    });
+  });
+
+  // let bp1, bp2, bp3, userA, userB, userC, userP, prevFundsAmount, locksdk, keys, accountnm, newFioDomain1, newFioAddress1, newFioDomain2, newFioAddress2, total_bp_votes, total_voted_fio;
+  // const fundsAmount = 1000000000000;
+  //
+  // before(async () => {
+  //   // Create sdk objects for the orinigal localhost BPs
+  //   bp1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+  //   bp2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+  //   bp3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+  //   //create a user and give it 10k fio.
+  //   userA = await newUser(faucet);
+  //   userB = await newUser(faucet);
+  //   userC = await newUser(faucet);
+  //   userP = await newUser(faucet);
+  //   keys = await createKeypair();
+  //   // console.log("priv key ", keys.privateKey);
+  //   // console.log("pub key ", keys.publicKey);
+  //   accountnm =  await getAccountFromKey(keys.publicKey);
+  //   const locktokens = await faucet.genericAction('pushTransaction', {
+  //     action: 'trnsloctoks',
+  //     account: 'fio.token',
+  //     data: {
+  //       payee_public_key: keys.publicKey,
+  //       can_vote: 0,
+  //       periods: [
+  //         {
+  //           duration: 120,
+  //           amount: 5000000000000,
+  //         },
+  //         {
+  //           duration: 180,
+  //           amount: 4000000000000,
+  //         },
+  //         {
+  //           duration: 1204800,
+  //           amount: 1000000000000,
+  //         }
+  //       ],
+  //       amount: 10000000000000,
+  //       max_fee: 400000000000,
+  //       tpid: '',
+  //       actor: 'qhh25sqpktwh',
+  //     }
+  //   });
+  //   expect(locktokens.status).to.equal('OK');
+  //   locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+  // });
+
+  // it(`getFioBalance for general lock token holder, available balance 0 `, async () => {
+  //   const result = await locksdk.genericAction('getFioBalance', { });
+  //   prevFundsAmount = result.balance;
+  //   expect(result.available).to.equal(0);
+  // });
+  //
+  // it(`Failure test Transfer 700 FIO to userA FIO public key, insufficient balance tokens locked`, async () => {
+  //   try {
+  //     const result = await locksdk.genericAction('transferTokens', {
+  //       payeeFioPublicKey: userA.publicKey,
+  //       amount: 70000000000,
+  //       maxFee: config.api.transfer_tokens_pub_key.fee,
+  //       technologyProviderId: ''
+  //     })
+  //     expect(result.status).to.not.equal('OK')
+  //   } catch (err) {
+  //     expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+  //     expect(err.json).to.have.all.keys('type', 'message', 'fields');
+  //     expect(err.errorCode).to.equal(400);
+  //     expect(err.json.fields[0].error).to.contain('Funds locked');
+  //   }
+  // });
+  //
+  // it(`Transfer ${fundsAmount} FIO to locked account`, async () => {
+  //   const result = await userA.sdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: keys.publicKey,
+  //     amount: fundsAmount,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     tpid: '',
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.transfer_tokens_pub_key.fee);
+  // });
+  //
+  // it(`getFioBalance for general lock token holder, available balance 0 `, async () => {
+  //   const result = await locksdk.genericAction('getFioBalance', { });
+  //   prevFundsAmount = result.balance;
+  //   expect(result.available).to.equal(fundsAmount);
+  // });
+  //
+  // it(`transfer 100 tokens to userA`, async () => {
+  //   let transferAmt = 100000000000;
+  //   const result = await locksdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: userA.publicKey,
+  //     amount: transferAmt,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  //   expect(result.transaction_id).to.be.a('string');
+  //   expect(result.block_num).to.be.a('number');
+  //   expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
+  //   expect(result.status).to.be.a('string').and.equal('OK');
+  // });
+  //
+  // it(`transfer 100 tokens to userB`, async () => {
+  //   let transferAmt = 100000000000;
+  //   let userBal = await userB.sdk.genericAction('getFioBalance', {});
+  //   let lockBal = await locksdk.genericAction('getFioBalance', {});
+  //   const result = await locksdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: userB.publicKey,
+  //     amount: transferAmt,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  //   expect(result.transaction_id).to.be.a('string');
+  //   expect(result.block_num).to.be.a('number');
+  //   expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
+  //   expect(result.status).to.be.a('string').and.equal('OK');
+  //   let newUserBal = await userB.sdk.genericAction('getFioBalance', {});
+  //   let newLockBal = await locksdk.genericAction('getFioBalance', {});
+  //   expect(userBal.available).to.be.a('number');
+  //   expect(newUserBal.available).to.be.greaterThan(userBal.available);
+  //   expect(newUserBal.available - userBal.available).to.equal(transferAmt);
+  //   expect(newLockBal.available).to.be.lessThan(lockBal.available);
+  //   expect(lockBal.available - newLockBal.available).to.equal(transferAmt + config.api.transfer_tokens_pub_key.fee);
+  // });
+  //
+  // it(`transfer 100 tokens to userC`, async () => {
+  //   let transferAmt = 100000000000;
+  //   let userBal = await userC.sdk.genericAction('getFioBalance', {});
+  //   let lockBal = await locksdk.genericAction('getFioBalance', {});
+  //   const result = await locksdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: userC.publicKey,
+  //     amount: transferAmt,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  //   expect(result.transaction_id).to.be.a('string');
+  //   expect(result.block_num).to.be.a('number');
+  //   expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
+  //   expect(result.status).to.be.a('string').and.equal('OK');
+  //   let newUserBal = await userC.sdk.genericAction('getFioBalance', {});
+  //   let newLockBal = await locksdk.genericAction('getFioBalance', {});
+  //   expect(userBal.available).to.be.a('number');
+  //   expect(newUserBal.available).to.be.greaterThan(userBal.available);
+  //   expect(newUserBal.available - userBal.available).to.equal(transferAmt);
+  //   expect(newLockBal.available).to.be.lessThan(lockBal.available);
+  //   expect(lockBal.available - newLockBal.available).to.equal(transferAmt + config.api.transfer_tokens_pub_key.fee);
+  // });
+  //
+  // it(`Register domain for voting for userC `, async () => {
+  //   newFioDomain1 = generateFioDomain(15);
+  //   let bal = await userC.sdk.genericAction('getFioBalance', {});
+  //   const result = await userC.sdk.genericAction('registerFioDomain', {
+  //     fioDomain: newFioDomain1,
+  //     maxFee: config.api.register_fio_domain.fee,
+  //     tpid: '',
+  //   });
+  //   let newBal = await userC.sdk.genericAction('getFioBalance', {});
+  //   expect(result).to.have.all.keys('status', 'expiration', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_fio_domain.fee);
+  //   expect(bal.available - newBal.available).to.equal(config.api.register_fio_domain.fee);
+  // });
+  //
+  // it(`Register address for voting for userC`, async () => {
+  //   newFioAddress1 = generateFioAddress(newFioDomain1,15)
+  //   let bal = await userC.sdk.genericAction('getFioBalance', {});
+  //   const result = await userC.sdk.genericAction('registerFioAddress', {
+  //     fioAddress: newFioAddress1,
+  //     maxFee: config.api.register_fio_address.fee,
+  //     tpid: '',
+  //   });
+  //   let newBal = await userC.sdk.genericAction('getFioBalance', {});
+  //   expect(result).to.have.all.keys('status', 'expiration', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_fio_address.fee);
+  //   expect(bal.available - newBal.available).to.equal(config.api.register_fio_address.fee);
+  // });
+  //
+  // it(`userC votes for bp1@dapixdev`, async () => {
+  //   let totalBeforeVote = await getTotalVotedFio();
+  //   const result = await userC.sdk.genericAction('pushTransaction', {
+  //     action: 'voteproducer',
+  //     account: 'eosio',
+  //     data: {
+  //       producers: [bp1.address],
+  //       fio_address: newFioAddress1,
+  //       actor: accountnm,
+  //       max_fee: config.api.vote_producer.fee
+  //     }
+  //   });
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   // after vote
+  //   let totalAfterVote = await getTotalVotedFio()
+  //   expect(totalAfterVote).to.be.greaterThan(totalBeforeVote);
+  // });
+  //
+  // it(`transfer 100 tokens to userP`, async () => {
+  //   let transferAmt = 100000000000;
+  //   let userBal = await userP.sdk.genericAction('getFioBalance', {});
+  //   let lockBal = await locksdk.genericAction('getFioBalance', {});
+  //   const result = await locksdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: userP.publicKey,
+  //     amount: transferAmt,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  //   expect(result.transaction_id).to.be.a('string');
+  //   expect(result.block_num).to.be.a('number');
+  //   expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
+  //   expect(result.status).to.be.a('string').and.equal('OK');
+  //   let newUserBal = await userP.sdk.genericAction('getFioBalance', {});
+  //   let newLockBal = await locksdk.genericAction('getFioBalance', {});
+  //   expect(userBal.available).to.be.a('number');
+  //   expect(newUserBal.available).to.be.greaterThan(userBal.available);
+  //   expect(newUserBal.available - userBal.available).to.equal(transferAmt);
+  //   expect(newLockBal.available).to.be.lessThan(lockBal.available);
+  //   expect(lockBal.available - newLockBal.available).to.equal(transferAmt + config.api.transfer_tokens_pub_key.fee);
+  // });
+  //
+  // it(`register a FIO address for userP`, async () => {
+  //   newFioDomain2 = generateFioDomain(15);
+  //   await userP.sdk.genericAction('registerFioDomain', {
+  //     fioDomain: newFioDomain2,
+  //     maxFee: config.api.register_fio_domain.fee,
+  //     tpid: '',
+  //   });
+  //   newFioAddress2 = generateFioAddress(newFioDomain2,15)
+  //   const result = await userP.sdk.genericAction('registerFioAddress', {
+  //     fioAddress: newFioAddress2,
+  //     maxFee: config.api.register_fio_address.fee,
+  //     tpid: '',
+  //   });
+  //   expect(result).to.have.all.keys('status', 'expiration', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_fio_address.fee);
+  //
+  //   // make the domain public
+  //   const result2 = await userP.sdk.genericAction('setFioDomainVisibility', {
+  //     fioDomain: userP.domain,
+  //     isPublic: true,
+  //     maxFee: config.api.set_fio_domain_public.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result2).to.have.all.keys('status', 'fee_collected');
+  //   expect(result2.status).to.be.a('string').and.equal('OK');
+  //   expect(result2.fee_collected).to.be.a('number').and.equal(config.api.set_fio_domain_public.fee);
+  // });
+  //
+  // it(`register userP as proxy`, async () => {
+  //   let bal = await userP.sdk.genericAction('getFioBalance', {});
+  //   const result = await userP.sdk.genericAction('pushTransaction', {
+  //     action: 'regproxy',
+  //     account: 'eosio',
+  //     data: {
+  //       fio_address: userP.address,
+  //       actor: userP.account,
+  //       max_fee: config.api.register_proxy.fee
+  //     }
+  //   });
+  //   let newBal = await userP.sdk.genericAction('getFioBalance', {});
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_proxy.fee);
+  //   expect(bal.available - newBal.available).to.equal(config.api.register_proxy.fee);
+  // });
+  //
+  // it(`run add_pub_address for userA with userP's FIO address as TPID`, async () => {
+  //   const result = await userA.sdk.genericAction('addPublicAddresses', {
+  //     fioAddress: userA.address,
+  //     publicAddresses: [{
+  //       chain_code: 'ELA',
+  //       token_code: 'ELA',
+  //       public_address: 'EQH6o4xfaR5fbhV8cDbDGRxwJRJn3qeo41',
+  //     }],
+  //     technologyProviderId: userP.address,
+  //     maxFee: config.api.add_pub_address.fee
+  //   });
+  //
+  //   const result2 = await userA.sdk.genericAction('addPublicAddress', {
+  //     fioAddress: userA.address,
+  //     chainCode: 'BCH',
+  //     tokenCode: 'BCH',
+  //     publicAddress: 'bitcoincash:qzf8zha74adsfasdf0xnwlffdn0zuyaslx3c90q7n9g9',
+  //     technologyProviderId: userP.address,
+  //     maxFee: config.api.add_pub_address.fee,
+  //   });
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result2).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   expect(result2.status).to.equal('OK');
+  //   expect(result2.fee_collected).to.equal(0);
+  // });
+  //
+  // it(`Get total_voted_fio`, async () => {
+  //   total_voted_fio = await getTotalVotedFio();
+  //   expect(total_voted_fio).to.be.a('number').and.greaterThanOrEqual(0);
+  // });
+  //
+  // it(`Get bp1@dapixdev total_votes`, async () => {
+  //   total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
+  //   expect(total_bp_votes).to.be.a('number').and.greaterThanOrEqual(0);
+  // });
+  //
+  // it(`userB proxy votes to userP`, async () => {
+  //   const result = await userB.sdk.genericAction('pushTransaction', {
+  //     action: 'voteproxy',
+  //     account: 'eosio',
+  //     data: {
+  //       proxy: userP.address,
+  //       fio_address: userB.address,
+  //       actor: userB.account,
+  //       max_fee: config.api.proxy_vote.fee
+  //     }
+  //   });
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  // });
+  //
+  // it(`userB proxy votes to userP (empty fio_address, expect fee_collected to be ${config.api.proxy_vote.fee})`, async () => {
+  //   const result = await userB.sdk.genericAction('pushTransaction', {
+  //     action: 'voteproxy',
+  //     account: 'eosio',
+  //     data: {
+  //       proxy: userP.address,
+  //       fio_address: '',
+  //       actor: userB.account,
+  //       max_fee: config.api.proxy_vote.fee
+  //     }
+  //   });
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.proxy_vote.fee);
+  // });
+  //
+  // it(`Wait a few seconds.`, async () => {
+  //   wait(4000);
+  // });
+  //
+  // it(`bp1@dapixdev total_votes did not change (votes just shifted from direct vote to proxy vote via proxyA1)`, async () => {
+  //   let prev_total_bp_votes = total_bp_votes;
+  //   total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
+  //   expect(total_bp_votes).to.equal(prev_total_bp_votes)
+  // });
+  //
+  // //Test 2
+  // it(`stake 50 tokens from userA`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 50000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //
+  //   // proxy first so we can stake
+  //   const proxyvote = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'voteproxy',
+  //     account: 'eosio',
+  //     data: {
+  //       proxy: userP.address,
+  //       fio_address: userA.address,
+  //       actor: accountnm,
+  //       max_fee: config.api.proxy_vote.fee
+  //     }
+  //   });
+  //   expect(proxyvote.status).to.equal('OK');
+  //   let balA = await userA.sdk.genericAction('getFioBalance', { });
+  //   expect(balA.staked).to.equal(0);
+  //   const result = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'stakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: userA.address,
+  //       amount: stakeAmt,
+  //       actor: userA.address,
+  //       max_fee: config.maxFee,
+  //       tpid: userP.address
+  //     }
+  //   });
+  //   let newBalA = await userA.sdk.genericAction('getFioBalance', { });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   expect(newBalA.staked - balA.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
+  //   expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
+  //   expect(newCombinedTokenPool - combinedTokenPool).to.equal(stakeAmt);
+  //   expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt);
+  // });
+  //
+  // it(`stake 50 tokens from userA (no fio_address, expect fee_collected to be 3000000000)`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 50000000000;
+  //   feeAmt = 3000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //
+  //   let balA = await userA.sdk.genericAction('getFioBalance', { });
+  //   expect(balA.staked).to.equal(50000000000);
+  //   const result = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'stakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: '',
+  //       amount: stakeAmt,
+  //       actor: userA.address,
+  //       max_fee: feeAmt,
+  //       tpid: userP.address
+  //     }
+  //   });
+  //   let newBalA = await userA.sdk.genericAction('getFioBalance', { });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(feeAmt);
+  //   expect(newBalA.staked - balA.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
+  //   expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
+  //   expect(newCombinedTokenPool - combinedTokenPool).to.be.greaterThanOrEqual(stakeAmt);
+  //   expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt);
+  // });
+  //
+  // // Test 3
+  // it(`register domain from any other account`, async () => {
+  //   let newDomain = generateFioDomain(4);
+  //   const result = await userA.sdk.genericAction('registerFioDomain', {
+  //     fioDomain: newDomain,
+  //     maxFee: config.api.register_fio_domain.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_fio_domain.fee);
+  // });
+  //
+  // // test 4
+  // it(`unstake 25 tokens (unstake_fio_tokens) from userA`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 25000000000;
+  //   feeAmt = 3000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //   let bal = await userA.sdk.genericAction('getFioBalance', {});
+  //   const result = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'unstakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: userA.address,
+  //       amount: stakeAmt,
+  //       actor: userA.account,
+  //       max_fee: feeAmt,
+  //       tpid:''
+  //     }
+  //   });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   let newBal = await userA.sdk.genericAction('getFioBalance', {});
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   expect(bal.staked - newBal.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.lessThan(stakedTokenPool);
+  //   expect(stakedTokenPool - newStakedTokenPool).to.equal(stakeAmt);
+  //   expect(combinedTokenPool - newCombinedTokenPool).to.equal(stakeAmt);
+  //   expect(globalSrpCount - newGlobalSrpCount).to.equal(stakeAmt);
+  // });
+  //
+  // it(`unstake 25 tokens from userA, no fio_address, fee_collected should be 3000000000`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 25000000000;
+  //   feeAmt = 3000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //   let bal = await userA.sdk.genericAction('getFioBalance', {});
+  //   const result = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'unstakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: '',
+  //       amount: stakeAmt,
+  //       actor: userA.account,
+  //       max_fee: feeAmt,
+  //       tpid:''
+  //     }
+  //   });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   let newBal = await userA.sdk.genericAction('getFioBalance', {});
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(feeAmt);
+  //   expect(bal.staked - newBal.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.lessThan(stakedTokenPool);
+  //   expect(stakedTokenPool - newStakedTokenPool).to.equal(stakeAmt);
+  //   expect(combinedTokenPool - newCombinedTokenPool).to.be.lessThan(stakeAmt);
+  //   expect(globalSrpCount - newGlobalSrpCount).to.equal(stakeAmt);
+  // });
+  //
+  // // test 5
+  // it(`stake 500 tokens from userB`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 500000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //   let bal = await userB.sdk.genericAction('getFioBalance', { });
+  //   const result = await userB.sdk.genericAction('pushTransaction', {
+  //     action: 'stakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: userB.address,
+  //       amount: stakeAmt,
+  //       actor: accountnm,
+  //       max_fee: config.maxFee,
+  //       tpid:''
+  //     }
+  //   });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   let newBal = await userB.sdk.genericAction('getFioBalance', { });
+  //   expect(newBal.staked - bal.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
+  //   expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
+  //   expect(newCombinedTokenPool - combinedTokenPool).to.be.greaterThanOrEqual(stakeAmt);
+  //   expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt);
+  // });
+  //
+  // // test 7
+  // it(`get_fio_balance for userA`, async () => {
+  //   const result = await userA.sdk.genericAction('getFioBalance', {});
+  //   expect(result.staked).to.equal(50000000000);
+  // });
+
+  it(`unstake 25 tokens (unstake_fio_tokens) from userA`, async () => {
+    let stakedTokenPool, combinedTokenPool, globalSrpCount, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
     stakedTokenPool = await getStakedTokenPool();
     combinedTokenPool = await getCombinedTokenPool();
     globalSrpCount = await getGlobalSrpCount();
@@ -584,9 +3113,9 @@ describe(`************************** stake-tokens.js ************************** 
       account: 'fio.staking',
       data: {
         fio_address: userA.address,
-        amount: stakeAmt,
+        amount: unstakeAmt,
         actor: userA.account,
-        max_fee: config.maxFee +1,
+        max_fee: unstakeFee,
         tpid: bp1.address
       }
     });
@@ -596,17 +3125,698 @@ describe(`************************** stake-tokens.js ************************** 
     let newBal = await userA.sdk.genericAction('getFioBalance', {});
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(0);
-    expect(bal.staked - newBal.staked).to.equal(stakeAmt);
+    expect(bal.staked - newBal.staked).to.equal(unstakeAmt);
     expect(newStakedTokenPool).to.be.lessThan(stakedTokenPool);
-    expect(stakedTokenPool - newStakedTokenPool).to.equal(stakeAmt);
-    expect(combinedTokenPool - newCombinedTokenPool).to.equal(stakeAmt);
-    expect(globalSrpCount - newGlobalSrpCount).to.equal(stakeAmt);
+    expect(stakedTokenPool - newStakedTokenPool).to.equal(unstakeAmt);
+    expect(combinedTokenPool - newCombinedTokenPool).to.equal(unstakeAmt);
+    expect(globalSrpCount - newGlobalSrpCount).to.equal(unstakeAmt);
+  });
+});
+
+describe(`A9. Unstake some more FIO from userB, observe staking reward changes`, () => {
+  let bp1, bp2, bp3, userA, userB, userC, userP, prevFundsAmount, locksdk, keys, accountnm, newFioDomain1, newFioAddress1, newFioDomain2, newFioAddress2, total_bp_votes, total_voted_fio;
+  const fundsAmount = 1000000000000;
+  const transferAmt = 100000000000;
+  const stakeAmt = 900000000000;
+  const unstakeAmt = 25000000000;
+
+  before(async () => {
+    // Create sdk objects for the orinigal localhost BPs
+    bp1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+    bp2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+    bp3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+    //create a user and give it 10k fio.
+    userA = await newUser(faucet);
+    userB = await newUser(faucet);
+    userC = await newUser(faucet);
+    userP = await newUser(faucet);
+    keys = await createKeypair();
+    // console.log("priv key ", keys.privateKey);
+    // console.log("pub key ", keys.publicKey);
+    accountnm =  await getAccountFromKey(keys.publicKey);
+    await faucet.genericAction('pushTransaction', {
+      action: 'trnsloctoks',
+      account: 'fio.token',
+      data: {
+        payee_public_key: keys.publicKey,
+        can_vote: 0,
+        periods: [
+          {
+            duration: 120,
+            amount: 5000000000000,
+          },
+          {
+            duration: 180,
+            amount: 4000000000000,
+          },
+          {
+            duration: 1204800,
+            amount: 1000000000000,
+          }
+        ],
+        amount: 10000000000000,
+        max_fee: 400000000000,
+        tpid: '',
+        actor: 'qhh25sqpktwh',
+      }
+    });
+    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+
+    // transfer some test FIO
+    await userB.sdk.genericAction('transferTokens', {
+      payeeFioPublicKey: keys.publicKey,
+      amount: fundsAmount,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      tpid: '',
+    });
+
+    await locksdk.genericAction('transferTokens', {
+      payeeFioPublicKey: userB.publicKey,
+      amount: transferAmt,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    });
+
+    // register our proxy
+    await userP.sdk.genericAction('pushTransaction', {
+      action: 'regproxy',
+      account: 'eosio',
+      data: {
+        fio_address: userP.address,
+        actor: userP.account,
+        max_fee: config.api.register_proxy.fee
+      }
+    });
+
+    // proxy first so userB can stake
+    await userB.sdk.genericAction('pushTransaction', {
+      action: 'voteproxy',
+      account: 'eosio',
+      data: {
+        proxy: userP.address,
+        fio_address: userB.address,
+        actor: accountnm,
+        max_fee: config.api.proxy_vote.fee
+      }
+    });
+
+    // stake some FIO
+    await userB.sdk.genericAction('pushTransaction', {
+      action: 'stakefio',
+      account: 'fio.staking',
+      data: {
+        fio_address: '',
+        amount: stakeAmt,
+        actor: userB.address,
+        max_fee: stakingFee,
+        tpid: userP.address
+      }
+    });
   });
 
-  // test 9
-  it(`unstake 25 tokens (unstake_fio_tokens) from account B`, async () => {
+  // let bp1, bp2, bp3, userA, userB, userC, userP, prevFundsAmount, locksdk, keys, accountnm, newFioDomain1, newFioAddress1, newFioDomain2, newFioAddress2, total_bp_votes, total_voted_fio;
+  // const fundsAmount = 1000000000000;
+  // const unstakeAmt = 25000000000;
+  //
+  // before(async () => {
+  //   // Create sdk objects for the orinigal localhost BPs
+  //   bp1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+  //   bp2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+  //   bp3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+  //   //create a user and give it 10k fio.
+  //   userA = await newUser(faucet);
+  //   userB = await newUser(faucet);
+  //   userC = await newUser(faucet);
+  //   userP = await newUser(faucet);
+  //   keys = await createKeypair();
+  //   // console.log("priv key ", keys.privateKey);
+  //   // console.log("pub key ", keys.publicKey);
+  //   accountnm =  await getAccountFromKey(keys.publicKey);
+  //   const locktokens = await faucet.genericAction('pushTransaction', {
+  //     action: 'trnsloctoks',
+  //     account: 'fio.token',
+  //     data: {
+  //       payee_public_key: keys.publicKey,
+  //       can_vote: 0,
+  //       periods: [
+  //         {
+  //           duration: 120,
+  //           amount: 5000000000000,
+  //         },
+  //         {
+  //           duration: 180,
+  //           amount: 4000000000000,
+  //         },
+  //         {
+  //           duration: 1204800,
+  //           amount: 1000000000000,
+  //         }
+  //       ],
+  //       amount: 10000000000000,
+  //       max_fee: 400000000000,
+  //       tpid: '',
+  //       actor: 'qhh25sqpktwh',
+  //     }
+  //   });
+  //   expect(locktokens.status).to.equal('OK');
+  //   locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+  // });
+
+  // it(`getFioBalance for general lock token holder, available balance 0 `, async () => {
+  //   const result = await locksdk.genericAction('getFioBalance', { });
+  //   prevFundsAmount = result.balance;
+  //   expect(result.available).to.equal(0);
+  // });
+  //
+  // it(`Failure test Transfer 700 FIO to userA FIO public key, insufficient balance tokens locked`, async () => {
+  //   try {
+  //     const result = await locksdk.genericAction('transferTokens', {
+  //       payeeFioPublicKey: userA.publicKey,
+  //       amount: 70000000000,
+  //       maxFee: config.api.transfer_tokens_pub_key.fee,
+  //       technologyProviderId: ''
+  //     })
+  //     expect(result.status).to.not.equal('OK')
+  //   } catch (err) {
+  //     expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+  //     expect(err.json).to.have.all.keys('type', 'message', 'fields');
+  //     expect(err.errorCode).to.equal(400);
+  //     expect(err.json.fields[0].error).to.contain('Funds locked');
+  //   }
+  // });
+  //
+  // it(`Transfer ${fundsAmount} FIO to locked account`, async () => {
+  //   const result = await userA.sdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: keys.publicKey,
+  //     amount: fundsAmount,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     tpid: '',
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.transfer_tokens_pub_key.fee);
+  // });
+  //
+  // it(`getFioBalance for general lock token holder, available balance 0 `, async () => {
+  //   const result = await locksdk.genericAction('getFioBalance', { });
+  //   prevFundsAmount = result.balance;
+  //   expect(result.available).to.equal(fundsAmount);
+  // });
+  //
+  // it(`transfer 100 tokens to userA`, async () => {
+  //   let transferAmt = 100000000000;
+  //   const result = await locksdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: userA.publicKey,
+  //     amount: transferAmt,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  //   expect(result.transaction_id).to.be.a('string');
+  //   expect(result.block_num).to.be.a('number');
+  //   expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
+  //   expect(result.status).to.be.a('string').and.equal('OK');
+  // });
+  //
+  // it(`transfer 100 tokens to userB`, async () => {
+  //   let transferAmt = 100000000000;
+  //   let userBal = await userB.sdk.genericAction('getFioBalance', {});
+  //   let lockBal = await locksdk.genericAction('getFioBalance', {});
+  //   const result = await locksdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: userB.publicKey,
+  //     amount: transferAmt,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  //   expect(result.transaction_id).to.be.a('string');
+  //   expect(result.block_num).to.be.a('number');
+  //   expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
+  //   expect(result.status).to.be.a('string').and.equal('OK');
+  //   let newUserBal = await userB.sdk.genericAction('getFioBalance', {});
+  //   let newLockBal = await locksdk.genericAction('getFioBalance', {});
+  //   expect(userBal.available).to.be.a('number');
+  //   expect(newUserBal.available).to.be.greaterThan(userBal.available);
+  //   expect(newUserBal.available - userBal.available).to.equal(transferAmt);
+  //   expect(newLockBal.available).to.be.lessThan(lockBal.available);
+  //   expect(lockBal.available - newLockBal.available).to.equal(transferAmt + config.api.transfer_tokens_pub_key.fee);
+  // });
+  //
+  // it(`transfer 100 tokens to userC`, async () => {
+  //   let transferAmt = 100000000000;
+  //   let userBal = await userC.sdk.genericAction('getFioBalance', {});
+  //   let lockBal = await locksdk.genericAction('getFioBalance', {});
+  //   const result = await locksdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: userC.publicKey,
+  //     amount: transferAmt,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  //   expect(result.transaction_id).to.be.a('string');
+  //   expect(result.block_num).to.be.a('number');
+  //   expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
+  //   expect(result.status).to.be.a('string').and.equal('OK');
+  //   let newUserBal = await userC.sdk.genericAction('getFioBalance', {});
+  //   let newLockBal = await locksdk.genericAction('getFioBalance', {});
+  //   expect(userBal.available).to.be.a('number');
+  //   expect(newUserBal.available).to.be.greaterThan(userBal.available);
+  //   expect(newUserBal.available - userBal.available).to.equal(transferAmt);
+  //   expect(newLockBal.available).to.be.lessThan(lockBal.available);
+  //   expect(lockBal.available - newLockBal.available).to.equal(transferAmt + config.api.transfer_tokens_pub_key.fee);
+  // });
+  //
+  // it(`Register domain for voting for userC `, async () => {
+  //   newFioDomain1 = generateFioDomain(15);
+  //   let bal = await userC.sdk.genericAction('getFioBalance', {});
+  //   const result = await userC.sdk.genericAction('registerFioDomain', {
+  //     fioDomain: newFioDomain1,
+  //     maxFee: config.api.register_fio_domain.fee,
+  //     tpid: '',
+  //   });
+  //   let newBal = await userC.sdk.genericAction('getFioBalance', {});
+  //   expect(result).to.have.all.keys('status', 'expiration', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_fio_domain.fee);
+  //   expect(bal.available - newBal.available).to.equal(config.api.register_fio_domain.fee);
+  // });
+  //
+  // it(`Register address for voting for userC`, async () => {
+  //   newFioAddress1 = generateFioAddress(newFioDomain1,15)
+  //   let bal = await userC.sdk.genericAction('getFioBalance', {});
+  //   const result = await userC.sdk.genericAction('registerFioAddress', {
+  //     fioAddress: newFioAddress1,
+  //     maxFee: config.api.register_fio_address.fee,
+  //     tpid: '',
+  //   });
+  //   let newBal = await userC.sdk.genericAction('getFioBalance', {});
+  //   expect(result).to.have.all.keys('status', 'expiration', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_fio_address.fee);
+  //   expect(bal.available - newBal.available).to.equal(config.api.register_fio_address.fee);
+  // });
+  //
+  // it(`userC votes for bp1@dapixdev`, async () => {
+  //   let totalBeforeVote = await getTotalVotedFio();
+  //   const result = await userC.sdk.genericAction('pushTransaction', {
+  //     action: 'voteproducer',
+  //     account: 'eosio',
+  //     data: {
+  //       producers: [bp1.address],
+  //       fio_address: newFioAddress1,
+  //       actor: accountnm,
+  //       max_fee: config.api.vote_producer.fee
+  //     }
+  //   });
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   // after vote
+  //   let totalAfterVote = await getTotalVotedFio()
+  //   expect(totalAfterVote).to.be.greaterThan(totalBeforeVote);
+  // });
+  //
+  // it(`transfer 100 tokens to userP`, async () => {
+  //   let transferAmt = 100000000000;
+  //   let userBal = await userP.sdk.genericAction('getFioBalance', {});
+  //   let lockBal = await locksdk.genericAction('getFioBalance', {});
+  //   const result = await locksdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: userP.publicKey,
+  //     amount: transferAmt,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  //   expect(result.transaction_id).to.be.a('string');
+  //   expect(result.block_num).to.be.a('number');
+  //   expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
+  //   expect(result.status).to.be.a('string').and.equal('OK');
+  //   let newUserBal = await userP.sdk.genericAction('getFioBalance', {});
+  //   let newLockBal = await locksdk.genericAction('getFioBalance', {});
+  //   expect(userBal.available).to.be.a('number');
+  //   expect(newUserBal.available).to.be.greaterThan(userBal.available);
+  //   expect(newUserBal.available - userBal.available).to.equal(transferAmt);
+  //   expect(newLockBal.available).to.be.lessThan(lockBal.available);
+  //   expect(lockBal.available - newLockBal.available).to.equal(transferAmt + config.api.transfer_tokens_pub_key.fee);
+  // });
+  //
+  // it(`register a FIO address for userP`, async () => {
+  //   newFioDomain2 = generateFioDomain(15);
+  //   await userP.sdk.genericAction('registerFioDomain', {
+  //     fioDomain: newFioDomain2,
+  //     maxFee: config.api.register_fio_domain.fee,
+  //     tpid: '',
+  //   });
+  //   newFioAddress2 = generateFioAddress(newFioDomain2,15)
+  //   const result = await userP.sdk.genericAction('registerFioAddress', {
+  //     fioAddress: newFioAddress2,
+  //     maxFee: config.api.register_fio_address.fee,
+  //     tpid: '',
+  //   });
+  //   expect(result).to.have.all.keys('status', 'expiration', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_fio_address.fee);
+  //
+  //   // make the domain public
+  //   const result2 = await userP.sdk.genericAction('setFioDomainVisibility', {
+  //     fioDomain: userP.domain,
+  //     isPublic: true,
+  //     maxFee: config.api.set_fio_domain_public.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result2).to.have.all.keys('status', 'fee_collected');
+  //   expect(result2.status).to.be.a('string').and.equal('OK');
+  //   expect(result2.fee_collected).to.be.a('number').and.equal(config.api.set_fio_domain_public.fee);
+  // });
+  //
+  // it(`register userP as proxy`, async () => {
+  //   let bal = await userP.sdk.genericAction('getFioBalance', {});
+  //   const result = await userP.sdk.genericAction('pushTransaction', {
+  //     action: 'regproxy',
+  //     account: 'eosio',
+  //     data: {
+  //       fio_address: userP.address,
+  //       actor: userP.account,
+  //       max_fee: config.api.register_proxy.fee
+  //     }
+  //   });
+  //   let newBal = await userP.sdk.genericAction('getFioBalance', {});
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_proxy.fee);
+  //   expect(bal.available - newBal.available).to.equal(config.api.register_proxy.fee);
+  // });
+  //
+  // it(`run add_pub_address for userA with userP's FIO address as TPID`, async () => {
+  //   const result = await userA.sdk.genericAction('addPublicAddresses', {
+  //     fioAddress: userA.address,
+  //     publicAddresses: [{
+  //       chain_code: 'ELA',
+  //       token_code: 'ELA',
+  //       public_address: 'EQH6o4xfaR5fbhV8cDbDGRxwJRJn3qeo41',
+  //     }],
+  //     technologyProviderId: userP.address,
+  //     maxFee: config.api.add_pub_address.fee
+  //   });
+  //
+  //   const result2 = await userA.sdk.genericAction('addPublicAddress', {
+  //     fioAddress: userA.address,
+  //     chainCode: 'BCH',
+  //     tokenCode: 'BCH',
+  //     publicAddress: 'bitcoincash:qzf8zha74adsfasdf0xnwlffdn0zuyaslx3c90q7n9g9',
+  //     technologyProviderId: userP.address,
+  //     maxFee: config.api.add_pub_address.fee,
+  //   });
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result2).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   expect(result2.status).to.equal('OK');
+  //   expect(result2.fee_collected).to.equal(0);
+  // });
+  //
+  // it(`Get total_voted_fio`, async () => {
+  //   total_voted_fio = await getTotalVotedFio();
+  //   expect(total_voted_fio).to.be.a('number').and.greaterThanOrEqual(0);
+  // });
+  //
+  // it(`Get bp1@dapixdev total_votes`, async () => {
+  //   total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
+  //   expect(total_bp_votes).to.be.a('number').and.greaterThanOrEqual(0);
+  // });
+  //
+  // it(`userB proxy votes to userP`, async () => {
+  //   const result = await userB.sdk.genericAction('pushTransaction', {
+  //     action: 'voteproxy',
+  //     account: 'eosio',
+  //     data: {
+  //       proxy: userP.address,
+  //       fio_address: userB.address,
+  //       actor: userB.account,
+  //       max_fee: config.api.proxy_vote.fee
+  //     }
+  //   });
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  // });
+  //
+  // it(`userB proxy votes to userP (empty fio_address, expect fee_collected to be ${config.api.proxy_vote.fee})`, async () => {
+  //   const result = await userB.sdk.genericAction('pushTransaction', {
+  //     action: 'voteproxy',
+  //     account: 'eosio',
+  //     data: {
+  //       proxy: userP.address,
+  //       fio_address: '',
+  //       actor: userB.account,
+  //       max_fee: config.api.proxy_vote.fee
+  //     }
+  //   });
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.proxy_vote.fee);
+  // });
+  //
+  // it(`Wait a few seconds.`, async () => {
+  //   wait(4000);
+  // });
+  //
+  // it(`bp1@dapixdev total_votes did not change (votes just shifted from direct vote to proxy vote via proxyA1)`, async () => {
+  //   let prev_total_bp_votes = total_bp_votes;
+  //   total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
+  //   expect(total_bp_votes).to.equal(prev_total_bp_votes)
+  // });
+  //
+  // //Test 2
+  // it(`stake 50 tokens from userA`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 50000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //
+  //   // proxy first so we can stake
+  //   const proxyvote = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'voteproxy',
+  //     account: 'eosio',
+  //     data: {
+  //       proxy: userP.address,
+  //       fio_address: userA.address,
+  //       actor: accountnm,
+  //       max_fee: config.api.proxy_vote.fee
+  //     }
+  //   });
+  //   expect(proxyvote.status).to.equal('OK');
+  //   let balA = await userA.sdk.genericAction('getFioBalance', { });
+  //   expect(balA.staked).to.equal(0);
+  //   const result = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'stakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: userA.address,
+  //       amount: stakeAmt,
+  //       actor: userA.address,
+  //       max_fee: config.maxFee,
+  //       tpid: userP.address
+  //     }
+  //   });
+  //   let newBalA = await userA.sdk.genericAction('getFioBalance', { });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   expect(newBalA.staked - balA.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
+  //   expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
+  //   expect(newCombinedTokenPool - combinedTokenPool).to.equal(stakeAmt);
+  //   expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt);
+  // });
+  //
+  // it(`stake 50 tokens from userA (no fio_address, expect fee_collected to be 3000000000)`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 50000000000;
+  //   feeAmt = 3000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //
+  //   let balA = await userA.sdk.genericAction('getFioBalance', { });
+  //   expect(balA.staked).to.equal(50000000000);
+  //   const result = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'stakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: '',
+  //       amount: stakeAmt,
+  //       actor: userA.address,
+  //       max_fee: feeAmt,
+  //       tpid: userP.address
+  //     }
+  //   });
+  //   let newBalA = await userA.sdk.genericAction('getFioBalance', { });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(feeAmt);
+  //   expect(newBalA.staked - balA.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
+  //   expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
+  //   expect(newCombinedTokenPool - combinedTokenPool).to.be.greaterThanOrEqual(stakeAmt);
+  //   expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt);
+  // });
+  //
+  // // Test 3
+  // it(`register domain from any other account`, async () => {
+  //   let newDomain = generateFioDomain(4);
+  //   const result = await userA.sdk.genericAction('registerFioDomain', {
+  //     fioDomain: newDomain,
+  //     maxFee: config.api.register_fio_domain.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_fio_domain.fee);
+  // });
+  //
+  // // test 4
+  // it(`unstake 25 tokens (unstake_fio_tokens) from userA`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 25000000000;
+  //   feeAmt = 3000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //   let bal = await userA.sdk.genericAction('getFioBalance', {});
+  //   const result = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'unstakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: userA.address,
+  //       amount: stakeAmt,
+  //       actor: userA.account,
+  //       max_fee: feeAmt,
+  //       tpid:''
+  //     }
+  //   });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   let newBal = await userA.sdk.genericAction('getFioBalance', {});
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   expect(bal.staked - newBal.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.lessThan(stakedTokenPool);
+  //   expect(stakedTokenPool - newStakedTokenPool).to.equal(stakeAmt);
+  //   expect(combinedTokenPool - newCombinedTokenPool).to.equal(stakeAmt);
+  //   expect(globalSrpCount - newGlobalSrpCount).to.equal(stakeAmt);
+  // });
+  //
+  // it(`unstake 25 tokens from userA, no fio_address, fee_collected should be 3000000000`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 25000000000;
+  //   feeAmt = 3000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //   let bal = await userA.sdk.genericAction('getFioBalance', {});
+  //   const result = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'unstakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: '',
+  //       amount: stakeAmt,
+  //       actor: userA.account,
+  //       max_fee: feeAmt,
+  //       tpid:''
+  //     }
+  //   });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   let newBal = await userA.sdk.genericAction('getFioBalance', {});
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(feeAmt);
+  //   expect(bal.staked - newBal.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.lessThan(stakedTokenPool);
+  //   expect(stakedTokenPool - newStakedTokenPool).to.equal(stakeAmt);
+  //   expect(combinedTokenPool - newCombinedTokenPool).to.be.lessThan(stakeAmt);
+  //   expect(globalSrpCount - newGlobalSrpCount).to.equal(stakeAmt);
+  // });
+  //
+  // // test 5
+  // it(`stake 500 tokens from userB`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 500000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //   let bal = await userB.sdk.genericAction('getFioBalance', { });
+  //   const result = await userB.sdk.genericAction('pushTransaction', {
+  //     action: 'stakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: userB.address,
+  //       amount: stakeAmt,
+  //       actor: accountnm,
+  //       max_fee: config.maxFee,
+  //       tpid:''
+  //     }
+  //   });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   let newBal = await userB.sdk.genericAction('getFioBalance', { });
+  //   expect(newBal.staked - bal.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
+  //   expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
+  //   expect(newCombinedTokenPool - combinedTokenPool).to.be.greaterThanOrEqual(stakeAmt);
+  //   expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt);
+  // });
+  //
+  // // test 7
+  // it(`get_fio_balance for userA`, async () => {
+  //   const result = await userA.sdk.genericAction('getFioBalance', {});
+  //   expect(result.staked).to.equal(50000000000);
+  // });
+  //
+  // // test 8
+  // it(`unstake 25 tokens (unstake_fio_tokens) from userA`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 25000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //   let bal = await userA.sdk.genericAction('getFioBalance', {});
+  //   const result = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'unstakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: userA.address,
+  //       amount: stakeAmt,
+  //       actor: userA.account,
+  //       max_fee: config.maxFee +1,
+  //       tpid: bp1.address
+  //     }
+  //   });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   let newBal = await userA.sdk.genericAction('getFioBalance', {});
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   expect(bal.staked - newBal.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.lessThan(stakedTokenPool);
+  //   expect(stakedTokenPool - newStakedTokenPool).to.equal(stakeAmt);
+  //   expect(combinedTokenPool - newCombinedTokenPool).to.equal(stakeAmt);
+  //   expect(globalSrpCount - newGlobalSrpCount).to.equal(stakeAmt);
+  // });
+
+  it(`unstake 25 tokens (unstake_fio_tokens) from userB`, async () => {
     let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
-    stakeAmt = 25000000000;
     stakedTokenPool = await getStakedTokenPool();
     combinedTokenPool = await getCombinedTokenPool();
     globalSrpCount = await getGlobalSrpCount();
@@ -616,9 +3826,9 @@ describe(`************************** stake-tokens.js ************************** 
       account: 'fio.staking',
       data: {
         fio_address: userB.address,
-        amount: stakeAmt,
+        amount: unstakeAmt,
         actor: userB.account,
-        max_fee: config.maxFee +1,
+        max_fee: unstakeFee,
         tpid:''
       }
     });
@@ -627,27 +3837,790 @@ describe(`************************** stake-tokens.js ************************** 
     newGlobalSrpCount = await getGlobalSrpCount();
     let newBal = await userB.sdk.genericAction('getFioBalance', {});
     expect(result.status).to.equal('OK');
-    expect(bal.staked - newBal.staked).to.equal(stakeAmt);
+    expect(bal.staked - newBal.staked).to.equal(unstakeAmt);
     expect(newStakedTokenPool).to.be.lessThan(stakedTokenPool);
-    expect(stakedTokenPool - newStakedTokenPool).to.equal(stakeAmt);
-    expect(combinedTokenPool - newCombinedTokenPool).to.equal(stakeAmt);
-    expect(globalSrpCount - newGlobalSrpCount).to.equal(stakeAmt);
+    expect(stakedTokenPool - newStakedTokenPool).to.equal(unstakeAmt);
+    expect(combinedTokenPool - newCombinedTokenPool).to.equal(unstakeAmt);
+    expect(globalSrpCount - newGlobalSrpCount).to.equal(unstakeAmt);
   });
 
-  it(`run get_fio_balance for account A`, async () => {
-    const result = await userA.sdk.genericAction('getFioBalance', {});
-    expect(result.staked).to.equal(25000000000);
-  });
+  // it(`run get_fio_balance for userA`, async () => {
+  //   const result = await userA.sdk.genericAction('getFioBalance', {});
+  //   expect(result.staked).to.equal(25000000000);
+  // });
 
-  it(`run get_fio_balance for account B`, async () => {
+  it(`run get_fio_balance for userB`, async () => {
     const result = await userB.sdk.genericAction('getFioBalance', {});
-    expect(result.staked).to.equal(475000000000);
+    expect(result.staked).to.equal(stakeAmt - 25000000000);
+  });
+});
+
+describe(`A10. Verify next set of staking rewards and user balances`, () => {
+  let bp1, bp2, bp3, userA, userB, userC, userP, prevFundsAmount, locksdk, keys, accountnm, newFioDomain1, newFioAddress1, newFioDomain2, newFioAddress2, total_bp_votes, total_voted_fio;
+  const fundsAmount = 1000000000000;
+
+  before(async () => {
+    // Create sdk objects for the orinigal localhost BPs
+    bp1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+    bp2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+    bp3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+    //create a user and give it 10k fio.
+    userA = await newUser(faucet);
+    userB = await newUser(faucet);
+    userC = await newUser(faucet);
+    userP = await newUser(faucet);
+    keys = await createKeypair();
+    // console.log("priv key ", keys.privateKey);
+    // console.log("pub key ", keys.publicKey);
+    accountnm =  await getAccountFromKey(keys.publicKey);
+    const locktokens = await faucet.genericAction('pushTransaction', {
+      action: 'trnsloctoks',
+      account: 'fio.token',
+      data: {
+        payee_public_key: keys.publicKey,
+        can_vote: 0,
+        periods: [
+          {
+            duration: 120,
+            amount: 5000000000000,
+          },
+          {
+            duration: 180,
+            amount: 4000000000000,
+          },
+          {
+            duration: 1204800,
+            amount: 1000000000000,
+          }
+        ],
+        amount: 10000000000000,
+        max_fee: 400000000000,
+        tpid: '',
+        actor: 'qhh25sqpktwh',
+      }
+    });
+    expect(locktokens.status).to.equal('OK');
+    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
   });
 
-  // test 11
-  it(`stake 900 tokens (stake_fio_tokens) from account C`, async () => {
-    let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
-    stakeAmt = 900000000000;
+  it(`wait for next BP claim`);
+
+  it(`run bpclaim from any other account, expect minted = 25000 - stake fees`);
+
+
+});
+
+describe(`A11. Stake some FIO from userC, observe staking reward changes`, () => {
+  let bp1, bp2, bp3, userA, userB, userC, userP, prevFundsAmount, locksdk, keys, accountnm, newFioDomain1, newFioAddress1, newFioDomain2, newFioAddress2, total_bp_votes, total_voted_fio;
+  const fundsAmount = 1000000000000;
+  const transferAmt = 100000000000;
+  const stakeAmt = 900000000000;
+
+  before(async () => {
+    // Create sdk objects for the orinigal localhost BPs
+    bp1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+    bp2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+    bp3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+    //create a user and give it 10k fio.
+    userA = await newUser(faucet);
+    userB = await newUser(faucet);
+    userC = await newUser(faucet);
+    userP = await newUser(faucet);
+    keys = await createKeypair();
+    // console.log("priv key ", keys.privateKey);
+    // console.log("pub key ", keys.publicKey);
+    accountnm =  await getAccountFromKey(keys.publicKey);
+    await faucet.genericAction('pushTransaction', {
+      action: 'trnsloctoks',
+      account: 'fio.token',
+      data: {
+        payee_public_key: keys.publicKey,
+        can_vote: 0,
+        periods: [
+          {
+            duration: 120,
+            amount: 5000000000000,
+          },
+          {
+            duration: 180,
+            amount: 4000000000000,
+          },
+          {
+            duration: 1204800,
+            amount: 1000000000000,
+          }
+        ],
+        amount: 10000000000000,
+        max_fee: 400000000000,
+        tpid: '',
+        actor: 'qhh25sqpktwh',
+      }
+    });
+    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+
+    // transfer some test FIO
+    await userC.sdk.genericAction('transferTokens', {
+      payeeFioPublicKey: keys.publicKey,
+      amount: fundsAmount,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      tpid: '',
+    });
+
+    await locksdk.genericAction('transferTokens', {
+      payeeFioPublicKey: userC.publicKey,
+      amount: transferAmt,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    });
+
+    // register our proxy
+    await userP.sdk.genericAction('pushTransaction', {
+      action: 'regproxy',
+      account: 'eosio',
+      data: {
+        fio_address: userP.address,
+        actor: userP.account,
+        max_fee: config.api.register_proxy.fee
+      }
+    });
+
+    // proxy first so userA can stake
+    await userC.sdk.genericAction('pushTransaction', {
+      action: 'voteproxy',
+      account: 'eosio',
+      data: {
+        proxy: userP.address,
+        fio_address: userC.address,
+        actor: accountnm,
+        max_fee: config.api.proxy_vote.fee
+      }
+    });
+  });
+
+
+  // let bp1, bp2, bp3, userA, userB, userC, userP, prevFundsAmount, locksdk, keys, accountnm, newFioDomain1, newFioAddress1, newFioDomain2, newFioAddress2, total_bp_votes, total_voted_fio;
+  // const fundsAmount = 1000000000000;
+  //
+  // before(async () => {
+  //   // Create sdk objects for the orinigal localhost BPs
+  //   bp1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+  //   bp2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+  //   bp3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+  //   //create a user and give it 10k fio.
+  //   userA = await newUser(faucet);
+  //   userB = await newUser(faucet);
+  //   userC = await newUser(faucet);
+  //   userP = await newUser(faucet);
+  //   keys = await createKeypair();
+  //   // console.log("priv key ", keys.privateKey);
+  //   // console.log("pub key ", keys.publicKey);
+  //   accountnm =  await getAccountFromKey(keys.publicKey);
+  //   const locktokens = await faucet.genericAction('pushTransaction', {
+  //     action: 'trnsloctoks',
+  //     account: 'fio.token',
+  //     data: {
+  //       payee_public_key: keys.publicKey,
+  //       can_vote: 0,
+  //       periods: [
+  //         {
+  //           duration: 120,
+  //           amount: 5000000000000,
+  //         },
+  //         {
+  //           duration: 180,
+  //           amount: 4000000000000,
+  //         },
+  //         {
+  //           duration: 1204800,
+  //           amount: 1000000000000,
+  //         }
+  //       ],
+  //       amount: 10000000000000,
+  //       max_fee: 400000000000,
+  //       tpid: '',
+  //       actor: 'qhh25sqpktwh',
+  //     }
+  //   });
+  //   expect(locktokens.status).to.equal('OK');
+  //   locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+  // });
+
+  // it(`getFioBalance for general lock token holder, available balance 0 `, async () => {
+  //   const result = await locksdk.genericAction('getFioBalance', { });
+  //   prevFundsAmount = result.balance;
+  //   expect(result.available).to.equal(0);
+  // });
+  //
+  // it(`Failure test Transfer 700 FIO to userA FIO public key, insufficient balance tokens locked`, async () => {
+  //   try {
+  //     const result = await locksdk.genericAction('transferTokens', {
+  //       payeeFioPublicKey: userA.publicKey,
+  //       amount: 70000000000,
+  //       maxFee: config.api.transfer_tokens_pub_key.fee,
+  //       technologyProviderId: ''
+  //     })
+  //     expect(result.status).to.not.equal('OK')
+  //   } catch (err) {
+  //     expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+  //     expect(err.json).to.have.all.keys('type', 'message', 'fields');
+  //     expect(err.errorCode).to.equal(400);
+  //     expect(err.json.fields[0].error).to.contain('Funds locked');
+  //   }
+  // });
+  //
+  // it(`Transfer ${fundsAmount} FIO to locked account`, async () => {
+  //   const result = await userA.sdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: keys.publicKey,
+  //     amount: fundsAmount,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     tpid: '',
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.transfer_tokens_pub_key.fee);
+  // });
+  //
+  // it(`getFioBalance for general lock token holder, available balance 0 `, async () => {
+  //   const result = await locksdk.genericAction('getFioBalance', { });
+  //   prevFundsAmount = result.balance;
+  //   expect(result.available).to.equal(fundsAmount);
+  // });
+  //
+  // it(`transfer 100 tokens to userA`, async () => {
+  //   let transferAmt = 100000000000;
+  //   const result = await locksdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: userA.publicKey,
+  //     amount: transferAmt,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  //   expect(result.transaction_id).to.be.a('string');
+  //   expect(result.block_num).to.be.a('number');
+  //   expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
+  //   expect(result.status).to.be.a('string').and.equal('OK');
+  // });
+  //
+  // it(`transfer 100 tokens to userB`, async () => {
+  //   let transferAmt = 100000000000;
+  //   let userBal = await userB.sdk.genericAction('getFioBalance', {});
+  //   let lockBal = await locksdk.genericAction('getFioBalance', {});
+  //   const result = await locksdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: userB.publicKey,
+  //     amount: transferAmt,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  //   expect(result.transaction_id).to.be.a('string');
+  //   expect(result.block_num).to.be.a('number');
+  //   expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
+  //   expect(result.status).to.be.a('string').and.equal('OK');
+  //   let newUserBal = await userB.sdk.genericAction('getFioBalance', {});
+  //   let newLockBal = await locksdk.genericAction('getFioBalance', {});
+  //   expect(userBal.available).to.be.a('number');
+  //   expect(newUserBal.available).to.be.greaterThan(userBal.available);
+  //   expect(newUserBal.available - userBal.available).to.equal(transferAmt);
+  //   expect(newLockBal.available).to.be.lessThan(lockBal.available);
+  //   expect(lockBal.available - newLockBal.available).to.equal(transferAmt + config.api.transfer_tokens_pub_key.fee);
+  // });
+  //
+  // it(`transfer 100 tokens to userC`, async () => {
+  //   let transferAmt = 100000000000;
+  //   let userBal = await userC.sdk.genericAction('getFioBalance', {});
+  //   let lockBal = await locksdk.genericAction('getFioBalance', {});
+  //   const result = await locksdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: userC.publicKey,
+  //     amount: transferAmt,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  //   expect(result.transaction_id).to.be.a('string');
+  //   expect(result.block_num).to.be.a('number');
+  //   expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
+  //   expect(result.status).to.be.a('string').and.equal('OK');
+  //   let newUserBal = await userC.sdk.genericAction('getFioBalance', {});
+  //   let newLockBal = await locksdk.genericAction('getFioBalance', {});
+  //   expect(userBal.available).to.be.a('number');
+  //   expect(newUserBal.available).to.be.greaterThan(userBal.available);
+  //   expect(newUserBal.available - userBal.available).to.equal(transferAmt);
+  //   expect(newLockBal.available).to.be.lessThan(lockBal.available);
+  //   expect(lockBal.available - newLockBal.available).to.equal(transferAmt + config.api.transfer_tokens_pub_key.fee);
+  // });
+  //
+  // it(`Register domain for voting for userC `, async () => {
+  //   newFioDomain1 = generateFioDomain(15);
+  //   let bal = await userC.sdk.genericAction('getFioBalance', {});
+  //   const result = await userC.sdk.genericAction('registerFioDomain', {
+  //     fioDomain: newFioDomain1,
+  //     maxFee: config.api.register_fio_domain.fee,
+  //     tpid: '',
+  //   });
+  //   let newBal = await userC.sdk.genericAction('getFioBalance', {});
+  //   expect(result).to.have.all.keys('status', 'expiration', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_fio_domain.fee);
+  //   expect(bal.available - newBal.available).to.equal(config.api.register_fio_domain.fee);
+  // });
+  //
+  // it(`Register address for voting for userC`, async () => {
+  //   newFioAddress1 = generateFioAddress(newFioDomain1,15)
+  //   let bal = await userC.sdk.genericAction('getFioBalance', {});
+  //   const result = await userC.sdk.genericAction('registerFioAddress', {
+  //     fioAddress: newFioAddress1,
+  //     maxFee: config.api.register_fio_address.fee,
+  //     tpid: '',
+  //   });
+  //   let newBal = await userC.sdk.genericAction('getFioBalance', {});
+  //   expect(result).to.have.all.keys('status', 'expiration', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_fio_address.fee);
+  //   expect(bal.available - newBal.available).to.equal(config.api.register_fio_address.fee);
+  // });
+  //
+  // it(`userC votes for bp1@dapixdev`, async () => {
+  //   let totalBeforeVote = await getTotalVotedFio();
+  //   const result = await userC.sdk.genericAction('pushTransaction', {
+  //     action: 'voteproducer',
+  //     account: 'eosio',
+  //     data: {
+  //       producers: [bp1.address],
+  //       fio_address: newFioAddress1,
+  //       actor: accountnm,
+  //       max_fee: config.api.vote_producer.fee
+  //     }
+  //   });
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   // after vote
+  //   let totalAfterVote = await getTotalVotedFio()
+  //   expect(totalAfterVote).to.be.greaterThan(totalBeforeVote);
+  // });
+  //
+  // it(`transfer 100 tokens to userP`, async () => {
+  //   let transferAmt = 100000000000;
+  //   let userBal = await userP.sdk.genericAction('getFioBalance', {});
+  //   let lockBal = await locksdk.genericAction('getFioBalance', {});
+  //   const result = await locksdk.genericAction('transferTokens', {
+  //     payeeFioPublicKey: userP.publicKey,
+  //     amount: transferAmt,
+  //     maxFee: config.api.transfer_tokens_pub_key.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  //   expect(result.transaction_id).to.be.a('string');
+  //   expect(result.block_num).to.be.a('number');
+  //   expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
+  //   expect(result.status).to.be.a('string').and.equal('OK');
+  //   let newUserBal = await userP.sdk.genericAction('getFioBalance', {});
+  //   let newLockBal = await locksdk.genericAction('getFioBalance', {});
+  //   expect(userBal.available).to.be.a('number');
+  //   expect(newUserBal.available).to.be.greaterThan(userBal.available);
+  //   expect(newUserBal.available - userBal.available).to.equal(transferAmt);
+  //   expect(newLockBal.available).to.be.lessThan(lockBal.available);
+  //   expect(lockBal.available - newLockBal.available).to.equal(transferAmt + config.api.transfer_tokens_pub_key.fee);
+  // });
+  //
+  // it(`register a FIO address for userP`, async () => {
+  //   newFioDomain2 = generateFioDomain(15);
+  //   await userP.sdk.genericAction('registerFioDomain', {
+  //     fioDomain: newFioDomain2,
+  //     maxFee: config.api.register_fio_domain.fee,
+  //     tpid: '',
+  //   });
+  //   newFioAddress2 = generateFioAddress(newFioDomain2,15)
+  //   const result = await userP.sdk.genericAction('registerFioAddress', {
+  //     fioAddress: newFioAddress2,
+  //     maxFee: config.api.register_fio_address.fee,
+  //     tpid: '',
+  //   });
+  //   expect(result).to.have.all.keys('status', 'expiration', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_fio_address.fee);
+  //
+  //   // make the domain public
+  //   const result2 = await userP.sdk.genericAction('setFioDomainVisibility', {
+  //     fioDomain: userP.domain,
+  //     isPublic: true,
+  //     maxFee: config.api.set_fio_domain_public.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result2).to.have.all.keys('status', 'fee_collected');
+  //   expect(result2.status).to.be.a('string').and.equal('OK');
+  //   expect(result2.fee_collected).to.be.a('number').and.equal(config.api.set_fio_domain_public.fee);
+  // });
+  //
+  // it(`register userP as proxy`, async () => {
+  //   let bal = await userP.sdk.genericAction('getFioBalance', {});
+  //   const result = await userP.sdk.genericAction('pushTransaction', {
+  //     action: 'regproxy',
+  //     account: 'eosio',
+  //     data: {
+  //       fio_address: userP.address,
+  //       actor: userP.account,
+  //       max_fee: config.api.register_proxy.fee
+  //     }
+  //   });
+  //   let newBal = await userP.sdk.genericAction('getFioBalance', {});
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_proxy.fee);
+  //   expect(bal.available - newBal.available).to.equal(config.api.register_proxy.fee);
+  // });
+  //
+  // it(`run add_pub_address for userA with userP's FIO address as TPID`, async () => {
+  //   const result = await userA.sdk.genericAction('addPublicAddresses', {
+  //     fioAddress: userA.address,
+  //     publicAddresses: [{
+  //       chain_code: 'ELA',
+  //       token_code: 'ELA',
+  //       public_address: 'EQH6o4xfaR5fbhV8cDbDGRxwJRJn3qeo41',
+  //     }],
+  //     technologyProviderId: userP.address,
+  //     maxFee: config.api.add_pub_address.fee
+  //   });
+  //
+  //   const result2 = await userA.sdk.genericAction('addPublicAddress', {
+  //     fioAddress: userA.address,
+  //     chainCode: 'BCH',
+  //     tokenCode: 'BCH',
+  //     publicAddress: 'bitcoincash:qzf8zha74adsfasdf0xnwlffdn0zuyaslx3c90q7n9g9',
+  //     technologyProviderId: userP.address,
+  //     maxFee: config.api.add_pub_address.fee,
+  //   });
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result2).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   expect(result2.status).to.equal('OK');
+  //   expect(result2.fee_collected).to.equal(0);
+  // });
+  //
+  // it(`Get total_voted_fio`, async () => {
+  //   total_voted_fio = await getTotalVotedFio();
+  //   expect(total_voted_fio).to.be.a('number').and.greaterThanOrEqual(0);
+  // });
+  //
+  // it(`Get bp1@dapixdev total_votes`, async () => {
+  //   total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
+  //   expect(total_bp_votes).to.be.a('number').and.greaterThanOrEqual(0);
+  // });
+  //
+  // it(`userB proxy votes to userP`, async () => {
+  //   const result = await userB.sdk.genericAction('pushTransaction', {
+  //     action: 'voteproxy',
+  //     account: 'eosio',
+  //     data: {
+  //       proxy: userP.address,
+  //       fio_address: userB.address,
+  //       actor: userB.account,
+  //       max_fee: config.api.proxy_vote.fee
+  //     }
+  //   });
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  // });
+  //
+  // it(`userB proxy votes to userP (empty fio_address, expect fee_collected to be ${config.api.proxy_vote.fee})`, async () => {
+  //   const result = await userB.sdk.genericAction('pushTransaction', {
+  //     action: 'voteproxy',
+  //     account: 'eosio',
+  //     data: {
+  //       proxy: userP.address,
+  //       fio_address: '',
+  //       actor: userB.account,
+  //       max_fee: config.api.proxy_vote.fee
+  //     }
+  //   });
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.proxy_vote.fee);
+  // });
+  //
+  // it(`Wait a few seconds.`, async () => {
+  //   wait(4000);
+  // });
+  //
+  // it(`bp1@dapixdev total_votes did not change (votes just shifted from direct vote to proxy vote via proxyA1)`, async () => {
+  //   let prev_total_bp_votes = total_bp_votes;
+  //   total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
+  //   expect(total_bp_votes).to.equal(prev_total_bp_votes)
+  // });
+  //
+  // //Test 2
+  // it(`stake 50 tokens from userA`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 50000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //
+  //   // proxy first so we can stake
+  //   const proxyvote = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'voteproxy',
+  //     account: 'eosio',
+  //     data: {
+  //       proxy: userP.address,
+  //       fio_address: userA.address,
+  //       actor: accountnm,
+  //       max_fee: config.api.proxy_vote.fee
+  //     }
+  //   });
+  //   expect(proxyvote.status).to.equal('OK');
+  //   let balA = await userA.sdk.genericAction('getFioBalance', { });
+  //   expect(balA.staked).to.equal(0);
+  //   const result = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'stakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: userA.address,
+  //       amount: stakeAmt,
+  //       actor: userA.address,
+  //       max_fee: config.maxFee,
+  //       tpid: userP.address
+  //     }
+  //   });
+  //   let newBalA = await userA.sdk.genericAction('getFioBalance', { });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   expect(newBalA.staked - balA.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
+  //   expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
+  //   expect(newCombinedTokenPool - combinedTokenPool).to.equal(stakeAmt);
+  //   expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt);
+  // });
+  //
+  // it(`stake 50 tokens from userA (no fio_address, expect fee_collected to be 3000000000)`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 50000000000;
+  //   feeAmt = 3000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //
+  //   let balA = await userA.sdk.genericAction('getFioBalance', { });
+  //   expect(balA.staked).to.equal(50000000000);
+  //   const result = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'stakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: '',
+  //       amount: stakeAmt,
+  //       actor: userA.address,
+  //       max_fee: feeAmt,
+  //       tpid: userP.address
+  //     }
+  //   });
+  //   let newBalA = await userA.sdk.genericAction('getFioBalance', { });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(feeAmt);
+  //   expect(newBalA.staked - balA.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
+  //   expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
+  //   expect(newCombinedTokenPool - combinedTokenPool).to.be.greaterThanOrEqual(stakeAmt);
+  //   expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt);
+  // });
+  //
+  // // Test 3
+  // it(`register domain from any other account`, async () => {
+  //   let newDomain = generateFioDomain(4);
+  //   const result = await userA.sdk.genericAction('registerFioDomain', {
+  //     fioDomain: newDomain,
+  //     maxFee: config.api.register_fio_domain.fee,
+  //     technologyProviderId: ''
+  //   });
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(config.api.register_fio_domain.fee);
+  // });
+  //
+  // // test 4
+  // it(`unstake 25 tokens (unstake_fio_tokens) from userA`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 25000000000;
+  //   feeAmt = 3000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //   let bal = await userA.sdk.genericAction('getFioBalance', {});
+  //   const result = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'unstakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: userA.address,
+  //       amount: stakeAmt,
+  //       actor: userA.account,
+  //       max_fee: feeAmt,
+  //       tpid:''
+  //     }
+  //   });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   let newBal = await userA.sdk.genericAction('getFioBalance', {});
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   expect(bal.staked - newBal.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.lessThan(stakedTokenPool);
+  //   expect(stakedTokenPool - newStakedTokenPool).to.equal(stakeAmt);
+  //   expect(combinedTokenPool - newCombinedTokenPool).to.equal(stakeAmt);
+  //   expect(globalSrpCount - newGlobalSrpCount).to.equal(stakeAmt);
+  // });
+  //
+  // it(`unstake 25 tokens from userA, no fio_address, fee_collected should be 3000000000`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 25000000000;
+  //   feeAmt = 3000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //   let bal = await userA.sdk.genericAction('getFioBalance', {});
+  //   const result = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'unstakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: '',
+  //       amount: stakeAmt,
+  //       actor: userA.account,
+  //       max_fee: feeAmt,
+  //       tpid:''
+  //     }
+  //   });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   let newBal = await userA.sdk.genericAction('getFioBalance', {});
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(feeAmt);
+  //   expect(bal.staked - newBal.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.lessThan(stakedTokenPool);
+  //   expect(stakedTokenPool - newStakedTokenPool).to.equal(stakeAmt);
+  //   expect(combinedTokenPool - newCombinedTokenPool).to.be.lessThan(stakeAmt);
+  //   expect(globalSrpCount - newGlobalSrpCount).to.equal(stakeAmt);
+  // });
+  //
+  // // test 5
+  // it(`stake 500 tokens from userB`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 500000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //   let bal = await userB.sdk.genericAction('getFioBalance', { });
+  //   const result = await userB.sdk.genericAction('pushTransaction', {
+  //     action: 'stakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: userB.address,
+  //       amount: stakeAmt,
+  //       actor: accountnm,
+  //       max_fee: config.maxFee,
+  //       tpid:''
+  //     }
+  //   });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   expect(result).to.have.all.keys('status', 'fee_collected');
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   let newBal = await userB.sdk.genericAction('getFioBalance', { });
+  //   expect(newBal.staked - bal.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
+  //   expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
+  //   expect(newCombinedTokenPool - combinedTokenPool).to.be.greaterThanOrEqual(stakeAmt);
+  //   expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt);
+  // });
+  //
+  // // test 7
+  // it(`get_fio_balance for userA`, async () => {
+  //   const result = await userA.sdk.genericAction('getFioBalance', {});
+  //   expect(result.staked).to.equal(50000000000);
+  // });
+  //
+  // // test 8
+  // it(`unstake 25 tokens (unstake_fio_tokens) from userA`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 25000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //   let bal = await userA.sdk.genericAction('getFioBalance', {});
+  //   const result = await userA.sdk.genericAction('pushTransaction', {
+  //     action: 'unstakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: userA.address,
+  //       amount: stakeAmt,
+  //       actor: userA.account,
+  //       max_fee: config.maxFee +1,
+  //       tpid: bp1.address
+  //     }
+  //   });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   let newBal = await userA.sdk.genericAction('getFioBalance', {});
+  //   expect(result.status).to.equal('OK');
+  //   expect(result.fee_collected).to.equal(0);
+  //   expect(bal.staked - newBal.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.lessThan(stakedTokenPool);
+  //   expect(stakedTokenPool - newStakedTokenPool).to.equal(stakeAmt);
+  //   expect(combinedTokenPool - newCombinedTokenPool).to.equal(stakeAmt);
+  //   expect(globalSrpCount - newGlobalSrpCount).to.equal(stakeAmt);
+  // });
+  //
+  // // test 9
+  // it(`unstake 25 tokens (unstake_fio_tokens) from userB`, async () => {
+  //   let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+  //   stakeAmt = 25000000000;
+  //   stakedTokenPool = await getStakedTokenPool();
+  //   combinedTokenPool = await getCombinedTokenPool();
+  //   globalSrpCount = await getGlobalSrpCount();
+  //   let bal = await userB.sdk.genericAction('getFioBalance', {});
+  //   const result = await userB.sdk.genericAction('pushTransaction', {
+  //     action: 'unstakefio',
+  //     account: 'fio.staking',
+  //     data: {
+  //       fio_address: userB.address,
+  //       amount: stakeAmt,
+  //       actor: userB.account,
+  //       max_fee: config.maxFee +1,
+  //       tpid:''
+  //     }
+  //   });
+  //   newStakedTokenPool = await getStakedTokenPool();
+  //   newCombinedTokenPool = await getCombinedTokenPool();
+  //   newGlobalSrpCount = await getGlobalSrpCount();
+  //   let newBal = await userB.sdk.genericAction('getFioBalance', {});
+  //   expect(result.status).to.equal('OK');
+  //   expect(bal.staked - newBal.staked).to.equal(stakeAmt);
+  //   expect(newStakedTokenPool).to.be.lessThan(stakedTokenPool);
+  //   expect(stakedTokenPool - newStakedTokenPool).to.equal(stakeAmt);
+  //   expect(combinedTokenPool - newCombinedTokenPool).to.equal(stakeAmt);
+  //   expect(globalSrpCount - newGlobalSrpCount).to.equal(stakeAmt);
+  // });
+  //
+  // it(`run get_fio_balance for userA`, async () => {
+  //   const result = await userA.sdk.genericAction('getFioBalance', {});
+  //   expect(result.staked).to.equal(25000000000);
+  // });
+  //
+  // it(`run get_fio_balance for userB`, async () => {
+  //   const result = await userB.sdk.genericAction('getFioBalance', {});
+  //   expect(result.staked).to.equal(475000000000);
+  // });
+
+  it(`stake 900 tokens (stake_fio_tokens) from userC`, async () => {
+    let stakedTokenPool, combinedTokenPool, globalSrpCount, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
     stakedTokenPool = await getStakedTokenPool();
     combinedTokenPool = await getCombinedTokenPool();
     globalSrpCount = await getGlobalSrpCount();
@@ -659,7 +4632,7 @@ describe(`************************** stake-tokens.js ************************** 
         fio_address: userC.address,
         amount: stakeAmt,
         actor: accountnm,
-        max_fee: config.maxFee,
+        max_fee: stakingFee,
         tpid:''
       }
     });
@@ -742,7 +4715,7 @@ describe('B. Test stakefio Bundled transactions', () => {
     expect(result.available).to.equal(2160000000000);
     expect(result.staked).to.equal(0);
     expect(result.srps).to.equal(0);
-    expect(result.roe).to.equal(1);
+    expect(result.roe).to.equal('1.000000000000000');
   });
 
   it(`get addresses for user1`, async () => {
@@ -895,7 +4868,7 @@ describe('B. Test stakefio Bundled transactions', () => {
     let stakeAmt = 1;
     let feeAmt = 3000000000;
     let bundles = await getBundleCount(user1.sdk)
-    process.stdout.write('\tconsuming remaining bundled transactions, this may take a while');
+    process.stdout.write('\tconsuming remaining bundled transactions\n\tthis may take a while');
     while (bundles > 0) {
       process.stdout.write('.');
       await user1.sdk.genericAction('pushTransaction', {
@@ -950,13 +4923,12 @@ describe('B. Test stakefio Bundled transactions', () => {
     expect(newBal.staked - bal.staked).to.equal(stakeAmt);
     expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
     expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
-    let dbg = newCombinedTokenPool - combinedTokenPool;
     expect(newCombinedTokenPool - combinedTokenPool).to.be.greaterThanOrEqual(stakeAmt);
     expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt);
   });
 });
 
-describe.only('C. Test unstakefio Bundled transactions', () => {
+describe('C. Test unstakefio Bundled transactions', () => {
   let bp1, bp2, bp3, user1, user2, user3, proxy1, bundleCount1, accountnm, keys;
   const fundsAmount = 1000000000000
 
@@ -1001,7 +4973,7 @@ describe.only('C. Test unstakefio Bundled transactions', () => {
     expect(result.available).to.equal(2160000000000);
     expect(result.staked).to.equal(0);
     expect(result.srps).to.equal(0);
-    expect(result.roe).to.equal(1);
+    expect(result.roe).to.equal('1.000000000000000');
   });
 
   it(`get addresses for user1`, async () => {
@@ -1031,6 +5003,16 @@ describe.only('C. Test unstakefio Bundled transactions', () => {
     expect(result).to.have.all.keys('status', 'fee_collected');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(config.api.register_proxy.fee);
+  });
+
+  it(`get initial locks for user1, expect error: no lock tokens in account`, async () => {
+    try {
+      const locks = await user1.sdk.genericAction('getLocks', {fioPublicKey: user1.publicKey});
+      expect(locks).to.have.all.keys('lock_amount', 'remaining_lock_amount', 'time_stamp', 'payouts_performed', 'can_vote', 'unlock_periods')
+    } catch (err) {
+      expect(err.errorCode).to.equal(404);
+      expect(err.json.message).to.equal('No lock tokens in account');
+    }
   });
 
   it(`stake 50000000000 FIO so user1 has funds to unstake`, async () => {
@@ -1071,7 +5053,17 @@ describe.only('C. Test unstakefio Bundled transactions', () => {
     expect(bundles).to.equal(99);
   });
 
-  it(`unstake FIO from user1`, async () => {
+  it(`get locks for user1 after staking some FIO, expect error: no lock tokens in account`, async () => {
+    try {
+      const locks = await user1.sdk.genericAction('getLocks', {fioPublicKey: user1.publicKey});
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.errorCode).to.equal(404);
+      expect(err.json.message).to.equal('No lock tokens in account');
+    }
+  });
+
+  it(`unstake 10000000000 FIO from user1`, async () => {
     let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
     stakeAmt = 10000000000;
     feeAmt = 3000000000;
@@ -1107,6 +5099,15 @@ describe.only('C. Test unstakefio Bundled transactions', () => {
     expect(bundles).to.equal(98);
   });
 
+  it(`get locks for user1, expect lock_amount, remaining_lock_amount and unlock period amount to equal 10000000000`, async () => {
+    const locks = await user1.sdk.genericAction('getLocks', {fioPublicKey: user1.publicKey});
+    expect(locks).to.have.all.keys('lock_amount', 'remaining_lock_amount', 'time_stamp', 'payouts_performed', 'can_vote', 'unlock_periods');
+    expect(locks.lock_amount).to.equal(10000000000);
+    expect(locks.remaining_lock_amount).to.equal(10000000000);
+    expect(locks.unlock_periods.length).to.equal(1);
+    expect(locks.unlock_periods[0].amount).to.equal(10000000000);
+  });
+
   it('stake small amounts of FIO so that all bundled tx get consumed', async () => {
     let stakeAmt = 1;
     let feeAmt = 3000000000;
@@ -1133,10 +5134,18 @@ describe.only('C. Test unstakefio Bundled transactions', () => {
     expect(bundles).to.equal(0);
   });
 
-  it(`get locks for user1`, async () => {
-    let locks = await user1.sdk.genericAction('getLocks', {fio_public_key: user1.publicKey});
-    console.log(locks)
+  it(`get locks for user1, expect lock_amount, remaining_lock_amount and unlock period amount to equal 0`, async () => {
+    // try {
+    const locks = await user1.sdk.genericAction('getLocks', {fioPublicKey: user1.publicKey});
+    // console.log(locks);
+    expect(locks).to.have.all.keys('lock_amount', 'remaining_lock_amount', 'time_stamp', 'payouts_performed', 'can_vote', 'unlock_periods');
+    expect(locks.lock_amount).to.equal(0);
+    expect(locks.remaining_lock_amount).to.equal(0);
+    expect(locks.unlock_periods.length).to.equal(0);
 
+    // } catch (err) {
+    //   expect(err).to.equal(null);
+    // }
   });
 
   it(`unstake FIO with no bundles remaining, expect fee_collected > 0`, async () => {
@@ -1149,35 +5158,49 @@ describe.only('C. Test unstakefio Bundled transactions', () => {
     let bal = await user1.sdk.genericAction('getFioBalance', { });
     expect(bal.staked).to.be.greaterThanOrEqual(stakeAmt);
 
-    try {
-      const result = await user1.sdk.genericAction('pushTransaction', {
-        action: 'unstakefio',
-        account: 'fio.staking',
-        data: {
-          fio_address: user1.address,
-          amount: stakeAmt,
-          actor: user1.account,
-          max_fee: feeAmt,
-          tpid: proxy1.address
-        }
-      });
-      newStakedTokenPool = await getStakedTokenPool();
-      newCombinedTokenPool = await getCombinedTokenPool();
-      newGlobalSrpCount = await getGlobalSrpCount();
-      let newBal = await user1.sdk.genericAction('getFioBalance', {});
-      expect(result.status).to.equal('OK');
-      expect(result.fee_collected).to.equal(feeAmt);
-      expect(bal.staked - newBal.staked).to.equal(stakeAmt);
-      expect(newStakedTokenPool).to.be.lessThan(stakedTokenPool);
-      expect(stakedTokenPool - newStakedTokenPool).to.equal(stakeAmt);
-      expect(combinedTokenPool - newCombinedTokenPool).to.equal(stakeAmt);
-      expect(globalSrpCount - newGlobalSrpCount).to.equal(stakeAmt);
+    // try {
+    const result = await user1.sdk.genericAction('pushTransaction', {
+      action: 'unstakefio',
+      account: 'fio.staking',
+      data: {
+        fio_address: user1.address,
+        amount: stakeAmt,
+        actor: user1.account,
+        max_fee: feeAmt,
+        tpid: proxy1.address
+      }
+    });
+    newStakedTokenPool = await getStakedTokenPool();
+    newCombinedTokenPool = await getCombinedTokenPool();
+    newGlobalSrpCount = await getGlobalSrpCount();
+    let newBal = await user1.sdk.genericAction('getFioBalance', {});
+    expect(result.status).to.equal('OK');
+    expect(result.fee_collected).to.equal(feeAmt);
+    expect(bal.staked - newBal.staked).to.equal(stakeAmt);
+    expect(newStakedTokenPool).to.be.lessThan(stakedTokenPool);
+    expect(stakedTokenPool - newStakedTokenPool).to.equal(stakeAmt);
+    expect(combinedTokenPool - newCombinedTokenPool).to.be.lessThanOrEqual(stakeAmt);
+    expect(globalSrpCount - newGlobalSrpCount).to.equal(stakeAmt);
 
-      let bundleCount = await getBundleCount(user1.sdk);
-      expect(bundleCount).to.equal(98);
-    } catch (err) {
-      expect(err).to.equal(null);
-    }
+    let bundleCount = await getBundleCount(user1.sdk);
+    expect(bundleCount).to.equal(0);
+    // } catch (err) {
+    //   expect(err).to.equal(null);
+    // }
+  });
+
+  it(`get locks for user1, expect lock_amount, remaining_lock_amount and unlock period amount to equal 20000000000Z`, async () => {
+    // try {
+    const locks = await user1.sdk.genericAction('getLocks', {fioPublicKey: user1.publicKey});
+    expect(locks).to.have.all.keys('lock_amount', 'remaining_lock_amount', 'time_stamp', 'payouts_performed', 'can_vote', 'unlock_periods');
+    expect(locks.lock_amount).to.equal(20000000000);
+    expect(locks.remaining_lock_amount).to.equal(20000000000);
+    expect(locks.unlock_periods.length).to.equal(1);
+    expect(locks.unlock_periods[0].amount).to.equal(20000000000);
+
+    // } catch (err) {
+    //   expect(err).to.equal(null);
+    // }
   });
 
   // it.skip(`stake 10000000000 of user3's FIO balance`, async () => {
@@ -1219,13 +5242,13 @@ describe.only('C. Test unstakefio Bundled transactions', () => {
   // });
 
   it(`try to unstake with 0 staked balance, expect error`, async () => {
-    let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+    let bal, newBal, stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
     stakeAmt = 20000000000;
     feeAmt = 3000000000;
     stakedTokenPool = await getStakedTokenPool();
     combinedTokenPool = await getCombinedTokenPool();
     globalSrpCount = await getGlobalSrpCount();
-    let bal = await user3.sdk.genericAction('getFioBalance', { });
+    bal = await user3.sdk.genericAction('getFioBalance', { });
     expect(bal.staked).to.be.greaterThanOrEqual(0);
 
     try {
@@ -1244,7 +5267,7 @@ describe.only('C. Test unstakefio Bundled transactions', () => {
       newStakedTokenPool = await getStakedTokenPool();
       newCombinedTokenPool = await getCombinedTokenPool();
       newGlobalSrpCount = await getGlobalSrpCount();
-      let newBal = await user3.sdk.genericAction('getFioBalance', {});
+      newBal = await user3.sdk.genericAction('getFioBalance', {});
       expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
       expect(err.json).to.have.all.keys('code', 'message', 'error');
       expect(err.json.error.details[0].message).to.contain('incacctstake, actor has no accountstake record');
@@ -1261,16 +5284,10 @@ describe.only('C. Test unstakefio Bundled transactions', () => {
   //
   // });
 
-  //TODO: Repeat both of the above with user1 (no bundles)
   it(`try to unstake with 0 bundles and 0 staked balance, expect error`, async () => {
-    let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
-    stakeAmt = 20000000000;
+    let bal, newBal, stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
     feeAmt = 3000000000;
-    stakedTokenPool = await getStakedTokenPool();
-    combinedTokenPool = await getCombinedTokenPool();
-    globalSrpCount = await getGlobalSrpCount();
-    let bal = await user1.sdk.genericAction('getFioBalance', { });
-    // expect(bal.staked).to.be.greaterThanOrEqual(0);
+    bal = await user1.sdk.genericAction('getFioBalance', { });
     stakeAmt = bal.staked - feeAmt;
     const unstake = await user1.sdk.genericAction('pushTransaction', {
       action: 'unstakefio',
@@ -1283,7 +5300,13 @@ describe.only('C. Test unstakefio Bundled transactions', () => {
         tpid: proxy1.address
       }
     });
-    expect(unstake.status).to.equal('OK');    //TODO: assertion failure with message: unstakefio,  internal error decrementing payouts.
+    expect(unstake.status).to.equal('OK');
+    bal = await user1.sdk.genericAction('getFioBalance', { });
+    stakedTokenPool = await getStakedTokenPool();
+    combinedTokenPool = await getCombinedTokenPool();
+    globalSrpCount = await getGlobalSrpCount();
+    expect(bal.staked).to.equal(feeAmt);
+    expect(await getBundleCount(user1.sdk)).to.equal(0);
 
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
@@ -1294,22 +5317,21 @@ describe.only('C. Test unstakefio Bundled transactions', () => {
           amount: stakeAmt,
           actor: user1.account,
           max_fee: feeAmt,
-          tpid: proxy1.address
+          tpid: ''
         }
       });
     } catch (err) {
       newStakedTokenPool = await getStakedTokenPool();
       newCombinedTokenPool = await getCombinedTokenPool();
       newGlobalSrpCount = await getGlobalSrpCount();
-      let newBal = await user3.sdk.genericAction('getFioBalance', {});
+      newBal = await user1.sdk.genericAction('getFioBalance', {});
       expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.json).to.have.all.keys('code', 'message', 'error');
-      expect(err.json.error.details[0].message).to.contain('incacctstake, actor has no accountstake record');
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.json.fields[0].error).to.equal('Cannot unstake more than staked.');
       expect(newStakedTokenPool).to.equal(stakedTokenPool);
       expect(newCombinedTokenPool).to.equal(combinedTokenPool);
       expect(newGlobalSrpCount).to.equal(globalSrpCount);
       expect(newBal.staked).to.equal(bal.staked);
-      expect(await getBundleCount(user3.sdk)).to.equal(100);
     }
   });
 
