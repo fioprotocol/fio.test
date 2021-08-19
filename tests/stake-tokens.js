@@ -742,7 +742,7 @@ describe('B. Test stakefio Bundled transactions', () => {
     expect(result.available).to.equal(2160000000000);
     expect(result.staked).to.equal(0);
     expect(result.srps).to.equal(0);
-    expect(result.roe).to.equal(1);
+    expect(result.roe).to.equal('1.000000000000000');
   });
 
   it(`get addresses for user1`, async () => {
@@ -956,7 +956,7 @@ describe('B. Test stakefio Bundled transactions', () => {
   });
 });
 
-describe.only('C. Test unstakefio Bundled transactions', () => {
+describe('C. Test unstakefio Bundled transactions', () => {
   let bp1, bp2, bp3, user1, user2, user3, proxy1, bundleCount1, accountnm, keys;
   const fundsAmount = 1000000000000
 
@@ -1001,7 +1001,7 @@ describe.only('C. Test unstakefio Bundled transactions', () => {
     expect(result.available).to.equal(2160000000000);
     expect(result.staked).to.equal(0);
     expect(result.srps).to.equal(0);
-    expect(result.roe).to.equal(1);
+    expect(result.roe).to.equal('1.000000000000000');
   });
 
   it(`get addresses for user1`, async () => {
