@@ -950,7 +950,6 @@ describe('B. Test stakefio Bundled transactions', () => {
     expect(newBal.staked - bal.staked).to.equal(stakeAmt);
     expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
     expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
-    let dbg = newCombinedTokenPool - combinedTokenPool;
     expect(newCombinedTokenPool - combinedTokenPool).to.be.greaterThanOrEqual(stakeAmt);
     expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt);
   });
@@ -1033,6 +1032,11 @@ describe('C. Test unstakefio Bundled transactions', () => {
     expect(result.fee_collected).to.equal(config.api.register_proxy.fee);
   });
 
+
+
+
+
+
   it(`stake 50000000000 FIO so user1 has funds to unstake`, async () => {
     let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
     stakeAmt = 50000000000;
@@ -1071,7 +1075,17 @@ describe('C. Test unstakefio Bundled transactions', () => {
     expect(bundles).to.equal(99);
   });
 
-  it(`unstake FIO from user1`, async () => {
+  it(`get locks for user1, expect 404 error: No lock tokens in account`, async () => {
+    try {
+      const locks = await user1.sdk.genericAction('getLocks', {fioPublicKey: user1.publicKey});
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.errorCode).to.equal(404);
+      expect(err.json.message).to.equal('No lock tokens in account');
+    }
+  });
+
+  it(`unstake 10000000000 FIO from user1`, async () => {
     let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
     stakeAmt = 10000000000;
     feeAmt = 3000000000;
@@ -1107,6 +1121,15 @@ describe('C. Test unstakefio Bundled transactions', () => {
     expect(bundles).to.equal(98);
   });
 
+  it(`get locks for user1, expect lock_amount, remaining_lock_amount and unlock period amount to equal 10000000000`, async () => {
+    const locks = await user1.sdk.genericAction('getLocks', {fioPublicKey: user1.publicKey});
+    expect(locks).to.have.all.keys('lock_amount', 'remaining_lock_amount', 'time_stamp', 'payouts_performed', 'can_vote', 'unlock_periods');
+    expect(locks.lock_amount).to.equal(10000000000);
+    expect(locks.remaining_lock_amount).to.equal(10000000000);
+    expect(locks.unlock_periods.length).to.equal(1);
+    expect(locks.unlock_periods[0].amount).to.equal(10000000000);
+  });
+
   it('stake small amounts of FIO so that all bundled tx get consumed', async () => {
     let stakeAmt = 1;
     let feeAmt = 3000000000;
@@ -1133,10 +1156,18 @@ describe('C. Test unstakefio Bundled transactions', () => {
     expect(bundles).to.equal(0);
   });
 
-  it(`get locks for user1`, async () => {
-    let locks = await user1.sdk.genericAction('getLocks', {fio_public_key: user1.publicKey});
-    console.log(locks)
+  it(`get locks for user1, expect lock_amount, remaining_lock_amount and unlock period amount to equal 0`, async () => {
+    // try {
+    const locks = await user1.sdk.genericAction('getLocks', {fioPublicKey: user1.publicKey});
+    // console.log(locks);
+    expect(locks).to.have.all.keys('lock_amount', 'remaining_lock_amount', 'time_stamp', 'payouts_performed', 'can_vote', 'unlock_periods');
+    expect(locks.lock_amount).to.equal(0);
+    expect(locks.remaining_lock_amount).to.equal(0);
+    expect(locks.unlock_periods.length).to.equal(0);
 
+    // } catch (err) {
+    //   expect(err).to.equal(null);
+    // }
   });
 
   it(`unstake FIO with no bundles remaining, expect fee_collected > 0`, async () => {
@@ -1149,35 +1180,49 @@ describe('C. Test unstakefio Bundled transactions', () => {
     let bal = await user1.sdk.genericAction('getFioBalance', { });
     expect(bal.staked).to.be.greaterThanOrEqual(stakeAmt);
 
-    try {
-      const result = await user1.sdk.genericAction('pushTransaction', {
-        action: 'unstakefio',
-        account: 'fio.staking',
-        data: {
-          fio_address: user1.address,
-          amount: stakeAmt,
-          actor: user1.account,
-          max_fee: feeAmt,
-          tpid: proxy1.address
-        }
-      });
-      newStakedTokenPool = await getStakedTokenPool();
-      newCombinedTokenPool = await getCombinedTokenPool();
-      newGlobalSrpCount = await getGlobalSrpCount();
-      let newBal = await user1.sdk.genericAction('getFioBalance', {});
-      expect(result.status).to.equal('OK');
-      expect(result.fee_collected).to.equal(feeAmt);
-      expect(bal.staked - newBal.staked).to.equal(stakeAmt);
-      expect(newStakedTokenPool).to.be.lessThan(stakedTokenPool);
-      expect(stakedTokenPool - newStakedTokenPool).to.equal(stakeAmt);
-      expect(combinedTokenPool - newCombinedTokenPool).to.equal(stakeAmt);
-      expect(globalSrpCount - newGlobalSrpCount).to.equal(stakeAmt);
+    // try {
+    const result = await user1.sdk.genericAction('pushTransaction', {
+      action: 'unstakefio',
+      account: 'fio.staking',
+      data: {
+        fio_address: user1.address,
+        amount: stakeAmt,
+        actor: user1.account,
+        max_fee: feeAmt,
+        tpid: proxy1.address
+      }
+    });
+    newStakedTokenPool = await getStakedTokenPool();
+    newCombinedTokenPool = await getCombinedTokenPool();
+    newGlobalSrpCount = await getGlobalSrpCount();
+    let newBal = await user1.sdk.genericAction('getFioBalance', {});
+    expect(result.status).to.equal('OK');
+    expect(result.fee_collected).to.equal(feeAmt);
+    expect(bal.staked - newBal.staked).to.equal(stakeAmt);
+    expect(newStakedTokenPool).to.be.lessThan(stakedTokenPool);
+    expect(stakedTokenPool - newStakedTokenPool).to.equal(stakeAmt);
+    expect(combinedTokenPool - newCombinedTokenPool).to.be.lessThanOrEqual(stakeAmt);
+    expect(globalSrpCount - newGlobalSrpCount).to.equal(stakeAmt);
 
-      let bundleCount = await getBundleCount(user1.sdk);
-      expect(bundleCount).to.equal(98);
-    } catch (err) {
-      expect(err).to.equal(null);
-    }
+    let bundleCount = await getBundleCount(user1.sdk);
+    expect(bundleCount).to.equal(0);
+    // } catch (err) {
+    //   expect(err).to.equal(null);
+    // }
+  });
+
+  it(`get locks for user1, expect lock_amount, remaining_lock_amount and unlock period amount to equal 20000000000Z`, async () => {
+    // try {
+    const locks = await user1.sdk.genericAction('getLocks', {fioPublicKey: user1.publicKey});
+    expect(locks).to.have.all.keys('lock_amount', 'remaining_lock_amount', 'time_stamp', 'payouts_performed', 'can_vote', 'unlock_periods');
+    expect(locks.lock_amount).to.equal(20000000000);
+    expect(locks.remaining_lock_amount).to.equal(20000000000);
+    expect(locks.unlock_periods.length).to.equal(1);
+    expect(locks.unlock_periods[0].amount).to.equal(20000000000);
+
+    // } catch (err) {
+    //   expect(err).to.equal(null);
+    // }
   });
 
   // it.skip(`stake 10000000000 of user3's FIO balance`, async () => {
@@ -1219,13 +1264,13 @@ describe('C. Test unstakefio Bundled transactions', () => {
   // });
 
   it(`try to unstake with 0 staked balance, expect error`, async () => {
-    let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+    let bal, newBal, stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
     stakeAmt = 20000000000;
     feeAmt = 3000000000;
     stakedTokenPool = await getStakedTokenPool();
     combinedTokenPool = await getCombinedTokenPool();
     globalSrpCount = await getGlobalSrpCount();
-    let bal = await user3.sdk.genericAction('getFioBalance', { });
+    bal = await user3.sdk.genericAction('getFioBalance', { });
     expect(bal.staked).to.be.greaterThanOrEqual(0);
 
     try {
@@ -1244,7 +1289,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
       newStakedTokenPool = await getStakedTokenPool();
       newCombinedTokenPool = await getCombinedTokenPool();
       newGlobalSrpCount = await getGlobalSrpCount();
-      let newBal = await user3.sdk.genericAction('getFioBalance', {});
+      newBal = await user3.sdk.genericAction('getFioBalance', {});
       expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
       expect(err.json).to.have.all.keys('code', 'message', 'error');
       expect(err.json.error.details[0].message).to.contain('incacctstake, actor has no accountstake record');
@@ -1261,16 +1306,10 @@ describe('C. Test unstakefio Bundled transactions', () => {
   //
   // });
 
-  //TODO: Repeat both of the above with user1 (no bundles)
   it(`try to unstake with 0 bundles and 0 staked balance, expect error`, async () => {
-    let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
-    stakeAmt = 20000000000;
+    let bal, newBal, stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
     feeAmt = 3000000000;
-    stakedTokenPool = await getStakedTokenPool();
-    combinedTokenPool = await getCombinedTokenPool();
-    globalSrpCount = await getGlobalSrpCount();
-    let bal = await user1.sdk.genericAction('getFioBalance', { });
-    // expect(bal.staked).to.be.greaterThanOrEqual(0);
+    bal = await user1.sdk.genericAction('getFioBalance', { });
     stakeAmt = bal.staked - feeAmt;
     const unstake = await user1.sdk.genericAction('pushTransaction', {
       action: 'unstakefio',
@@ -1283,7 +1322,13 @@ describe('C. Test unstakefio Bundled transactions', () => {
         tpid: proxy1.address
       }
     });
-    expect(unstake.status).to.equal('OK');    //TODO: assertion failure with message: unstakefio,  internal error decrementing payouts.
+    expect(unstake.status).to.equal('OK');
+    bal = await user1.sdk.genericAction('getFioBalance', { });
+    stakedTokenPool = await getStakedTokenPool();
+    combinedTokenPool = await getCombinedTokenPool();
+    globalSrpCount = await getGlobalSrpCount();
+    expect(bal.staked).to.equal(feeAmt);
+    expect(await getBundleCount(user1.sdk)).to.equal(0);
 
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
@@ -1294,22 +1339,21 @@ describe('C. Test unstakefio Bundled transactions', () => {
           amount: stakeAmt,
           actor: user1.account,
           max_fee: feeAmt,
-          tpid: proxy1.address
+          tpid: ''
         }
       });
     } catch (err) {
       newStakedTokenPool = await getStakedTokenPool();
       newCombinedTokenPool = await getCombinedTokenPool();
       newGlobalSrpCount = await getGlobalSrpCount();
-      let newBal = await user3.sdk.genericAction('getFioBalance', {});
+      newBal = await user1.sdk.genericAction('getFioBalance', {});
       expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.json).to.have.all.keys('code', 'message', 'error');
-      expect(err.json.error.details[0].message).to.contain('incacctstake, actor has no accountstake record');
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.json.fields[0].error).to.equal('Cannot unstake more than staked.');
       expect(newStakedTokenPool).to.equal(stakedTokenPool);
       expect(newCombinedTokenPool).to.equal(combinedTokenPool);
       expect(newGlobalSrpCount).to.equal(globalSrpCount);
       expect(newBal.staked).to.equal(bal.staked);
-      expect(await getBundleCount(user3.sdk)).to.equal(100);
     }
   });
 
