@@ -1,4 +1,4 @@
-const { callFioApi, newUser } = require("../../utils.js");
+const { callFioApi, newUser, existingUser } = require("../../utils.js");
 const config = require('../../config');
 
 class Staker {
@@ -27,14 +27,26 @@ class Staker {
     this.roe = null;
   }
 
-  async createSdk(faucet) {
-    let user = await newUser(faucet)
-    this.privateKey = user.privateKey
-    this.publicKey = user.publicKey
-    this.account = user.account
-    this.sdk = user.sdk
-    this.domain = user.domain
-    this.address = user.address
+  async createSdk(faucet, privateKey = '', publicKey, account, domain, address) {
+    let user;
+    if (privateKey == '') {
+      user = await newUser(faucet);
+    } else {
+      user = await existingUser(account, privateKey, publicKey, domain, address);
+    }
+
+    this.privateKey = user.privateKey;
+    this.publicKey = user.publicKey;
+    this.account = user.account;
+    this.sdk = user.sdk;
+    this.domain = user.domain;
+    this.address = user.address;
+
+    console.log('privateKey: ', this.privateKey);
+    console.log('publicKey: ', this.publicKey);
+    console.log('account: ', this.account);
+    console.log('domain: ', this.domain);
+    console.log('address: ', this.address);
   }
 
   async stake(amount) {
@@ -94,11 +106,12 @@ class Staker {
 
   async printPrevBalances() {
     console.log('PREVIOUS BALANCE');
-    console.log('prevBalance: ', this.prevBalance);
-    console.log('prevAvailable: ', this.prevAvailable);
-    console.log('prevStaked: ', this.prevStaked);
-    console.log('prevSrps: ', this.prevSrps);
-    console.log('prevRoe: ', this.prevRoe);
+    console.log('   prevBalance: ', this.prevBalance);
+    console.log('   prevAvailable: ', this.prevAvailable);
+    console.log('   prevStaked: ', this.prevStaked);
+    console.log('   prevSrps: ', this.prevSrps);
+    console.log('   prevRoe: ', this.prevRoe);
+    console.log('   prevRoeDouble: ', this.prevRoeDouble);
   }
 
   async printCurrentBalances() {
