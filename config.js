@@ -276,12 +276,19 @@ const config = {
         msig_invalidate: {
             bundledEligible: false,
             fee: 400000000
-        } ,
+        },
         cancel_funds_request: {
             bundledEligible: true,
             fee: 600000000
+        },
+        stakefio: {
+            bundledEligible: true,
+            fee: 3000000000
+        },
+        unstakefio: {
+            bundledEligible: true,
+            fee: 3000000000
         }
-
     },
 
     paramMax: {

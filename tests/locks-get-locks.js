@@ -253,7 +253,7 @@ describe(`B.   Get locks success tests. `, () => {
 
 const UNSTAKELOCKDURATIONSECONDS = 604800
 
-describe(`C. Insert stake period in middle of locktokensv2 general locks, then unlock and unstake, skip two periods of general lock`, () => {
+describe.only(`C. Insert stake period in middle of locktokensv2 general locks, then unlock and unstake, skip two periods of general lock`, () => {
 
   let userA1, locksdk, keys, accountnm, newFioDomain, newFioAddress, lockDuration
 
@@ -437,15 +437,11 @@ describe(`C. Insert stake period in middle of locktokensv2 general locks, then u
 
     // console.log('Result: ', result)
     expect(result.can_vote).to.equal(0)
-    expect(result.lock_amount).to.equal(genLockTotal)
+    expect(result.lock_amount).to.equal(genLockTotal - genLock1Amount - genLock2Amount)
     expect(result.remaining_lock_amount).to.equal(genLockTotal - genLock1Amount - genLock2Amount)
-    expect(result.payouts_performed).to.equal(2)
-    expect(result.unlock_periods[0].duration).to.equal(genLock1Dur)
-    expect(result.unlock_periods[0].amount).to.equal(genLock1Amount)
-    expect(result.unlock_periods[1].duration).to.equal(genLock2Dur)
-    expect(result.unlock_periods[1].amount).to.equal(genLock2Amount)
-    expect(result.unlock_periods[2].duration).to.equal(genLock3Dur)
-    expect(result.unlock_periods[2].amount).to.equal(genLock3Amount)
+    expect(result.payouts_performed).to.equal(0)
+    expect(result.unlock_periods[0].duration).to.equal(genLock3Dur)
+    expect(result.unlock_periods[0].amount).to.equal(genLock3Amount)
 
   })
 
@@ -595,5 +591,121 @@ describe(`C. Insert stake period in middle of locktokensv2 general locks, then u
 
   })
 
+
+})
+
+
+describe(`D. Make new lock skip 2 periods, then call get_locks, verify past periods not in results`, () => {
+
+  let userA1, locksdk, keys, accountnm, newFioDomain, newFioAddress, lockDuration
+
+  const genLock1Dur = 30, genLock1Amount = 5000000000000,  // 30 seconds minute, 5000 FIO
+      genLock2Dur = 35, genLock2Amount = 4000000000000,     // 1 minute, 4000 FIO
+      genLock3Dur = 1204800, genLock3Amount = 1000000000000  // 20080 minuteS, 1000 FIO
+
+  const genLockTotal = genLock1Amount + genLock2Amount + genLock3Amount
+
+  const fundsAmount = 1000000000000
+  const stakeAmount = 1000000000000 // 1000 FIO
+  const unstake1 = 100000000000     // 100 FIO
+  const unstake2 = 2000000000       // 2 FIO
+  const unstake3 = 2000000000       // 2 FIO
+
+  it(`Create users`, async () => {
+
+    userA1 = await newUser(faucet);
+
+    keys = await createKeypair();
+    accountnm = await getAccountFromKey(keys.publicKey);
+    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+
+    //console.log("locksdk priv key ", keys.privateKey);
+    //console.log("locksdk pub key ", keys.publicKey);
+    //console.log("locksdk Account name ", accountnm);
+
+  })
+
+  it(`trnsloctoks with three periods to locksdk: 5000 FIO - 1 min, 4000 FIO - 2 min, and 1000 FIO - 20080 minutes`, async () => {
+    const result = await faucet.genericAction('pushTransaction', {
+      action: 'trnsloctoks',
+      account: 'fio.token',
+      data: {
+        payee_public_key: keys.publicKey,
+        can_vote: 0,
+        periods: [
+          {
+            duration: genLock1Dur,
+            amount: genLock1Amount,
+          },
+          {
+            duration: genLock2Dur,
+            amount: genLock2Amount,
+          },
+          {
+            duration: genLock3Dur,
+            amount: genLock3Amount,
+          }
+        ],
+        amount: genLockTotal,
+        max_fee: config.maxFee,
+        tpid: '',
+        actor: config.FAUCET_ACCOUNT,
+      }
+    })
+    expect(result.status).to.equal('OK')
+  })
+
+  it(`Verify locks were set with get_locks`, async () => {
+
+    const result = await locksdk.genericAction('getLocks', {fioPublicKey: keys.publicKey})
+
+    //console.log('Result: ',result)
+    expect(result).to.have.all.keys('lock_amount', 'remaining_lock_amount',
+        'time_stamp', 'payouts_performed', 'can_vote', 'unlock_periods')
+
+
+    // console.log('Result: ', result)
+    expect(result.can_vote).to.equal(0)
+    expect(result.lock_amount).to.equal(genLockTotal)
+    expect(result.remaining_lock_amount).to.equal(genLockTotal)
+    expect(result.payouts_performed).to.equal(0)
+    expect(result.unlock_periods[0].duration).to.equal(genLock1Dur)
+    expect(result.unlock_periods[0].amount).to.equal(genLock1Amount)
+    expect(result.unlock_periods[1].duration).to.equal(genLock2Dur)
+    expect(result.unlock_periods[1].amount).to.equal(genLock2Amount)
+    expect(result.unlock_periods[2].duration).to.equal(genLock3Dur)
+    expect(result.unlock_periods[2].amount).to.equal(genLock3Amount)
+
+  })
+
+
+  it(`Waiting 40 seconds for unlock of genlock1 (5000 FIO) AND genlock2 (4000 FIO)`, async () => {
+    console.log("            waiting 40 seconds ")
+  })
+
+  it(` wait 40 seconds`, async () => {
+    try {
+      wait(40000)
+    } catch (err) {
+      console.log('Error', err)
+    }
+  })
+
+
+  it(`Verify locks were set with get_locks`, async () => {
+
+    const result = await locksdk.genericAction('getLocks', {fioPublicKey: keys.publicKey})
+
+    expect(result).to.have.all.keys('lock_amount', 'remaining_lock_amount',
+        'time_stamp', 'payouts_performed', 'can_vote', 'unlock_periods')
+
+     //console.log('Result: ', result)
+    expect(result.can_vote).to.equal(0)
+    expect(result.lock_amount).to.equal(genLockTotal-genLock1Amount-genLock2Amount)
+    expect(result.remaining_lock_amount).to.equal(genLockTotal - genLock1Amount - genLock2Amount)
+    expect(result.payouts_performed).to.equal(0)
+    expect(result.unlock_periods[0].duration).to.equal(genLock3Dur)
+    expect(result.unlock_periods[0].amount).to.equal(genLock3Amount)
+  })
 
 })

@@ -5053,7 +5053,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
     expect(bundles).to.equal(99);
   });
 
-  it(`get locks for user1 after staking some FIO, expect error: no lock tokens in account`, async () => {
+  it(`get locks for user1, expect 404 error: No lock tokens in account`, async () => {
     try {
       const locks = await user1.sdk.genericAction('getLocks', {fioPublicKey: user1.publicKey});
     } catch (err) {
