@@ -193,7 +193,7 @@ async function calcRoeBig(stakingRewardsActivated, combinedTokenPool, globalSrpC
   if (printCalc) { console.log('\nROE CALC: '); }
 
   const roePrecision = math.bignumber(Math.pow(10, precision));
-  let roeBig = math.bignumber(0.0);
+  let roeBig = math.bignumber(0);
 
   if (stakingRewardsActivated == 0) {
     roeBig = '1.000000000000000';
@@ -207,10 +207,13 @@ async function calcRoeBig(stakingRewardsActivated, combinedTokenPool, globalSrpC
       console.log('   globalSrpCountBig: \t', globalSrpCountBig);
     }
 
-    roeBig = math.divide(combinedTokenPoolBig, globalSrpCountBig);
-    if (printCalc) { console.log('   combinedTokenPoolBig / globalSrpCountBig = ' + combinedTokenPool + ' / ' + globalSrpCountBig + ' = ' + roeBig); }
-    roeBig2 = math.multiply(roeBig, roePrecision);
-    if (printCalc) { console.log('   result * precision = ' + roeBig + ' * ' + precision + ' = ' + roeBig2); }
+    // ############## There is a bug where the combinedtokenpool in the contract has a different value than what is in the staking table... Throws everything off.
+
+    let roeBig1 = math.bignumber(0);
+    roeBig1 = math.divide(combinedTokenPoolBig, globalSrpCountBig);
+    if (printCalc) { console.log('   combinedTokenPoolBig / globalSrpCountBig = ' + combinedTokenPool + ' / ' + globalSrpCountBig + ' = ' + roeBig1); }
+    roeBig2 = math.multiply(roeBig1, roePrecision);
+    if (printCalc) { console.log('   result * precision = ' + roeBig1 + ' * ' + precision + ' = ' + roeBig2); }
     //roeBig3 = math.floor(roeBig2);
     //if (printCalc) { console.log('   math.floor(result) = ' + roeBig3); }
 
@@ -274,6 +277,7 @@ before(async () => {
 describe(`************************** stake-regression.js ************************** \n    A. Stake timing test.`, () => {
 
   let user1, transfer_tokens_pub_key_fee
+  let stakingTableExists = 0;
 
   let stakers = [];
 
@@ -289,35 +293,63 @@ describe(`************************** stake-regression.js ***********************
   activationDay = 100; // 0 = Immediately activate
   const testTransferAmount = 10000000000  // 10 FIO
 
+  it('See if staking table exists', async () => {
+    try {
+      const json = {
+        json: true,               // Get the response as json
+        code: 'fio.staking',      // Contract that we target
+        scope: 'fio.staking',         // Account that owns the data
+        table: 'staking',        // Table name
+        limit: 10,                // Maximum number of rows that we want to get
+        reverse: true,           // Optional: Get reversed data
+        show_payer: false          // Optional: Show ram payer
+      }
+      stakingTable = await callFioApi("get_table_rows", json);
+      if (stakingTable.rows.length != 0) {
+        stakingTableExists = 1;
+      }
+      console.log('stakingTable: ', stakingTable);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  });
+
   it('Create staking users', async () => {
     try {
+      
+      let stakingRewardsActivated = 0;
+      if (stakingTableExists) {
+        stakingRewardsActivated = await getStakingRewardsActivated();
+      }
+            
+      if (stakingRewardsActivated == 0) {
+        stakers[0] = new Staker();
+        stakers[0].transferAmount = 1004000000000000  // 1,004,000 FIO
+        stakers[0].stakeAmount = [2000000000000, 0, 1000000000000000, 0, 1000000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        stakers[0].unstakeAmount = [0, 10000000000, 0, 0, 10000000000, 0, 310000000000, 0, 0, 0, 0, 0, 0, 0, 0]
+        await stakers[0].createSdk(faucet);
+        //await stakers[0].createSdk(faucet, existingUser.privateKey, existingUser.publicKey, existingUser.account, existingUser.domain, existingUser.address);
+      } else {
+        stakers[0] = new Staker();
+        stakers[0].transferAmount = 9004000000000000  // 9,004,000 FIO
+        stakers[0].stakeAmount = [100000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000]
+        stakers[0].unstakeAmount = [0, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000]
+        await stakers[0].createSdk(faucet);
+        //await stakers[0].createSdk(faucet, existingUser.privateKey, existingUser.publicKey, existingUser.account, existingUser.domain, existingUser.address);
 
-      //stakers[0] = new Staker();
-      //stakers[0].transferAmount = 9004000000000000  // 9,004,000 FIO
-      //stakers[0].stakeAmount = [1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000]
-      //stakers[0].unstakeAmount = [0, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000, 1000000000000000]
-      //await stakers[0].createSdk(faucet);
-      //await stakers[0].createSdk(faucet, existingUser.privateKey, existingUser.publicKey, existingUser.account, existingUser.domain, existingUser.address);
+        //stakers[1] = new Staker();
+        //stakers[1].transferAmount = 2000000000000  // 2000 FIO
+        //stakers[1].stakeAmount = [300000000000, 500000000000, 0, 0, 0, 0, 10000000000, 0, 0, 200000000000, 0, 0, 0, 0, 0]
+        //stakers[1].unstakeAmount = [0, 0, 0, 0, 0, 0, 0, 0, 90000000000, 20000000000, 0, 0, 0, 0, 0]
+        //await stakers[1].createSdk(faucet);
 
-      stakers[0] = new Staker();
-      stakers[0].transferAmount = 1004000000000000  // 1,004,000 FIO
-      stakers[0].stakeAmount = [2000000000000, 0, 1000000000000000, 0, 1000000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-      stakers[0].unstakeAmount = [0, 10000000000, 0, 0, 10000000000, 0, 310000000000, 0, 0, 0, 0, 0, 0, 0, 0]
-      await stakers[0].createSdk(faucet);
-      //await stakers[0].createSdk(faucet, existingUser.privateKey, existingUser.publicKey, existingUser.account, existingUser.domain, existingUser.address);
-
-      //stakers[1] = new Staker();
-      //stakers[1].transferAmount = 2000000000000  // 2000 FIO
-      //stakers[1].stakeAmount = [300000000000, 500000000000, 0, 0, 0, 0, 10000000000, 0, 0, 200000000000, 0, 0, 0, 0, 0]
-      //stakers[1].unstakeAmount = [0, 0, 0, 0, 0, 0, 0, 0, 90000000000, 20000000000, 0, 0, 0, 0, 0]
-      //await stakers[1].createSdk(faucet);
-
-      //stakers[2] = new Staker();
-      //stakers[2].transferAmount = 2000000000000000  // 2M FIO
-      //stakers[2].stakeAmount = [2000000000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-      //stakers[2].unstakeAmount = [0, 1000000000000000, 20000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-      //await stakers[2].createSdk(faucet);
-
+        //stakers[2] = new Staker();
+        //stakers[2].transferAmount = 2000000000000000  // 2M FIO
+        //stakers[2].stakeAmount = [2000000000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        //stakers[2].unstakeAmount = [0, 1000000000000000, 20000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        //await stakers[2].createSdk(faucet);
+      };
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -413,6 +445,7 @@ describe(`************************** stake-regression.js ***********************
       console.log('           ...for staker ', i);
       try {
         const result = await stakers[i].getUserBalance();
+        console.log('initial prev balances: ', result)
 
         await stakers[i].setPrevBalances(result.balance, result.available, result.staked, result.srps, result.roe, 0);
         //await stakers[i].printPrevBalances();
@@ -436,7 +469,7 @@ describe(`************************** stake-regression.js ***********************
   });
 
   // This updates the stakingRewardsReserveMinted and sets daily staking reserves
-  it(`Call bpclaim to set initial rewards amount`, async () => {
+  it.skip(`Call bpclaim to set initial rewards amount`, async () => {
     try {
       const result = await bp1.sdk.genericAction('pushTransaction', {
         action: 'bpclaim',
@@ -782,6 +815,7 @@ describe(`************************** stake-regression.js ***********************
               //const prevRoeString = await calcRoeString(prevStakingRewardsActivated, prevRoeBig);
               //console.log('prevRoeString: ', prevRoeString)
               //expect(getBalance.roe).to.equal(prevRoeString);
+              expect(parseFloat(getBalance.roe)).to.be.greaterThanOrEqual(parseFloat(stakers[i].prevRoe));
               
               console.log('\n           ...check that global staking variables are correct after staking ');
 
@@ -813,7 +847,7 @@ describe(`************************** stake-regression.js ***********************
               await setPrevGlobals(stakedTokenPool, combinedTokenPool, rewardsTokenPool, globalSrpCount, dailyStakingRewards, stakingRewardsReservesMinted, stakingRewardsActivated);
 
              } catch (err) {
-              console.log('\nStaking Error: ', err);
+              console.log('\nStaking Error: ', err.json);
               expect(err).to.equal(null);
             }
           };  // if
@@ -903,6 +937,7 @@ describe(`************************** stake-regression.js ***********************
 
               const currentRoeString = await calcRoeString(prevStakingRewardsActivated, prevRoeBig);
               //expect(getBalance.roe).to.equal(currentRoeString);
+              expect(getBalance.roe).to.be.greaterThanOrEqual(stakers[i].prevRoe);
 
               console.log('\n           ...Check that global staking variables are correct after unstaking ');
 
@@ -920,7 +955,7 @@ describe(`************************** stake-regression.js ***********************
               await setPrevGlobals(stakedTokenPool, combinedTokenPool, rewardsTokenPool, globalSrpCount, dailyStakingRewards, stakingRewardsReservesMinted, stakingRewardsActivated);
 
            } catch (err) {
-              console.log('Do unstaking Error: ', err);
+              console.log('Do unstaking Error: ', err.json.error);
               expect(err).to.equal(null);
             }
           }; // if
@@ -1034,7 +1069,7 @@ describe(`************************** stake-regression.js ***********************
         };
       })
 
-      it(`Call bpclaim as bp1 to process 25K daily staking rewards`, async () => {
+      it.skip(`Call bpclaim as bp1 to process 25K daily staking rewards`, async () => {
         if (dailyRewards.schedule[dayNumber] == 1) {
           try {
             const result = await bp1.sdk.genericAction('pushTransaction', {
