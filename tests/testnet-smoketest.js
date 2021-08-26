@@ -1,760 +1,1219 @@
+/**
+ * testnet-smoketest.js is the smoke test for high level regression testing of Testnet releases. 
+ * It can be run against a local devtools build by setting the target = 'local' variable.
+ * You must have two testnet accounts to run against testnet. 
+ * 
+ * All "describe" tests should be built to run independently. 
+ */
+
 require('mocha')
 const {expect} = require('chai')
-const {newUser, existingUser, callFioApi, generateFioAddress, timeout} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
+const {FIOSDK} = require('@fioprotocol/fiosdk')
+const {newUser, existingUser, fetchJson} = require('../utils.js');
 config = require('../config.js');
+const { EndPoint } = require('@fioprotocol/fiosdk/lib/entities/EndPoint')
 
-let user1, user2, user3
+let privateKey, publicKey, testFioAddressName, privateKey2, publicKey2, testFioAddressName2
+
+/**
+* Set to target = 'local' if running against devtools build. Leave blank if running against Testnet.
+*/
+const target = 'local' 
+
+/**
+ * Set your testnet existing private/public keys and existing fioAddresses (not needed if running locally)
+ */
+privateKey = '',
+publicKey = '',
+account = '',
+privateKey2 = '',
+publicKey2 = '',
+account2 = '',
+testFioDomain = '',
+testFioAddressName = '',
+testFioAddressName2 = ''
+
+
+/**
+ * Main Tests
+ */
+
+const fioTestnetDomain = 'fiotestnet'
+const fioTokenCode = 'FIO'
+const fioChainCode = 'FIO'
+const ethTokenCode = 'ETH'
+const ethChainCode = 'ETH'
+const defaultBundledSets = 1
+const defaultFee = 800 * FIOSDK.SUFUnit
+
+let fioSdk, fioSdk2
+let newFioDomain, newFioAddress, privateKeyExample, publicKeyExample, pubKeyForTransfer
+
+const generateTestingFioAddress = (customDomain = fioTestnetDomain) => {
+  return `testing${Date.now()}@${customDomain}`
+}
+
+const generateTestingFioDomain = () => {
+  return `testing-domain-${Date.now()}`
+}
+
+const generateObtId = () => {
+  return `${Date.now()}`
+}
+
+const timeout = async (ms) => {
+  await new Promise(resolve => {
+    setTimeout(resolve, ms)
+  })
+}
 
 before(async () => {
-  user1 = await existingUser('zzsfyigdmxmi', '5K7xWsabnxQoJAu9JnwNsMerTvCabHKaa1Q6CNYLRmjbXGUa9B8', 'FIO5NQBPnGKnhBCzhdRrrm6BD5eyYbVk2695sp2GKYLmXkR3Ycmux', 'fiotestnet', 'smoketest11@fiotestnet');
-  user1.domain2 = 'transferrabledomain'
-  user1.address2 = 'smoketest9@transferrabledomain'
-  user2 = await existingUser('5cb1as5ppd3e', '5KS4d3tECgmDUfJNZnhjiVGEWqR7d6WDBjkkmf3bfRAvc9CLi7t', 'FIO5uQf2RW9JVoaCq9rze3xYZ1m8xDqFZpHCQqMQ86E9C68GRS3eM', 'fiotestnet', 'smoketest22@fiotestnet');
-  user3 = await existingUser('ensfrgwbdv4n', '5HvKD3SyD88dRSag5CvPPNy7dRiuUGSmMgGHRwQW8PZ71mCupPY', 'FIO5d4Zj6MUd42hVgRt9kiVUrrNdg9zpjUeK2siRBCE4RySDdidm1', 'fiotestnet', 'smoketest33@fiotestnet');
+
+  if (target == 'local') { 
+    faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
+    fioSdk = await newUser(faucet);
+    fioSdk2 = await newUser(faucet);
+    privateKey = fioSdk.privateKey,
+    publicKey = fioSdk.publicKey,
+    testFioAddressName = fioSdk.address,
+    privateKey2 = fioSdk2.privateKey,
+    publicKey2 = fioSdk2.publicKey,
+    testFioAddressName2 = fioSdk2.address
+  } else {
+    fioSdk = await existingUser(account, privateKey, publicKey, testFioDomain, testFioAddressName);
+    fioSdk2 = await existingUser(account2, privateKey2, publicKey2, testFioDomain, testFioAddressName2);
+  }
+
+  try {
+    const isAvailableResult = await fioSdk.sdk.genericAction('isAvailable', {
+      fioName: testFioAddressName
+    })
+    if (!isAvailableResult.is_registered) {
+      await fioSdk.sdk.genericAction('registerFioAddress', {
+        fioAddress: testFioAddressName,
+        maxFee: defaultFee
+      })
+    }
+  } catch (e) {
+    console.log(e);
+  }
+  try {
+    const isAvailableResult2 = await fioSdk2.sdk.genericAction('isAvailable', {
+      fioName: testFioAddressName2
+    })
+    if (!isAvailableResult2.is_registered) {
+      await fioSdk2.sdk.genericAction('registerFioAddress', {
+        fioAddress: testFioAddressName2,
+        maxFee: defaultFee
+      })
+    }
+  } catch (e) {
+    console.log(e);
+  }
+
+  await timeout(4000)
+
+  newFioDomain = generateTestingFioDomain()
+
+  newFioAddress = generateTestingFioAddress(newFioDomain)
+  privateKeyExample = '5Kbb37EAqQgZ9vWUHoPiC2uXYhyGSFNbL6oiDp24Ea1ADxV1qnu'
+  publicKeyExample = 'FIO5kJKNHwctcfUM5XZyiWSqSTM5HTzznJP9F3ZdbhaQAHEVq575o'
+  pubKeyForTransfer = 'FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS'
 })
 
+describe('************************** testnet-smoketest.js ************************** \n    A. Testing generic actions', () => {
 
-describe(`************************** testnet-smoketest.js **************************`, () => {})
-
-describe(`FIO Requests (error conditions only)`, () => {
-  let user1RequestId
-  const payment = 5000000000 // 5 FIO
-  const requestMemo = 'Memo in the initial request'
-
-  it(`user1 requests funds from user2`, async () => {
-    try {
-      const result = await user1.sdk.genericAction('requestFunds', { 
-        payerFioAddress: user2.address, 
-        payeeFioAddress: user1.address,
-        payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
-        amount: payment,
-        chainCode: 'BTC',
-        tokenCode: 'BTC',
-        memo: requestMemo,
-        maxFee: config.api.new_funds_request.fee,
-        payerFioPublicKey: user2.publicKey,
-        technologyProviderId: '',
-        hash: '',
-        offLineUrl: ''
-      })    
-      //console.log('Result: ', result.fio_request_id)
-      user1RequestId = result.fio_request_id
-      expect(result.status).to.equal('requested') 
-    } catch (err) {
-      console.log('Error: ', err)
-      expect(err).to.equal(null)
-    }
+  it(`FIO Key Generation Testing`, async () => {
+    const testMnemonic = 'valley alien library bread worry brother bundle hammer loyal barely dune brave'
+    const privateKeyRes = await FIOSDK.createPrivateKeyMnemonic(testMnemonic)
+    expect(privateKeyRes.fioKey).to.equal(privateKeyExample)
+    const publicKeyRes = FIOSDK.derivedPublicKey(privateKeyRes.fioKey)
+    expect(publicKeyRes.publicKey).to.equal(publicKeyExample)
   })
 
-  it(`Create OBT in response to request with non-existent ID. Expect error type 400: ${config.error.requestNotFound}`, async () => {
-    try {
-      const result = await user2.sdk.genericAction('recordObtData', {
-        fioRequestId: 9999999999,
-        payerFioAddress: user2.address,
-        payeeFioAddress: user1.address,
-        payerTokenPublicAddress: user2.publicKey,
-        payeeTokenPublicAddress: user1.publicKey,
-        amount: 5000000000,
-        chainCode: "BTC",
-        tokenCode: "BTC",
-        status: '',
-        obtId: '',
-        maxFee: config.api.record_obt_data.fee,
-        technologyProviderId: '',
-        payeeFioPublicKey: user1.publicKey,
-        memo: 'this is a test',
-        hash: '',
-        offLineUrl: ''
-      })
-      console.log('Result: ', result);
-      expect(result).to.equal(null);
-    } catch (err) {
-      //console.log('Error', err);
-      expect(err.json.fields[0].error).to.equal('No such FIO Request');
-      expect(err.errorCode).to.equal(400);
-    }
+  it(`FIO SUF Utilities - amountToSUF`, async () => {
+    const sufa = FIOSDK.amountToSUF (100)
+    expect(sufa).to.equal(100000000000)
+
+    const sufb = FIOSDK.amountToSUF (500)
+    expect(sufb).to.equal(500000000000)
+
+    const sufc = FIOSDK.amountToSUF (506)
+    expect(sufc).to.equal(506000000000)
+
+    const sufd = FIOSDK.amountToSUF (1)
+    expect(sufd).to.equal(1000000000)
+
+    const sufe = FIOSDK.amountToSUF (2)
+    expect(sufe).to.equal(2000000000)
+
+    const suff = FIOSDK.amountToSUF (2.568)
+    expect(suff).to.equal(2568000000)
+
+    const sufg = FIOSDK.amountToSUF (2.123)
+    expect(sufg).to.equal(2123000000)
   })
 
-  it(`Other user3 attempts OBT with requestId from user1. Expect error type 403: ${config.error.signatureError} (part 1 with user3 as payerFioAddress)`, async () => {
-    try {
-      const result = await user3.sdk.genericAction('recordObtData', {
-        fioRequestId: user1RequestId,
-        payerFioAddress: user3.address,
-        payeeFioAddress: user1.address,
-        payerTokenPublicAddress: user3.publicKey,
-        payeeTokenPublicAddress: user1.publicKey,
-        amount: 5000000000,
-        chainCode: "BTC",
-        tokenCode: "BTC",
-        status: '',
-        obtId: '',
-        maxFee: config.api.record_obt_data.fee,
-        technologyProviderId: '',
-        payeeFioPublicKey: user1.publicKey,
-        memo: 'this is a test',
-        hash: '',
-        offLineUrl: ''
-      })
-      console.log('Result: ', result);
-      expect(result).to.equal(null);
-    } catch (err) {
-      //console.log('Error', err);
-      expect(err.json.type).to.equal('invalid_signature');
-      expect(err.json.message).to.equal(config.error.invalidRequestSignature);
-      expect(err.errorCode).to.equal(403);
-    }
+  it(`FIO SUF Utilities - SUFToAmount`, async () => {
+    const sufa = FIOSDK.SUFToAmount (100000000000)
+    expect(sufa).to.equal(100)
+
+    const sufb = FIOSDK.SUFToAmount (500000000000)
+    expect(sufb).to.equal(500)
+
+    const sufc = FIOSDK.SUFToAmount (506000000000)
+    expect(sufc).to.equal(506)
+
+    const sufd = FIOSDK.SUFToAmount (1000000000)
+    expect(sufd).to.equal(1)
+
+    const sufe = FIOSDK.SUFToAmount (2000000000)
+    expect(sufe).to.equal(2)
+
+    const suff = FIOSDK.SUFToAmount (2568000000)
+    expect(suff).to.equal(2.568)
+
+    const sufg = FIOSDK.SUFToAmount (2123000000)
+    expect(sufg).to.equal(2.123)
   })
 
-  it(`Other user3 attempts OBT with requestId from user1. Expect error type 403: ${config.error.invalidRequestSignature} (part 2 with user2 as payerFioAddress)`, async () => {
+  it(`Validation methods`, async () => {
     try {
-      const result = await user3.sdk.genericAction('recordObtData', {
-        fioRequestId: user1RequestId,
-        payerFioAddress: user2.address,
-        payeeFioAddress: user1.address,
-        payerTokenPublicAddress: user2.publicKey,
-        payeeTokenPublicAddress: user1.publicKey,
-        amount: 5000000000,
-        chainCode: "BTC",
-        tokenCode: "BTC",
-        status: '',
-        obtId: '',
-        maxFee: config.api.record_obt_data.fee,
-        technologyProviderId: '',
-        payeeFioPublicKey: user1.publicKey,
-        memo: 'this is a test',
-        hash: '',
-        offLineUrl: ''
-      })
-      console.log('Result: ', result);
-      expect(result).to.equal(null);
-    } catch (err) {
-      //console.log('Error', err);
-      expect(err.json.type).to.equal('invalid_signature');
-      expect(err.json.message).to.equal(config.error.invalidRequestSignature);
-      expect(err.errorCode).to.equal(403);
+      FIOSDK.isChainCodeValid('$%34')
+    } catch (e) {
+      expect(e.list[0].message).to.equal('chainCode must match /^[a-z0-9]+$/i.')
     }
+    try {
+      FIOSDK.isTokenCodeValid('')
+    } catch (e) {
+      expect(e.list[0].message).to.equal('tokenCode is required.')
+    }
+    try {
+      FIOSDK.isFioAddressValid('f')
+    } catch (e) {
+      expect(e.list[0].message).to.equal('fioAddress must have a length between 3 and 64.')
+    }
+    try {
+      FIOSDK.isFioDomainValid('$%FG%')
+    } catch (e) {
+      expect(e.list[0].message).to.equal('fioDomain must match /^[a-z0-9\\-]+$/i.')
+    }
+    try {
+      FIOSDK.isFioPublicKeyValid('dfsd')
+    } catch (e) {
+      expect(e.list[0].message).to.equal('fioPublicKey must match /^FIO\\w+$/.')
+    }
+    try {
+      FIOSDK.isPublicAddressValid('')
+    } catch (e) {
+      expect(e.list[0].message).to.equal('publicAddress is required.')
+    }
+
+    const chainCodeIsValid = FIOSDK.isChainCodeValid('FIO')
+    expect(chainCodeIsValid).to.equal(true)
+
+    const tokenCodeIsValid = FIOSDK.isTokenCodeValid('FIO')
+    expect(tokenCodeIsValid).to.equal(true)
+
+    const singleDigitFioAddressIsValid = FIOSDK.isFioAddressValid('f@2')
+    expect(singleDigitFioAddressIsValid).to.equal(true)
+
+    const fioAddressIsValid = FIOSDK.isFioAddressValid(newFioAddress)
+    expect(fioAddressIsValid).to.equal(true)
+
+    const fioDomainIsValid = FIOSDK.isFioDomainValid(newFioDomain)
+    expect(fioDomainIsValid).to.equal(true)
+
+    const privateKeyIsValid = FIOSDK.isFioPublicKeyValid(publicKey)
+    expect(privateKeyIsValid).to.equal(true)
+
+    const publicKeyIsValid = FIOSDK.isPublicAddressValid(publicKey)
+    expect(publicKeyIsValid).to.equal(true)
   })
 
-  it(`Initial requestor user1 attempts OBT with requestId from user1. Expect error type 403: ${config.error.invalidRequestSignature}`, async () => {
-    try {
-      const result = await user1.sdk.genericAction('recordObtData', {
-        fioRequestId: user1RequestId,
-        payerFioAddress: user2.address,
-        payeeFioAddress: user1.address,
-        payerTokenPublicAddress: user2.publicKey,
-        payeeTokenPublicAddress: user1.publicKey,
-        amount: 5000000000,
-        chainCode: "BTC",
-        tokenCode: "BTC",
-        status: '',
-        obtId: '',
-        maxFee: config.api.record_obt_data.fee,
-        technologyProviderId: '',
-        payeeFioPublicKey: user1.publicKey,
-        memo: 'this is a test',
-        hash: '',
-        offLineUrl: ''
-      })
-      console.log('Result: ', result);
-      expect(result).to.equal(null);
-    } catch (err) {
-      //console.log('Error', err);
-      expect(err.json.type).to.equal('invalid_signature');
-      expect(err.json.message).to.equal(config.error.invalidRequestSignature);
-      expect(err.errorCode).to.equal(403);
-    }
+  it(`Getting fio public key`, async () => {
+    const result = await fioSdk.sdk.genericAction('getFioPublicKey', {})
+
+    expect(result).to.equal(publicKey)
+  })
+
+  it(`getFioBalance`, async () => {
+    const result = await fioSdk.sdk.genericAction('getFioBalance', {})
+
+    expect(result).to.have.all.keys('balance', 'available')
+    expect(result.balance).to.be.a('number')
   })
 })
 
-describe(`Cancel Funds Request`, () => {
-  const payment = 5000000000 // 5 FIO
-  const requestMemo = 'Memo in the initial request'
+describe('B. Testing domain actions', () => {
 
-  it(`user1 requests funds from user2`, async () => {
-    try {
-      const result = await user1.sdk.genericAction('requestFunds', { 
-        payerFioAddress: user2.address, 
-        payeeFioAddress: user1.address,
-        payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
-        amount: payment,
-        chainCode: 'BTC',
-        tokenCode: 'BTC',
-        memo: requestMemo,
-        maxFee: config.api.new_funds_request.fee,
-        payerFioPublicKey: user2.publicKey,
-        technologyProviderId: '',
-        hash: '',
-        offLineUrl: ''
-      })    
-      //console.log('Result: ', result)
-      user1RequestId = result.fio_request_id
-      expect(result.status).to.equal('requested') 
-    } catch (err) {
-      console.log('Error: ', err)
-      expect(err).to.equal(null)
-    }
+  it(`Register fio domain`, async () => {
+    const result = await fioSdk2.sdk.genericAction('registerFioDomain', { fioDomain: newFioDomain, maxFee: defaultFee })
+    //console.log('New Domain: ', newFioDomain)
+    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+    expect(result.status).to.be.a('string')
+    expect(result.expiration).to.be.a('string')
+    expect(result.fee_collected).to.be.a('number')
   })
 
-  it('Wait a few seconds To make sure the obt gets recorded.', async () => {
-    await timeout(2000);
+  it(`Renew fio domain`, async () => {
+    const result = await fioSdk2.sdk.genericAction('renewFioDomain', { fioDomain: newFioDomain, maxFee: defaultFee })
+
+    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+    expect(result.status).to.be.a('string')
+    expect(result.expiration).to.be.a('string')
+    expect(result.fee_collected).to.be.a('number')
   })
 
-  it(`get_sent_fio_requests for user1`, async () => {
-    try {
-      const result = await user1.sdk.genericAction('getSentFioRequests', {
-        limit: '',
-        offset: ''
-      }) 
-      //console.log('result: ', result)
-      numRequests = result.requests.length;
-      expect(result.requests[numRequests-1].fio_request_id).to.equal(user1RequestId);
-      expect(result.requests[numRequests-1].content.memo).to.equal(requestMemo);
-    } catch (err) {
-      console.log('Error: ', err);
-      expect(err).to.equal(null);
-    }
+  it(`setFioDomainVisibility true`, async () => {
+    const result = await fioSdk2.sdk.genericAction('setFioDomainVisibility', {
+      fioDomain: newFioDomain,
+      isPublic: true,
+      maxFee: defaultFee,
+      technologyProviderId: ''
+    })
+
+    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result.status).to.be.a('string')
+    expect(result.fee_collected).to.be.a('number')
   })
 
-  it(`get_pending_fio_requests for user2`, async () => {
-    try {
-      const result = await user2.sdk.genericAction('getPendingFioRequests', {
-        limit: '',
-        offset: ''
-      }) 
-      //console.log('result: ', result)
-      numRequests = result.requests.length;
-      expect(result.requests[numRequests-1].fio_request_id).to.equal(user1RequestId);
-      expect(result.requests[numRequests-1].content.memo).to.equal(requestMemo);
-    } catch (err) {
-      console.log('Error: ', err);
-      expect(err).to.equal(null);
-    }
+  it(`Register fio address`, async () => {
+    const result = await fioSdk2.sdk.genericAction('registerFioAddress', {
+      fioAddress: newFioAddress,
+      maxFee: defaultFee
+    })
+
+    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+    expect(result.status).to.be.a('string')
+    expect(result.expiration).to.be.a('string')
+    expect(result.fee_collected).to.be.a('number')
   })
 
-  it(`Call cancel_funds_request (push transaction) to cancel request in pending state`, async () => {
+  it(`getFioNames`, async () => {
+    const result = await fioSdk2.sdk.genericAction('getFioNames', { fioPublicKey: publicKey })
+
+    expect(result).to.have.all.keys('fio_domains', 'fio_addresses')
+    expect(result.fio_domains).to.be.a('array')
+    expect(result.fio_addresses).to.be.a('array')
+  })
+
+  it(`getFioDomains`, async () => {
     try{
-      const result = await user1.sdk.genericAction('pushTransaction', {
-        action: 'cancelfndreq',
-        account: 'fio.reqobt',
-        data: {
-          "fio_request_id": user1RequestId,
-          "max_fee": config.api.cancel_funds_request.fee,
-          "tpid": '',
-          "actor": user1.account
-        }
-      })
-      //console.log('Result: ', result);
-      expect(result).to.have.all.keys('status', 'fee_collected')
-      expect(result.status).to.equal('cancelled');
-      expect(result.fee_collected).to.equal(0);
-    } catch (err) {
-      console.log('Error', err.json);
-      expect(err).to.equal(null);
+      const result = await fioSdk2.sdk.genericAction('getFioDomains', { fioPublicKey: fioSdk.publicKey })
+
+      expect(result).to.have.all.keys('fio_domains','more')
+      expect(result.fio_domains).to.be.a('array')
+    } catch (e) {
+      console.log(e);
     }
   })
 
-  it(`Verify request was cancelled: get_sent_fio_requests for user1 returns 1 request with status 'cancelled'`, async () => {
+  it(`Register owner fio address`, async () => {
+    const newFioAddress2 = generateTestingFioAddress(newFioDomain)
+    const result = await fioSdk2.sdk.genericAction('registerFioAddress', {
+      fioAddress: newFioAddress2,
+      ownerPublicKey: publicKey2,
+      maxFee: defaultFee
+    })
+    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+    expect(result.status).to.be.a('string')
+    expect(result.expiration).to.be.a('string')
+    expect(result.fee_collected).to.be.a('number')
+  })
+
+  it(`setFioDomainVisibility false`, async () => {
+    const result = await fioSdk2.sdk.genericAction('setFioDomainVisibility', {
+      fioDomain: newFioDomain,
+      isPublic: false,
+      maxFee: defaultFee,
+      technologyProviderId: ''
+    })
+
+    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result.status).to.be.a('string')
+    expect(result.fee_collected).to.be.a('number')
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+  it(`setFioDomainVisibility true`, async () => {
+    const result = await fioSdk2.sdk.genericAction('setFioDomainVisibility', {
+      fioDomain: newFioDomain,
+      isPublic: true,
+      maxFee: defaultFee,
+      technologyProviderId: ''
+    })
+
+    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result.status).to.be.a('string')
+    expect(result.fee_collected).to.be.a('number')
+  })
+
+  it(`getFee for transferFioDomain`, async () => {
+    const result = await fioSdk2.sdk.genericAction('getFeeForTransferFioDomain', {
+      fioAddress: newFioAddress
+    })
+
+    expect(result).to.have.all.keys('fee')
+    expect(result.fee).to.be.a('number')
+  })
+
+  it(`Transfer fio domain`, async () => {
+    const result = await fioSdk2.sdk.genericAction('transferFioDomain', {
+      fioDomain: newFioDomain,
+      newOwnerKey: pubKeyForTransfer,
+      maxFee: defaultFee
+    })
+
+    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result.status).to.be.a('string')
+    expect(result.fee_collected).to.be.a('number')
+  })
+
+  it(`getFee for addBundledTransactions`, async () => {
     try {
-      const result = await user1.sdk.genericAction('getSentFioRequests', {
-        limit: '',
-        offset: ''
-      }) 
-      //console.log('result: ', result)
-      numRequests = result.requests.length;
-      expect(result.requests[numRequests-1].fio_request_id).to.equal(user1RequestId);
-      expect(result.requests[numRequests-1].content.memo).to.equal(requestMemo);
-      expect(result.requests[numRequests-1].status).to.equal('cancelled');
+      const result = await fioSdk2.sdk.genericAction('getFeeForAddBundledTransactions', {
+        fioAddress: newFioAddress
+      })
+      //console.log('Result: ', result)
+      expect(result).to.have.all.keys('fee')
+      expect(result.fee).to.be.a('number')
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`add Bundled Transactions`, async () => {
+    try {
+      const result = await fioSdk2.sdk.genericAction('addBundledTransactions', {
+        fioAddress: newFioAddress,
+        bundleSets: defaultBundledSets,
+        maxFee: defaultFee
+      })
+      //console.log('Result: ', result)
+      expect(result).to.have.all.keys('status', 'fee_collected')
+      expect(result.status).to.be.a('string')
+      expect(result.fee_collected).to.be.a('number')
+    } catch (err) {
+      console.log('Error: ', err.json.fields)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+  it(`(push_transaction) user1 run addbundles with sets for FIO Address owned by user2`, async () => {
+    try {
+        const result = await fioSdk2.sdk.genericAction('pushTransaction', {
+            action: 'addbundles',
+            account: 'fio.address',
+            data: {
+              fio_address: newFioAddress,
+              bundle_sets: defaultBundledSets,
+              max_fee: defaultFee,
+              technologyProviderId: ''
+            }
+        })
+        //console.log('Result: ', result);
+        expect(result.status).to.equal('OK');
+    } catch (err) {
+        console.log('Error: ', err);
+        expect(err).to.equal(null);
+    }
+})
+
+  it(`Renew fio address`, async () => {
+    const result = await fioSdk2.sdk.genericAction('renewFioAddress', { fioAddress: newFioAddress, maxFee: defaultFee })
+
+    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+    expect(result.status).to.be.a('string')
+    expect(result.expiration).to.be.a('string')
+    expect(result.fee_collected).to.be.a('number')
+  })
+
+  it(`Push Transaction - renewaddress`, async () => {
+    await timeout(2000)
+    const result = await fioSdk2.sdk.genericAction('pushTransaction', {
+      action: 'renewaddress',
+      account: 'fio.address',
+      data: {
+        fio_address: newFioAddress,
+        max_fee: defaultFee,
+        tpid: ''
+      }
+    })
+
+    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+    expect(result.status).to.be.a('string')
+    expect(result.expiration).to.be.a('string')
+    expect(result.fee_collected).to.be.a('number')
+  })
+
+  it(`getFee for addPublicAddress`, async () => {
+    try {
+      const result = await fioSdk2.sdk.genericAction('getFeeForAddPublicAddress', {
+        fioAddress: newFioAddress
+      })
+
+      expect(result).to.have.all.keys('fee')
+      expect(result.fee).to.be.a('number')
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
     }
   })
 
-  it(`Verify request was cancelled: get_cancelled_fio_requests returns 1 request with status 'cancelled'`, async () => {
+  it(`Add public address`, async () => {
     try {
-      const json = {
-        "fio_public_key": user1.publicKey
-      }
-      result = await callFioApi("get_cancelled_fio_requests", json);
-      //console.log('Result: ', result);
-      numRequests = result.requests.length;
-      expect(result.requests[numRequests-1].fio_request_id).to.equal(user1RequestId);
-      expect(result.requests[numRequests-1].status).to.equal('cancelled');
-    } catch (err) {
-      console.log('Error', err)
-      expect(err.error.message).to.equal(config.error.noFioRequests)
+    const result = await fioSdk2.sdk.genericAction('addPublicAddress', {
+      fioAddress: newFioAddress,
+      chainCode: 'ABC',
+      tokenCode: 'ABC',
+      publicAddress: '1PMycacnJaSqwwJqjawXBErnLsZ7RkXUAs',
+      maxFee: defaultFee,
+      technologyProviderId: ''
+    })
+    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result.status).to.be.a('string')
+    expect(result.fee_collected).to.be.a('number')
+  } catch (err) {
+    console.log('Error: ', err);
+    expect(err).to.equal(null);
+  }
+  })
+
+  it(`Add public addresses`, async () => {
+    const result = await fioSdk2.sdk.genericAction('addPublicAddresses', {
+      fioAddress: newFioAddress,
+      publicAddresses: [
+        {
+          chain_code: ethChainCode,
+          token_code: ethTokenCode,
+          public_address: 'xxxxxxyyyyyyzzzzzz',
+        },
+        {
+          chain_code: fioChainCode,
+          token_code: fioTokenCode,
+          public_address: publicKey,
+        }
+      ],
+      maxFee: defaultFee,
+      technologyProviderId: ''
+    })
+
+    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result.status).to.be.a('string')
+    expect(result.fee_collected).to.be.a('number')
+  })
+
+  it(`getFee for removePublicAddresses`, async () => {
+    const result = await fioSdk2.sdk.genericAction('getFeeForRemovePublicAddresses', {
+      fioAddress: newFioAddress
+    })
+
+    expect(result).to.have.all.keys('fee')
+    expect(result.fee).to.be.a('number')
+  })
+
+  it(`Remove public addresses`, async () => {
+
+    const result = await fioSdk2.sdk.genericAction('removePublicAddresses', {
+      fioAddress: newFioAddress,
+      publicAddresses: [
+        {
+          chain_code: ethChainCode,
+          token_code: ethTokenCode,
+          public_address: 'xxxxxxyyyyyyzzzzzz',
+        }
+      ],
+      maxFee: defaultFee,
+      technologyProviderId: ''
+    })
+    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result.status).to.be.a('string')
+    expect(result.fee_collected).to.be.a('number')
+  })
+
+  it(`getFee for removeAllPublicAddresses`, async () => {
+
+    const result = await fioSdk2.sdk.genericAction('getFeeForRemoveAllPublicAddresses', {
+      fioAddress: newFioAddress
+    })
+
+    expect(result).to.have.all.keys('fee')
+    expect(result.fee).to.be.a('number')
+  })
+
+  it(`Remove all public addresses`, async () => {
+    await fioSdk2.sdk.genericAction('addPublicAddresses', {
+      fioAddress: newFioAddress,
+      publicAddresses: [
+        {
+          chain_code: ethChainCode,
+          token_code: ethTokenCode,
+          public_address: 'xxxxxxyyyyyyzzzzzz1',
+        }
+      ],
+      maxFee: defaultFee,
+      technologyProviderId: ''
+    })
+
+    const result = await fioSdk2.sdk.genericAction('removeAllPublicAddresses', {
+      fioAddress: newFioAddress,
+      maxFee: defaultFee,
+      technologyProviderId: ''
+    })
+    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result.status).to.be.a('string')
+    expect(result.fee_collected).to.be.a('number')
+  })
+
+  it(`isAvailable true`, async () => {
+    const result = await fioSdk2.sdk.genericAction('isAvailable', {
+      fioName: generateTestingFioAddress(),
+    })
+
+    expect(result.is_registered).to.equal(0)
+  })
+
+  it(`isAvailable false`, async () => {
+    const result = await fioSdk2.sdk.genericAction('isAvailable', {
+      fioName: testFioAddressName
+    })
+
+    expect(result.is_registered).to.equal(1)
+  })
+
+  it(`getFioBalance for custom fioPublicKey`, async () => {
+    const result = await fioSdk2.sdk.genericAction('getFioBalance', {
+      fioPublicKey: publicKey2
+    })
+
+    expect(result).to.have.all.keys('balance', 'available')
+    expect(result.balance).to.be.a('number')
+  })
+
+
+  it(`getFioAddresses`, async () => {
+    try {
+    const result = await fioSdk2.sdk.genericAction('getFioAddresses', { fioPublicKey: publicKey })
+
+    expect(result).to.have.all.keys('fio_addresses','more')
+    expect(result.fio_addresses).to.be.a('array')
+    } catch (e) {
+      console.log(e);
+    }
+  })
+
+
+  it(`getPublicAddress`, async () => {
+    const result = await fioSdk2.sdk.genericAction('getPublicAddress', {
+      fioAddress: newFioAddress, chainCode: fioChainCode, tokenCode: fioTokenCode
+    })
+
+    expect(result.public_address).to.be.a('string')
+  })
+
+  it(`getFee for register_fio_address`, async () => {
+    const result = await fioSdk2.sdk.genericAction('getFee', {
+      endPoint: 'register_fio_address',
+      fioAddress: ''
+    })
+
+    expect(result).to.have.all.keys('fee')
+    expect(result.fee).to.be.a('number')
+  })
+
+  it(`getMultiplier`, async () => {
+    const result = await fioSdk2.sdk.genericAction('getMultiplier', {})
+
+    expect(result).to.be.a('number')
+  })
+
+  it(`getFee for transferFioAddress`, async () => {
+    const result = await fioSdk2.sdk.genericAction('getFeeForTransferFioAddress', {
+      fioAddress: newFioAddress
+    })
+
+    expect(result).to.have.all.keys('fee')
+    expect(result.fee).to.be.a('number')
+  })
+
+  it(`Need to move: Transfer fio address to fioSdk`, async () => {
+    const result = await fioSdk2.sdk.genericAction('transferFioAddress', {
+      fioAddress: newFioAddress,
+      newOwnerKey: fioSdk.publicKey,
+      maxFee: defaultFee
+    })
+    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result.status).to.equal('OK')
+    expect(result.fee_collected).to.be.a('number')
+  })
+
+  it(`getFee for BurnFioAddress`, async () => {
+    const result = await fioSdk.sdk.genericAction('getFeeForBurnFioAddress', {
+      fioAddress: newFioAddress
+    })
+
+    expect(result).to.have.all.keys('fee')
+    expect(result.fee).to.be.a('number')
+  })
+
+  it(`Burn fio address`, async () => {
+    try {
+      const result = await fioSdk.sdk.genericAction('burnFioAddress', {
+          fioAddress: newFioAddress,
+          maxFee: defaultFee
+      })
+      expect(result).to.have.all.keys('status', 'fee_collected')
+      expect(result.status).to.be.a('string')
+      expect(result.fee_collected).to.be.a('number')
+    } catch (e) {
+      console.log(e);
     }
   })
 
 })
 
-describe('Transfer domain', () => {
+describe('C. Request funds, approve and send', () => {
+  const fundsAmount = 3
+  let requestId
+  const memo = 'testing fund request'
 
-  let user1OrigBalance, transfer_fio_domain_fee, feeCollected
+  it(`getFee for requestFunds`, async () => {
+    const result = await fioSdk2.sdk.genericAction('getFeeForNewFundsRequest', {
+      payeeFioAddress: testFioAddressName2
+    })
 
-  it('Get transfer_fio_domain fee', async () => {
+    expect(result).to.have.all.keys('fee')
+    expect(result.fee).to.be.a('number')
+  })
+
+  it(`requestFunds`, async () => {
+    const result = await fioSdk2.sdk.genericAction('requestFunds', {
+      payerFioAddress: testFioAddressName,
+      payeeFioAddress: testFioAddressName2,
+      payeeTokenPublicAddress: publicKey2,
+      amount: fundsAmount,
+      chainCode: fioChainCode,
+      tokenCode: fioTokenCode,
+      memo: '',
+      maxFee: defaultFee,
+      payerFioPublicKey: publicKey,
+      technologyProviderId: '',
+      hash: '',
+      offLineUrl: ''
+    })
+    //console.log('requestFunds: ', result)
+    requestId = result.fio_request_id
+    expect(result).to.have.all.keys('fio_request_id', 'status', 'fee_collected')
+    expect(result.fio_request_id).to.be.a('number')
+    expect(result.status).to.be.a('string')
+    expect(result.fee_collected).to.be.a('number')
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
+
+  it(`getPendingFioRequests`, async () => {
     try {
-      result = await user1.sdk.getFee('transfer_fio_domain', user1.address);
-      transfer_fio_domain_fee = result.fee;
+      const result = await fioSdk.sdk.genericAction('getPendingFioRequests', {})
+      //console.log('Result: ', result)
+      expect(result).to.have.all.keys('requests', 'more')
+      expect(result.requests).to.be.a('array')
+      expect(result.more).to.be.a('number')
+      const pendingReq = result.requests.find(pr => parseInt(pr.fio_request_id) === parseInt(requestId))
+      expect(pendingReq).to.have.all.keys('fio_request_id', 'payer_fio_address', 'payee_fio_address', 'payee_fio_public_key', 'payer_fio_public_key', 'time_stamp', 'content')
+      expect(pendingReq.fio_request_id).to.be.a('number')
+      expect(pendingReq.fio_request_id).to.equal(requestId)
+      expect(pendingReq.payer_fio_address).to.be.a('string')
+      expect(pendingReq.payer_fio_address).to.equal(testFioAddressName)
+      expect(pendingReq.payee_fio_address).to.be.a('string')
+      expect(pendingReq.payee_fio_address).to.equal(testFioAddressName2)
     } catch (err) {
-      console.log('Error', err);
+      console.log('Error: ', err);
       expect(err).to.equal(null);
     }
   })
 
-  it(`getFioNames for user1 and confirm it owns user1.domain2`, async () => {
-    try {
-      const result = await user1.sdk.genericAction('getFioNames', {
-        fioPublicKey: user1.publicKey
-      }) 
-      //console.log('getFioNames', result)
-      for (domain in result.fio_domains) {
-        if (result.fio_domains[domain].fio_domain == user1.domain2) {break} 
-      }
-      expect(result.fio_domains[domain].fio_domain).to.equal(user1.domain2);
-    } catch (err) {
-      console.log('Error', err)
-      expect(err).to.equal(null)
-    }
+  it(`recordObtData`, async () => {
+    const result = await fioSdk.sdk.genericAction('recordObtData', {
+      fioRequestId: requestId,
+      payerFioAddress: testFioAddressName,
+      payeeFioAddress: testFioAddressName2,
+      payerTokenPublicAddress: publicKey,
+      payeeTokenPublicAddress: publicKey2,
+      amount: fundsAmount,
+      chainCode: fioChainCode,
+      tokenCode: fioTokenCode,
+      status: 'sent_to_blockchain',
+      obtId: '',
+      maxFee: defaultFee,
+    })
+    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result.status).to.be.a('string')
+    expect(result.fee_collected).to.be.a('number')
   })
 
-  it(`Get balance for user1`, async () => {
-    try {
-      const result = await user1.sdk.genericAction('getFioBalance', {
-        fioPublicKey: user1.publicKey
-      }) 
-      user1OrigBalance = result.balance
-      //console.log('user1 fio balance', result)
-    } catch (err) {
-      //console.log('Error', err)
-      expect(err).to.equal(null)
-    }
+  it(`getSentFioRequests`, async () => {
+    const result = await fioSdk2.sdk.genericAction('getSentFioRequests', {})
+    expect(result).to.have.all.keys('requests', 'more')
+    expect(result.requests).to.be.a('array')
+    expect(result.more).to.be.a('number')
+    /* const pendingReq = result.requests.find(pr => parseInt(pr.fio_request_id) === parseInt(requestId))
+    expect(pendingReq).to.have.all.keys('fio_request_id', 'payer_fio_address', 'payee_fio_address', 'payee_fio_public_key', 'payer_fio_public_key', 'status', 'time_stamp', 'content')
+    expect(pendingReq.fio_request_id).to.be.a('number')
+    expect(pendingReq.fio_request_id).to.equal(requestId)
+    expect(pendingReq.payer_fio_address).to.be.a('string')
+    expect(pendingReq.payer_fio_address).to.equal(testFioAddressName)
+    expect(pendingReq.payee_fio_address).to.be.a('string')
+    expect(pendingReq.payee_fio_address).to.equal(testFioAddressName2) */
   })
 
-  it(`Transfer user1.domain2 to user2`, async () => {
-    try {
-        const result = await user1.sdk.genericAction('transferFioDomain', {
-          fioDomain: user1.domain2,
-          newOwnerKey: user2.publicKey,
-          maxFee: transfer_fio_domain_fee,
-          walletFioAddress: ''
-        })
-        feeCollected = result.fee_collected;
-        //console.log('Result: ', result);
-        expect(result.status).to.equal('OK');
-    } catch (err) {
-        console.log('Error: ', err.json.error);
-        expect(err).to.equal(null);
-    } 
+  it(`Payer getObtData`, async () => {
+    await timeout(10000)
+    const result = await fioSdk.sdk.genericAction('getObtData', {})
+    expect(result).to.have.all.keys('obt_data_records', 'more')
+    expect(result.obt_data_records).to.be.a('array')
+    expect(result.more).to.be.a('number')
+    const obtData = result.obt_data_records.find(pr => parseInt(pr.fio_request_id) === parseInt(requestId))
+    expect(obtData).to.have.all.keys('fio_request_id', 'payer_fio_address', 'payee_fio_address', 'payee_fio_public_key', 'payer_fio_public_key', 'status', 'time_stamp', 'content')
+    expect(obtData.fio_request_id).to.be.a('number')
+    expect(obtData.fio_request_id).to.equal(requestId)
+    expect(obtData.payer_fio_address).to.be.a('string')
+    expect(obtData.payer_fio_address).to.equal(testFioAddressName)
+    expect(obtData.payee_fio_address).to.be.a('string')
+    expect(obtData.payee_fio_address).to.equal(testFioAddressName2)
   })
 
-  it('Confirm proper fee was collected', async () => {
-    expect(feeCollected).to.equal(transfer_fio_domain_fee)
-  })
-
-  it('Confirm fee was deducted from user1 account', async () => {
-    try {
-      const result = await user1.sdk.genericAction('getFioBalance', {
-        fioPublicKey: user1.publicKey
-      }) 
-      expect(result.balance).to.equal(user1OrigBalance - transfer_fio_domain_fee);
-      //console.log('user1 fio balance', result)
-    } catch (err) {
-      //console.log('Error', err)
-      expect(err).to.equal(null)
-    }
-  })
-
-  it(`getFioNames for user1 and confirm it still owns the address registered on the domain`, async () => {
-    try {
-      const result = await user1.sdk.genericAction('getFioNames', {
-        fioPublicKey: user1.publicKey
-      }) 
-      //console.log('getFioNames', result)
-      for (address in result.fio_addresses) {
-        if (result.fio_addresses[address].fio_address == user1.address2) {break} 
-      }
-      expect(result.fio_addresses[address].fio_address).to.equal(user1.address2);
-    } catch (err) {
-      console.log('Error', err)
-      expect(err).to.equal(null)
-    }
-  })
-
-  it(`getFioNames for user2 and confirm it now owns the domain`, async () => {
-    try {
-      const result = await user2.sdk.genericAction('getFioNames', {
-        fioPublicKey: user2.publicKey
-      }) 
-      //console.log('getFioNames', result)
-      for (domain in result.fio_domains) {
-        if (result.fio_domains[domain].fio_domain == user1.domain2) {break} 
-      }
-      expect(result.fio_domains[domain].fio_domain).to.equal(user1.domain2);
-    } catch (err) {
-      console.log('Error', err)
-      expect(err).to.equal(null)
-    }
-  })
-
-  it(`Transfer user1.domain2 back to user1 from user2 to clean up test`, async () => {
-    try {
-        const result = await user2.sdk.genericAction('transferFioDomain', {
-          fioDomain: user1.domain2,
-          newOwnerKey: user1.publicKey,
-          maxFee: transfer_fio_domain_fee,
-          walletFioAddress: ''
-        })
-        feeCollected = result.fee_collected;
-        //console.log('Result: ', result);
-        expect(result.status).to.equal('OK');
-    } catch (err) {
-        console.log('Error: ', err.json.error);
-        expect(err).to.equal(null);
-    } 
+  it(`Payee getObtData`, async () => {
+    const result = await fioSdk2.sdk.genericAction('getObtData', {})
+    expect(result).to.have.all.keys('obt_data_records', 'more')
+    expect(result.obt_data_records).to.be.a('array')
+    expect(result.more).to.be.a('number')
+    const obtData = result.obt_data_records.find(pr => parseInt(pr.fio_request_id) === parseInt(requestId))
+    expect(obtData).to.have.all.keys('fio_request_id', 'payer_fio_address', 'payee_fio_address', 'payee_fio_public_key', 'payer_fio_public_key', 'status', 'time_stamp', 'content')
+    expect(obtData.fio_request_id).to.be.a('number')
+    expect(obtData.fio_request_id).to.equal(requestId)
+    expect(obtData.payer_fio_address).to.be.a('string')
+    expect(obtData.payer_fio_address).to.equal(testFioAddressName)
+    expect(obtData.payee_fio_address).to.be.a('string')
+    expect(obtData.payee_fio_address).to.equal(testFioAddressName2)
   })
 
 })
 
-describe(`Remove pub address`, () => {
+describe('D. Request funds, cancel funds request', () => {
+  const fundsAmount = 3
+  let requestId
+  const memo = 'testing fund request'
 
-  it(`Add DASH and BCH addresses to user1`, async () => {
-    try {
-      const result = await user1.sdk.genericAction('addPublicAddresses', {
-        fioAddress: user1.address,
-        publicAddresses: config.public_addresses,
-        maxFee: config.api.add_pub_address.fee,
-        walletFioAddress: ''
-      })
-      //console.log('Result:', result)
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-      console.log('Error', err)
-      expect(err).to.equal(null)
+  it(`requestFunds`, async () => {
+    const result = await fioSdk2.sdk.genericAction('requestFunds', {
+      payerFioAddress: testFioAddressName,
+      payeeFioAddress: testFioAddressName2,
+      payeePublicAddress: testFioAddressName2,
+      amount: fundsAmount,
+      chainCode: fioChainCode,
+      tokenCode: fioTokenCode,
+      memo,
+      maxFee: defaultFee,
+    })
+
+    requestId = result.fio_request_id
+    expect(result).to.have.all.keys('fio_request_id', 'status', 'fee_collected')
+    expect(result.fio_request_id).to.be.a('number')
+    expect(result.status).to.be.a('string')
+    expect(result.fee_collected).to.be.a('number')
+  })
+
+  it(`cancel request`, async () => {
+    try{
+    const result = await fioSdk2.sdk.genericAction('cancelFundsRequest', {
+      fioRequestId: requestId,
+      maxFee: defaultFee,
+      tpid: ''
+    })
+    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result.status).to.be.a('string')
+    expect(result.fee_collected).to.be.a('number')
+    } catch (e) {
+      console.log(e);
     }
   })
 
-  it('confirm BCH address was added', async () => {
-    try {
-      const result = await user1.sdk.genericAction('getPublicAddress', {
-        fioAddress: user1.address,
-        chainCode: "BCH",
-        tokenCode: "BCH"
-      })
-      //console.log('Result', result)
-      expect(result.public_address).to.equal('bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9')
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
 
-  it(`Remove BCH and DASH from user1`, async () => {
-    try {
-      const result = await user1.sdk.genericAction('removePublicAddresses', {
-        fioAddress: user1.address,
-        publicAddresses: config.public_addresses,
-        maxFee: config.api.add_pub_address.fee,
-        tpid: ''
-      })
-      //console.log('Result:', result)
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-      console.log('Error', err)
-      expect(err).to.equal(null)
-    }
-  })
-
-  it('confirm BCH address was removed', async () => {
-    try {
-      const result = await user1.sdk.genericAction('getPublicAddress', {
-        fioAddress: user1.address,
-        chainCode: "BCH",
-        tokenCode: "BCH"
-      })
-      //console.log('Result', result)
-    } catch (err) {
-      //console.log('Error', err)
-      expect(err.json.message).to.equal(config.error.publicAddressFound)
-    }
-  })
-
-  it(`Add DASH and BCH addresses to user1`, async () => {
-    try {
-      const result = await user1.sdk.genericAction('addPublicAddresses', {
-        fioAddress: user1.address,
-        publicAddresses: [
-          {
-            chain_code: 'BCH',
-            token_code: 'BCH',
-            public_address: 'bitcoincash:qn9g9',
-          },
-          {
-            chain_code: 'DASH',
-            token_code: 'DASH',
-            public_address: 'XyCyPKzTWvW2XdcYjPaPXGQDCGk946ywEv',
-          }
-        ],
-        maxFee: config.api.add_pub_address.fee,
-        walletFioAddress: ''
-      })
-      //console.log('Result:', result)
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-      console.log('Error', err)
-      expect(err).to.equal(null)
-    }
-  })
-
-  it('Wait a few seconds To make add_address goes through.', async () => {
-    await timeout(2000);
-  })
-
-  it('confirm BCH address was added', async () => {
-    try {
-      const result = await user1.sdk.genericAction('getPublicAddress', {
-        fioAddress: user1.address,
-        chainCode: "BCH",
-        tokenCode: "BCH"
-      })
-      //console.log('Result', result)
-      expect(result.public_address).to.equal('bitcoincash:qn9g9')
-    } catch (err) {
-      console.log('Error', err)
-      expect(err).to.equal(null)
-    }
-  })
-
-  it(`Remove All public addresses from user1`, async () => {
-    try {
-      const result = await user1.sdk.genericAction('removeAllPublicAddresses', {
-        fioAddress: user1.address,
-        maxFee: config.api.add_pub_address.fee,
-        tpid: ''
-      })
-      //console.log('Result:', result)
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-      console.log('Error', err)
-      expect(err).to.equal(null)
-    }
-  })
-
-  it('confirm BCH address was removed', async () => {
-    try {
-      const result = await user1.sdk.genericAction('getPublicAddress', {
-        fioAddress: user1.address,
-        chainCode: "BCH",
-        tokenCode: "BCH"
-      })
-      //console.log('Result', result)
-    } catch (err) {
-      //console.log('Error', err)
-      expect(err.json.message).to.equal(config.error.publicAddressFound)
-    }
+  it(`getCancelledFioRequests`, async () => {
+    try{
+    await timeout(4000)
+    const result = await fioSdk2.sdk.genericAction('getCancelledFioRequests', {})
+    expect(result).to.have.all.keys('requests', 'more')
+    expect(result.requests).to.be.a('array')
+    expect(result.more).to.be.a('number')
+    const pendingReq = result.requests.find(pr => parseInt(pr.fio_request_id) === parseInt(requestId))
+    expect(pendingReq).to.have.all.keys('fio_request_id', 'payer_fio_address', 'payee_fio_address', 'payee_fio_public_key', 'payer_fio_public_key', 'time_stamp', 'content', 'status')
+    expect(pendingReq.fio_request_id).to.be.a('number')
+    expect(pendingReq.fio_request_id).to.equal(requestId)
+    expect(pendingReq.payer_fio_address).to.be.a('string')
+    expect(pendingReq.payer_fio_address).to.equal(testFioAddressName)
+    expect(pendingReq.payee_fio_address).to.be.a('string')
+    expect(pendingReq.payee_fio_address).to.equal(testFioAddressName2)
+  } catch (e) {
+    console.log(e);
+  }
   })
 
 })
 
-describe(`Paging - FIO Address`, () => {
-  let addressCount = 20, newAddressCount
+describe('E. Request funds, reject', () => {
+  const fundsAmount = 4
+  let requestId
+  const memo = 'testing fund request'
 
-  // Only include if you need to generate new addresses.
-  it.skip(`Register ${addressCount} addresses for user3`, async () => {
-    for (i = 0; i < addressCount; i++) {
-      try {
-        newAddress = i + generateFioAddress(user3.domain, 7)
-        const result = await user3.sdk.genericAction('registerFioAddress', { 
-          fioAddress: newAddress, 
-          maxFee: config.api.register_fio_address.fee,
-          walletFioAddress: ''
-        })   
-        //console.log('Result: ', result)
-        expect(result.status).to.equal('OK')
-      } catch (err) {
-        console.log('Error: ', err)
-      }
-    }
+  it(`requestFunds`, async () => {
+    const result = await fioSdk2.sdk.genericAction('requestFunds', {
+      payerFioAddress: testFioAddressName,
+      payeeFioAddress: testFioAddressName2,
+      payeePublicAddress: testFioAddressName2,
+      amount: fundsAmount,
+      chainCode: fioChainCode,
+      tokenCode: fioTokenCode,
+      memo,
+      maxFee: defaultFee,
+    })
+
+    requestId = result.fio_request_id
+    expect(result).to.have.all.keys('fio_request_id', 'status', 'fee_collected')
+    expect(result.fio_request_id).to.be.a('number')
+    expect(result.status).to.be.a('string')
+    expect(result.fee_collected).to.be.a('number')
   })
 
-  it(`Call (get_fio_addresses, no limit param, no offset param). Get current number of addressess.`, async () => {
+  it(`getPendingFioRequests`, async () => {
+    await timeout(4000)
+    const result = await fioSdk.sdk.genericAction('getPendingFioRequests', {})
+
+    expect(result).to.have.all.keys('requests', 'more')
+    expect(result.requests).to.be.a('array')
+    expect(result.more).to.be.a('number')
+    const pendingReq = result.requests.find(pr => parseInt(pr.fio_request_id) === parseInt(requestId))
+    expect(pendingReq).to.have.all.keys('fio_request_id', 'payer_fio_address', 'payee_fio_address', 'payee_fio_public_key', 'payer_fio_public_key', 'time_stamp', 'content')
+    expect(pendingReq.fio_request_id).to.be.a('number')
+    expect(pendingReq.fio_request_id).to.equal(requestId)
+    expect(pendingReq.payer_fio_address).to.be.a('string')
+    expect(pendingReq.payer_fio_address).to.equal(testFioAddressName)
+    expect(pendingReq.payee_fio_address).to.be.a('string')
+    expect(pendingReq.payee_fio_address).to.equal(testFioAddressName2)
+  })
+
+  it(`getFee for rejectFundsRequest`, async () => {
+    const result = await fioSdk2.sdk.genericAction('getFeeForRejectFundsRequest', {
+      payerFioAddress: testFioAddressName2
+    })
+
+    expect(result).to.have.all.keys('fee')
+    expect(result.fee).to.be.a('number')
+  })
+
+  it(`rejectFundsRequest`, async () => {
+    const result = await fioSdk.sdk.genericAction('rejectFundsRequest', {
+      fioRequestId: requestId,
+      maxFee: defaultFee,
+    })
+
+    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result.status).to.be.a('string')
+    expect(result.fee_collected).to.be.a('number')
+  })
+
+})
+
+describe('F. Transfer tokens', () => {
+  const fundsAmount = FIOSDK.SUFUnit
+  let fioBalance = 0
+  let fioBalanceAfter = 0
+
+  it(`Check balance before transfer`, async () => {
+    const result = await fioSdk2.sdk.genericAction('getFioBalance', {})
+    fioBalance = result.balance
+  })
+
+  it(`Transfer tokens`, async () => {
+    const result = await fioSdk.sdk.genericAction('transferTokens', {
+      payeeFioPublicKey: publicKey2,
+      amount: fundsAmount,
+      maxFee: defaultFee,
+    })
+    expect(result).to.have.all.keys('status', 'fee_collected', 'transaction_id', 'block_num')
+    expect(result.status).to.be.a('string')
+    expect(result.transaction_id).to.be.a('string')
+    expect(result.block_num).to.be.a('number')
+    expect(result.fee_collected).to.be.a('number')
+  })
+
+  it(`Check balance and balance change`, async () => {
+    await timeout(10000)
+    const result = await fioSdk2.sdk.genericAction('getFioBalance', {})
+    fioBalanceAfter = result.balance
+    expect(fundsAmount).to.equal(fioBalanceAfter - fioBalance)
+  })
+})
+
+describe('G. Record obt data, check', () => {
+  const obtId = generateObtId()
+  const fundsAmount = 4.5
+
+  it(`getFee for recordObtData`, async () => {
+    const result = await fioSdk.sdk.genericAction('getFeeForRecordObtData', {
+      payerFioAddress: testFioAddressName
+    })
+
+    expect(result).to.have.all.keys('fee')
+    expect(result.fee).to.be.a('number')
+  })
+
+  it(`recordObtData`, async () => {
+    const result = await fioSdk.sdk.genericAction('recordObtData', {
+      fioRequestId: '',
+      payerFioAddress: testFioAddressName,
+      payeeFioAddress: testFioAddressName2,
+      payerTokenPublicAddress: publicKey,
+      payeeTokenPublicAddress: publicKey2,
+      amount: fundsAmount,
+      chainCode: fioChainCode,
+      tokenCode: fioTokenCode,
+      status: 'sent_to_blockchain',
+      obtId,
+      maxFee: defaultFee,
+    })
+    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result.status).to.be.a('string')
+    expect(result.fee_collected).to.be.a('number')
+  })
+
+  it(`Payer getObtData`, async () => {
+    await timeout(4000)
+    const result = await fioSdk.sdk.genericAction('getObtData', { tokenCode: fioTokenCode })
+    expect(result).to.have.all.keys('obt_data_records', 'more')
+    expect(result.obt_data_records).to.be.a('array')
+    expect(result.more).to.be.a('number')
+    const obtData = result.obt_data_records.find(pr => pr.content.obt_id === obtId)
+    expect(obtData).to.have.all.keys('fio_request_id', 'payer_fio_address', 'payee_fio_address', 'payee_fio_public_key', 'payer_fio_public_key', 'status', 'time_stamp', 'content')
+    expect(obtData.content.obt_id).to.be.a('string')
+    expect(obtData.content.obt_id).to.equal(obtId)
+    expect(obtData.payer_fio_address).to.be.a('string')
+    expect(obtData.payer_fio_address).to.equal(testFioAddressName)
+    expect(obtData.payee_fio_address).to.be.a('string')
+    expect(obtData.payee_fio_address).to.equal(testFioAddressName2)
+  })
+
+  it(`Payee getObtData`, async () => {
+    const result = await fioSdk2.sdk.genericAction('getObtData', { tokenCode: fioTokenCode })
+    expect(result).to.have.all.keys('obt_data_records', 'more')
+    expect(result.obt_data_records).to.be.a('array')
+    expect(result.more).to.be.a('number')
+    /* const obtData = result.obt_data_records.find(pr => pr.content.obt_id === obtId)
+    expect(obtData).to.have.all.keys('fio_request_id', 'payer_fio_address', 'payee_fio_address', 'payee_fio_public_key', 'payer_fio_public_key', 'status', 'time_stamp', 'content')
+    expect(obtData.content.obt_id).to.be.a('string')
+    expect(obtData.content.obt_id).to.equal(obtId)
+    expect(obtData.payer_fio_address).to.be.a('string')
+    expect(obtData.payer_fio_address).to.equal(testFioAddressName)
+    expect(obtData.payee_fio_address).to.be.a('string')
+    expect(obtData.payee_fio_address).to.equal(testFioAddressName2) */
+  })
+})
+
+describe('H. Encrypting/Decrypting', () => {
+  const alicePrivateKey = '5J35xdLtcPvDASxpyWhNrR2MfjSZ1xjViH5cvv15VVjqyNhiPfa'
+  const alicePublicKey = 'FIO6NxZ7FLjjJuHGByJtNJQ1uN1P5X9JJnUmFW3q6Q7LE7YJD4GZs'
+  const bobPrivateKey = '5J37cXw5xRJgE869B5LxC3FQ8ZJECiYnsjuontcHz5cJsz5jhb7'
+  const bobPublicKey = 'FIO4zUFC29aq8uA4CnfNSyRZCnBPya2uQk42jwevc3UZ2jCRtepVZ'
+
+  const nonPartyPrivateKey = '5HujRtqceTPo4awwHAEdHRTWdMTgA6s39dJjwWcjhNdSjVWUqMk'
+  const nonPartyPublicKey = 'FIO5mh1UqE5v9TKdYm2Ro6JXCXpSxj1Sm4vKUeydaLd7Cu5aqiSSp'
+  const NEW_FUNDS_CONTENT = 'new_funds_content'
+  const RECORD_OBT_DATA_CONTENT = 'record_obt_data_content'
+
+  let fioSDKBob = new FIOSDK(
+    bobPrivateKey,
+    bobPublicKey,
+    config.BASE_URL,
+    fetchJson
+  )
+
+  it(`Encrypt/Decrypt - Request New Funds`, async () => {
+    const payeeTokenPublicAddress = bobPublicKey
+    const amount = 1.57
+    const chainCode = 'FIO'
+    const tokenCode = 'FIO'
+    const memo = 'testing encryption does it work?'
+    const hash = ''
+    const offlineUrl = ''
+
+    const content = {
+      payee_public_address: payeeTokenPublicAddress,
+      amount: amount,
+      chain_code: chainCode,
+      token_code: tokenCode,
+      memo,
+      hash,
+      offline_url: offlineUrl
+    }
+
+    const cipherContent = fioSDKBob.transactions.getCipherContent(NEW_FUNDS_CONTENT, content, bobPrivateKey, alicePublicKey)
+    expect(cipherContent).to.be.a('string')
+
+    const uncipherContent = fioSDKBob.transactions.getUnCipherContent(NEW_FUNDS_CONTENT, cipherContent, alicePrivateKey, bobPublicKey)
+    expect(uncipherContent.payee_public_address).to.equal(bobPublicKey)
+
+    // same party, ensure cannot decipher
     try {
-      const json = {
-        "fio_public_key": user3.publicKey
-      }
-      result = await callFioApi("get_fio_addresses", json);
-      //console.log('Result: ', result);
-      newAddressCount = result.fio_addresses.length;
-      expect(result.fio_addresses.length).to.be.greaterThan(addressCount-1)
-    } catch (err) {
-      console.log('Error', err)
-      expect(err).to.equal(null)
-    }
-  })
+      const uncipherContentSameParty = fioSDKBob.transactions.getUnCipherContent(NEW_FUNDS_CONTENT, cipherContent, alicePrivateKey, alicePublicKey)
+      expect(uncipherContentSameParty.payee_public_address).to.notequal(bobPublicKey)
+    } catch (e) {
 
-  it(`Call (get_fio_addresses, limit=0, offset=0). Expect newAddressCount results.`, async () => {
+    }
+
+    // non party, ensure cannot decipher
     try {
-      const json = {
-        "fio_public_key": user3.publicKey,
-        "limit": 0,
-        "offset": 0
-      }
-      result = await callFioApi("get_fio_addresses", json);
-      //console.log('Result: ', result);
-      expect(result.fio_addresses.length).to.equal(newAddressCount)
-    } catch (err) {
-      console.log('Error', err)
-      expect(err).to.equal(null)
-    }
-  })
+      const uncipherContentNonParty = fioSDKBob.transactions.getUnCipherContent(NEW_FUNDS_CONTENT, cipherContent, nonPartyPrivateKey, bobPublicKey)
+      expect(uncipherContentNonParty.payee_public_address).to.notequal(bobPublicKey)
+    } catch (e) {
 
-  it(`Call (get_fio_addresses, limit=1, offset=0). Expect 1 address. Expect address user3.address`, async () => {
+    }
+
     try {
-      const json = {
-        "fio_public_key": user3.publicKey,
-        "limit": 1,
-        "offset": 0
-      }
-      result = await callFioApi("get_fio_addresses", json);
-      //console.log('Result: ', result);
-      expect(result.fio_addresses.length).to.equal(1);
-      expect(result.fio_addresses[0].fio_address).to.equal(user3.address); // First character of address = 0 (1st address in list)
-    } catch (err) {
-      console.log('Error', err)
-      expect(err).to.equal(null)
+      const uncipherContentNonPartyA = fioSDKBob.transactions.getUnCipherContent(NEW_FUNDS_CONTENT, cipherContent, bobPrivateKey, nonPartyPublicKey)
+      expect(uncipherContentNonPartyA.payee_public_address).to.notequal(bobPublicKey)
+    } catch (e) {
+
     }
+
   })
 
-  it(`Call (get_fio_addresses, limit=2, offset=4). Expect 2 address. Expect address #5-6`, async () => {
+  it(`Decrypt from iOS SDK - Request New Funds`, async () => {
+    const cipherContent = 'iNz623p8SjbFG3rNbxLeVzQhs7n4aB8UGHvkF08HhBXD3X9g6bVFJl93j/OqYdkiycxShF64uc9OHFc/qbOeeS8+WVL2YRpd9JaRqdTUE9XKFPZ6lETQ7MTbGT+qppMoJ0tWCP6mWL4M9V1xu6lE3lJkuRS4kXnwtOUJOcBDG7ddFyHaV1LnLY/jnOJHJhm8'
+    expect(cipherContent).to.be.a('string')
+
+    const uncipherContent = fioSDKBob.transactions.getUnCipherContent(NEW_FUNDS_CONTENT, cipherContent, alicePrivateKey, bobPublicKey)
+    expect(uncipherContent.payee_public_address).to.equal(bobPublicKey)
+
+    const uncipherContentA = fioSDKBob.transactions.getUnCipherContent(NEW_FUNDS_CONTENT, cipherContent, bobPrivateKey, alicePublicKey)
+    expect(uncipherContentA.payee_public_address).to.equal(bobPublicKey)
+
+  })
+
+  it(`Decrypt from Kotlin SDK - Request New Funds`, async () => {
+    const cipherContent = 'PUEe6pA4HAl7EHA1XFRqJPMjrugD0ZT09CDx4/rH3ktwqo+WaoZRIuqXR4Xvr6ki1XPp7KwwSy6GqPUuBRuBS8Z8c0/xGgcDXQHJuYSsaV3d9Q61W1JeCDvsSIOdd3MTzObNJNcMj3gad+vPcOvJ7BojeufUoe0HQvxjXO+Gpp20UPdQnljLVsir+XuFmreZwMLWfggIovd0A9t438o+DA=='
+    expect(cipherContent).to.be.a('string')
+
+    const uncipherContent = fioSDKBob.transactions.getUnCipherContent(NEW_FUNDS_CONTENT, cipherContent, alicePrivateKey, bobPublicKey)
+    expect(uncipherContent.payee_public_address).to.equal(bobPublicKey)
+
+    const uncipherContentA = fioSDKBob.transactions.getUnCipherContent(NEW_FUNDS_CONTENT, cipherContent, bobPrivateKey, alicePublicKey)
+    expect(uncipherContentA.payee_public_address).to.equal(bobPublicKey)
+
+  })
+
+  it(`Encrypt/Decrypt - RecordObtData`, async () => {
+    const payerTokenPublicAddress = alicePublicKey
+    const payeeTokenPublicAddress = bobPublicKey
+    const amount = 1.57
+    const chainCode = 'FIO'
+    const tokenCode = 'FIO'
+    const memo = 'testing TypeScript SDK encryption does it work?'
+    const hash = ''
+    const offlineUrl = ''
+
+    const content = {
+      payer_public_address: payerTokenPublicAddress,
+      payee_public_address: payeeTokenPublicAddress,
+      amount: amount,
+      chain_code: chainCode,
+      token_code: tokenCode,
+      status: '',
+      obt_id: '',
+      memo: memo,
+      hash: hash,
+      offline_url: offlineUrl
+    }
+
+    const cipherContent = fioSDKBob.transactions.getCipherContent(RECORD_OBT_DATA_CONTENT, content, bobPrivateKey, alicePublicKey)
+    expect(cipherContent).to.be.a('string')
+
+    const uncipherContent = fioSDKBob.transactions.getUnCipherContent(RECORD_OBT_DATA_CONTENT, cipherContent, alicePrivateKey, bobPublicKey)
+    expect(uncipherContent.payee_public_address).to.equal(bobPublicKey)
+
+    // same party, ensure cannot decipher
     try {
-      const json = {
-        "fio_public_key": user3.publicKey,
-        "limit": 2,
-        "offset": 4
-      }
-      result = await callFioApi("get_fio_addresses", json);
-      //console.log('Result: ', result);
-      expect(result.fio_addresses.length).to.equal(2);
-      expect(result.fio_addresses[0].fio_address.charAt(0)).to.equal('3'); // First character of address = 4 (5th address in list)
-      expect(result.fio_addresses[1].fio_address.charAt(0)).to.equal('4'); 
-    } catch (err) {
-      console.log('Error', err)
-      expect(err).to.equal(null)
+      const uncipherContentSameParty = fioSDKBob.transactions.getUnCipherContent(RECORD_OBT_DATA_CONTENT, cipherContent, alicePrivateKey, alicePublicKey)
+      expect(uncipherContentSameParty.payee_public_address).to.notequal(bobPublicKey)
+    } catch (e) {
+      // successful, on failure.  Should not decrypt
     }
-  })
 
-  it(`Call (get_fio_addresses, limit=10, offset=15). Expect address #16-20`, async () => {
+    // non party, ensure cannot decipher
     try {
-      const json = {
-        "fio_public_key": user3.publicKey,
-        "limit": 10,
-        "offset": 15
-      }
-      result = await callFioApi("get_fio_addresses", json);
-      //console.log('Result: ', result);
-      expect(result.fio_addresses[0].fio_address.charAt(0)).to.equal('1'); 
-      expect(result.fio_addresses[0].fio_address.charAt(1)).to.equal('4'); // 15         
-      expect(result.fio_addresses[4].fio_address.charAt(0)).to.equal('1'); 
-      expect(result.fio_addresses[4].fio_address.charAt(1)).to.equal('8'); // 19
-    } catch (err) {
-      console.log('Error', err)
-      expect(err).to.equal(null)
-    }
-  })
+      const uncipherContentNonParty = fioSDKBob.transactions.getUnCipherContent(RECORD_OBT_DATA_CONTENT, cipherContent, nonPartyPrivateKey, bobPublicKey)
+      expect(uncipherContentNonParty.payee_public_address).to.notequal(bobPublicKey)
+    } catch (e) {
 
-  it(`Negative offset. Call (get_fio_addresses, limit=1, offset=-1). Expect error type 400: ${config.error.invalidOffset}`, async () => {
+    }
+
     try {
-      const json = {
-        "fio_public_key": user3.sdk.publicKey,
-        "limit": 1,
-        "offset": -1
-      }
-      result = await callFioApi("get_fio_addresses", json);
-      expect(result.status).to.equal(null);
-    } catch (err) {
-      //console.log('Error', err.error);
-      expect(err.error.fields[0].error).to.equal(config.error.invalidOffset);
-      expect(err.statusCode).to.equal(400);
+      const uncipherContentNonPartyA = fioSDKBob.transactions.getUnCipherContent(RECORD_OBT_DATA_CONTENT, cipherContent, bobPrivateKey, nonPartyPublicKey)
+      expect(uncipherContentNonPartyA.payee_public_address).to.notequal(bobPublicKey)
+    } catch (e) {
+
     }
+
   })
 
-  it(`Negative limit. Call (get_fio_addresses, limit=-5, offset=5). Expect error type 400: ${config.error.invalidLimit}`, async () => {
-    try {
-      const json = {
-        "fio_public_key": user3.publicKey,
-        "limit": -5,
-        "offset": 5
-      }
-      result = await callFioApi("get_fio_addresses", json);
-      expect(result.status).to.equal(null);
-    } catch (err) {
-      //console.log('Error', err.error);
-      expect(err.error.fields[0].error).to.equal(config.error.invalidLimit);
-      expect(err.statusCode).to.equal(400);
-    }
+  it(`Decrypt from iOS SDK - RecordObtData`, async () => {
+    const cipherContent = 'XJqqkHspW0zp+dHKj9TZMn5mZzdMQrdIAXNOlKPekeEpbjyeh92hO+lB9gA6wnNuq8YNLcGA1s0NPGzb+DlHzXT2tCulgk5fiQy6+8AbThPzB0N6xICmVV3Ontib8FVlTrVrqg053PK9JeHUsg0Sb+vG/dz9+ovcSDHaByxybRNhZOVBe8jlg91eakaU1H8XKDxYOtI3+jYESK02g2Rw5Ya9ec+/PnEBQ6DjkHruKDorEF1D+nDT/0CK46VsfdYzYK8IV0T9Nal4H6Bf4wrMlQ=='
+    expect(cipherContent).to.be.a('string')
+
+    const uncipherContent = fioSDKBob.transactions.getUnCipherContent(RECORD_OBT_DATA_CONTENT, cipherContent, alicePrivateKey, bobPublicKey)
+    expect(uncipherContent.payee_public_address).to.equal(bobPublicKey)
+
+    const uncipherContentA = fioSDKBob.transactions.getUnCipherContent(RECORD_OBT_DATA_CONTENT, cipherContent, bobPrivateKey, alicePublicKey)
+    expect(uncipherContentA.payee_public_address).to.equal(bobPublicKey)
+
   })
 
-  it(`Send string to limit/offset. Expect error type 500: ${config.error.parseError}`, async () => {
-    try {
-      const json = {
-        "fio_public_key": user3.publicKey,
-        "limit": "string",
-        "offset": "string2"
-      }
-      result = await callFioApi("get_fio_addresses", json);
-      expect(result.status).to.equal(null);
-    } catch (err) {
-      //console.log('Error', err.error.error);
-      expect(err.error.error.what).to.equal(config.error.parseError);
-      expect(err.statusCode).to.equal(500);
-    }
+  it(`Decrypt from Kotlin SDK - RecordObtData`, async () => {
+    const cipherContent = '4IVNiV3Vg0/ZwkBywOWjSgER/aBzHypmfYoljA7y3Qf04mI/IkwPwO9+yj7EISTdRb2LEPgEDg1RsWBdAFmm6AE9ZXG1W5qPrtFNZuZw3qhCJbisnTLCPA2pEcAGKxBhhTaIx74/+OLXTNq5Z7RWWB+OUIa3bBJLHyhO79BUQ9dIsfiDVGmlRL5yq57uqRfb8FWoQraK31As/OFJ5Gj7KEYehzviJnMX7pYhE4CJkkfYYGfB4AHmHllFSMaLCrkY8BvDViQZTuniqDOua6Po51muyCaJLF5rdMSS0Za5F9U='
+    expect(cipherContent).to.be.a('string')
+
+    const uncipherContent = fioSDKBob.transactions.getUnCipherContent(RECORD_OBT_DATA_CONTENT, cipherContent, alicePrivateKey, bobPublicKey)
+    expect(uncipherContent.payee_public_address).to.equal(bobPublicKey)
+
+    const uncipherContentA = fioSDKBob.transactions.getUnCipherContent(RECORD_OBT_DATA_CONTENT, cipherContent, bobPrivateKey, alicePublicKey)
+    expect(uncipherContentA.payee_public_address).to.equal(bobPublicKey)
+
   })
 
-  it(`Invalid pub key. Expect error type 400: ${config.error.invalidKey}`, async () => {
-    try {
-      const json = {
-        "fio_public_key": 'FIOXXXLGcmXLCw87pqNMFurd23SqqEDbCUirr7vwuwuzfaySxQ9w6',
-        "limit": 5,
-        "offset": 5
-      }
-      result = await callFioApi("get_fio_addresses", json);
-      expect(result.status).to.equal(null);
-    } catch (err) {
-      //console.log('Error', err.error);
-      expect(err.error.fields[0].error).to.equal(config.error.invalidKey);
-      expect(err.statusCode).to.equal(400);
-    }
-  })
+})
 
-  it(`Use floats in limit/offset. Expect valid return with zero results.`, async () => {
-    try {
-      const json = {
-        "fio_public_key": user3.publicKey,
-        "limit": 123.456,
-        "offset": 345.678
-      }
-      result = await callFioApi("get_fio_addresses", json);
-      //console.log('Result: ', result)
-      expect(result.fio_addresses.length).to.equal(0)
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null)
-    }
+describe.skip('I. Check prepared transaction', () => {
+  it(`requestFunds prepared transaction`, async () => {
+    fioSdk2.setSignedTrxReturnOption(true)
+    const preparedTrx = await fioSdk2.sdk.genericAction('requestFunds', {
+      payerFioAddress: testFioAddressName,
+      payeeFioAddress: testFioAddressName2,
+      payeePublicAddress: testFioAddressName2,
+      amount: 200000,
+      chainCode: fioChainCode,
+      tokenCode: fioTokenCode,
+      memo: 'prepared transaction',
+      maxFee: defaultFee,
+    })
+    const result = await fioSdk2.executePreparedTrx(EndPoint.newFundsRequest, preparedTrx)
+    expect(result).to.have.all.keys('fio_request_id', 'status', 'fee_collected')
+    expect(result.fio_request_id).to.be.a('number')
+    expect(result.status).to.be.a('string')
+    expect(result.fee_collected).to.be.a('number')
+    fioSdk2.setSignedTrxReturnOption(false)
   })
-
-  it(`No pub key. Expect error type 400: ${config.error.invalidKey}`, async () => {
-    try {
-      const json = {
-        "limit": 1,
-        "offset": 1
-      }
-      result = await callFioApi("get_fio_addresses", json);
-      expect(result.status).to.equal(null);
-    } catch (err) {
-      //console.log('Error', err.error);
-      expect(err.error.fields[0].error).to.equal(config.error.invalidKey);
-      expect(err.statusCode).to.equal(400);
-    }
-  })
-
 })

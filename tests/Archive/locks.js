@@ -1,8 +1,8 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, unlockWallet, generateFioDomain, addLock, timeout, fetchJson} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
-config = require('../config.js');
+const {newUser, unlockWallet, generateFioDomain, addLock, timeout, fetchJson} = require('../../utils.js');
+const {FIOSDK } = require('@fioprotocol/fiosdk')
+config = require('../../config.js');
 
 let total_voted_fio
 
@@ -22,7 +22,7 @@ describe(`************************** locks.js ************************** \n A. T
     userA1.domain3 = generateFioDomain(10);
   })
 
-  it.skip(`Unlock fio wallet with wallet key: ${config.WALLETKEY}`, async () => {
+  it.skip(`Unlock fio wallet`, async () => {
     unlockWallet('fio');
   })
 
@@ -32,8 +32,8 @@ describe(`************************** locks.js ************************** \n A. T
 
   it(`Register fee test domain pre lock. `, async () => {
     try {
-      const result = await userA1.sdk.genericAction('registerFioDomain', { 
-        fioDomain: userA1.domain2, 
+      const result = await userA1.sdk.genericAction('registerFioDomain', {
+        fioDomain: userA1.domain2,
         maxFee: config.api.register_fio_domain.fee,
         //walletFioAddress: ''
       })
@@ -41,7 +41,7 @@ describe(`************************** locks.js ************************** \n A. T
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
-    } 
+    }
   })
 
   it.skip(`Apply Lock Type ${lockType} to 500 FIO for userA1`, async () => {
@@ -51,20 +51,20 @@ describe(`************************** locks.js ************************** \n A. T
       expect(result).to.have.all.keys('transaction_id', 'processed')
     } catch (err) {
       console.log('Error: ', err)
-    } 
+    }
   })
 
   it(`Register fee test domain post lock returns: ${config.error.regdomainLockedAccount} `, async () => {
     try {
-      const result = await userA1.sdk.genericAction('registerFioDomain', { 
-        fioDomain: userA1.domain3, 
+      const result = await userA1.sdk.genericAction('registerFioDomain', {
+        fioDomain: userA1.domain3,
         maxFee: config.api.register_fio_domain.fee,
       })
       //console.log('Result: ', result)
     } catch (err) {
       //console.log('Error: ', err.json)
       expect(err.json.fields[0].error).to.equal(config.error.regdomainLockedAccount)
-    } 
+    }
   })
 })
 

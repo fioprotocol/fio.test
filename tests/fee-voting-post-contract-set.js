@@ -8,7 +8,7 @@
 require('mocha')
 const {expect} = require('chai')
 const {readProdFile, fetchJson, newUser, existingUser, generateFioAddress,generateFioDomain,timeout } = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
+const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
 let producersList = [], producers = [], newprods = [], sdkprods = []
@@ -37,7 +37,7 @@ before(async () => {
  // producersList = await readProdFile(config.PRODKEYFILE);
 })
 
-describe('************************** fee-voting-fee-setting.js ************************** \n A. Vote fees for top prods.', () => {
+describe('************************** fee-voting-fee-setting.js ************************** \n    A. Vote fees for top prods.', () => {
 
   let prodA1, userA1, result,  locksdk
   let timeafteraccountcreate = 5000

@@ -1,14 +1,14 @@
 require('mocha')
 const {expect} = require('chai')
 const {newUser, generateFioAddress, generateFioDomain, createKeypair, callFioApi, getFees, timeout, fetchJson} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK')
+const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
 })
 
-describe('************************** transfer-domain.js ************************** \n A. Transfer a domain to FIO Public Key which maps to existing account on FIO Chain using new endpoint (not push action)', () => {
+describe('************************** transfer-domain.js ************************** \n    A. Transfer a domain to FIO Public Key which maps to existing account on FIO Chain using new endpoint (not push action)', () => {
 
   let walletA1, walletA1FioNames, walletA1OrigBalance, walletA1OrigRam, walletA2, walletA2FioNames, walletA2OrigRam, transfer_fio_domain_fee, origDomainExpire, feeCollected
 
@@ -32,27 +32,27 @@ describe('************************** transfer-domain.js ************************
 
   it(`Register walletA1.domain2`, async () => {
     try {
-        const result = await walletA1.sdk.genericAction('registerFioDomain', { 
+        const result = await walletA1.sdk.genericAction('registerFioDomain', {
         fioDomain: walletA1.domain2,
         maxFee: config.api.register_fio_domain.fee,
         technologyProviderId: ''
         })
         //console.log('Result: ', result)
-        expect(result.status).to.equal('OK')  
+        expect(result.status).to.equal('OK')
     } catch (err) {
         console.log('Error', err)
         expect(err).to.equal(null)
     }
   })
-  
+
   it(`Register walletA1.address2`, async () => {
-      const result = await walletA1.sdk.genericAction('registerFioAddress', { 
+      const result = await walletA1.sdk.genericAction('registerFioAddress', {
         fioAddress: walletA1.address2,
         maxFee: config.api.register_fio_address.fee,
         technologyProviderId: ''
       })
       //console.log('Result: ', result)
-      expect(result.status).to.equal('OK')  
+      expect(result.status).to.equal('OK')
   })
 
   it(`Wait a few seconds.`, async () => { await timeout(3000) })
@@ -61,7 +61,7 @@ describe('************************** transfer-domain.js ************************
       try {
         const result = await walletA1.sdk.genericAction('getFioNames', {
           fioPublicKey: walletA1.publicKey
-        }) 
+        })
         //console.log('getFioNames', result)
         origDomainExpire = result.fio_domains[1].expiration
         expect(result.fio_domains.length).to.equal(2)
@@ -79,7 +79,7 @@ describe('************************** transfer-domain.js ************************
       try {
         const result = await walletA2.sdk.genericAction('getFioNames', {
           fioPublicKey: walletA2.publicKey
-        }) 
+        })
         //console.log('getFioNames', result)
         expect(result.fio_domains.length).to.equal(1)
         expect(result.fio_domains[0].fio_domain).to.equal(walletA2.domain)
@@ -94,7 +94,7 @@ describe('************************** transfer-domain.js ************************
     try {
       const result = await walletA1.sdk.genericAction('getFioBalance', {
         fioPublicKey: walletA1.publicKey
-      }) 
+      })
       walletA1OrigBalance = result.balance
       //console.log('userA1 fio balance', result)
     } catch (err) {
@@ -145,7 +145,7 @@ describe('************************** transfer-domain.js ************************
     } catch (err) {
         console.log('Error: ', err.json.error);
         expect(err).to.equal(null);
-    } 
+    }
   })
 
   it(`Wait a few seconds.`, async () => { await timeout(3000) })
@@ -158,7 +158,7 @@ describe('************************** transfer-domain.js ************************
     try {
       const result = await walletA1.sdk.genericAction('getFioBalance', {
         fioPublicKey: walletA1.publicKey
-      }) 
+      })
       expect(result.balance).to.equal(walletA1OrigBalance - transfer_fio_domain_fee)
       //console.log('userA1 fio balance', result)
     } catch (err) {
@@ -199,7 +199,7 @@ describe('************************** transfer-domain.js ************************
       try {
         walletA1FioNames = await walletA1.sdk.genericAction('getFioNames', {
           fioPublicKey: walletA1.publicKey
-        }) 
+        })
         //console.log('getFioNames', result)
         expect(walletA1FioNames.fio_domains.length).to.equal(1)
         expect(walletA1FioNames.fio_domains[0].fio_domain).to.equal(walletA1.domain)
@@ -219,11 +219,11 @@ describe('************************** transfer-domain.js ************************
       try {
         walletA2FioNames = await walletA2.sdk.genericAction('getFioNames', {
           fioPublicKey: walletA2.publicKey
-        }) 
+        })
         //console.log('getFioNames', walletA2FioNames)
         expect(walletA2FioNames.fio_domains.length).to.equal(2)
         expect(walletA2FioNames.fio_domains[0].fio_domain).to.equal(walletA2.domain)
-        expect(walletA2FioNames.fio_addresses[0].fio_address).to.equal(walletA2.address) 
+        expect(walletA2FioNames.fio_addresses[0].fio_address).to.equal(walletA2.address)
         expect(walletA2FioNames.fio_domains[1].fio_domain).to.equal(walletA1.domain2)
       } catch (err) {
         console.log('Error', err)
@@ -263,13 +263,13 @@ describe('B. Transfer a domain to FIO Public Key which does not map to existing 
     try {
       const result = await faucet.genericAction('getFioBalance', {
         fioPublicKey: walletB2.publicKey
-      }) 
+      })
       expect(err).to.equal(null);
     } catch (err) {
       //console.log('Error: ', err)
       expect(err.json.message).to.equal(config.error.keyNotFound)
       expect(err.errorCode).to.equal(404);
-    } 
+    }
   })
 
   it(`(API) getFioBalance for non-existent walletB1 account. Expect error type 404: ${config.error.keyNotFound}`, async () => {
@@ -299,13 +299,13 @@ describe('B. Transfer a domain to FIO Public Key which does not map to existing 
 
   it(`Register walletB1.domain2`, async () => {
     try {
-        const result = await walletB1.sdk.genericAction('registerFioDomain', { 
+        const result = await walletB1.sdk.genericAction('registerFioDomain', {
         fioDomain: walletB1.domain2,
         maxFee: config.api.register_fio_domain.fee,
         technologyProviderId: ''
         })
         //console.log('Result: ', result)
-        expect(result.status).to.equal('OK')  
+        expect(result.status).to.equal('OK')
     } catch (err) {
         console.log('Error', err)
         expect(err).to.equal(null)
@@ -313,20 +313,20 @@ describe('B. Transfer a domain to FIO Public Key which does not map to existing 
   })
 
   it('Register walletB1.address2', async () => {
-      const result = await walletB1.sdk.genericAction('registerFioAddress', { 
+      const result = await walletB1.sdk.genericAction('registerFioAddress', {
         fioAddress: walletB1.address2,
         maxFee: config.api.register_fio_address.fee,
         technologyProviderId: ''
       })
       //console.log('Result: ', result)
-      expect(result.status).to.equal('OK')  
+      expect(result.status).to.equal('OK')
   })
 
   it('getFioNames for walletB1 and confirm it owns 2 domains and one of them is walletB1.domain2', async () => {
     try {
       const result = await walletB1.sdk.genericAction('getFioNames', {
         fioPublicKey: walletB1.publicKey
-      }) 
+      })
       //console.log('getFioNames', result)
       origDomainExpire = result.fio_domains[1].expiration
       expect(result.fio_domains.length).to.equal(2)
@@ -359,7 +359,7 @@ describe('B. Transfer a domain to FIO Public Key which does not map to existing 
     try {
       const result = await walletB1.sdk.genericAction('getFioBalance', {
         fioPublicKey: walletB1.publicKey
-      }) 
+      })
       walletB1OrigBalance = result.balance
       //console.log('userA1 fio balance', result)
     } catch (err) {
@@ -392,14 +392,14 @@ describe('B. Transfer a domain to FIO Public Key which does not map to existing 
         })
         //console.log('Result: ', result)
         feeCollected = result.fee_collected;
-        expect(result.status).to.equal('OK') 
+        expect(result.status).to.equal('OK')
     } catch (err) {
         console.log('Error: ', err)
         expect(err).to.equal(null)
-    } 
+    }
   })
 
-  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
   it('Confirm proper fee was collected', async () => {
     expect(feeCollected).to.equal(transfer_fio_domain_fee)
@@ -409,7 +409,7 @@ describe('B. Transfer a domain to FIO Public Key which does not map to existing 
     try {
       const result = await walletB1.sdk.genericAction('getFioBalance', {
         fioPublicKey: walletB1.publicKey
-      }) 
+      })
       expect(result.balance).to.equal(walletB1OrigBalance - transfer_fio_domain_fee)
       //console.log('Result', result)
     } catch (err) {
@@ -422,13 +422,13 @@ describe('B. Transfer a domain to FIO Public Key which does not map to existing 
     try {
       const result = await faucet.genericAction('getFioBalance', {
         fioPublicKey: walletB2.publicKey
-      }) 
+      })
       //console.log('Result: ', result)
       expect(result.balance).to.equal(0)
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal(null)
-    } 
+    }
   })
 
   it(`Confirm RAM quota for walletB1 was incremented by ${config.RAM.XFERDOMAINRAM}`, async () => {
@@ -463,7 +463,7 @@ describe('B. Transfer a domain to FIO Public Key which does not map to existing 
       try {
         walletB1FioNames = await walletB1.sdk.genericAction('getFioNames', {
           fioPublicKey: walletB1.publicKey
-        }) 
+        })
         //console.log('getFioNames', walletB1FioNames)
         expect(walletB1FioNames.fio_domains.length).to.equal(1)
         expect(walletB1FioNames.fio_domains[0].fio_domain).to.equal(walletB1.domain)
@@ -483,7 +483,7 @@ describe('B. Transfer a domain to FIO Public Key which does not map to existing 
       try {
         walletB2FioNames = await walletB1.sdk.genericAction('getFioNames', {
           fioPublicKey: walletB2.publicKey
-        }) 
+        })
         //console.log('getFioNames', walletB2FioNames)
         expect(walletB2FioNames.fio_domains.length).to.equal(1)
         expect(walletB2FioNames.fio_domains[0].fio_domain).to.equal(walletB1.domain2)
@@ -520,7 +520,7 @@ describe('C. Run get_fee on transfer_fio_domain', () => {
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it('Call sdk getFee on transfer_fio_domain endpoint for walletC1 and verify the fee is equal to the fee from the table', async () => {
@@ -762,7 +762,7 @@ describe('D. transferFioDomain Error testing', () => {
     try {
       const result = await userD3.sdk.genericAction('getFioBalance', {
         fioPublicKey: userD3.publicKey
-      }) 
+      })
       userC1Balance = result.balance
       //console.log('userD3 fio balance', result)
     } catch (err) {
@@ -784,7 +784,7 @@ describe('D. transferFioDomain Error testing', () => {
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
-    } 
+    }
   })
 
   it(`Wait a few seconds.`, async () => { await timeout(3000) })
@@ -793,7 +793,7 @@ describe('D. transferFioDomain Error testing', () => {
     try {
       const result = await userD3.sdk.genericAction('getFioBalance', {
         fioPublicKey: userD3.publicKey
-      }) 
+      })
       //console.log('userD3 fio balance', result)
       expect(result.balance).to.equal(0)
     } catch (err) {
@@ -816,13 +816,13 @@ describe('D. transferFioDomain Error testing', () => {
       }
       fionames = await callFioApi("get_table_rows", json);
       //console.log('fionames: ', fionames);
-      for (name in fionames.rows) {
-        if (fionames.rows[name].name == userD3.address) {
-          //console.log('bundleeligiblecountdown: ', fionames.rows[name].bundleeligiblecountdown); 
-          bundleCount = fionames.rows[name].bundleeligiblecountdown;
+      for (fioname in fionames.rows) {
+        if (fionames.rows[fioname].name == userD3.address) {
+          //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
+          bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
         }
       }
-      expect(bundleCount).to.equal(0);  
+      expect(bundleCount).to.equal(0);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
