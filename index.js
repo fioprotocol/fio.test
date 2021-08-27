@@ -6,6 +6,7 @@ describe('TEST SUITE', () => {
   /**
    * General Tests. Should work against all builds. Do not require additional configuration.
    */
+  
   require('./tests/addaddress.js'); // v1.0.x  Also includes FIP-13 tests.
   require('./tests/fees.js'); // v1.0.x
   require('./tests/fio-request.js'); // v1.0.x
