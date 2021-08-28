@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, existingUser,callFioApi,fetchJson, generateFioDomain, getAccountFromKey,generateFioAddress, createKeypair} = require('../utils.js');
+const {newUser, existingUser,callFioApi,fetchJson, generateFioDomain, getAccountFromKey,generateFioAddress, timeout, createKeypair} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
 
@@ -542,7 +542,7 @@ describe(`************************** stake-general-locked-tokens.js ************
       // console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
-      console.log("Error :", err)
+      console.log("Error :", err.json.error)
       expect(err).to.equal(null)
     }
   })
@@ -646,7 +646,7 @@ describe(`************************** stake-general-locked-tokens.js ************
       // console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
-      console.log("Error :", err)
+      console.log("Error :", err.json.error)
       expect(err).to.equal(null)
     }
   })
@@ -666,7 +666,7 @@ describe(`************************** stake-general-locked-tokens.js ************
       // console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
-      console.log("Error :", err)
+      console.log("Error :", err.json.error)
       expect(err).to.equal(null)
     }
   })
@@ -1782,6 +1782,8 @@ describe(`C. Insert stake period at END of locktokensv2 general locks, then unlo
     expect(result.status).to.equal('OK')
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(2000) })
+
   it(`Call get_table_rows from locktokensv2. Confirm: existing Staking Amount updated, lock_amount and remaining_lock_amount updated, first lock removed`, async () => {
     try {
       const json = {
@@ -1836,6 +1838,8 @@ describe(`C. Insert stake period at END of locktokensv2 general locks, then unlo
     }
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(2000) })
+
   it(`Call get_table_rows from locktokensv2. Confirm: remaining_lock_amount updated, payouts_performed updated`, async () => {
     try {
       const json = {
@@ -1884,6 +1888,8 @@ describe(`C. Insert stake period at END of locktokensv2 general locks, then unlo
       expect(err).to.equal(null);
     }
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(2000) })
 
   it(`Call get_table_rows from locktokensv2. Confirm: existing Staking period periods[2] Amount updated`, async () => {
     try {

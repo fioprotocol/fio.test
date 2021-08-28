@@ -50,6 +50,7 @@ describe('TEST SUITE', () => {
    */
   //###These Staking tests do NOT require additional configuration.
   require('./tests/stake-general-locked-tokens.js'); //FIP-21 tests for general lock accounts performing staking
+  require('./tests/stake-tokens.js');
   //###These Staking tests require additional configuration.
   //require('./tests/stake-mainnet-locked-tokens-with-staking.js'); //FIP-21 tests for genesis lock accounts performing staking
   //require('./tests/stake-rapid-unstake-with-mainnet-locks.js'); //FIP-21 tests for rapid fire unstaking in succession
