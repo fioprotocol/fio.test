@@ -30,6 +30,7 @@
     },
     "scripts": {
         "test": "node node_modules/mocha/bin/_mocha -t 5000000 index.js",
+        "staking": "node node_modules/mocha/bin/_mocha -t 5000000 index-staking.js",
         "testnet": "mocha -t 5000000 tests/testnet-smoketest.js"
     }
 }
