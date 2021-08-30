@@ -281,11 +281,11 @@ const config = {
             bundledEligible: true,
             fee: 600000000
         },
-        stakefio: {
+        stake_fio_tokens: {
             bundledEligible: true,
             fee: 3000000000
         },
-        unstakefio: {
+        unstake_fio_tokens: {
             bundledEligible: true,
             fee: 3000000000
         }

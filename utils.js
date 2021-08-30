@@ -204,6 +204,7 @@ async function existingUser(caccount, cprivateKey, cpublicKey, cdomain=null, cad
 
     try {
         if (cdomain == null) {
+            this.domain = generateFioDomain(10);
             const result = await this.sdk.genericAction('registerFioDomain', {
                 fioDomain: this.domain,
                 maxFee: config.api.register_fio_domain.fee ,
@@ -217,6 +218,7 @@ async function existingUser(caccount, cprivateKey, cpublicKey, cdomain=null, cad
 
     try {
         if (caddress == null) {
+            this.address = generateFioAddress(this.domain, 5);
             const result = await this.sdk.genericAction('registerFioAddress', {
                 fioAddress: this.address,
                 maxFee: config.api.register_fio_address.fee,
