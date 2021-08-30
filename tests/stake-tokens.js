@@ -637,9 +637,25 @@ describe(`A3. Verify staking rewards for block producer`, () => {
     expect(result.fee_collected).to.equal(config.api.register_fio_domain.fee);
   });
 
-  it(`wait for next BP claim`);
+  // it(`wait for next BP claim`);
 
-  it(`run bpclaim from any other account, expect minted = 25000 - stake fees`);
+  it(`run bpclaim from any other account, expect minted = 25000 - stake fees`, async () => {
+    try {
+      const result = await bp1.sdk.genericAction('pushTransaction', {
+        action: 'bpclaim',
+        account: 'fio.treasury',
+        data: {
+          fio_address: bp1.address,
+          actor: bp1.account
+        }
+      })
+      //console.log('BPCLAIM Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  });
 });
 
 describe(`A4. Unstake some staked FIO from userA, observe staking reward changes`, () => {
@@ -1054,9 +1070,25 @@ describe(`A6. Verify next set of staking rewards for block producer`, () => {
     });
   });
 
-  it(`wait for next BP claim`);
+  // it(`wait for next BP claim`);
 
-  it(`run bpclaim from any other account, expect minted = 25000 - stake fees`);
+  it(`run bpclaim from any other account, expect minted = 25000 - stake fees`, async () => {
+    try {
+      const result = await bp1.sdk.genericAction('pushTransaction', {
+        action: 'bpclaim',
+        account: 'fio.treasury',
+        data: {
+          fio_address: bp1.address,
+          actor: bp1.account
+        }
+      })
+      //console.log('BPCLAIM Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  });
 });
 
 describe(`A8. Unstake some more FIO from userA, observe staking reward changes`, () => {
@@ -1377,9 +1409,25 @@ describe(`A10. Verify next set of staking rewards and user balances`, () => {
     locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
   });
 
-  it(`wait for next BP claim`);
+  // it(`wait for next BP claim`);
 
-  it(`run bpclaim from any other account, expect minted = 25000 - stake fees`);
+  it(`run bpclaim from any other account, expect minted = 25000 - stake fees`, async () => {
+    try {
+      const result = await bp1.sdk.genericAction('pushTransaction', {
+        action: 'bpclaim',
+        account: 'fio.treasury',
+        data: {
+          fio_address: bp1.address,
+          actor: bp1.account
+        }
+      })
+      //console.log('BPCLAIM Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  });
 });
 
 describe(`A11. Stake some FIO from userC, observe staking reward changes`, () => {
@@ -3127,30 +3175,290 @@ describe(`F. (unhappy tests) Stake and unstake some FIO with no bundles tx remai
   });
 });
 
-describe(`G. Tests incgrewards `, () => {
+describe(`G. Malicious staking actions`, () => {
+  let bp1, bp2, bp3, userA, userB, userC, userP, prevFundsAmount, locksdk, keys, accountnm, newFioDomain1, newFioAddress1, newFioDomain2, newFioAddress2, total_bp_votes, total_voted_fio;
+  const fundsAmount = 1000000000000;
+  const transferAmt = 100000000000;
+  const stakeAmt = 50000000000;
 
-  it(`increment staking rewards`);
+  before(async () => {
+    // Create sdk objects for the orinigal localhost BPs
+    bp1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+    bp2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+    bp3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+    //create a user and give it 10k fio.
+    userA = await newUser(faucet);
+    userB = await newUser(faucet);
+    userC = await newUser(faucet);
+    userP = await newUser(faucet);
+    keys = await createKeypair();
 
-  it(`decrement staking rewards`);
+    accountnm =  await getAccountFromKey(keys.publicKey);
+    await faucet.genericAction('pushTransaction', {
+      action: 'trnsloctoks',
+      account: 'fio.token',
+      data: {
+        payee_public_key: keys.publicKey,
+        can_vote: 0,
+        periods: [
+          {
+            duration: 120,
+            amount: 5000000000000,
+          },
+          {
+            duration: 180,
+            amount: 4000000000000,
+          },
+          {
+            duration: 1204800,
+            amount: 1000000000000,
+          }
+        ],
+        amount: 10000000000000,
+        max_fee: 400000000000,
+        tpid: '',
+        actor: 'qhh25sqpktwh',
+      }
+    });
+    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
 
-  it(`(unhappy) missing required authority of fio.address`);
+    // transfer some test FIO
+    await userA.sdk.genericAction('transferTokens', {
+      payeeFioPublicKey: keys.publicKey,
+      amount: fundsAmount,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      tpid: '',
+    });
 
-  it(`(unhappy) missing required authority of fio.treasury`);
+    await locksdk.genericAction('transferTokens', {
+      payeeFioPublicKey: userA.publicKey,
+      amount: transferAmt,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    });
 
-  it(`(unhappy) missing required authority of fio.fee`);
+    // register our proxy
+    await userP.sdk.genericAction('pushTransaction', {
+      action: 'regproxy',
+      account: 'eosio',
+      data: {
+        fio_address: userP.address,
+        actor: userP.account,
+        max_fee: config.api.register_proxy.fee
+      }
+    });
 
-  it(`(unhappy) missing required authority of fio.token`);
+    // proxy first so userA can stake
+    await userA.sdk.genericAction('pushTransaction', {
+      action: 'voteproxy',
+      account: 'eosio',
+      data: {
+        proxy: userP.address,
+        fio_address: userA.address,
+        actor: accountnm,
+        max_fee: config.api.proxy_vote.fee
+      }
+    });
+  });
 
-  it(`(unhappy) missing required authority of fio.stakng`);
+  it(`(malicious) userB try to stake some FIO belonging to userA, expect Error`, async () => {
+    try {
+      const result = await userB.sdk.genericAction('pushTransaction', {
+        action: 'stakefio',
+        account: 'fio.staking',
+        data: {
+          fio_address: userA.address,
+          amount: stakeAmt,
+          actor: userA.address,
+          max_fee: config.api.stakefio.fee,
+          tpid: userP.address
+        }
+      });
+    } catch (err) {
+      expect(err.errorCode).to.equal(403);
+      expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
+    }
+  });
 
-  it(`(unhappy) missing required authority of eosio`);
+  it(`(malicious) userB try to proxy first, then stake some FIO belonging to userA, expect Error`, async () => {
+    // proxy first
+    await userB.sdk.genericAction('pushTransaction', {
+      action: 'voteproxy',
+      account: 'eosio',
+      data: {
+        proxy: userP.address,
+        fio_address: userB.address,
+        actor: userB.account,
+        max_fee: config.api.proxy_vote.fee
+      }
+    });
 
-  it(`(unhappy) missing required authority of fio.reqobt`);
+    try {
+      const result = await userB.sdk.genericAction('pushTransaction', {
+        action: 'stakefio',
+        account: 'fio.staking',
+        data: {
+          fio_address: userA.address,
+          amount: stakeAmt,
+          actor: userA.address,
+          max_fee: config.api.stakefio.fee,
+          tpid: userP.address
+        }
+      });
+    } catch (err) {
+      expect(err.errorCode).to.equal(403);
+      expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
+    }
+  });
 });
 
-describe(`H. Tests recorddaily`, () => {
+describe(`H. Malicious unstaking actions`, () => {
+  let bp1, bp2, bp3, userA, userB, userC, userP, prevFundsAmount, locksdk, keys, accountnm, newFioDomain1, newFioAddress1, newFioDomain2, newFioAddress2, total_bp_votes, total_voted_fio;
+  const fundsAmount = 1000000000000;
+  const transferAmt = 100000000000;
+  const stakeAmt = 50000000000;
+  const unstakeAmt = 25000000000;
 
-  it(`update global state when bps claim rewards`);
+  before(async () => {
+    // Create sdk objects for the orinigal localhost BPs
+    bp1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+    bp2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+    bp3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+    //create a user and give it 10k fio.
+    userA = await newUser(faucet);
+    userB = await newUser(faucet);
+    userC = await newUser(faucet);
+    userP = await newUser(faucet);
+    keys = await createKeypair();
 
-  it(`(unhappy) missing required authority of fio.treasury`);
+    accountnm =  await getAccountFromKey(keys.publicKey);
+    await faucet.genericAction('pushTransaction', {
+      action: 'trnsloctoks',
+      account: 'fio.token',
+      data: {
+        payee_public_key: keys.publicKey,
+        can_vote: 0,
+        periods: [
+          {
+            duration: 120,
+            amount: 5000000000000,
+          },
+          {
+            duration: 180,
+            amount: 4000000000000,
+          },
+          {
+            duration: 1204800,
+            amount: 1000000000000,
+          }
+        ],
+        amount: 10000000000000,
+        max_fee: 400000000000,
+        tpid: '',
+        actor: 'qhh25sqpktwh',
+      }
+    });
+    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+
+    // transfer some test FIO
+    await userA.sdk.genericAction('transferTokens', {
+      payeeFioPublicKey: keys.publicKey,
+      amount: fundsAmount,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      tpid: '',
+    });
+
+    await locksdk.genericAction('transferTokens', {
+      payeeFioPublicKey: userA.publicKey,
+      amount: transferAmt,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    });
+
+    // register our proxy
+    await userP.sdk.genericAction('pushTransaction', {
+      action: 'regproxy',
+      account: 'eosio',
+      data: {
+        fio_address: userP.address,
+        actor: userP.account,
+        max_fee: config.api.register_proxy.fee
+      }
+    });
+
+    // proxy first so userA can stake
+    await userA.sdk.genericAction('pushTransaction', {
+      action: 'voteproxy',
+      account: 'eosio',
+      data: {
+        proxy: userP.address,
+        fio_address: userA.address,
+        actor: accountnm,
+        max_fee: config.api.proxy_vote.fee
+      }
+    });
+
+    // stake some FIO
+    await userA.sdk.genericAction('pushTransaction', {
+      action: 'stakefio',
+      account: 'fio.staking',
+      data: {
+        fio_address: '',
+        amount: stakeAmt,
+        actor: userA.address,
+        max_fee: config.api.stakefio.fee,
+        tpid: userP.address
+      }
+    });
+  });
+
+  it(`(malicious) userB try to unstake FIO from userA, expect Error`, async () => {
+    try {
+      const result = await userB.sdk.genericAction('pushTransaction', {
+        action: 'unstakefio',
+        account: 'fio.staking',
+        data: {
+          fio_address: userA.address,
+          amount: unstakeAmt,
+          actor: userA.account,
+          max_fee: config.api.unstakefio.fee,
+          tpid: bp1.address
+        }
+      });
+    } catch (err) {
+      expect(err.errorCode).to.equal(403);
+      expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
+    }
+  })
+
+  it(`(malicious) userB try to proxy first, then unstake FIO staked by userA, expect Error`, async () => {
+    // proxy first
+    await userB.sdk.genericAction('pushTransaction', {
+      action: 'voteproxy',
+      account: 'eosio',
+      data: {
+        proxy: userP.address,
+        fio_address: userB.address,
+        actor: userB.account,
+        max_fee: config.api.proxy_vote.fee
+      }
+    });
+
+    try {
+      const result = await userB.sdk.genericAction('pushTransaction', {
+        action: 'unstakefio',
+        account: 'fio.staking',
+        data: {
+          fio_address: userA.address,
+          amount: unstakeAmt,
+          actor: userA.account,
+          max_fee: config.api.unstakefio.fee,
+          tpid: bp1.address
+        }
+      });
+    } catch (err) {
+      expect(err.errorCode).to.equal(403);
+      expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
+    }
+  })
 });
