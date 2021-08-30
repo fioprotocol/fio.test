@@ -475,7 +475,7 @@ describe(`A2. Stake some FIO from userA`, () => {
         fio_address: userA.address,
         amount: stakeAmt,
         actor: userA.address,
-        max_fee: config.api.stakefio.fee,
+        max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
     });
@@ -508,7 +508,7 @@ describe(`A2. Stake some FIO from userA`, () => {
         fio_address: '',
         amount: stakeAmt,
         actor: userA.address,
-        max_fee: config.api.stakefio.fee,
+        max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
     });
@@ -518,7 +518,7 @@ describe(`A2. Stake some FIO from userA`, () => {
     newGlobalSrpCount = await getGlobalSrpCount();
     expect(result).to.have.all.keys('status', 'fee_collected');
     expect(result.status).to.equal('OK');
-    expect(result.fee_collected).to.equal(config.api.stakefio.fee);
+    expect(result.fee_collected).to.equal(config.api.stake_fio_tokens.fee);
     expect(newBalA.staked - balA.staked).to.equal(stakeAmt);
     expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
     expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
@@ -620,7 +620,7 @@ describe(`A3. Verify staking rewards for block producer`, () => {
         fio_address: '',
         amount: stakeAmt,
         actor: userA.address,
-        max_fee: config.api.stakefio.fee,
+        max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
     });
@@ -752,7 +752,7 @@ describe(`A4. Unstake some staked FIO from userA, observe staking reward changes
         fio_address: '',
         amount: stakeAmt,
         actor: userA.address,
-        max_fee: config.api.stakefio.fee,
+        max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
     });
@@ -771,7 +771,7 @@ describe(`A4. Unstake some staked FIO from userA, observe staking reward changes
         fio_address: userA.address,
         amount: unstakeAmt,
         actor: userA.account,
-        max_fee: config.api.unstakefio.fee,
+        max_fee: config.api.unstake_fio_tokens.fee,
         tpid:''
       }
     });
@@ -801,7 +801,7 @@ describe(`A4. Unstake some staked FIO from userA, observe staking reward changes
         fio_address: '',
         amount: unstakeAmt,
         actor: userA.account,
-        max_fee: config.api.unstakefio.fee,
+        max_fee: config.api.unstake_fio_tokens.fee,
         tpid:''
       }
     });
@@ -810,7 +810,7 @@ describe(`A4. Unstake some staked FIO from userA, observe staking reward changes
     newGlobalSrpCount = await getGlobalSrpCount();
     let newBal = await userA.sdk.genericAction('getFioBalance', {});
     expect(result.status).to.equal('OK');
-    expect(result.fee_collected).to.equal(config.api.unstakefio.fee);
+    expect(result.fee_collected).to.equal(config.api.unstake_fio_tokens.fee);
     expect(bal.staked - newBal.staked).to.equal(unstakeAmt);
     expect(newStakedTokenPool).to.be.lessThan(stakedTokenPool);
     expect(stakedTokenPool - newStakedTokenPool).to.equal(unstakeAmt);
@@ -912,7 +912,7 @@ describe(`A5. Stake some FIO from userB, observe staking reward changes`, () => 
         fio_address: '',
         amount: stakeAmt,
         actor: userA.address,
-        max_fee: config.api.stakefio.fee,
+        max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
     });
@@ -1064,7 +1064,7 @@ describe(`A6. Verify next set of staking rewards for block producer`, () => {
         fio_address: '',
         amount: stakeAmt,
         actor: userA.address,
-        max_fee: config.api.stakefio.fee,
+        max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
     });
@@ -1185,7 +1185,7 @@ describe(`A8. Unstake some more FIO from userA, observe staking reward changes`,
         fio_address: '',
         amount: stakeAmt,
         actor: userA.address,
-        max_fee: config.api.stakefio.fee,
+        max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
     });
@@ -1204,7 +1204,7 @@ describe(`A8. Unstake some more FIO from userA, observe staking reward changes`,
         fio_address: userA.address,
         amount: unstakeAmt,
         actor: userA.account,
-        max_fee: config.api.unstakefio.fee,
+        max_fee: config.api.unstake_fio_tokens.fee,
         tpid: bp1.address
       }
     });
@@ -1316,7 +1316,7 @@ describe(`A9. Unstake some more FIO from userB, observe staking reward changes`,
         fio_address: '',
         amount: stakeAmt,
         actor: userB.address,
-        max_fee: config.api.stakefio.fee,
+        max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
     });
@@ -1335,7 +1335,7 @@ describe(`A9. Unstake some more FIO from userB, observe staking reward changes`,
         fio_address: userB.address,
         amount: unstakeAmt,
         actor: userB.account,
-        max_fee: config.api.unstakefio.fee,
+        max_fee: config.api.unstake_fio_tokens.fee,
         tpid:''
       }
     });
@@ -1529,7 +1529,7 @@ describe(`A11. Stake some FIO from userC, observe staking reward changes`, () =>
         fio_address: userC.address,
         amount: stakeAmt,
         actor: accountnm,
-        max_fee: config.api.stakefio.fee,
+        max_fee: config.api.stake_fio_tokens.fee,
         tpid:''
       }
     });
@@ -3111,7 +3111,7 @@ describe(`F. (unhappy tests) Stake and unstake some FIO with no bundles tx remai
         fio_address: '',
         amount: stakeAmt,
         actor: userA.address,
-        max_fee: config.api.stakefio.fee,
+        max_fee: config.api.stake_fio_tokens.fee,
         tpid: ''
       }
     });
@@ -3270,7 +3270,7 @@ describe(`G. Malicious staking actions`, () => {
           fio_address: userA.address,
           amount: stakeAmt,
           actor: userA.address,
-          max_fee: config.api.stakefio.fee,
+          max_fee: config.api.stake_fio_tokens.fee,
           tpid: userP.address
         }
       });
@@ -3301,7 +3301,7 @@ describe(`G. Malicious staking actions`, () => {
           fio_address: userA.address,
           amount: stakeAmt,
           actor: userA.address,
-          max_fee: config.api.stakefio.fee,
+          max_fee: config.api.stake_fio_tokens.fee,
           tpid: userP.address
         }
       });
@@ -3406,7 +3406,7 @@ describe(`H. Malicious unstaking actions`, () => {
         fio_address: '',
         amount: stakeAmt,
         actor: userA.address,
-        max_fee: config.api.stakefio.fee,
+        max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
     });
@@ -3421,7 +3421,7 @@ describe(`H. Malicious unstaking actions`, () => {
           fio_address: userA.address,
           amount: unstakeAmt,
           actor: userA.account,
-          max_fee: config.api.unstakefio.fee,
+          max_fee: config.api.unstake_fio_tokens.fee,
           tpid: bp1.address
         }
       });
@@ -3452,7 +3452,7 @@ describe(`H. Malicious unstaking actions`, () => {
           fio_address: userA.address,
           amount: unstakeAmt,
           actor: userA.account,
-          max_fee: config.api.unstakefio.fee,
+          max_fee: config.api.unstake_fio_tokens.fee,
           tpid: bp1.address
         }
       });
