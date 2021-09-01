@@ -1,4 +1,4 @@
-const { callFioApi, newUser, existingUser } = require("../../utils.js");
+const { callFioApi, newUser, existingUser, fetchJson } = require("../../utils.js");
 const config = require('../../config');
 
 class Staker {
@@ -34,13 +34,13 @@ class Staker {
     } else {
       user = await existingUser(account, privateKey, publicKey, domain, address);
     }
-
     this.privateKey = user.privateKey;
     this.publicKey = user.publicKey;
     this.account = user.account;
-    this.sdk = user.sdk;
     this.domain = user.domain;
     this.address = user.address;
+    this.sdk = user.sdk;
+
 
     console.log('privateKey: ', this.privateKey);
     console.log('publicKey: ', this.publicKey);
@@ -87,7 +87,7 @@ class Staker {
     }
   }
 
-  async setPrevBalances(prevBalance, prevAvailable, prevStaked, prevSrps, prevRoe, prevRoeDouble) {
+  async setPrevBalances(prevBalance, prevAvailable, prevStaked, prevSrps, prevRoe) {
     /**
      * Set validator instance balance vars to the values of args
      * @param {number} prevBalance a balance value taken from the results of getFioBalance
@@ -101,7 +101,6 @@ class Staker {
     this.prevStaked = prevStaked;
     this.prevSrps = prevSrps;
     this.prevRoe = prevRoe;
-    this.prevRoeDouble = prevRoeDouble;
   }
 
   async printPrevBalances() {
@@ -111,7 +110,6 @@ class Staker {
     console.log('   prevStaked: ', this.prevStaked);
     console.log('   prevSrps: ', this.prevSrps);
     console.log('   prevRoe: ', this.prevRoe);
-    console.log('   prevRoeDouble: ', this.prevRoeDouble);
   }
 
   async printCurrentBalances() {
