@@ -190,7 +190,7 @@ async function printCurrentGlobals() {
   console.log(`   stakingRewardsActivated: ${stakingRewardsActivated}`);
 }
 
-async function calcRoeBig(stakingRewardsActivated, combinedTokenPool, globalSrpCount, precision, printCalc) {
+async function calcRoeBig(stakingRewardsActivated, combinedTokenPool, globalSrpCount, precision, roeCalcMethod, printCalc) {
   if (printCalc) { console.log('\nROE CALC: '); }
 
   const roePrecision = math.bignumber(Math.pow(10, precision));
@@ -216,15 +216,20 @@ async function calcRoeBig(stakingRewardsActivated, combinedTokenPool, globalSrpC
     //roeBig3 = math.floor(roeBig2);
     //if (printCalc) { console.log('   math.floor(result) = ' + roeBig3); }
 
-    // math.floor and Math.trunc returns round (bug?), so just converting to a string and splitting to do the truncation.
-    const roeStr = roeBig2.toString();
-    const roeStrTrunc = roeStr.split('.')[0];
-    if (printCalc) { console.log('   roeStrTrunc: ', roeStrTrunc); }
-    roeTruncBig = math.bignumber(roeStrTrunc)
-    if (printCalc) { console.log('   math.bignumber(roeStrTruncBig) = ', roeTruncBig); }
-
-    roeBig = math.divide(roeTruncBig, roePrecision);
-    if (printCalc) { console.log('   result / roePrecision = ' + roeTruncBig + ' / ' + roePrecision + ' = ' + roeBig); }
+    if (roeCalcMethod == "trunc") {
+      const roeStr = roeBig2.toString();
+      const roeStrTrunc = roeStr.split('.')[0];
+      if (printCalc) { console.log('   roeStrTrunc: ', roeStrTrunc); }
+      roeTruncBig = math.bignumber(roeStrTrunc)
+      if (printCalc) { console.log('   math.bignumber(roeStrTruncBig) = ', roeTruncBig); }
+      roeBig = math.divide(roeTruncBig, roePrecision);
+      if (printCalc) { console.log('   result / roePrecision = ' + roeTruncBig + ' / ' + roePrecision + ' = ' + roeBig); }
+    } else {  // round
+      roeRoundBig = math.round(roeBig2)
+      if (printCalc) { console.log('   math.round(roeBig2) = ', roeRoundBig); }
+      roeBig = math.divide(roeRoundBig, roePrecision);
+      if (printCalc) { console.log('   result / roePrecision = ' + roeRoundBig + ' / ' + roePrecision + ' = ' + roeBig); }
+    }
     
   }
   if (printCalc) { console.log('   return ', roeBig); }
@@ -241,16 +246,17 @@ const STAKINGREWARDSPERCENT = 0.25;
 const ACTIVATIONTHRESHOLD = 1000000000000000  // 1M FIO
 const DAILYSTAKINGMINTTHRESHOLD = 2500000000000000  // 25K FIO
 const STAKINGREWARDSRESERVEMAXIMUM = 25000000000000000 // 25M FIO
-const ROEPRECISION = 18;
+const ROEPRECISION = 9;
 
-const EPSILON = 100;  // The error we are willing to tolerate, in SUFs
-const useEpsilon = true;  // Set to true if you want to allow for error in the results up to EPSILON
+const ROECALCMETHOD = "round";  // round or trunc
+const EPSILON = 0;  // The error we are willing to tolerate, in SUFs
+const useEpsilon = false;  // Set to true if you want to allow for error in the results up to EPSILON
 
 /**
  * Need to set. This is the list of tests from stake-timing-tests.js you want to run.
  *   Current list: zeroStaker, largeStaker, smallStaker, medStaker, largeSmallMedStaker, stakeUnstakeStaker, roeRatioLarge
  */
-const stakeTestList = [stakeTests.medStaker];
+const stakeTestList = [stakeTests.stakeUnstakeStaker];
 
 // To enable debugging:
 const printCalc = true;
@@ -294,7 +300,7 @@ describe(`************************** stake-regression.js ***********************
     address: 'ykyfh@odwcjxcnry'
   }
 
-  const totalDays = 20
+  const totalDays = 15
   activationDay = 0; // 0 = Immediately activate
   const testTransferAmount = 1000000000000  // 1000 FIO
 
@@ -365,7 +371,7 @@ describe(`************************** stake-regression.js ***********************
     user1 = await newUser(faucet);
   })
 
-  it(`Create staker with general lock`, async () => {
+  it.skip(`Create staker with general lock`, async () => {
     try {   
       generalLockStaker = await createKeypair();
       generalLockStaker.account = await getAccountFromKey(generalLockStaker.publicKey);
@@ -428,7 +434,7 @@ describe(`************************** stake-regression.js ***********************
     };
   })
 
-  it(`print table`, async () => {
+  it.skip(`print table`, async () => {
     const json = {
       json: true,
       code: 'eosio',
@@ -654,7 +660,7 @@ describe(`************************** stake-regression.js ***********************
         };
       });
 
-      it(`PREVENTS SRPS > AMOUNT BUG FROM HAPPENING. Transfer ${testTransferAmount} tokens from faucet to user1 to see if globals change...`, async () => {
+      it.skip(`PREVENTS SRPS > AMOUNT BUG FROM HAPPENING. Transfer ${testTransferAmount} tokens from faucet to user1 to see if globals change...`, async () => {
         try {
           const result = await faucet.genericAction('transferTokens', {
             payeeFioPublicKey: user1.publicKey,
@@ -829,7 +835,7 @@ describe(`************************** stake-regression.js ***********************
               // We are using the ROE prior to staking to calculate all of the changes
 
               // true at end prints out the full calculation
-              const prevRoeBig = await calcRoeBig(prevStakingRewardsActivated, prevCombinedTokenPool, prevGlobalSrpCount, ROEPRECISION, printCalc);
+              const prevRoeBig = await calcRoeBig(prevStakingRewardsActivated, prevCombinedTokenPool, prevGlobalSrpCount, ROEPRECISION, ROECALCMETHOD, printCalc);
               if (printCalc) { console.log('\nAWARDS CALC:'); };
               if (printCalc) { console.log('   prevRoeBig = ', prevRoeBig); };
 
@@ -975,7 +981,7 @@ describe(`************************** stake-regression.js ***********************
               const getBalance = await stakers[i].getUserBalance();
               
               // true at end outputs the full calculation logic to console.log
-              const prevRoeBig = await calcRoeBig(prevStakingRewardsActivated, prevCombinedTokenPool, prevGlobalSrpCount, ROEPRECISION, printCalc);
+              const prevRoeBig = await calcRoeBig(prevStakingRewardsActivated, prevCombinedTokenPool, prevGlobalSrpCount, ROEPRECISION, ROECALCMETHOD, printCalc);
                           
               if (printCalc) { console.log('\nAWARDS CALC:'); };
               if (printCalc) { console.log('   prevRoeBig = ', prevRoeBig); };
