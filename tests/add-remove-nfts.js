@@ -811,7 +811,7 @@ describe(`E. Try to remove an NFT belonging to another user`, () => {
     } catch (err) {
       expect(err).to.equal(null);
     }
-  })
+  });
 
   it(`verify user2 NFTs are still in the table`, async () => {
     const json = {
@@ -832,5 +832,19 @@ describe(`E. Try to remove an NFT belonging to another user`, () => {
     } catch (err) {
       expect(err).to.equal(null);
     }
-  })
+  });
+
+  it(`verify user3 has no NFTs in the table`, async () => {
+    const json = {
+      "fio_address": user3.address
+    }
+    try {
+      const result = await callFioApi("get_nfts_fio_address", json);
+      expect(result.nfts.length).to.equal(0);
+    } catch (err) {
+      expect(err).to.have.all.keys('name', 'statusCode', 'message', 'error', 'options', 'response');
+      expect(err.statusCode).to.equal(404);
+      expect(err.message).to.equal('404 - {"message":"No NFTS are mapped"}');
+    }
+  });
 });
