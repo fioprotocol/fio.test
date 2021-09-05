@@ -240,7 +240,7 @@ describe('************************** testnet-smoketest.js **********************
   it(`getFioBalance`, async () => {
     const result = await fioSdk.sdk.genericAction('getFioBalance', {})
 
-    expect(result).to.have.all.keys('balance', 'available')
+    expect(result).to.have.all.keys('balance','available','staked','srps','roe')
     expect(result.balance).to.be.a('number')
   })
 })
@@ -347,27 +347,6 @@ describe('B. Testing domain actions', () => {
 
     expect(result).to.have.all.keys('status', 'fee_collected')
     expect(result.status).to.be.a('string')
-    expect(result.fee_collected).to.be.a('number')
-  })
-
-  it(`getFee for transferFioAddress`, async () => {
-    const result = await fioSdk2.sdk.genericAction('getFeeForTransferFioAddress', {
-      fioAddress: newFioAddress
-    })
-
-    expect(result).to.have.all.keys('fee')
-    expect(result.fee).to.be.a('number')
-  })
-
-  it.skip(`Need to move: Transfer fio address`, async () => {
-    const result = await fioSdk2.sdk.genericAction('transferFioAddress', {
-      fioAddress: newFioAddress,
-      newOwnerKey: pubKeyForTransfer,
-      maxFee: defaultFee
-    })
-
-    expect(result).to.have.all.keys('status', 'fee_collected')
-    expect(result.snew-funtatus).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
   })
 
@@ -612,7 +591,7 @@ describe('B. Testing domain actions', () => {
       fioPublicKey: publicKey2
     })
 
-    expect(result).to.have.all.keys('balance', 'available')
+    expect(result).to.have.all.keys('balance','available','staked','srps','roe')
     expect(result.balance).to.be.a('number')
   })
 
@@ -637,7 +616,7 @@ describe('B. Testing domain actions', () => {
     expect(result.public_address).to.be.a('string')
   })
 
-  it(`getFee`, async () => {
+  it(`getFee for register_fio_address`, async () => {
     const result = await fioSdk2.sdk.genericAction('getFee', {
       endPoint: 'register_fio_address',
       fioAddress: ''
@@ -653,9 +632,29 @@ describe('B. Testing domain actions', () => {
     expect(result).to.be.a('number')
   })
 
+  it(`getFee for transferFioAddress`, async () => {
+    const result = await fioSdk2.sdk.genericAction('getFeeForTransferFioAddress', {
+      fioAddress: newFioAddress
+    })
+
+    expect(result).to.have.all.keys('fee')
+    expect(result.fee).to.be.a('number')
+  })
+
+  it(`Need to move: Transfer fio address to fioSdk`, async () => {
+    const result = await fioSdk2.sdk.genericAction('transferFioAddress', {
+      fioAddress: newFioAddress,
+      newOwnerKey: fioSdk.publicKey,
+      maxFee: defaultFee
+    })
+    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result.status).to.equal('OK')
+    expect(result.fee_collected).to.be.a('number')
+  })
+
   it(`getFee for BurnFioAddress`, async () => {
-    const result = await fioSdk2.sdk.genericAction('getFeeForBurnFioAddress', {
-        fioAddress: newFioAddress
+    const result = await fioSdk.sdk.genericAction('getFeeForBurnFioAddress', {
+      fioAddress: newFioAddress
     })
 
     expect(result).to.have.all.keys('fee')
@@ -663,14 +662,17 @@ describe('B. Testing domain actions', () => {
   })
 
   it(`Burn fio address`, async () => {
-    const result = await fioSdk2.sdk.genericAction('burnFioAddress', {
-        fioAddress: newFioAddress,
-        maxFee: defaultFee
-    })
-
-    expect(result).to.have.all.keys('status', 'fee_collected')
-    expect(result.status).to.be.a('string')
-    expect(result.fee_collected).to.be.a('number')
+    try {
+      const result = await fioSdk.sdk.genericAction('burnFioAddress', {
+          fioAddress: newFioAddress,
+          maxFee: defaultFee
+      })
+      expect(result).to.have.all.keys('status', 'fee_collected')
+      expect(result.status).to.be.a('string')
+      expect(result.fee_collected).to.be.a('number')
+    } catch (e) {
+      console.log(e);
+    }
   })
 
 })
