@@ -1,7 +1,7 @@
-require('mocha')
-const {expect} = require('chai')
+require('mocha');
+const {expect} = require('chai');
 const {newUser, fetchJson, callFioApi, timeout} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/fiosdk')
+const {FIOSDK } = require('@fioprotocol/fiosdk');
 config = require('../config.js');
 let faucet;
 
@@ -10,7 +10,12 @@ function mintNfts (num) {
   if (num === 0) return nfts;
   for (let i=1; i<=num; i++) {
     nfts.push({
-      "chain_code":"ETH","contract_address":"0x123456789ABCDEF", "token_id":`${i}`, "url":"", "hash":"","metadata":""
+      "chain_code":"ETH",
+      "contract_address":"0x123456789ABCDEF",
+      "token_id":`${i}`,
+      "url":"",
+      "hash":"",
+      "metadata":`${Math.random().toString(32).substr(2, 8)}`
     });
   }
   return nfts;
@@ -86,9 +91,29 @@ async function consumeRemainingBundles (user, user2) {
   }
 }
 
+/**
+ * for pretty much all parameters in the data object, test if the value is:
+ * missing
+ * invalid
+ * empty
+ * negative
+ * (only if nonnumeric type) integer
+ *
+ * invalid/empty NFT array
+ * missing NFTs
+ * missing max_fee
+ * max_fee = -1
+ * invalid max_fee
+ *
+ * consume all bundles
+ *
+ * max_fee again (missing, -1, invalid)
+ * valid request but zero bundles and zero balance to pay fees
+ */
+
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
-})
+});
 
 describe(`************************** add-remote-nfts.js ************************** \n    A. Add NFTS`, () => {
   let user1, user2, user3;
@@ -635,23 +660,23 @@ describe(`C. Remove more NFTs than minted`, () => {
     nfts = nfts.concat([{
       "chain_code":"ETH","contract_address":"0x123456789ABCDEF", "token_id":"77932", "url":"", "hash":"","metadata":"nonexistent"
     }]);
-    try {
-      const result = await user1.sdk.genericAction('pushTransaction', {
-        action: 'remnft',
-        account: 'fio.address',
-        data: {
-          fio_address: user1.address,
-          nfts: nfts,
-          max_fee: 5000000000,
-          actor: user1.account,
-          tpid: ""
-        }
-      })
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-      console.log(err.message);
-      //TODO: Should a bad entry in the nfts list be ignored or throw an exception?
-    }
+    // try {
+    const result = await user1.sdk.genericAction('pushTransaction', {
+      action: 'remnft',
+      account: 'fio.address',
+      data: {
+        fio_address: user1.address,
+        nfts: nfts,
+        max_fee: 5000000000,
+        actor: user1.account,
+        tpid: ""
+      }
+    })
+    expect(result.status).to.equal('OK')
+    // } catch (err) {
+    //   console.log(err.message);
+    //   //TODO: Should a bad entry in the nfts list be ignored or throw an exception?
+    // }
   });
 
   it(`verify no user1 NFTs are present in table`, async () => {
@@ -689,9 +714,9 @@ describe(`C. Remove more NFTs than minted`, () => {
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.errorCode).to.equal(400);
       expect(err.json.fields[0].value).to.equal(user1.address);
-      expect(err.json.fields[0].error).to.equal('NFT not currently mapped')
+      expect(err.json.fields[0].error).to.equal('NFT not currently mapped');
     }
-  })
+  });
 
   // TODO: mint some more in a couple transactions, try to remove more than was minted
 });
@@ -1363,17 +1388,14 @@ describe(`D. (unhappy) Try to add NFTs with invalid user input`, () => {
         data: {
           fio_address: user1.address,
           nfts: mintNfts(1),
-          max_fee: -1,
+          max_fee: "@invalid!$#",
           actor: user1.account,
           tpid: ""
         }
       })
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.json).to.have.all.keys('type', 'message', 'fields');
-      expect(err.errorCode).to.equal(400);
-      expect(err.json.fields[0].error).to.equal('Invalid fee value');
+      expect(err.message).to.equal('invalid number');
     }
   });
 
@@ -1387,26 +1409,6 @@ describe(`D. (unhappy) Try to add NFTs with invalid user input`, () => {
       expect(bundleCount).to.equal(0);
     }
   });
-
-  // it(`(valid request, zero bundles) Try to add an NFT to user1, expect Error`, async () => {
-  //   try {
-  //     const result = await user1.sdk.genericAction('pushTransaction', {
-  //       action: 'addnft',
-  //       account: 'fio.address',
-  //       data: {
-  //         fio_address: user1.address,
-  //         nfts: mintNfts(3),
-  //         max_fee: 300000000,
-  //         actor: user1.account,
-  //         tpid: ""
-  //       }
-  //     })
-  //     expect(result.status).to.equal('OK');
-  //     expect(result.fee_collected).to.equal(300000000);
-  //   } catch (err) {
-  //     expect(err.message).to.equal('missing addnft.actor (type=string)');
-  //   }
-  // });
 
   it(`(max_fee=1, zero bundles) Try to add an NFT to user1, expect Error`, async () => {
     try {
@@ -1437,17 +1439,14 @@ describe(`D. (unhappy) Try to add NFTs with invalid user input`, () => {
         data: {
           fio_address: user1.address,
           nfts: mintNfts(1),
-          max_fee: -1,
+          max_fee: "@invalid!$#",
           actor: user1.account,
           tpid: ""
         }
       })
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.json).to.have.all.keys('type', 'message', 'fields');
-      expect(err.errorCode).to.equal(400);
-      expect(err.json.fields[0].error).to.equal('Invalid fee value');
+      expect(err.message).to.equal('invalid number');
     }
   });
   it(`(empty max_fee, zero bundles) Try to add an NFT to user1, expect Error`, async () => {
@@ -1486,7 +1485,7 @@ describe(`D. (unhappy) Try to add NFTs with invalid user input`, () => {
     expect(result.fee_collected).to.equal(config.api.transfer_tokens_pub_key.fee);
     expect(newBal.available).to.equal(0);
   });
-  it(`(valid request, zero bundles) Try to add an NFT to user1, expect Error`, async () => {
+  it(`(valid request, zero bundles, zero balance) Try to add an NFT to user1, expect Error`, async () => {
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
         action: 'addnft',
@@ -1523,7 +1522,944 @@ describe(`D. (unhappy) Try to add NFTs with invalid user input`, () => {
   });
 });
 
-describe(`E. (unhappy) Try to remove an NFT belonging to another user`, () => {
+describe(`E. (unhappy) Try to remove NFTs with invalid user input`, () => {
+  let user1, user2, user3;
+
+  const fundsAmount = 10000000000000;
+  const user1Nfts = mintNfts(2);
+
+  before(async () => {
+    user1 = await newUser(faucet);
+    user2 = await newUser(faucet);
+    user3 = await newUser(faucet);
+    const nft = await user1.sdk.genericAction('pushTransaction', {
+      action: 'addnft',
+      account: 'fio.address',
+      data: {
+        fio_address: user1.address,
+        nfts: user1Nfts,
+        max_fee: 5000000000,
+        actor: user1.account,
+        tpid: ""
+      }
+    })
+    expect(nft.status).to.equal('OK');
+  });
+
+  it(`verify user1 NFTs are present in table`, async () => {
+    try {
+      const result = await callFioApi("get_nfts_fio_address", {
+        "fio_address": user1.address
+      });
+      expect(result.nfts.length).to.not.equal(0);
+      expect(result.nfts[0].chain_code).to.equal("ETH");
+      expect(result.nfts[0].contract_address).to.equal("0x123456789ABCDEF");
+      expect(result.nfts[0].token_id).to.equal("1");
+      expect(result.nfts[1].chain_code).to.equal("ETH");
+      expect(result.nfts[1].contract_address).to.equal("0x123456789ABCDEF");
+      expect(result.nfts[1].token_id).to.equal("2");
+    } catch (err) {
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`(missing chain_code) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            // "chain_code":"ETH",
+            "contract_address":"0x123456789ABCDEF",
+            "token_id":"1",
+            "url":"",
+            "hash":"",
+            "metadata":""
+          }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('missing remnftparam.chain_code (type=string)');
+    }
+  });
+  it(`(missing contract_address) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code":"ETH",
+            // "contract_address":"0x123456789ABCDEF",
+            "token_id":"1",
+            "url":"",
+            "hash":"",
+            "metadata":""
+          }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('missing remnftparam.contract_address (type=string)');
+    }
+  });
+  it(`(missing token_id) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code":"ETH",
+            "contract_address":"0x123456789ABCDEF",
+            // "token_id":"1",
+            "url":"",
+            "hash":"",
+            "metadata":""
+          }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('missing remnftparam.token_id (type=string)');
+    }
+  });
+  it.skip(`(missing url) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code":"ETH",
+            "contract_address":"0x123456789ABCDEF",
+            "token_id":"1",
+            // "url":"",
+            "hash":"",
+            "metadata":""
+          }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].value).to.equal(user1.address);
+      expect(err.json.fields[0].error).to.equal('NFT not currently mapped')
+    }
+  });
+  it.skip(`(missing hash) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code":"ETH",
+            "contract_address":"0x123456789ABCDEF",
+            "token_id":"1",
+            "url":"",
+            // "hash":"",
+            "metadata":""
+          }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].value).to.equal(user1.address);
+      expect(err.json.fields[0].error).to.equal('NFT not currently mapped')
+    }
+  });
+  it.skip(`(missing metadata) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code":"ETH",
+            "contract_address":"0x123456789ABCDEF",
+            "token_id":"1",
+            "url":"",
+            "hash":"",
+            // "metadata":""
+          }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].value).to.equal(user1.address);
+      expect(err.json.fields[0].error).to.equal('NFT not currently mapped')
+    }
+  });
+
+  it(`(invalid chain_code) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code":"!invalid$#",
+            "contract_address":"0x123456789ABCDEF",
+            "token_id":"1",
+            "url":"",
+            "hash":"",
+            "metadata":""
+          }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].error).to.equal('Invalid chain code format');
+    }
+  });
+  it(`(invalid contract_address) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code":"ETH",
+            "contract_address":"!invalid$#",
+            // "contract_address":"0x123456789ABCDEF",
+            "token_id":"1",
+            "url":"",
+            "hash":"",
+            "metadata":""
+          }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].error).to.equal('NFT not currently mapped');
+    }
+  });
+  it(`(invalid token_id) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code":"ETH",
+            "contract_address":"0x123456789ABCDEF",
+            "token_id":"!#inv@lid$",
+            "url":"",
+            "hash":"",
+            "metadata":""
+          }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].error).to.equal('NFT not currently mapped');
+    }
+  });
+  it.skip(`(invalid url) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code":"ETH",
+            "contract_address":"0x123456789ABCDEF",
+            "token_id":"1",
+            "url":"!inv@liD$%#",
+            "hash":"",
+            "metadata":""
+          }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].value).to.equal(user1.address);
+      expect(err.json.fields[0].error).to.equal('NFT not currently mapped')
+    }
+  });
+  it.skip(`(invalid hash) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code":"ETH",
+            "contract_address":"0x123456789ABCDEF",
+            "token_id":"1",
+            "url":"",
+            "hash":"!inv@l1D#$%",
+            "metadata":""
+          }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].value).to.equal(user1.address);
+      expect(err.json.fields[0].error).to.equal('NFT not currently mapped')
+    }
+  });
+  it.skip(`(invalid metadata) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code":"ETH",
+            "contract_address":"0x123456789ABCDEF",
+            "token_id":"1",
+            "url":"",
+            "hash":"",
+            "metadata":"!inv@l1D#$%"
+          }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].value).to.equal(user1.address);
+      expect(err.json.fields[0].error).to.equal('NFT not currently mapped');
+    }
+  });
+
+  it(`(empty chain_code) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code":"",
+            "contract_address":"0x123456789ABCDEF",
+            "token_id":"1",
+            "url":"",
+            "hash":"",
+            "metadata":""
+          }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].error).to.equal('Invalid chain code format');
+    }
+  });
+  it(`(empty contract_address) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code":"ETH",
+            "contract_address":"",
+            "token_id":"1",
+            "url":"",
+            "hash":"",
+            "metadata":""
+          }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].error).to.equal('Invalid Contract Address');
+    }
+  });
+  it(`(empty token_id) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code":"ETH",
+            "contract_address":"0x123456789ABCDEF",
+            "token_id":"",
+            "url":"",
+            "hash":"",
+            "metadata":""
+          }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].value).to.equal(user1.address);
+      expect(err.json.fields[0].error).to.equal('NFT not currently mapped');
+    }
+  });
+
+  it(`(negative chain_code) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code": -100,
+            "contract_address":"0x123456789ABCDEF",
+            "token_id":"1",
+            "url":"",
+            "hash":"",
+            "metadata":""
+          }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].error).to.equal('Invalid chain code format');
+    }
+  });
+  it(`(negative contract_address) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code":"ETH",
+            "contract_address":-100,
+            "token_id":"1",
+            "url":"",
+            "hash":"",
+            "metadata":""
+          }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].error).to.equal('NFT not currently mapped');   //('Invalid Contract Address');
+    }
+  });
+  it(`(negative token_id) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code":"ETH",
+            "contract_address":"0x123456789ABCDEF",
+            "token_id": -100,
+            "url":"",
+            "hash":"",
+            "metadata":""
+          }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].value).to.equal(user1.address);
+      expect(err.json.fields[0].error).to.equal('NFT not currently mapped');
+    }
+  });
+
+  it(`(missing fio_address) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          //fio_address: user1.address,
+          nfts: [{
+            "chain_code":"ETH",
+            "contract_address":"0x123456789ABCDEF",
+            "token_id":"1",
+            "url":"",
+            "hash":"",
+            "metadata":""
+          }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      })
+      expect(result.status).to.not.equal('OK')
+    } catch (err) {
+      expect(err.message).to.equal('missing remnft.fio_address (type=string)');
+    }
+  });
+  it(`(invalid fio_address) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: "invalid!@address$#",
+          nfts: [{
+            "chain_code":"ETH",
+            "contract_address":"0x123456789ABCDEF",
+            "token_id":"1",
+            "url":"",
+            "hash":"",
+            "metadata":""
+          }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      })
+      expect(result.status).to.not.equal('OK')
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].error).to.equal('Invalid FIO Address');
+    }
+  });
+  it(`(empty fio_address) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: "",
+          nfts: [{
+            "chain_code":"ETH",
+            "contract_address":"0x123456789ABCDEF",
+            "token_id":"1",
+            "url":"",
+            "hash":"",
+            "metadata":""
+          }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      })
+      expect(result.status).to.not.equal('OK')
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].error).to.equal('Invalid FIO Address');
+    }
+  });
+  it(`(negative fio_address) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: -100,
+          nfts: [{
+            "chain_code":"ETH",
+            "contract_address":"0x123456789ABCDEF",
+            "token_id":"1",
+            "url":"",
+            "hash":"",
+            "metadata":""
+          }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      })
+      expect(result.status).to.not.equal('OK')
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].error).to.equal('Invalid FIO Address');
+    }
+  });
+
+  it(`(missing nfts) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          // nfts: [{
+          //   "chain_code":"ETH",
+          //   "contract_address":"0x123456789ABCDEF",
+          //   "token_id":"1",
+          //   "url":"",
+          //   "hash":"",
+          //   "metadata":""
+          // }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('missing remnft.nfts (type=remnftparam[])');
+    }
+  });
+  it(`(invalid nfts) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: ["invalid!#$"],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('expected object containing data: "invalid!#$"');
+    }
+  });
+
+  it(`(missing max_fee) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code":"ETH",
+            "contract_address":"0x123456789ABCDEF",
+            "token_id":"1",
+            "url":"",
+            "hash":"",
+            "metadata":""
+          }],
+          // max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('missing remnft.max_fee (type=int64)');
+    }
+  });
+  it(`(max_fee=-1) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code":"ETH",
+            "contract_address":"0x123456789ABCDEF",
+            "token_id":"1",
+            "url":"",
+            "hash":"",
+            "metadata":""
+          }],
+          max_fee: -1,
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].error).to.equal('Invalid fee value');
+    }
+  });
+  it(`(invalid max_fee) try to burn an NFT for user1, expect error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code":"ETH",
+            "contract_address":"0x123456789ABCDEF",
+            "token_id":"1",
+            "url":"",
+            "hash":"",
+            "metadata":""
+          }],
+          max_fee: '!inv@liD$#%',
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('invalid number');
+    }
+  });
+
+  it(`consume user1's remaining bundled transactions`, async () => {
+    try {
+      await consumeRemainingBundles(user1, user3);
+    } catch (err) {
+      expect(err).to.equal(null);
+    } finally {
+      let bundleCount = await getBundleCount(user1.sdk);
+      expect(bundleCount).to.equal(0);
+    }
+  });
+
+  it(`(max_fee=1, zero bundles) Try to add an NFT to user1, expect Error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code":"ETH",
+            "contract_address":"0x123456789ABCDEF",
+            "token_id":"1",
+            "url":"",
+            "hash":"",
+            "metadata":""
+          }],
+          max_fee: 1,
+          actor: user1.account,
+          tpid: ""
+        }
+      })
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].error).to.equal('Fee exceeds supplied maximum.');
+    }
+  });
+  it(`(invalid max_fee, zero bundles) Try to add an NFT to user1, expect Error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code":"ETH",
+            "contract_address":"0x123456789ABCDEF",
+            "token_id":"1",
+            "url":"",
+            "hash":"",
+            "metadata":""
+          }],
+          max_fee: '!inv@liD$#%',
+          actor: user1.account,
+          tpid: ""
+        }
+      })
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('invalid number');
+    }
+  });
+  it(`(empty max_fee, zero bundles) Try to add an NFT to user1, expect Error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code":"ETH",
+            "contract_address":"0x123456789ABCDEF",
+            "token_id":"1",
+            "url":"",
+            "hash":"",
+            "metadata":""
+          }],
+          max_fee: '',
+          actor: user1.account,
+          tpid: ""
+        }
+      })
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].error).to.equal('Fee exceeds supplied maximum.');
+    }
+  });
+
+  it(`transfer remaining balance`, async () => {
+    let bal = await user1.sdk.genericAction('getFioBalance', {});
+    const result = await user1.sdk.genericAction('transferTokens', {
+      payeeFioPublicKey: user3.publicKey,
+      amount: bal.available - config.api.transfer_tokens_pub_key.fee,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      tpid: '',
+    });
+    let newBal = await user1.sdk.genericAction('getFioBalance', {});
+    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected');
+    expect(result.status).to.equal('OK');
+    expect(result.fee_collected).to.equal(config.api.transfer_tokens_pub_key.fee);
+    expect(newBal.available).to.equal(0);
+  });
+
+  it(`(valid request, zero bundles, zero balance) Try to add an NFT to user1, expect Error`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code":"ETH",
+            "contract_address":"0x123456789ABCDEF",
+            "token_id":"1",
+            "url":"",
+            "hash":"",
+            "metadata":""
+          }],
+          max_fee: "",
+          actor: user1.account,
+          tpid: ""
+        }
+      })
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].error).to.equal('Fee exceeds supplied maximum.');   //('Insufficient funds to cover fee');
+    }
+  });
+
+  it(`verify user1 NFTs are present in table`, async () => {
+    try {
+      const result = await callFioApi("get_nfts_fio_address", {
+        "fio_address": user1.address
+      });
+      expect(result.nfts.length).to.not.equal(0);
+      expect(result.nfts[0].chain_code).to.equal("ETH");
+      expect(result.nfts[0].contract_address).to.equal("0x123456789ABCDEF");
+      expect(result.nfts[0].token_id).to.equal("1");
+      expect(result.nfts[1].chain_code).to.equal("ETH");
+      expect(result.nfts[1].contract_address).to.equal("0x123456789ABCDEF");
+      expect(result.nfts[1].token_id).to.equal("2");
+    } catch (err) {
+      expect(err).to.equal(null);
+    }
+  });
+});
+
+describe(`F. (unhappy) Try to remove an NFT belonging to another user`, () => {
   let user1, user2, user3;
 
   const fundsAmount = 10000000000000;
@@ -1692,16 +2628,37 @@ describe(`E. (unhappy) Try to remove an NFT belonging to another user`, () => {
   });
 });
 
-describe(`F. Burn all NFTs at once using remallnfts`, () => {
+describe(`G. Add all NFTs to nftburnq at once using remallnfts`, () => {
   let user1, user2, user3;
   let feeAmt = 100000000;
+  let user1Hash, user2Hash;
+
   const fundsAmount = 10000000000000;
 
   before(async () => {
     user1 = await newUser(faucet);
     user2 = await newUser(faucet);
     user3 = await newUser(faucet);
-    // const nft =
+
+    //grab our user records from fionames so we can use their fio_address_hash
+    let fionames = await callFioApi("get_table_rows", {
+      json: true,               // Get the response as json
+      code: 'fio.address',      // Contract that we target
+      scope: 'fio.address',         // Account that owns the data
+      table: 'fionames',        // Table name
+      limit: 1000,                // Maximum number of rows that we want to get
+      reverse: false,           // Optional: Get reversed data
+      show_payer: false          // Optional: Show ram payer
+    });
+    fionames.rows = fionames.rows.slice(-3);    // only need the last 3 accounts
+    try {
+      user1Hash = fionames.rows[0].namehash
+      user2Hash = fionames.rows[1].namehash
+    } catch (err) {
+      console.log('user namehash not found in table');
+      throw err;
+    }
+
     await user1.sdk.genericAction('pushTransaction', {
       action: 'addnft',
       account: 'fio.address',
@@ -1713,7 +2670,6 @@ describe(`F. Burn all NFTs at once using remallnfts`, () => {
         tpid: ""
       }
     });
-    // expect(nft.status).to.equal('OK');
     await user2.sdk.genericAction('pushTransaction', {
       action: 'addnft',
       account: 'fio.address',
@@ -1758,31 +2714,39 @@ describe(`F. Burn all NFTs at once using remallnfts`, () => {
   });
 
   it(`user1 removes all 3 NFTs`, async () => {
-    const result = await user1.sdk.genericAction('pushTransaction', {
-      action: 'remallnfts',
-      account: 'fio.address',
-      data: {
-        fio_address: user1.address,
-        max_fee: 5000000000,
-        actor: user1.account,
-        tpid: ""
-      }
-    });
-    expect(result.status).to.equal('OK');
-    expect(result.fee_collected).to.equal(0);
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remallnfts',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.equal('OK');
+      expect(result.fee_collected).to.equal(0);
+    } catch (err) {
+      expect(err).to.equal(null)
+    }
   });
 
-  it(`verify no user1 NFTs are present in table`, async () => {
-    const json = {
-      "fio_address": user1.address
-    }
+  it(`verify a hash of user1.address added to nftburnq`, async () => {
     try {
-      const result = await callFioApi("get_nfts_fio_address", json);
-      expect(result.nfts.length).to.equal(0);
+      const result = await callFioApi("get_table_rows", json = {
+        json: true,
+        code: 'fio.address',
+        scope: 'fio.address',
+        table: 'nftburnq',
+        lower_bound: user1Hash,
+        upper_bound: user1Hash,
+        key_type: 'i128',
+        index_position: '2'
+      });
+      expect(result.rows.length).to.equal(1);
     } catch (err) {
-      expect(err).to.have.all.keys('name', 'statusCode', 'message', 'error', 'options', 'response');
-      expect(err.statusCode).to.equal(404);
-      expect(err.message).to.equal('404 - {"message":"No NFTS are mapped"}');
+      expect(err).to.equal(null);
     }
   });
 
@@ -1812,21 +2776,26 @@ describe(`F. Burn all NFTs at once using remallnfts`, () => {
     expect(result.fee_collected).to.equal(feeAmt);
   });
 
-  it(`verify no user2 NFTs are present in table`, async () => {
+  it(`verify a hash of user2.address added to nftburnq`, async () => {
     try {
-      const result = await callFioApi("get_nfts_fio_address", {
-        "fio_address": user2.address
+      const result = await callFioApi("get_table_rows", json = {
+        json: true,
+        code: 'fio.address',
+        scope: 'fio.address',
+        table: 'nftburnq',
+        lower_bound: user2Hash,
+        upper_bound: user2Hash,
+        key_type: 'i128',
+        index_position: '2'
       });
-      expect(result.nfts.length).to.equal(0);
+      expect(result.rows.length).to.equal(1);
     } catch (err) {
-      expect(err).to.have.all.keys('name', 'statusCode', 'message', 'error', 'options', 'response');
-      expect(err.statusCode).to.equal(404);
-      expect(err.message).to.equal('404 - {"message":"No NFTS are mapped"}');
+      expect(err).to.equal(null);
     }
   });
 });
 
-describe(`G. (unhappy) Try to burn all NFTs with invalid user input`, () => {
+describe(`H. (unhappy) Try to burn all NFTs with invalid user input`, () => {
   let user1, user2, user3;
   let feeAmt = 100000000;
   const fundsAmount = 10000000000000;
@@ -2195,100 +3164,381 @@ describe(`G. (unhappy) Try to burn all NFTs with invalid user input`, () => {
   });
 });
 
-// describe.only(`H. (unhappy) Add NFTs with invalid user input`, () => {
-//   let user1, user2, user3;
-//
-//   const fundsAmount = 10000000000000;
-//   const user1Nfts = mintNfts(2);
-//   const user2Nfts = mintNfts(3);
-//
-//   before(async () => {
-//     user1 = await newUser(faucet);
-//     user2 = await newUser(faucet);
-//     user3 = await newUser(faucet);
-//     //const nftUser1 =
-//     // await user1.sdk.genericAction('pushTransaction', {
-//     //   action: 'addnft',
-//     //   account: 'fio.address',
-//     //   data: {
-//     //     fio_address: user1.address,
-//     //     nfts: user1Nfts,
-//     //     max_fee: 5000000000,
-//     //     actor: user1.account,
-//     //     tpid: ""
-//     //   }
-//     // });
-//   });
-//
-//   // it(`verify user1 NFTs are in the table`, async () => {
-//   //   const json = {
-//   //     "fio_address": user1.address
-//   //   }
-//   //   try {
-//   //     const result = await callFioApi("get_nfts_fio_address", json);
-//   //     expect(result.nfts.length).to.not.equal(0);
-//   //     expect(result.nfts[0].chain_code).to.equal("ETH");
-//   //     expect(result.nfts[0].contract_address).to.equal("0x123456789ABCDEF");
-//   //     expect(result.nfts[0].token_id).to.equal("1");
-//   //     expect(result.nfts[1].chain_code).to.equal("ETH");
-//   //     expect(result.nfts[1].contract_address).to.equal("0x123456789ABCDEF");
-//   //     expect(result.nfts[1].token_id).to.equal("2");
-//   //   } catch (err) {
-//   //     expect(err).to.equal(null);
-//   //   }
-//   // });
-//
-//   // it(`try to remove NFT from user1, expect error`, async () => {
-//   //   try {
-//   //     const result = await user1.sdk.genericAction('pushTransaction', {
-//   //       action: 'remnft',
-//   //       account: 'fio.address',
-//   //       data: {
-//   //         fio_address: user1.address,
-//   //         nfts: [{
-//   //           "chain_code":"ETH",
-//   //           "contract_address":"0x123456789ABCDEF",
-//   //           "token_id":"1", "url":"",
-//   //           "hash":"","metadata":""
-//   //         }],
-//   //         max_fee: 5000000000,
-//   //         actor: user1.account,
-//   //         //tpid: ""
-//   //       }
-//   //     })
-//   //     //console.log(`Result: `, result)
-//   //     expect(result.status).to.equal('OK');
-//   //
-//   //   } catch (err) {
-//   //     console.log(err.message);
-//   //   }
-//   // });
-//
-//   it(`try to add an NFT to user1, expect error`, async () => {
-//     try {
-//       const result = await user1.sdk.genericAction('pushTransaction', {
-//         action: 'addnft',
-//         account: 'fio.address',
-//         data: {
-//           fio_address: user1.address,
-//           nfts: [{
-//             "chain_code":"ETH",
-//             "contract_address":"0x123456789ABCDEG",
-//             "token_id":"2",
-//             "url":"",
-//             "hash":"",
-//             "metadata":""
-//           }],
-//           max_fee: 5000000000,
-//           actor: user1.account,
-//           tpid: ""
-//         }
-//       });
-//       expect(result.status).to.equal('OK');
-//     } catch (err) {
-//       expect(err).to.equal(null);
-//     }
-//   });
-//
-//
-// });
+//TODO: Test xferaddress since it now burns NFTs
+//https://fioprotocol.atlassian.net/browse/BD-2840
+describe(`I. Transfer a FIO address to another user and make sure any NFTs get burned`, () => {
+  let user1, user2, user3;
+  let user1Hash, user2Hash;
+  let burnqnum, newBurnqnum = 0;
+
+  const fundsAmount = 10000000000000;
+  const user1Nfts = mintNfts(3);
+
+  before(async () => {
+    user1 = await newUser(faucet);
+    user2 = await newUser(faucet);
+    user3 = await newUser(faucet);
+    const nft = await user1.sdk.genericAction('pushTransaction', {
+      action: 'addnft',
+      account: 'fio.address',
+      data: {
+        fio_address: user1.address,
+        nfts: user1Nfts,
+        max_fee: 5000000000,
+        actor: user1.account,
+        tpid: ""
+      }
+    })
+    expect(nft.status).to.equal('OK');
+    //grab our user records from fionames so we can use their fio_address_hash
+    let fionames = await callFioApi("get_table_rows", {
+      json: true,               // Get the response as json
+      code: 'fio.address',      // Contract that we target
+      scope: 'fio.address',         // Account that owns the data
+      table: 'fionames',        // Table name
+      limit: 1000,                // Maximum number of rows that we want to get
+      reverse: false,           // Optional: Get reversed data
+      show_payer: false          // Optional: Show ram payer
+    });
+    fionames.rows = fionames.rows.slice(-3);    // only need the last 3 accounts
+    try {
+      user1Hash = fionames.rows[0].namehash
+      user2Hash = fionames.rows[1].namehash
+    } catch (err) {
+      console.log('user namehash not found in table');
+      throw err;
+    }
+  });
+
+  it(`verify user1 NFTs are present in table`, async () => {
+    try {
+      const result = await callFioApi("get_nfts_fio_address", {
+        "fio_address": user1.address
+      });
+      expect(result.nfts.length).to.not.equal(0);
+      expect(result.nfts[0].chain_code).to.equal("ETH");
+      expect(result.nfts[0].contract_address).to.equal("0x123456789ABCDEF");
+      expect(result.nfts[0].token_id).to.equal("1");
+      expect(result.nfts[1].chain_code).to.equal("ETH");
+      expect(result.nfts[1].contract_address).to.equal("0x123456789ABCDEF");
+      expect(result.nfts[1].token_id).to.equal("2");
+    } catch (err) {
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`verify user1 NFTs not yet added to nftburnq`, async () => {
+    try {
+      const result = await callFioApi("get_table_rows", {
+        json: true,
+        code: 'fio.address',
+        scope: 'fio.address',
+        table: 'nftburnq',
+        lower_bound: user1Hash,
+        upper_bound: user1Hash,
+        key_type: 'i128',
+        index_position: '2'
+      });
+      expect(result.rows.length).to.equal(0);
+    } catch (err) {
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`user1 transfers FIO address to user2, expect NFTs to get burned`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('transferFioAddress', {
+        fioAddress: user1.address,
+        newOwnerKey: user2.publicKey,
+        maxFee: config.api.transfer_fio_address.fee,  // transfer_fio_address_fee,
+        technologyProviderId: ''
+      })
+      const feeCollected = result.fee_collected;
+      expect(feeCollected).to.equal(config.api.transfer_fio_address.fee);
+      //console.log('Result: ', result);
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`verify a hash of user1.address added to nftburnq`, async () => {
+    try {
+      const result = await callFioApi("get_table_rows", json = {
+        json: true,
+        code: 'fio.address',
+        scope: 'fio.address',
+        table: 'nftburnq',
+        lower_bound: user1Hash,
+        upper_bound: user1Hash,
+        key_type: 'i128',
+        index_position: '2'
+      });
+      expect(result.rows.length).to.equal(1);
+    } catch (err) {
+      expect(err).to.equal(null);
+    }
+  });
+});
+
+describe(`J. Burn a FIO address and make sure any NFTS also get burned`, () => {
+  let user1, user2, user3;
+  let user1Hash, user2Hash;
+  let burnqnum, newBurnqnum = 0;
+
+  const fundsAmount = 10000000000000;
+  const user1Nfts = mintNfts(3);
+
+  before(async () => {
+    user1 = await newUser(faucet);
+    user2 = await newUser(faucet);
+    user3 = await newUser(faucet);
+    const nft = await user1.sdk.genericAction('pushTransaction', {
+      action: 'addnft',
+      account: 'fio.address',
+      data: {
+        fio_address: user1.address,
+        nfts: user1Nfts,
+        max_fee: 5000000000,
+        actor: user1.account,
+        tpid: ""
+      }
+    })
+    expect(nft.status).to.equal('OK');
+    //grab our user records from fionames so we can use their fio_address_hash
+    let fionames = await callFioApi("get_table_rows", {
+      json: true,               // Get the response as json
+      code: 'fio.address',      // Contract that we target
+      scope: 'fio.address',         // Account that owns the data
+      table: 'fionames',        // Table name
+      limit: 1000,                // Maximum number of rows that we want to get
+      reverse: false,           // Optional: Get reversed data
+      show_payer: false          // Optional: Show ram payer
+    });
+    fionames.rows = fionames.rows.slice(-3);    // only need the last 3 accounts
+    try {
+      user1Hash = fionames.rows[0].namehash
+      user2Hash = fionames.rows[1].namehash
+    } catch (err) {
+      console.log('user namehash not found in table');
+      throw err;
+    }
+  });
+
+  it(`verify user1 NFTs are present in table`, async () => {
+    try {
+      const result = await callFioApi("get_nfts_fio_address", {
+        "fio_address": user1.address
+      });
+      expect(result.nfts.length).to.not.equal(0);
+      expect(result.nfts[0].chain_code).to.equal("ETH");
+      expect(result.nfts[0].contract_address).to.equal("0x123456789ABCDEF");
+      expect(result.nfts[0].token_id).to.equal("1");
+      expect(result.nfts[1].chain_code).to.equal("ETH");
+      expect(result.nfts[1].contract_address).to.equal("0x123456789ABCDEF");
+      expect(result.nfts[1].token_id).to.equal("2");
+    } catch (err) {
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`verify user1 NFTs not yet added to nftburnq`, async () => {
+    try {
+      const result = await callFioApi("get_table_rows", {
+        json: true,
+        code: 'fio.address',
+        scope: 'fio.address',
+        table: 'nftburnq',
+        lower_bound: user1Hash,
+        upper_bound: user1Hash,
+        key_type: 'i128',
+        index_position: '2'
+      });
+      // burnqnum = result.rows.length;
+      expect(result.rows.length).to.equal(0);
+    } catch (err) {
+      expect(err).to.equal(null);
+    }
+  });
+
+  //now it's burnin time
+
+
+});
+
+describe(`K. Burn an expired FIO address and make sure any NFTS also get burned`, () => {
+  let user1, user2, user3;
+  let user1Hash, user2Hash;
+  let burnqnum, newBurnqnum = 0;
+
+  const fundsAmount = 10000000000000;
+  const user1Nfts = mintNfts(3);
+
+  before(async () => {
+    user1 = await newUser(faucet);
+    user2 = await newUser(faucet);
+    user3 = await newUser(faucet);
+    const nft = await user1.sdk.genericAction('pushTransaction', {
+      action: 'addnft',
+      account: 'fio.address',
+      data: {
+        fio_address: user1.address,
+        nfts: user1Nfts,
+        max_fee: 5000000000,
+        actor: user1.account,
+        tpid: ""
+      }
+    })
+    expect(nft.status).to.equal('OK');
+    //grab our user records from fionames so we can use their fio_address_hash
+    let fionames = await callFioApi("get_table_rows", {
+      json: true,               // Get the response as json
+      code: 'fio.address',      // Contract that we target
+      scope: 'fio.address',         // Account that owns the data
+      table: 'fionames',        // Table name
+      limit: 1000,                // Maximum number of rows that we want to get
+      reverse: false,           // Optional: Get reversed data
+      show_payer: false          // Optional: Show ram payer
+    });
+    fionames.rows = fionames.rows.slice(-3);    // only need the last 3 accounts
+    try {
+      user1Hash = fionames.rows[0].namehash
+      user2Hash = fionames.rows[1].namehash
+    } catch (err) {
+      console.log('user namehash not found in table');
+      throw err;
+    }
+  });
+
+  // need to find a way to make the fio address expire
+
+  it(`verify user1 NFTs are present in table`, async () => {
+    try {
+      const result = await callFioApi("get_nfts_fio_address", {
+        "fio_address": user1.address
+      });
+      expect(result.nfts.length).to.not.equal(0);
+      expect(result.nfts[0].chain_code).to.equal("ETH");
+      expect(result.nfts[0].contract_address).to.equal("0x123456789ABCDEF");
+      expect(result.nfts[0].token_id).to.equal("1");
+      expect(result.nfts[1].chain_code).to.equal("ETH");
+      expect(result.nfts[1].contract_address).to.equal("0x123456789ABCDEF");
+      expect(result.nfts[1].token_id).to.equal("2");
+    } catch (err) {
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`verify user1 NFTs not yet added to nftburnq`, async () => {
+    try {
+      const result = await callFioApi("get_table_rows", {
+        json: true,
+        code: 'fio.address',
+        scope: 'fio.address',
+        table: 'nftburnq',
+        lower_bound: user1Hash,
+        upper_bound: user1Hash,
+        key_type: 'i128',
+        index_position: '2'
+      });
+      // burnqnum = result.rows.length;
+      expect(result.rows.length).to.equal(0);
+    } catch (err) {
+      expect(err).to.equal(null);
+    }
+  });
+
+  //and then its burnin time!
+
+
+
+});
+
+//TODO: Test burn queue
+describe(`L. Burn all NFTs in nftburnq`, () => {
+  let user1, user2, user3;
+  let user1Hash, user2Hash, user3Hash;
+  let burnqnum, newBurnqnum = 0;
+
+  const fundsAmount = 10000000000000;
+  const user1Nfts = mintNfts(3);
+
+  before(async () => {
+    user1 = await newUser(faucet);
+    user2 = await newUser(faucet);
+    user3 = await newUser(faucet);
+    const nft = await user1.sdk.genericAction('pushTransaction', {
+      action: 'addnft',
+      account: 'fio.address',
+      data: {
+        fio_address: user1.address,
+        nfts: user1Nfts,
+        max_fee: 5000000000,
+        actor: user1.account,
+        tpid: ""
+      }
+    })
+    expect(nft.status).to.equal('OK');
+    //grab our user records from fionames so we can use their fio_address_hash
+    let fionames = await callFioApi("get_table_rows", {
+      json: true,               // Get the response as json
+      code: 'fio.address',      // Contract that we target
+      scope: 'fio.address',         // Account that owns the data
+      table: 'fionames',        // Table name
+      limit: 1000,                // Maximum number of rows that we want to get
+      reverse: false,           // Optional: Get reversed data
+      show_payer: false          // Optional: Show ram payer
+    });
+    fionames.rows = fionames.rows.slice(-3);    // only need the last 3 accounts
+    try {
+      user1Hash = fionames.rows[0].namehash
+      user2Hash = fionames.rows[1].namehash
+    } catch (err) {
+      console.log('user namehash not found in table');
+      throw err;
+    }
+  });
+
+  it(`verify user1 NFTs are present in table`, async () => {
+    try {
+      const result = await callFioApi("get_nfts_fio_address", {
+        "fio_address": user1.address
+      });
+      expect(result.nfts.length).to.not.equal(0);
+      expect(result.nfts[0].chain_code).to.equal("ETH");
+      expect(result.nfts[0].contract_address).to.equal("0x123456789ABCDEF");
+      expect(result.nfts[0].token_id).to.equal("1");
+      expect(result.nfts[1].chain_code).to.equal("ETH");
+      expect(result.nfts[1].contract_address).to.equal("0x123456789ABCDEF");
+      expect(result.nfts[1].token_id).to.equal("2");
+    } catch (err) {
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`verify user1 NFTs not yet added to nftburnq`, async () => {
+    try {
+      const result = await callFioApi("get_table_rows", {
+        json: true,
+        code: 'fio.address',
+        scope: 'fio.address',
+        table: 'nftburnq',
+        lower_bound: user1Hash,
+        upper_bound: user1Hash,
+        key_type: 'i128',
+        index_position: '2'
+      });
+      // burnqnum = result.rows.length;
+      expect(result.rows.length).to.equal(0);
+    } catch (err) {
+      expect(err).to.equal(null);
+    }
+  });
+
+  //add some stuff to nftburnq with remallnfts, xferaddress, burnaddress, burnexpired
+
+  //then burnin time!
+
+
+
+});
