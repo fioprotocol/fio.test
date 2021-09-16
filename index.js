@@ -30,7 +30,9 @@ describe('TEST SUITE', () => {
   require('./tests/transfer-locked-tokens-account-tests.js');  // FIP-6 tests of generic account functionality
   require('./tests/addbundles.js');  // FIP-11.a
   require('./tests/tpid.js');
-  require('./tests/add-remove-nfts.js'); //FIP-27
+  require('./tests/nft-add-remove.js'); //FIP-27
+  require('./tests/nft-uniqueness.js'); //FIP-27
+  //require('./tests/nft-remove-burn.js'); //FIP-27
   //require('./tests/clio.js');  // FIP-16  //Only works with local testing
   //require('./tests/performance-request-obt.js');
 
