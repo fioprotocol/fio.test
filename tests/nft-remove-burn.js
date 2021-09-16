@@ -1231,7 +1231,7 @@ describe(`F. Burn all NFTs in nftburnq`, () => {
   //     expect(err).to.equal(null);
   //   }
   // });
-  it(`burns user2 NFTs in nftburnq`, async () => {    //TODO: Should ANYONE be able to call this?
+  it(`burns user2 NFTs in nftburnq`, async () => {
     try {
       const result = await user2.sdk.genericAction('pushTransaction', {
         action: 'burnnfts',
@@ -1267,8 +1267,8 @@ describe(`F. Burn all NFTs in nftburnq`, () => {
         code: 'fio.address',
         scope: 'fio.address',
         table: 'nftburnq',
-        // lower_bound: user1Hash,
-        // upper_bound: user1Hash,
+        lower_bound: user1Hash,
+        upper_bound: user1Hash,
         key_type: 'i128',
         index_position: '2'
       });
@@ -1278,7 +1278,7 @@ describe(`F. Burn all NFTs in nftburnq`, () => {
     }
   });
 
-  // it.skit`verify nftburnq contains only user2 after burning NFTs`, async () => {
+  // it.skip(`verify nftburnq contains only user2 after burning NFTs`, async () => {
   //   try {
   //     const result = await callFioApi("get_table_rows", {
   //       json: true,
@@ -1297,7 +1297,7 @@ describe(`F. Burn all NFTs in nftburnq`, () => {
   // });
 });
 
-describe(`G. (unhappy) Try to burn NFTs in nftburnq, invalid user input`, () => {
+describe.only(`G. (unhappy) Try to burn NFTs in nftburnq, invalid user input`, () => {
   let user1, user2, user3;
   let user1Hash, user2Hash, user3Hash;
   let burnqnum, newBurnqnum = 0;
