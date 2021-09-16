@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, getTestType, timeout, generateFioAddress, fetchJson} = require('../utils.js');
+const { newUser, getTestType, callFioApiSigned, generateFioAddress, fetchJson} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
 const testType = getTestType();
@@ -76,4 +76,76 @@ describe(`************************** register-fio-address.js *******************
         expect(result.fee_collected).to.be.a('number')
       })
 
+})
+
+describe.only(`B. Renew address`, () => {
+    let user1, user2, user3
+
+    it(`Create users`, async () => {
+        user1 = await newUser(faucet);
+        console.log('user1 priv key: ', user1.privateKey)
+        console.log('user1 pub key: ', user1.publicKey)
+        console.log('user1 address: ', user1.address)
+        user2 = await newUser(faucet);
+        user3 = await newUser(faucet);
+
+    })
+
+    it(`user1 renewaddress - SDK renewFioAddress`, async () => {
+        try {
+                const result = await user1.sdk.genericAction('renewFioAddress', {
+                    fioAddress: user1.address,
+                    maxFee: config.maxFee
+                })
+                console.log('Result: ', result)
+                //expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+                //expect(result.status).to.be.a('string')
+                //expect(result.expiration).to.be.a('string')
+                //expect(result.fee_collected).to.be.a('number')
+        } catch (err) {
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it.skip(`user2 renewaddress - pushTransaction`, async () => {
+        try {
+            const result = await user2.sdk.genericAction('pushTransaction', {
+                action: 'renewaddress',
+                account: 'fio.address',
+                data: {
+                    "fio_address": user2.address,
+                    "max_fee": config.maxFee,
+                    "tpid": '',
+                    "actor": user2.account
+                }
+            })
+            console.log('Result: ', result);
+        } catch (err) {
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it.skip(`user3 renewaddress - callFioApiSigned`, async () => {
+        try {
+            const result = await callFioApiSigned('push_transaction', {
+                action: 'renewaddress',
+                account: 'fio.address',
+                actor: user3.account,
+                privKey: user3.privateKey,
+                data: {
+                    fio_address: user3.address,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: user3.account
+                }
+            })
+            console.log('Result: ', result)
+            expect(result.transaction_id).to.exist
+        } catch (err) {
+            console.log('Error: ', err)
+            expect(err).to.equal(null)
+        }
+    })
 })
