@@ -31,6 +31,7 @@ describe('TEST SUITE', () => {
   require('./tests/addbundles.js');  // FIP-11.a
   require('./tests/tpid.js');
   require('./tests/nft-add-remove.js'); //FIP-27
+  require('./tests/nft-uniqueness.js'); //FIP-27
   //require('./tests/nft-remove-burn.js'); //FIP-27
   //require('./tests/clio.js');  // FIP-16  //Only works with local testing
   //require('./tests/performance-request-obt.js');
