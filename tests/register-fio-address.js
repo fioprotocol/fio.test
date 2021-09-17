@@ -69,7 +69,7 @@ describe(`************************** register-fio-address.js *******************
             maxFee: config.maxFee 
         })
         //console.log('Result: ', result)
-        expect(parseInt(result.expiration.split('-',1))).to.equal(expirationYear + 1)
+        expect(parseInt(result.expiration.split('-',1))).to.equal(expirationYear)
         expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
         expect(result.status).to.be.a('string')
         expect(result.expiration).to.be.a('string')

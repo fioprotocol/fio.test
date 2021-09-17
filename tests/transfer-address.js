@@ -1118,7 +1118,7 @@ describe('F. Confirm users with OBT records or Requests CAN transfer addresses (
 
 })
 
-describe.only('G. Transfer Addresses with NFTs.', () => {
+describe('G. Transfer Addresses with NFTs.', () => {
 
     let user1, user2, nftburnqCount, addressHash, address2Hash, address3Hash
 
@@ -1506,7 +1506,7 @@ describe.only('G. Transfer Addresses with NFTs.', () => {
 
 })
 
-describe.only('H. Transfer Address with NFTs, confirm cannot add new NFT', () => {
+describe('H. Transfer Address with NFTs, confirm cannot add new NFT', () => {
 
     let user1, user2, addressHash
 
