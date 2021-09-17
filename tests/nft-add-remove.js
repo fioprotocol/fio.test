@@ -151,6 +151,30 @@ describe(`************************** nft-add-remove.js *************************
     await timeout(5000);
   })
 
+  it(`Try to add same NFT to user1 FIO Address. Expect: `, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'addnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code": "ETH", "contract_address": "0x123456789ABCDEF", "token_id": "1", "url": "", "hash": "", "metadata": ""
+          }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      })
+      //console.log(`Result: `, result)
+      expect(result.status).to.not.equal('OK')
+    } catch (err) {
+      //console.log(err.json)
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].error).to.equal('Nothing to update for this token_id');
+    }
+  })
+
   it(`Remove NFT from user1 FIO Address`, async () => {
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
