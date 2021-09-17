@@ -78,14 +78,11 @@ describe(`************************** register-fio-address.js *******************
 
 })
 
-describe.only(`B. Renew address`, () => {
+describe(`B. Renew address`, () => {
     let user1, user2, user3
 
     it(`Create users`, async () => {
         user1 = await newUser(faucet);
-        console.log('user1 priv key: ', user1.privateKey)
-        console.log('user1 pub key: ', user1.publicKey)
-        console.log('user1 address: ', user1.address)
         user2 = await newUser(faucet);
         user3 = await newUser(faucet);
 
@@ -97,18 +94,19 @@ describe.only(`B. Renew address`, () => {
                     fioAddress: user1.address,
                     maxFee: config.maxFee
                 })
-                console.log('Result: ', result)
-                //expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
-                //expect(result.status).to.be.a('string')
-                //expect(result.expiration).to.be.a('string')
-                //expect(result.fee_collected).to.be.a('number')
+            //console.log('Result: ', result)
+            expect(result.status).to.equal('OK');
+            expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+            expect(result.status).to.be.a('string')
+            expect(result.expiration).to.be.a('string')
+            expect(result.fee_collected).to.be.a('number')
         } catch (err) {
             console.log('Error: ', err);
             expect(err).to.equal(null);
         }
     })
 
-    it.skip(`user2 renewaddress - pushTransaction`, async () => {
+    it(`user2 renewaddress - pushTransaction`, async () => {
         try {
             const result = await user2.sdk.genericAction('pushTransaction', {
                 action: 'renewaddress',
@@ -120,14 +118,15 @@ describe.only(`B. Renew address`, () => {
                     "actor": user2.account
                 }
             })
-            console.log('Result: ', result);
+            //console.log('Result: ', result);
+            expect(result.status).to.equal('OK');
         } catch (err) {
             console.log('Error: ', err);
             expect(err).to.equal(null);
         }
     })
 
-    it.skip(`user3 renewaddress - callFioApiSigned`, async () => {
+    it(`user3 renewaddress - callFioApiSigned`, async () => {
         try {
             const result = await callFioApiSigned('push_transaction', {
                 action: 'renewaddress',
@@ -141,7 +140,7 @@ describe.only(`B. Renew address`, () => {
                     actor: user3.account
                 }
             })
-            console.log('Result: ', result)
+            //console.log('Result: ', result)
             expect(result.transaction_id).to.exist
         } catch (err) {
             console.log('Error: ', err)
