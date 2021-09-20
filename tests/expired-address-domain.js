@@ -41,6 +41,8 @@ function mintNfts(num) {
   return nfts;
 }
 
+const expireDate = 1527686000;  // May, 2018
+
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
 })
@@ -98,7 +100,25 @@ describe('************************** expired-address-domain.js *****************
   })
 
   it(`Wait 2 minutes for the addresses and domains to expire`, async () => {
-    await timeout(125000);
+    //await timeout(125000);
+
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'modexpire',
+        account: 'fio.address',
+        data: {
+          fio_address: userA1.domain,
+          expire: expireDate,
+          actor: user1.account
+        }
+      })
+      console.log(`Result: `, result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log(err);
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].error).to.equal('No work.');
+    }
   })
 
   it(`getFioNames for userA1 and confirm the address and domain ARE expired`, async () => {
@@ -108,7 +128,7 @@ describe('************************** expired-address-domain.js *****************
       const result = await userA1.sdk.genericAction('getFioNames', {
           fioPublicKey: userA1.publicKey
       })
-      //console.log('getFioNames', result);
+      console.log('getFioNames', result);
       expect(result.fio_domains[0].fio_domain).to.equal(userA1.domain);
       expect(Date.parse(result.fio_domains[0].expiration)/1000).to.be.lessThan(utcSeconds);
       expect(result.fio_addresses[0].fio_address).to.equal(userA1.address);
@@ -232,7 +252,7 @@ describe('B. Confirm Addresses with NFTS are added to nftburnq when burning expi
             maxFee: config.maxFee,
             technologyProviderId: ''
           })
-          console.log('addressResult: ', addressResult)
+          //console.log('addressResult: ', addressResult)
           expect(addressResult.status).to.equal('OK')
 
           for (k = 0; k < nftBlockCount / 3; k++) {
@@ -248,7 +268,7 @@ describe('B. Confirm Addresses with NFTS are added to nftburnq when burning expi
                 tpid: ""
               }
             })
-            console.log(`addnftResult: `, addnftResult)
+            //console.log(`addnftResult: `, addnftResult)
             expect(addnftResult.status).to.equal('OK')
           } // k - nfts 
         }  // j - addresses
@@ -259,14 +279,53 @@ describe('B. Confirm Addresses with NFTS are added to nftburnq when burning expi
     }
   })
 
-  it.skip(`TODO: Expire domain`, async () => {
+  it(`Expire domain`, async () => {
+    try {
+      console.log('Expiring domain: ', user1.domain);
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'modexpire',
+        account: 'fio.address',
+        actor: user1.account,
+        privKey: user1.privateKey,
+        data: {
+          fio_address: user1.domain,
+          expire: expireDate,
+          //"max_fee": config.api.burn_fio_address.fee,
+          //"tpid": '',
+          actor: user1.account
+        }
+      })
+      //console.log(`Result: `, result)
+      expect(result.processed.receipt.status).to.equal('executed')
+    } catch (err) {
+      console.log(err)
+      expect(err).to.equal(null);
+    }
+  })
 
+  it(`getFioNames for user1 and confirm the domain is expired`, async () => {
+    try {
+      curdate = new Date()
+      var utcSeconds = (curdate.getTime() + curdate.getTimezoneOffset() * 60 * 1000) / 1000;  // Convert to UTC
+      const result = await user1.sdk.genericAction('getFioNames', {
+        fioPublicKey: user1.publicKey
+      })
+      console.log(`Result: `, result)
+      //expect(result.fio_domains[0].fio_domain).to.equal(userA1.domain);
+      //expect(Date.parse(result.fio_domains[0].expiration) / 1000).to.be.greaterThan(utcSeconds);
+      //expect(result.fio_addresses[0].fio_address).to.equal(userA1.address);
+      //expect(Date.parse(result.fio_addresses[0].expiration) / 1000).to.be.greaterThan(utcSeconds);
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
   })
 
   it(`Call burnexpired until empty`, async () => {
     let empty = false;
     try {
       while (!empty) {
+        console.log('hererererere')
         const result = await user1.sdk.genericAction('pushTransaction', {
           action: 'burnexpired',
           account: 'fio.address',
@@ -274,14 +333,32 @@ describe('B. Confirm Addresses with NFTS are added to nftburnq when burning expi
             actor: user1.account,
           }
         })
-        //console.log(`Result: `, result)
+        console.log(`Result: `, result)
         expect(result.status).to.equal('OK')
         await timeout(1000); // To avoid duplicate transaction
       }
     } catch (err) {
-      console.log(err);
+      //console.log(err);
       expect(err.errorCode).to.equal(400);
       expect(err.json.fields[0].error).to.equal('No work.');
+    }
+  })
+
+  it(`getFioNames for user1 and confirm the domain is burned`, async () => {
+    try {
+      curdate = new Date()
+      var utcSeconds = (curdate.getTime() + curdate.getTimezoneOffset() * 60 * 1000) / 1000;  // Convert to UTC
+      const result = await user1.sdk.genericAction('getFioNames', {
+        fioPublicKey: user1.publicKey
+      })
+      console.log(`Result: `, result)
+      //expect(result.fio_domains[0].fio_domain).to.equal(userA1.domain);
+      //expect(Date.parse(result.fio_domains[0].expiration) / 1000).to.be.greaterThan(utcSeconds);
+      //expect(result.fio_addresses[0].fio_address).to.equal(userA1.address);
+      //expect(Date.parse(result.fio_addresses[0].expiration) / 1000).to.be.greaterThan(utcSeconds);
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
     }
   })
 
