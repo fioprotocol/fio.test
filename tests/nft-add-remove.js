@@ -2767,12 +2767,12 @@ describe(`G. (sdk)(unhappy) Try to remove an NFT belonging to another user`, () 
           fio_address: user1.address,
           nfts: [user1Nfts[0]],
           max_fee: 5000000000,
-          actor: user1.account,
           tpid: ""
         }
       })
       expect(result.status).to.not.equal('OK')
     } catch (err) {
+      //console.log('Error: ', err)
       expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
     }
   });
@@ -2787,7 +2787,6 @@ describe(`G. (sdk)(unhappy) Try to remove an NFT belonging to another user`, () 
           fio_address: user1.address,
           nfts: theftTargets,
           max_fee: 5000000000,
-          actor: user1.account,
           tpid: ""
         }
       })
