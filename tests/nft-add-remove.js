@@ -1,6 +1,6 @@
 require('mocha');
 const {expect} = require('chai');
-const {newUser, fetchJson, callFioApi, timeout} = require('../utils.js');
+const { newUser, fetchJson, callFioApi, callFioApiSigned, timeout} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk');
 config = require('../config.js');
 let faucet;
@@ -3618,6 +3618,272 @@ describe(`J. (api) Confirm that get_nfts_hash returns NFTs with a specific hash`
       expect(result.nfts.length).to.equal(5);
     } catch (err) {
       expect(err.message).to.contain('No NFTS are mapped');
+    }
+  });
+});
+
+
+describe.only(`K. (api) Test add_nft, remove_nft, and remove_all_nfts API endpoints`, () => {
+  let user1, user2, user3;
+
+  const fundsAmount = 10000000000000
+
+  before(async () => {
+    user1 = await newUser(faucet);
+    user2 = await newUser(faucet);
+    user3 = await newUser(faucet);
+  })
+
+  it(`add_nft' to user1 FIO Address`, async () => {
+    try {
+      const result = await callFioApiSigned('add_nft', {
+        action: 'addnft',
+        account: 'fio.address',
+        actor: user1.account,
+        privKey: user1.privateKey,
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code": "ETH", "contract_address": "0x123456789ABCDEF", "token_id": "1", "url": "", "hash": "", "metadata": ""
+          }],
+          max_fee: config.maxFee,
+          actor: user1.account,
+          tpid: ""
+        }
+      })
+      //console.log('Result: ', result.processed.action_traces[0].receipt.response)
+      expect(result.processed.action_traces[0].receipt.response).to.contain("OK");
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`verify user1 NFT is present in table`, async () => {
+    try {
+      const json = {
+        "fio_address": user1.address
+      }
+      result = await callFioApi("get_nfts_fio_address", json);
+      //console.log(`Result: `, result)
+      expect(result.nfts.length).to.not.equal(0)
+      expect(result.nfts[0].chain_code).to.equal("ETH")
+      expect(result.nfts[0].contract_address).to.equal("0x123456789ABCDEF")
+      expect(result.nfts[0].token_id).to.equal("1")
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err).to.equal(null);
+    }
+  })
+
+  it('Wait 5 seconds. (Slower test systems)', async () => {
+    await timeout(5000);
+  })
+
+  it(`remove_nft from user1 FIO Address`, async () => {
+    try {
+      const result = await callFioApiSigned('remove_nft', {
+        action: 'remnft',
+        account: 'fio.address',
+        actor: user1.account,
+        privKey: user1.privateKey,
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code": "ETH", "contract_address": "0x123456789ABCDEF", "token_id": "1", "url": "", "hash": "", "metadata": ""
+          }],
+          max_fee: config.maxFee,
+          actor: user1.account,
+          tpid: ""
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.processed.action_traces[0].receipt.response).to.contain("OK");
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`add_nft 3 NFTs to user1 FIO Address`, async () => {
+    try {
+      const result = await callFioApiSigned('add_nft', {
+        action: 'addnft',
+        account: 'fio.address',
+        actor: user1.account,
+        privKey: user1.privateKey,
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code": "ETH", "contract_address": "0x123456789ABCDEF", "token_id": "7", "url": "", "hash": "", "metadata": ""
+          }, {
+            "chain_code": "ETH", "contract_address": "0x123456789ABCDEF", "token_id": "8", "url": "", "hash": "", "metadata": ""
+          }, {
+            "chain_code": "ETH", "contract_address": "0x123456789ABCDEF", "token_id": "9", "url": "", "hash": "", "metadata": ""
+          }],
+          max_fee: config.maxFee,
+          actor: user1.account,
+          tpid: ""
+        }
+      })
+      //console.log('Result: ', result.processed.action_traces[0].receipt.response)
+      expect(result.processed.action_traces[0].receipt.response).to.contain("OK");
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null);
+    }
+  })
+
+  it('Wait 2 seconds. (Slower test systems)', async () => {
+    await timeout(2000);
+  })
+
+  it(`remove_all_nfts from user1 FIO Address`, async () => {
+    try {
+      const result = await callFioApiSigned('remove_all_nfts', {
+        action: 'remallnfts',
+        account: 'fio.address',
+        actor: user1.account,
+        privKey: user1.privateKey,
+        data: {
+          fio_address: user1.address,
+          max_fee: config.maxFee,
+          actor: user1.account,
+          tpid: ""
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.processed.action_traces[0].receipt.response).to.contain("OK");
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`add_nft 3 NFTs to user2 FIO Address`, async () => {
+    try {
+      const result = await callFioApiSigned('add_nft', {
+        action: 'addnft',
+        account: 'fio.address',
+        actor: user2.account,
+        privKey: user2.privateKey,
+        data: {
+          fio_address: user2.address,
+          nfts: [{
+            "chain_code": "ETH", "contract_address": "0x123456789ABCDEF", "token_id": "10", "url": "", "hash": "", "metadata": ""
+          }, {
+            "chain_code": "ETH", "contract_address": "0x123456789ABCDEF", "token_id": "11", "url": "", "hash": "", "metadata": ""
+          }, {
+            "chain_code": "ETH", "contract_address": "0x123456789ABCDEF", "token_id": "12", "url": "", "hash": "", "metadata": ""
+          }],
+          max_fee: config.maxFee,
+          actor: user2.account,
+          tpid: ""
+        }
+      })
+      //console.log('Result: ', result.processed.action_traces[0].receipt.response)
+      expect(result.processed.action_traces[0].receipt.response).to.contain("OK");
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null);
+    }
+  })
+
+  it('Wait 2 seconds. (Slower test systems)', async () => {
+    await timeout(2000);
+  })
+
+  it(`Transfer address from user2 to user3`, async () => {
+    try {
+      const result = await user2.sdk.genericAction('pushTransaction', {
+        action: 'xferaddress',
+        account: 'fio.address',
+        data: {
+          fio_address: user2.address,
+          new_owner_fio_public_key: user3.publicKey,
+          max_fee: config.maxFee,
+          actor: user2.account,
+          tpid: ""
+        }
+      })
+      //console.log(`Result: `, result)
+      expect(result.status).to.equal('OK')
+
+    } catch (err) {
+      //console.log(err.message)
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`verify user2 NFTs were added to nftburnq on address transfer`, async () => {
+    try {
+      const json = {
+        "fio_address": user2.address
+      }
+      const result = await callFioApi("get_nfts_fio_address", json);
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err.error.message).to.equal("No NFTS are mapped");
+      expect(err.statusCode).to.equal(404);
+    }
+  })
+
+  it(`add_nft to user3 FIO Address`, async () => {
+    try {
+      const result = await callFioApiSigned('add_nft', {
+        action: 'addnft',
+        account: 'fio.address',
+        actor: user3.account,
+        privKey: user3.privateKey,
+        data: {
+          fio_address: user3.address,
+          nfts: [{
+            "chain_code": "ETH", "contract_address": "0x123456789ABCDEF", "token_id": "999", "url": "", "hash": "B8CB100B12807BD8A8267800477EE5BA4BD387E840BBEDF02E31787CA9430BB0", "metadata": ""
+          }],
+          max_fee: config.maxFee,
+          actor: user3.account,
+          tpid: ""
+        }
+      })
+      //console.log('Result: ', result.processed.action_traces[0].receipt.response)
+      expect(result.processed.action_traces[0].receipt.response).to.contain("OK");
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`verify user3 has NFT with get_nfts_contract endpoint`, async () => {
+    try {
+      const json = {
+        "chain_code": "ETH",
+        "contract_address": "0x123456789ABCDEF",
+        "token_id": "999"
+      }
+      result = await callFioApi("get_nfts_contract", json);
+      expect(result.nfts.length).to.not.equal(0)
+      expect(result.nfts[0].chain_code).to.equal("ETH")
+      expect(result.nfts[0].contract_address).to.equal("0x123456789ABCDEF")
+      expect(result.nfts[0].token_id).to.equal("999")
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`verify user3 has NFT with get_nfts_hash endpoint`, async () => {
+    try {
+      const json = {
+        "hash": "B8CB100B12807BD8A8267800477EE5BA4BD387E840BBEDF02E31787CA9430BB0",
+      }
+      result = await callFioApi("get_nfts_hash", json);
+      expect(result.nfts.length).to.not.equal(0)
+      expect(result.nfts[0].chain_code).to.equal("ETH")
+      expect(result.nfts[0].contract_address).to.equal("0x123456789ABCDEF")
+      expect(result.nfts[0].token_id).to.equal("999")
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err).to.equal(null);
     }
   });
 });
