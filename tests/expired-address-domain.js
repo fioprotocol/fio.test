@@ -21,7 +21,7 @@
 
 require('mocha')
 const {expect} = require('chai')
-const { newUser, fetchJson, timeout, generateFioAddress, generateFioDomain, callFioApi, callFioApiSigned} = require('../utils.js');
+const { newUser, fetchJson, timeout, callFioApiSigned} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
@@ -49,23 +49,23 @@ before(async () => {
 
 describe('************************** expired-address-domain.js ************************** \n A. General testing for expired domains and addresses', () => {
 
-  let userA1, userA2
+  let user1, user2
 
   it(`Create users`, async () => {
-    userA1 = await newUser(faucet);
-    userA2 = await newUser(faucet);
+    user1 = await newUser(faucet);
+    user2 = await newUser(faucet);
   })
 
-  it(`getFioNames for userA1 and confirm the address and domain are NOT expired`, async () => {
+  it(`getFioNames for user1 and confirm the address and domain are NOT expired`, async () => {
     try {
       curdate = new Date()
       var utcSeconds = (curdate.getTime() + curdate.getTimezoneOffset()*60*1000)/1000;  // Convert to UTC
-      const result = await userA1.sdk.genericAction('getFioNames', {
-          fioPublicKey: userA1.publicKey
+      const result = await user1.sdk.genericAction('getFioNames', {
+          fioPublicKey: user1.publicKey
       })
-      expect(result.fio_domains[0].fio_domain).to.equal(userA1.domain);
+      expect(result.fio_domains[0].fio_domain).to.equal(user1.domain);
       expect(Date.parse(result.fio_domains[0].expiration)/1000).to.be.greaterThan(utcSeconds);
-      expect(result.fio_addresses[0].fio_address).to.equal(userA1.address);
+      expect(result.fio_addresses[0].fio_address).to.equal(user1.address);
       expect(Date.parse(result.fio_addresses[0].expiration)/1000).to.be.greaterThan(utcSeconds);
     } catch (err) {
         console.log('Error', err)
@@ -75,8 +75,8 @@ describe('************************** expired-address-domain.js *****************
 
   it(`Check isAvailable for domain. Expect is_registered = 1`, async () => {
     try {
-        const result = await userA1.sdk.genericAction('isAvailable', {
-            fioName: userA1.domain,
+        const result = await user1.sdk.genericAction('isAvailable', {
+            fioName: user1.domain,
         })
         //console.log('Result: ', result);
         expect(result.is_registered).to.equal(1);
@@ -88,8 +88,8 @@ describe('************************** expired-address-domain.js *****************
 
   it(`Check isAvailable for address. Expect is_registered = 1`, async () => {
     try {
-        const result = await userA1.sdk.genericAction('isAvailable', {
-            fioName: userA1.address,
+        const result = await user1.sdk.genericAction('isAvailable', {
+            fioName: user1.address,
         })
         //console.log('Result: ', result);
         expect(result.is_registered).to.equal(1);
@@ -107,7 +107,7 @@ describe('************************** expired-address-domain.js *****************
         action: 'modexpire',
         account: 'fio.address',
         data: {
-          fio_address: userA1.domain,
+          fio_address: user1.domain,
           expire: expireDate,
           actor: user1.account
         }
@@ -121,17 +121,17 @@ describe('************************** expired-address-domain.js *****************
     }
   })
 
-  it(`getFioNames for userA1 and confirm the address and domain ARE expired`, async () => {
+  it(`getFioNames for user1 and confirm the address and domain ARE expired`, async () => {
     try {
       curdate = new Date()
       var utcSeconds = (curdate.getTime() + curdate.getTimezoneOffset()*60*1000)/1000;  // Convert to UTC
-      const result = await userA1.sdk.genericAction('getFioNames', {
-          fioPublicKey: userA1.publicKey
+      const result = await user1.sdk.genericAction('getFioNames', {
+          fioPublicKey: user1.publicKey
       })
       console.log('getFioNames', result);
-      expect(result.fio_domains[0].fio_domain).to.equal(userA1.domain);
+      expect(result.fio_domains[0].fio_domain).to.equal(user1.domain);
       expect(Date.parse(result.fio_domains[0].expiration)/1000).to.be.lessThan(utcSeconds);
-      expect(result.fio_addresses[0].fio_address).to.equal(userA1.address);
+      expect(result.fio_addresses[0].fio_address).to.equal(user1.address);
       expect(Date.parse(result.fio_addresses[0].expiration)/1000).to.be.lessThan(utcSeconds);
     } catch (err) {
         console.log('Error', err);
@@ -141,8 +141,8 @@ describe('************************** expired-address-domain.js *****************
 
   it(`Check isAvailable for expired domain. Expect is_registered = 1`, async () => {
     try {
-        const result = await userA1.sdk.genericAction('isAvailable', {
-            fioName: userA1.domain,
+        const result = await user1.sdk.genericAction('isAvailable', {
+            fioName: user1.domain,
         })
         //console.log('Result: ', result);
         expect(result.is_registered).to.equal(1);
@@ -154,8 +154,8 @@ describe('************************** expired-address-domain.js *****************
 
   it(`Check isAvailable for expired (but not burned) address. Expect is_registered = 1`, async () => {
     try {
-        const result = await userA1.sdk.genericAction('isAvailable', {
-            fioName: userA1.address,
+        const result = await user1.sdk.genericAction('isAvailable', {
+            fioName: user1.address,
         })
         //console.log('Result: ', result);
         expect(result.is_registered).to.equal(1);
@@ -167,9 +167,9 @@ describe('************************** expired-address-domain.js *****************
 
   it(`Transfer expired domain. Expect error type 400: ${config.error.fioDomainNeedsRenew}`, async () => {
     try {
-      const result = await userA1.sdk.genericAction('transferFioDomain', {
-        fioDomain: userA1.domain,
-        newOwnerKey: userA2.publicKey,
+      const result = await user1.sdk.genericAction('transferFioDomain', {
+        fioDomain: user1.domain,
+        newOwnerKey: user2.publicKey,
         maxFee: config.api.transfer_fio_domain.fee,
         technologyProviderId: ''
       })
@@ -181,18 +181,18 @@ describe('************************** expired-address-domain.js *****************
     }
   })
 
-  it(`Burn userA1.address. Expect error type 400: ${config.error.fioDomainNeedsRenew} (BD-2475)`, async () => {
+  it(`Burn user1.address. Expect error type 400: ${config.error.fioDomainNeedsRenew} (BD-2475)`, async () => {
     try {
         const result = await callFioApiSigned('push_transaction', {
             action: 'burnaddress',
             account: 'fio.address',
-            actor: userA1.account,
-            privKey: userA1.privateKey,
+            actor: user1.account,
+            privKey: user1.privateKey,
             data: {
-                "fio_address": userA1.address,
+                "fio_address": user1.address,
                 "max_fee": config.maxFee,
                 "tpid": '',
-                "actor": userA1.account
+                "actor": user1.account
             }
         })
         console.log('Result: ', result);
@@ -206,569 +206,542 @@ describe('************************** expired-address-domain.js *****************
 
 })
 
-describe('B. Confirm Addresses with NFTS are added to nftburnq when burning expired domains', () => {
-
-  let user1, user2, nftburnqCount;
-  const addressBlockCount = 2;
-  const nftBlockCount = 3;  // Must be divisible by 3
+describe('B. Check relevant actions to confirm expired addresses work as expected', () => {
+/*
+Confirm the following do not check for expired addresses anymore:
+remaddress, remalladdr, newfundsreq, cancelfndreq, recordobt, xferaddress, voteproducer, regproxy, unregproxy, 
+regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, remallnfts
+  */
+  
+  let user1, user2, user3
 
   it(`Create users`, async () => {
     user1 = await newUser(faucet);
     user2 = await newUser(faucet);
+    user3 = await newUser(faucet);
   })
 
-  it(`Get nftburnq table number of rows (in case there are existing entries)`, async () => {
+  it(`Add Address and wait for it to expire`, async () => {
+    // May need to do the timing thing above. Separate these into different tests. One with timing, one with the remove action.
+  })
+
+
+  // remaddress
+  it(`Add DASH and BCH addresses to user1`, async () => {
     try {
-      const json = {
-        json: true,
-        code: 'fio.address',
-        scope: 'fio.address',
-        table: 'nftburnq',
-        limit: 1000,
-        reverse: false,
-        show_payer: false
-      }
-      result = await callFioApi("get_table_rows", json);
+      const result = await user1.sdk.genericAction('addPublicAddresses', {
+        fioAddress: user1.address,
+        publicAddresses: config.public_addresses,
+        maxFee: config.api.add_pub_address.fee,
+        walletFioAddress: ''
+      })
+      //console.log('Result:', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it('confirm BCH address was added', async () => {
+    try {
+      const result = await user1.sdk.genericAction('getPublicAddress', {
+        fioAddress: user1.address,
+        chainCode: "BCH",
+        tokenCode: "BCH"
+      })
+      //console.log('Result', result)
+      expect(result.public_address).to.equal('bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9')
+    } catch (err) {
+      console.log('Error', err)
+    }
+  })
+
+  it('Wait a few seconds...', async () => {
+    await timeout(2000);
+  })
+
+  it(`Remove BCH and DASH from user1`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('removePublicAddresses', {
+        fioAddress: user1.address,
+        publicAddresses: config.public_addresses,
+        maxFee: config.api.add_pub_address.fee,
+        tpid: ''
+      })
+      //console.log('Result:', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it('confirm BCH address was removed', async () => {
+    try {
+      const result = await user1.sdk.genericAction('getPublicAddress', {
+        fioAddress: user1.address,
+        chainCode: "BCH",
+        tokenCode: "BCH"
+      })
+      //console.log('Result', result)
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err.json.message).to.equal(config.error.publicAddressFound)
+    }
+  })
+
+
+  // remalladdr
+
+  it(`Add DASH and BCH addresses to user1`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('addPublicAddresses', {
+        fioAddress: user1.address,
+        publicAddresses: [
+          {
+            chain_code: 'BCH',
+            token_code: 'BCH',
+            public_address: 'bitcoincash:qn9g9',
+          },
+          {
+            chain_code: 'DASH',
+            token_code: 'DASH',
+            public_address: 'XyCyPKzTWvW2XdcYjPaPXGQDCGk946ywEv',
+          }
+        ],
+        maxFee: config.api.add_pub_address.fee,
+        walletFioAddress: ''
+      })
+      //console.log('Result:', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it('confirm BCH address was added', async () => {
+    try {
+      const result = await user1.sdk.genericAction('getPublicAddress', {
+        fioAddress: user1.address,
+        chainCode: "BCH",
+        tokenCode: "BCH"
+      })
+      //console.log('Result', result)
+      expect(result.public_address).to.equal('bitcoincash:qn9g9')
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Remove All public addresses from user1`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('removeAllPublicAddresses', {
+        fioAddress: user1.address,
+        maxFee: config.api.add_pub_address.fee,
+        tpid: ''
+      })
+      //console.log('Result:', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it('confirm BCH address was removed', async () => {
+    try {
+      const result = await user1.sdk.genericAction('getPublicAddress', {
+        fioAddress: user1.address,
+        chainCode: "BCH",
+        tokenCode: "BCH"
+      })
+      //console.log('Result', result)
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err.json.message).to.equal(config.error.publicAddressFound)
+    }
+  })
+  
+
+  // newfundsreq
+
+  it(`user1 requests funds from user2`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('requestFunds', {
+        payerFioAddress: user2.address,
+        payeeFioAddress: user1.address,
+        payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
+        amount: 1000,
+        chainCode: 'BTC',
+        tokenCode: 'BTC',
+        memo: 'requestMemo',
+        maxFee: config.maxFee,
+        payerFioPublicKey: user2.publicKey,
+        technologyProviderId: ''
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('requested')
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`get_sent_fio_requests for user1 (payee)`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('getSentFioRequests', {
+        limit: '',
+        offset: ''
+      })
       //console.log('result: ', result);
-      nftburnqCount = result.rows.length;
+      //console.log('content: ', result.requests[0].content);
+      expect(result.requests[0].fio_request_id).to.equal(requestId);
+      expect(result.requests[0].payer_fio_address).to.equal(user2.address);
+      expect(result.requests[0].payee_fio_address).to.equal(user1.address);
+      expect(result.requests[0].payer_fio_public_key).to.equal(user2.publicKey);
+      expect(result.requests[0].payee_fio_public_key).to.equal(user1.publicKey);
+      expect(result.requests[0].status).to.equal('requested');
+      expect(result.requests[0].content.memo).to.equal(requestMemo);
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
+  
+
+  // recordobt
+
+  it(`user2 does recordObtData previous payment with the fioRequestId`, async () => {
+    try {
+      const result = await user2.sdk.genericAction('recordObtData', {
+        fioRequestId: requestId,
+        payerFioAddress: user2.address,
+        payeeFioAddress: user1.address,
+        payerTokenPublicAddress: user2.publicKey,
+        payeeTokenPublicAddress: user1.publicKey,
+        amount: payment,
+        chainCode: "BTC",
+        tokenCode: "BTC",
+        status: '',
+        obtId: '',
+        maxFee: config.api.record_obt_data.fee,
+        technologyProviderId: '',
+        payeeFioPublicKey: userA1.publicKey,
+        memo: obtMemo,
+        hash: '',
+        offLineUrl: ''
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('sent_to_blockchain')
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+
+  // cancelfndreq
+
+  it(`user1 requests funds from user2`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('requestFunds', {
+        payerFioAddress: user2.address,
+        payeeFioAddress: user1.address,
+        payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
+        amount: payment,
+        chainCode: 'BTC',
+        tokenCode: 'BTC',
+        memo: requestMemo,
+        maxFee: config.api.new_funds_request.fee,
+        payerFioPublicKey: user2.publicKey,
+        technologyProviderId: '',
+        hash: '',
+        offLineUrl: ''
+      })
+      //console.log('Result: ', result)
+      user1RequestId = result.fio_request_id
+      expect(result.status).to.equal('requested')
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`user1 (payee) Call cancel_funds_request to cancel request in pending state`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('cancelFundsRequest', {
+        fioRequestId: userA1RequestId,
+        maxFee: cancel_funds_request_fee,
+        technologyProviderId: ''
+      })
+      //console.log('Result: ', result);
+      expect(result).to.have.all.keys('status', 'fee_collected')
+      expect(result.status).to.equal('cancelled');
+      expect(result.fee_collected).to.equal(0);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
     }
   })
 
-  it(`Create domain with ${addressBlockCount} addresses and ${nftBlockCount} NFTs`, async () => {
-    let address = [], addedNfts;
+  it(`Verify request was cancelled: get_sent_fio_requests for userA1 (payee) returns 1 request with status 'cancelled'`, async () => {
     try {
-
-        user1 = await newUser(faucet);
-
-        console.log('Adding Addresses with NFTs');
-        for (j = 0; j < addressBlockCount; j++) {
-          address[j] = generateFioAddress(user1.domain, 10)
-
-          const addressResult = await user1.sdk.genericAction('registerFioAddress', {
-            fioAddress: address[j],
-            maxFee: config.maxFee,
-            technologyProviderId: ''
-          })
-          //console.log('addressResult: ', addressResult)
-          expect(addressResult.status).to.equal('OK')
-
-          for (k = 0; k < nftBlockCount / 3; k++) {
-            addedNfts = mintNfts(3);
-            const addnftResult = await user1.sdk.genericAction('pushTransaction', {
-              action: 'addnft',
-              account: 'fio.address',
-              data: {
-                fio_address: address[j],
-                nfts: addedNfts,
-                max_fee: config.maxFee,
-                actor: user1.account,
-                tpid: ""
-              }
-            })
-            //console.log(`addnftResult: `, addnftResult)
-            expect(addnftResult.status).to.equal('OK')
-          } // k - nfts 
-        }  // j - addresses
-
+      const result = await user1.sdk.genericAction('getSentFioRequests', {
+        limit: '',
+        offset: ''
+      })
+      //console.log('result: ', result)
+      expect(result.requests[0].fio_request_id).to.equal(user1RequestId);
+      expect(result.requests[0].payer_fio_address).to.equal(user2.address);
+      expect(result.requests[0].payee_fio_address).to.equal(user1.address);
+      expect(result.requests[0].payer_fio_public_key).to.equal(user2.publicKey);
+      expect(result.requests[0].payee_fio_public_key).to.equal(user1.publicKey);
+      expect(result.requests[0].status).to.equal('cancelled');
+      expect(result.requests[0].content.memo).to.equal(requestMemo);
     } catch (err) {
-      console.log(err.json)
+      console.log('Error: ', err);
       expect(err).to.equal(null);
     }
   })
 
-  it(`Expire domain`, async () => {
+  // xferaddress
+
+  it(`Transfer address from user2 to user3`, async () => {
     try {
-      console.log('Expiring domain: ', user1.domain);
-      const result = await callFioApiSigned('push_transaction', {
-        action: 'modexpire',
+      const result = await user2.sdk.genericAction('pushTransaction', {
+        action: 'xferaddress',
         account: 'fio.address',
-        actor: user1.account,
-        privKey: user1.privateKey,
         data: {
-          fio_address: user1.domain,
-          expire: expireDate,
-          //"max_fee": config.api.burn_fio_address.fee,
-          //"tpid": '',
-          actor: user1.account
+          fio_address: user2.address,
+          new_owner_fio_public_key: user3.publicKey,
+          max_fee: config.maxFee,
+          actor: user2.account,
+          tpid: ""
         }
       })
       //console.log(`Result: `, result)
-      expect(result.processed.receipt.status).to.equal('executed')
+      expect(result.status).to.equal('OK')
+
     } catch (err) {
-      console.log(err)
+      //console.log(err.message)
       expect(err).to.equal(null);
     }
   })
 
-  it(`getFioNames for user1 and confirm the domain is expired`, async () => {
+  // voteproducer
+
+  it(`user1 votes for bp1@dapixdev`, async () => {
     try {
-      curdate = new Date()
-      var utcSeconds = (curdate.getTime() + curdate.getTimezoneOffset() * 60 * 1000) / 1000;  // Convert to UTC
-      const result = await user1.sdk.genericAction('getFioNames', {
-        fioPublicKey: user1.publicKey
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'voteproducer',
+        account: 'eosio',
+        data: {
+          "producers": [
+            'bp1@dapixdev'
+          ],
+          fio_address: user1.address,
+          actor: user1.account,
+          max_fee: config.maxFee
+        }
       })
-      console.log(`Result: `, result)
-      //expect(result.fio_domains[0].fio_domain).to.equal(userA1.domain);
-      //expect(Date.parse(result.fio_domains[0].expiration) / 1000).to.be.greaterThan(utcSeconds);
-      //expect(result.fio_addresses[0].fio_address).to.equal(userA1.address);
-      //expect(Date.parse(result.fio_addresses[0].expiration) / 1000).to.be.greaterThan(utcSeconds);
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
     } catch (err) {
-      console.log('Error', err)
-      expect(err).to.equal(null)
+      console.log('Error: ', err)
     }
   })
 
-  it(`Call burnexpired until empty`, async () => {
-    let empty = false;
-    try {
-      while (!empty) {
-        console.log('hererererere')
-        const result = await user1.sdk.genericAction('pushTransaction', {
-          action: 'burnexpired',
-          account: 'fio.address',
-          data: {
-            actor: user1.account,
-          }
-        })
-        console.log(`Result: `, result)
-        expect(result.status).to.equal('OK')
-        await timeout(1000); // To avoid duplicate transaction
-      }
-    } catch (err) {
-      //console.log(err);
-      expect(err.errorCode).to.equal(400);
-      expect(err.json.fields[0].error).to.equal('No work.');
-    }
-  })
 
-  it(`getFioNames for user1 and confirm the domain is burned`, async () => {
+  // regproxy
+
+  it(`Register user3 as a proxy`, async () => {
     try {
-      curdate = new Date()
-      var utcSeconds = (curdate.getTime() + curdate.getTimezoneOffset() * 60 * 1000) / 1000;  // Convert to UTC
-      const result = await user1.sdk.genericAction('getFioNames', {
-        fioPublicKey: user1.publicKey
+      const result = await user3.sdk.genericAction('pushTransaction', {
+        action: 'regproxy',
+        account: 'eosio',
+        data: {
+          fio_address: user3.address,
+          actor: user3.account,
+          max_fee: config.maxFee
+        }
       })
-      console.log(`Result: `, result)
-      //expect(result.fio_domains[0].fio_domain).to.equal(userA1.domain);
-      //expect(Date.parse(result.fio_domains[0].expiration) / 1000).to.be.greaterThan(utcSeconds);
-      //expect(result.fio_addresses[0].fio_address).to.equal(userA1.address);
-      //expect(Date.parse(result.fio_addresses[0].expiration) / 1000).to.be.greaterThan(utcSeconds);
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
     } catch (err) {
-      console.log('Error', err)
-      expect(err).to.equal(null)
+      console.log('Error: ', err.json)
+      expect(err).to.equal('null')
     }
   })
 
-  it(`Get burnnftq table. Confirm additional entries = ${addressBlockCount}`, async () => {
+  // unregproxy
+
+  it(`Un-register user3 as a proxy`, async () => {
     try {
-      const json = {
-        json: true,
-        code: 'fio.address',
-        scope: 'fio.address',
-        table: 'nftburnq',
-        limit: 1000,
-        reverse: false,
-        show_payer: false
-      }
-      const burnnftq = await callFioApi("get_table_rows", json);
-      console.log('burnnftq: ', burnnftq);
-      expect(burnnftq.rows.length).to.equal(nftburnqCount + addressBlockCount);
+      const result = await user3.sdk.genericAction('pushTransaction', {
+        action: 'unregproxy',
+        account: 'eosio',
+        data: {
+          fio_address: user3.address,
+          actor: user3.account,
+          max_fee: config.api.unregister_proxy.fee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
     } catch (err) {
-      console.log('Error', err);
+      console.log('Error: ', err.json)
+    }
+  })
+
+  // regproducer
+
+  it(`Register user2 as producer`, async () => {
+    try {
+      const result = await user2.sdk.genericAction('pushTransaction', {
+        action: 'regproducer',
+        account: 'eosio',
+        data: {
+          fio_address: user2.address,
+          fio_pub_key: user2.publicKey,
+          url: "https://mywebsite.io/",
+          location: 80,
+          actor: user2.account,
+          max_fee: config.maxFee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json)
+    }
+  })
+
+  // unregprod
+
+  it(`Unregister user2 as producer`, async () => {
+    try {
+      const result = await user2.sdk.genericAction('pushTransaction', {
+        action: 'unregprod',
+        account: 'eosio',
+        data: {
+          fio_address: user2.address,
+          fio_pub_key: user2.publicKey,
+          max_fee: config.api.unregister_producer.fee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err)
+    }
+  })
+
+  // addnft
+
+  it(`Add NFT to user1 FIO Address`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'addnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code": "ETH", "contract_address": "0x123456789ABCDEF", "token_id": "1", "url": "", "hash": "", "metadata": ""
+          }],
+          max_fee: config.maxFee,
+          actor: user1.account,
+          tpid: ""
+        }
+      })
+      //console.log(`Result: `, result)
+      expect(result.status).to.equal('OK')
+
+    } catch (err) {
+      //console.log(err.message)
       expect(err).to.equal(null);
     }
   })
 
-  it(`Call burnnfts until burnnftq is empty`, async () => {
-    let empty = false;
+  // remnft
+
+  it(`Remove NFT from user1 FIO Address`, async () => {
     try {
-      while (!empty) {
-        const result = await user1.sdk.genericAction('pushTransaction', {
-          action: 'burnnfts',
-          account: 'fio.address',
-          data: {
-            actor: user1.account,
-          }
-        })
-        //console.log(`Result: `, result)
-        expect(result.status).to.equal('OK')
-        await timeout(1000); // To avoid duplicate transaction
-      }
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code": "ETH", "contract_address": "0x123456789ABCDEF", "token_id": "1", "url": "", "hash": "", "metadata": ""
+          }],
+          max_fee: config.maxFee,
+          actor: user1.account,
+          tpid: ""
+        }
+      })
+      //console.log(`Result: `, result)
+      expect(result.status).to.equal('OK')
+
     } catch (err) {
-      //console.log(err.json);
-      expect(err.errorCode).to.equal(400);
-      expect(err.json.fields[0].error).to.equal('Nothing to burn');
+      console.log(err.message)
     }
   })
 
-  it(`Get burnnftq table. Confirm it is empty.`, async () => {
+  // remallnfts
+
+  it(`Add 3 NFTs to user1 FIO Address`, async () => {
     try {
-      const json = {
-        json: true,
-        code: 'fio.address',
-        scope: 'fio.address',
-        table: 'nftburnq',
-        limit: 1000,
-        reverse: false,
-        show_payer: false
-      }
-      result = await callFioApi("get_table_rows", json);
-      //console.log('result: ', result);
-      expect(result.rows.length).to.equal(0);
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'addnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code": "ETH", "contract_address": "0x123456789ABCDEF", "token_id": "7", "url": "", "hash": "", "metadata": ""
+          }, {
+            "chain_code": "ETH", "contract_address": "0x123456789ABCDEF", "token_id": "8", "url": "", "hash": "", "metadata": ""
+          }, {
+            "chain_code": "ETH", "contract_address": "0x123456789ABCDEF", "token_id": "9", "url": "", "hash": "", "metadata": ""
+          }],
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      })
+      //console.log(`Result: `, result)
+      expect(result.status).to.equal('OK')
+
     } catch (err) {
-      console.log('Error', err);
+      //console.log(err.message)
       expect(err).to.equal(null);
     }
   })
 
-})
-
-describe('B. Burn large number of expired domains with gaps between expired and non-expired', () => {
-
-  let nftburnqCount;
-  let user = [];
-  const domainBlockCount = 2;
-  const addressBlockCount = 2;
-  const nftBlockCount = 3;  // Must be divisible by 3
-
-  it(`Get nftburnq table number of rows (in case there are existing entries)`, async () => {
-    try {
-      const json = {
-        json: true,
-        code: 'fio.address',
-        scope: 'fio.address',
-        table: 'nftburnq',
-        limit: 1000,
-        reverse: false,
-        show_payer: false
-      }
-      result = await callFioApi("get_table_rows", json);
-      //console.log('result: ', result);
-      nftburnqCount = result.rows.length;
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
+  it('Wait 2 seconds. (Slower test systems)', async () => {
+    await timeout(2000);
   })
 
-  it(`#1 - Create domain block: ${domainBlockCount} domains, ${addressBlockCount} addresses, ${nftBlockCount} NFTs`, async () => {
-    let domain, address = [], addedNfts;
+  it(`Remove all NFTs from user1 FIO Address`, async () => {
     try {
-
-      for (i = 0; i < domainBlockCount; i++) {
-        console.log('Adding Domain');
-        user[i] = await newUser(faucet);
-
-        console.log('Adding Addresses with NFTs');
-        for (j = 0; j < addressBlockCount; j++) {
-          address[j] = generateFioAddress(user[i].domain, 10)
-
-          const addressResult = await user[i].sdk.genericAction('registerFioAddress', {
-            fioAddress: address[j],
-            maxFee: config.maxFee,
-            technologyProviderId: ''
-          })
-          console.log('addressResult: ', addressResult)
-          expect(addressResult.status).to.equal('OK')
-
-          for (k = 0; k < nftBlockCount / 3; k++) {
-            addedNfts = mintNfts(3);
-            const addnftResult = await user[i].sdk.genericAction('pushTransaction', {
-              action: 'addnft',
-              account: 'fio.address',
-              data: {
-                fio_address: address[j],
-                nfts: addedNfts,
-                max_fee: config.maxFee,
-                actor: user[i].account,
-                tpid: ""
-              }
-            })
-            console.log(`addnftResult: `, addnftResult)
-            expect(addnftResult.status).to.equal('OK')
-          } // k - nfts 
-        }  // j - addresses
-      } // i - domains
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remallnfts',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          max_fee: 5000000000,
+          actor: user1.account,
+          tpid: ""
+        }
+      })
+      //console.log(`Result: `, result)
+      expect(result.status).to.equal('OK')
 
     } catch (err) {
-      console.log(err.json)
-      expect(err).to.equal(null);
+      console.log(err.message)
     }
   })
-
-  it(`#2 - Create EXPIRED domains block: ${domainBlockCount} domains, ${addressBlockCount} addresses, ${nftBlockCount} NFTs`, async () => {
-    let domain, address = [], addedNfts;
-    try {
-
-      for (i = domainBlockCount; i < domainBlockCount * 2; i++) {
-        console.log('Adding Domain');
-        user[i] = await newUser(faucet);
-
-        console.log('Adding Addresses with NFTs');
-        for (j = 0; j < addressBlockCount; j++) {
-          address[j] = generateFioAddress(user[i].domain, 10)
-
-          const addressResult = await user[i].sdk.genericAction('registerFioAddress', {
-            fioAddress: address[j],
-            maxFee: config.maxFee,
-            technologyProviderId: ''
-          })
-          console.log('addressResult: ', addressResult)
-          expect(addressResult.status).to.equal('OK')
-
-          for (k = 0; k < nftBlockCount / 3; k++) {
-            addedNfts = mintNfts(3);
-            const addnftResult = await user[i].sdk.genericAction('pushTransaction', {
-              action: 'addnft',
-              account: 'fio.address',
-              data: {
-                fio_address: address[j],
-                nfts: addedNfts,
-                max_fee: config.maxFee,
-                actor: user[i].account,
-                tpid: ""
-              }
-            })
-            console.log(`addnftResult: `, addnftResult)
-            expect(addnftResult.status).to.equal('OK')
-          } // k - nfts 
-        }  // j - addresses
-      } // i - domains
-
-    } catch (err) {
-      console.log(err.json)
-      expect(err).to.equal(null);
-    }
-  })
-
-  it.skip(`(TODO: update to expire the domains)`, async () => {
-    try {
-      for (i = domainBlockCount; i < domainBlockCount * 2; i++) {
-        const result = await callFioApiSigned('push_transaction', {
-          action: 'burndomain',
-          account: 'fio.address',
-          actor: user[i].account,
-          privKey: user[i].privateKey,
-          data: {
-            "fio_address": user[i].domain,
-            "max_fee": config.maxFee,
-            "tpid": '',
-            "actor": user[i].account
-          }
-        })
-        //console.log('Result: ', JSON.parse(result.processed.action_traces[0].receipt.response));
-        expect(JSON.parse(result.processed.action_traces[0].receipt.response).status).to.equal('OK');
-        expect(JSON.parse(result.processed.action_traces[0].receipt.response).fee_collected).to.equal(0);
-      }
-    } catch (err) {
-      console.log('Error: ', err);
-      expect(err).to.equal(null);
-    }
-  })
-
-  it(`#3 - Create domains block: ${domainBlockCount} domains, ${addressBlockCount} addresses, ${nftBlockCount} NFTs`, async () => {
-    let domain, address = [], addedNfts;
-    try {
-
-      for (i = domainBlockCount * 2; i < domainBlockCount * 3; i++) {
-        console.log('Adding Domain');
-        user[i] = await newUser(faucet);
-
-        console.log('Adding Addresses with NFTs');
-        for (j = 0; j < addressBlockCount; j++) {
-          address[j] = generateFioAddress(user[i].domain, 10)
-
-          const addressResult = await user[i].sdk.genericAction('registerFioAddress', {
-            fioAddress: address[j],
-            maxFee: config.maxFee,
-            technologyProviderId: ''
-          })
-          console.log('addressResult: ', addressResult)
-          expect(addressResult.status).to.equal('OK')
-
-          for (k = 0; k < nftBlockCount / 3; k++) {
-            addedNfts = mintNfts(3);
-            const addnftResult = await user[i].sdk.genericAction('pushTransaction', {
-              action: 'addnft',
-              account: 'fio.address',
-              data: {
-                fio_address: address[j],
-                nfts: addedNfts,
-                max_fee: config.maxFee,
-                actor: user[i].account,
-                tpid: ""
-              }
-            })
-            console.log(`addnftResult: `, addnftResult)
-            expect(addnftResult.status).to.equal('OK')
-          } // k - nfts 
-        }  // j - addresses
-      } // i - domains
-
-    } catch (err) {
-      console.log(err.json)
-      expect(err).to.equal(null);
-    }
-  })
-
-  it(`#4 - Create EXPIRED domains block: ${domainBlockCount} domains, ${addressBlockCount} addresses, ${nftBlockCount} NFTs`, async () => {
-    let domain, address = [], addedNfts;
-    try {
-
-      for (i = domainBlockCount * 3; i < domainBlockCount * 4; i++) {
-        console.log('Adding Domain');
-        user[i] = await newUser(faucet);
-
-        console.log('Adding Addresses with NFTs');
-        for (j = 0; j < addressBlockCount; j++) {
-          address[j] = generateFioAddress(user[i].domain, 10)
-
-          const addressResult = await user[i].sdk.genericAction('registerFioAddress', {
-            fioAddress: address[j],
-            maxFee: config.maxFee,
-            technologyProviderId: ''
-          })
-          console.log('addressResult: ', addressResult)
-          expect(addressResult.status).to.equal('OK')
-
-          for (k = 0; k < nftBlockCount / 3; k++) {
-            addedNfts = mintNfts(3);
-            const addnftResult = await user[i].sdk.genericAction('pushTransaction', {
-              action: 'addnft',
-              account: 'fio.address',
-              data: {
-                fio_address: address[j],
-                nfts: addedNfts,
-                max_fee: config.maxFee,
-                actor: user[i].account,
-                tpid: ""
-              }
-            })
-            console.log(`addnftResult: `, addnftResult)
-            expect(addnftResult.status).to.equal('OK')
-          } // k - nfts 
-        }  // j - addresses
-      } // i - domains
-
-    } catch (err) {
-      console.log(err.json)
-      expect(err).to.equal(null);
-    }
-  })
-
-  it.skip(`(TODO: update to expire the domains)`, async () => {
-    try {
-      for (i = domainBlockCount * 3; i < domainBlockCount * 4; i++) {
-        const result = await callFioApiSigned('push_transaction', {
-          action: 'burndomain',
-          account: 'fio.address',
-          actor: user[i].account,
-          privKey: user[i].privateKey,
-          data: {
-            "fio_address": user[i].domain,
-            "max_fee": config.maxFee,
-            "tpid": '',
-            "actor": user[i].account
-          }
-        })
-        //console.log('Result: ', JSON.parse(result.processed.action_traces[0].receipt.response));
-        expect(JSON.parse(result.processed.action_traces[0].receipt.response).status).to.equal('OK');
-        expect(JSON.parse(result.processed.action_traces[0].receipt.response).fee_collected).to.equal(0);
-      }
-    } catch (err) {
-      console.log('Error: ', err);
-      expect(err).to.equal(null);
-    }
-  })
-
-
-
-
-  it(`Call burnexpired until empty`, async () => {
-    let empty = false;
-    try {
-      while (!empty) {
-        const result = await user[0].sdk.genericAction('pushTransaction', {
-          action: 'burnexpired',
-          account: 'fio.address',
-          data: {
-            actor: user[0].account,
-          }
-        })
-        //console.log(`Result: `, result)
-        expect(result.status).to.equal('OK')
-        await timeout(1000); // To avoid duplicate transaction
-      }
-    } catch (err) {
-      //console.log(err.json);
-      expect(err.errorCode).to.equal(400);
-      expect(err.json.fields[0].error).to.equal('No work.');
-    }
-  })
-
-  it(`Get burnnftq table. Confirm additional entries = ${domainBlockCount} * ${addressBlockCount} * 2 = ${domainBlockCount * addressBlockCount * 2}`, async () => {
-    try {
-      const json = {
-        json: true,
-        code: 'fio.address',
-        scope: 'fio.address',
-        table: 'nftburnq',
-        limit: 1000,
-        reverse: false,
-        show_payer: false
-      }
-      const burnnftq = await callFioApi("get_table_rows", json);
-      console.log('burnnftq: ', burnnftq);
-      expect(burnnftq.rows.length).to.equal(nftburnqCount + (domainBlockCount * addressBlockCount * 2));
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
-  })
-
-  it(`Call burnnfts until burnnftq is empty`, async () => {
-    let empty = false;
-    try {
-      while (!empty) {
-        const result = await user[0].sdk.genericAction('pushTransaction', {
-          action: 'burnnfts',
-          account: 'fio.address',
-          data: {
-            actor: user[0].account,
-          }
-        })
-        //console.log(`Result: `, result)
-        expect(result.status).to.equal('OK')
-        await timeout(1000); // To avoid duplicate transaction
-      }
-    } catch (err) {
-      //console.log(err.json);
-      expect(err.errorCode).to.equal(400);
-      expect(err.json.fields[0].error).to.equal('Nothing to burn');
-    }
-  })
-
-  it(`Get burnnftq table. Confirm it is empty.`, async () => {
-    try {
-      const json = {
-        json: true,
-        code: 'fio.address',
-        scope: 'fio.address',
-        table: 'nftburnq',
-        limit: 1000,
-        reverse: false,
-        show_payer: false
-      }
-      result = await callFioApi("get_table_rows", json);
-      //console.log('result: ', result);
-      expect(result.rows.length).to.equal(0);
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
-  })
-
+  
 })
