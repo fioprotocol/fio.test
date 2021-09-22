@@ -853,11 +853,8 @@ describe('F. Burn Addresses with NFTs. Single account.', () => {
                 show_payer: false
             }
             result = await callFioApi("get_table_rows", json);
-            if (result.rows.length != 0) {
-                nftburnqCount = result.rows.length;
-            }
             //console.log('result: ', result);
-            //expect(bundledVoteNumber).to.greaterThan(0);
+            nftburnqCount = result.rows.length;
         } catch (err) {
             console.log('Error', err);
             expect(err).to.equal(null);
@@ -1019,7 +1016,7 @@ describe('F. Burn Addresses with NFTs. Single account.', () => {
         }
     })
 
-    it(`BUG: Get burnnftq table. Confirm no additional entries.`, async () => {
+    it(`Get burnnftq table. Confirm no additional entries. (BD-2863)`, async () => {
         try {
             const json = {
                 json: true,
@@ -1032,9 +1029,7 @@ describe('F. Burn Addresses with NFTs. Single account.', () => {
             }
             result = await callFioApi("get_table_rows", json);
             //console.log('result: ', result);
-            // BUG, this should not increment the count
-            nftburnqCount++;
-            expect(result.rows.length).to.equal(nftburnqCount);
+            expect(result.rows.length).to.equal(nftburnqCount);  // No change
         } catch (err) {
             console.log('Error', err);
             expect(err).to.equal(null);
@@ -1329,11 +1324,76 @@ describe('G. Burn Address with NFTs, re-register account, confirm cannot add new
                     tpid: ""
                 }
             })
-            console.log(`addnftResult: `, addnftResult)
-            expect(addnftResult).to.equal(null)
+            //console.log(`addnftResult: `, addnftResult)
+            expect(addnftResult).to.not.equal('OK');
         } catch (err) {
-            console.log(err.json)
+            expect(err.errorCode).to.equal(400);
+            expect(err.json.fields[0].error).to.equal('FIO Address NFTs are being burned');
+        }
+    })
+
+    it(`Call burnnfts until burnnftq is empty`, async () => {
+        let empty = false;
+        try {
+            while (!empty) {
+                const result = await user1.sdk.genericAction('pushTransaction', {
+                    action: 'burnnfts',
+                    account: 'fio.address',
+                    data: {
+                        actor: user1.account,
+                    }
+                })
+                //console.log(`Result: `, result)
+                expect(result.status).to.equal('OK')
+                await timeout(1000); // To avoid duplicate transaction
+            }
+        } catch (err) {
+            //console.log(err.json);
+            expect(err.errorCode).to.equal(400);
+            expect(err.json.fields[0].error).to.equal('Nothing to burn');
+        }
+    })
+
+    it(`Get burnnftq table. Confirm it is empty.`, async () => {
+        try {
+            const json = {
+                json: true,
+                code: 'fio.address',
+                scope: 'fio.address',
+                table: 'nftburnq',
+                limit: 1000,
+                reverse: false,
+                show_payer: false
+            }
+            result = await callFioApi("get_table_rows", json);
+            //console.log('result: ', result);
+            expect(result.rows.length).to.equal(0);
+        } catch (err) {
+            console.log('Error', err);
             expect(err).to.equal(null);
+        }
+    })
+
+    it(`user2 attempts to create NFT on address. Expect success.`, async () => {
+        try {
+            const addnftResult = await user2.sdk.genericAction('pushTransaction', {
+                action: 'addnft',
+                account: 'fio.address',
+                data: {
+                    fio_address: user1.address,
+                    nfts: [{
+                        "chain_code": "ETH", "contract_address": "0x123456789ABCDEF2", "token_id": "2", "url": "", "hash": "", "metadata": ""
+                    }],
+                    max_fee: config.maxFee,
+                    actor: user1.account,
+                    tpid: ""
+                }
+            })
+            //console.log(`addnftResult: `, addnftResult)
+            expect(addnftResult).to.not.equal('OK');
+        } catch (err) {
+            expect(err.errorCode).to.equal(400);
+            expect(err.json.fields[0].error).to.equal('FIO Address NFTs are being burned');
         }
     })
 })

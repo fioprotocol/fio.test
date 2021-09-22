@@ -11,7 +11,7 @@ describe('TEST SUITE', () => {
   require('./tests/fio-request.js'); // v1.0.x
   require('./tests/producer.js'); // v1.0.x
   require('./tests/pushtransaction.js'); // v1.0.x
-  require('./tests/ram2.js');  // v1.0.x //Eric to update to remove clio
+  require('./tests/ram.js');  // v1.0.x //Eric to update to remove clio
   require('./tests/register-fio-address.js');
   require('./tests/register-fio-domain.js'); // v1.0.x
   require('./tests/transfer-tokens.js'); // v1.0.x
@@ -38,6 +38,8 @@ describe('TEST SUITE', () => {
 
   require('./tests/testnet-smoketest.js'); // Testnet smoketest. By default runs against local build.
 
-  //require('./tests/expired-address-domain.js'); // Requires manual updates to contracts to shorten expiration timing
+  require('./tests/expired-address-domain.js'); // Requires manual updates to contracts to shorten expiration timing
+  require('./tests/expired-address-domain-modexpire.js'); // Requires modexpire action which allows expiring of domains
+  
   //require('./tests/history.js'); // Only run against history node.
 });
