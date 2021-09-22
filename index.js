@@ -40,5 +40,6 @@ describe('TEST SUITE', () => {
 
   require('./tests/expired-address-domain.js'); // Requires manual updates to contracts to shorten expiration timing
   require('./tests/expired-address-domain-modexpire.js'); // Requires modexpire action which allows expiring of domains
+  
   //require('./tests/history.js'); // Only run against history node.
 });

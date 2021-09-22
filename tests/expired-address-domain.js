@@ -1,47 +1,44 @@
 /**
  * This test requires manually updating xyz contract to shorten the expiration for domains and addresses
- * to 2 minutes. 
+ * to 10 seconds. 
  * 
  * In fio.address.cpp:
  * 
- * For Addresses: Line 162, change:
- *   const uint32_t expiration_time = get_now_plus_one_year();
- * to
- *   const uint32_t expiration_time = now() + 120;
  * 
- * For Domains: Line 245, change:
+ * For Domains we want to expire them after the Address expiration to allow for testing expired Addresses.
+ * Otherwise calls like get_pub_address will return that the Address does not exist if it is on an expired Domain.
+ * In fio_domain_update, change:
+ * 
  *   expiration_time = get_now_plus_one_year();
  * to
- *   expiration_time = now() + 120;
+ *   expiration_time = now() + 20;
+ *
+ * 
+ * To enable an expired address, in fio_address_updated change:
+ * 
+ *   const uint32_t expiration_time = 4294967295;
+ * to
+ *   const uint32_t expiration_time = now() + 10;
+ *
+ * 
+ * Next, update the number of days past expiration when certain calls are disallowed
+ * 
+ * In fio.common.hpp:
+ *
+ * For the domain expire + 30 day check, change:
+ *   #define SECONDS30DAYS 2592000
+ * to
+ *   #define SECONDS30DAYS 10
  * 
  * Once updated:
  * - Rebuild the contracts with the fix
- * - run expired-address-domain.js
  */
 
 require('mocha')
 const {expect} = require('chai')
-const { newUser, fetchJson, timeout, callFioApiSigned} = require('../utils.js');
+const { newUser, fetchJson, timeout, callFioApi} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
-
-function mintNfts(num) {
-  let nfts = [];
-  if (num === 0) return nfts;
-  for (let i = 1; i <= num; i++) {
-    nfts.push({
-      "chain_code": "ETH",
-      "contract_address": "0x123456789ABCDEF",
-      "token_id": `${i}`,
-      "url": "",
-      "hash": "",
-      "metadata": ""
-    });
-  }
-  return nfts;
-}
-
-const expireDate = 1527686000;  // May, 2018
 
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
@@ -49,7 +46,7 @@ before(async () => {
 
 describe('************************** expired-address-domain.js ************************** \n A. General testing for expired domains and addresses', () => {
 
-  let user1, user2
+  let user1, user2, bundleCount
 
   it(`Create users`, async () => {
     user1 = await newUser(faucet);
@@ -58,7 +55,7 @@ describe('************************** expired-address-domain.js *****************
 
   it(`getFioNames for user1 and confirm the address and domain are NOT expired`, async () => {
     try {
-      curdate = new Date()
+      curdate = new Date();
       var utcSeconds = (curdate.getTime() + curdate.getTimezoneOffset()*60*1000)/1000;  // Convert to UTC
       const result = await user1.sdk.genericAction('getFioNames', {
           fioPublicKey: user1.publicKey
@@ -99,43 +96,97 @@ describe('************************** expired-address-domain.js *****************
     }
   })
 
-  it(`Wait 2 minutes for the addresses and domains to expire`, async () => {
-    //await timeout(125000);
+  it(`Wait 10 seconds for the addresses to expire`, async () => {
+    await timeout(11000);
+  })
 
+  it(`Call get_table_rows from fionames. Verify address is expired (have to use table lookup since getters return future date for addresses)`, async () => {
+    let addressExpiration;
     try {
-      const result = await user1.sdk.genericAction('pushTransaction', {
-        action: 'modexpire',
-        account: 'fio.address',
-        data: {
-          fio_address: user1.domain,
-          expire: expireDate,
-          actor: user1.account
+      const json = {
+        json: true,
+        code: 'fio.address',
+        scope: 'fio.address',
+        table: 'fionames',
+        limit: 1000,
+        reverse: true,
+        show_payer: false
+      }
+      fionames = await callFioApi("get_table_rows", json);
+      //console.log('fionames: ', fionames);
+      for (fioname in fionames.rows) {
+        if (fionames.rows[fioname].name == user1.address) {
+          //console.log('fioname: ', fionames.rows[fioname]);
+          addressExpiration = fionames.rows[fioname].expiration;
         }
-      })
-      console.log(`Result: `, result)
-      expect(result.status).to.equal('OK')
+      }
+      curdate = new Date();
+      var utcSeconds = (curdate.getTime() + curdate.getTimezoneOffset() * 60 * 1000) / 1000;  // Convert to UTC
+      //console.log('utcSeconds', utcSeconds);
+      expect(addressExpiration).to.be.lessThan(utcSeconds);
     } catch (err) {
-      console.log(err);
-      expect(err.errorCode).to.equal(400);
-      expect(err.json.fields[0].error).to.equal('No work.');
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 
-  it(`getFioNames for user1 and confirm the address and domain ARE expired`, async () => {
+  it(`get_fio_names for user1. Expect future "never expire" date.`, async () => {
     try {
-      curdate = new Date()
-      var utcSeconds = (curdate.getTime() + curdate.getTimezoneOffset()*60*1000)/1000;  // Convert to UTC
-      const result = await user1.sdk.genericAction('getFioNames', {
-          fioPublicKey: user1.publicKey
-      })
-      console.log('getFioNames', result);
-      expect(result.fio_domains[0].fio_domain).to.equal(user1.domain);
-      expect(Date.parse(result.fio_domains[0].expiration)/1000).to.be.lessThan(utcSeconds);
+      const json = {
+        "fio_public_key": user1.publicKey
+      }
+      result = await callFioApi("get_fio_names", json);
+      //console.log('get_fio_names', result);
       expect(result.fio_addresses[0].fio_address).to.equal(user1.address);
-      expect(Date.parse(result.fio_addresses[0].expiration)/1000).to.be.lessThan(utcSeconds);
+      expect(result.fio_addresses[0].expiration).to.equal('2106-02-07T06:28:15');
     } catch (err) {
         console.log('Error', err);
         expect(err).to.equal(null);
+    }
+  })
+
+  it(`get_fio_addresses for user1. Expect future "never expire" date.`, async () => {
+    try {
+      const json = {
+        "fio_public_key": user1.publicKey
+      }
+      result = await callFioApi("get_fio_addresses", json);
+      //console.log('get_fio_addresses', result);
+      expect(result.fio_addresses[0].fio_address).to.equal(user1.address);
+      expect(result.fio_addresses[0].expiration).to.equal('2106-02-07T06:28:15');
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`get_pub_address for user1. Expect expired address to be returned.`, async () => {
+    try {
+      const result = await callFioApi("get_pub_address", {
+        fio_address: user1.address,
+        chain_code: "FIO",
+        token_code: "FIO"
+      })
+      //console.log('get_pub_address', result);
+      expect(result.public_address).to.equal(user1.publicKey);
+    } catch (err) {
+      console.log('Error', err.error.fields[0]);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`get_pub_addresses for user1. Expect expired address to be returned.`, async () => {
+    try {
+      const result = await callFioApi("get_pub_addresses", {
+        fio_address: user1.address,
+        limit: 1000,
+        offset: 0
+      })
+      //console.log('get_fio_addresses', result);
+      expect(result.public_addresses[0].public_address).to.equal(user1.publicKey);
+    } catch (err) {
+      console.log('Error', err.error.fields[0]);
+      expect(err).to.equal(null);
     }
   })
 
@@ -165,6 +216,39 @@ describe('************************** expired-address-domain.js *****************
     }
   })
 
+  it(`Wait 10 seconds for the domains to expire`, async () => {
+    await timeout(11000);
+  })
+
+  it(`Call get_table_rows from domains. Verify domain is expired.`, async () => {
+    let domainExpiration;
+    try {
+      const json = {
+        json: true,
+        code: 'fio.address',
+        scope: 'fio.address',
+        table: 'domains',
+        limit: 1000,
+        reverse: true,
+        show_payer: false
+      }
+      fionames = await callFioApi("get_table_rows", json);
+      //console.log('fionames: ', fionames);
+      for (fioname in fionames.rows) {
+        if (fionames.rows[fioname].name == user1.domain) {
+          //console.log('fioname: ', fionames.rows[fioname]);
+          domainExpiration = fionames.rows[fioname].expiration;
+        }
+      }
+      curdate = new Date();
+      var utcSeconds = (curdate.getTime() + curdate.getTimezoneOffset() * 60 * 1000) / 1000;  // Convert to UTC
+      expect(domainExpiration).to.be.lessThan(utcSeconds);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
   it(`Transfer expired domain. Expect error type 400: ${config.error.fioDomainNeedsRenew}`, async () => {
     try {
       const result = await user1.sdk.genericAction('transferFioDomain', {
@@ -181,52 +265,173 @@ describe('************************** expired-address-domain.js *****************
     }
   })
 
-  it(`Burn user1.address. Expect error type 400: ${config.error.fioDomainNeedsRenew} (BD-2475)`, async () => {
+  it(`Get bundle count for user1`, async () => {
+    const result = await user1.sdk.genericAction('getFioNames', { fioPublicKey: user1.publicKey });
+    bundleCount = result.fio_addresses[0].remaining_bundled_tx;
+    //console.log('Result: ', result)
+  })
+
+  it(`renew user1 expired address`, async () => {
+    const result = await user1.sdk.genericAction('renewFioAddress', {
+      fioAddress: user1.address,
+      maxFee: config.maxFee
+    })
+    //console.log('Result: ', result)
+    expect(result.status).to.equal('OK')
+  })
+
+  it(`Get bundle count for user1. Expect increase.`, async () => {
+    let prevBundleCount = bundleCount;
+    const result = await user1.sdk.genericAction('getFioNames', { fioPublicKey: user1.publicKey });
+    //console.log('Result: ', result);
+    bundleCount = result.fio_addresses[0].remaining_bundled_tx;
+    expect(bundleCount).to.equal(prevBundleCount + 100);
+  })
+
+  it(`Call get_table_rows from fionames. Verify address is has future date of 4294967295 (2106-02-07T06:28:15)`, async () => {
+    let addressExpiration;
     try {
-        const result = await callFioApiSigned('push_transaction', {
-            action: 'burnaddress',
-            account: 'fio.address',
-            actor: user1.account,
-            privKey: user1.privateKey,
-            data: {
-                "fio_address": user1.address,
-                "max_fee": config.maxFee,
-                "tpid": '',
-                "actor": user1.account
-            }
-        })
-        console.log('Result: ', result);
-        expect(result.fields[0].error).to.equal(config.error.fioDomainNeedsRenew);
-        //expect(err.errorCode).to.equal(400);
+      const json = {
+        json: true,
+        code: 'fio.address',
+        scope: 'fio.address',
+        table: 'fionames',
+        limit: 1000,
+        reverse: true,
+        show_payer: false
+      }
+      fionames = await callFioApi("get_table_rows", json);
+      //console.log('fionames: ', fionames);
+      for (fioname in fionames.rows) {
+        if (fionames.rows[fioname].name == user1.address) {
+          //console.log('fioname: ', fionames.rows[fioname]);
+          addressExpiration = fionames.rows[fioname].expiration;
+        }
+      }
+      expect(addressExpiration).to.equal(4294967295);
     } catch (err) {
-      console.log('Error: ', err);
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Wait 2 seconds to prevent duplicate transaction for renewal`, async () => {
+    await timeout(2000);
+  })
+
+  it(`renew user1 expired address again`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('renewFioAddress', {
+        fioAddress: user1.address,
+        maxFee: config.maxFee
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Get bundle count for user1. Expect increase.`, async () => {
+    let prevBundleCount = bundleCount;
+    const result = await user1.sdk.genericAction('getFioNames', { fioPublicKey: user1.publicKey });
+    //console.log('Result: ', result);
+    bundleCount = result.fio_addresses[0].remaining_bundled_tx;
+    expect(bundleCount).to.equal(prevBundleCount + 100);
+  })
+
+  it(`Call get_table_rows from fionames. Verify address is has future date of 4294967295 (2106-02-07T06:28:15)`, async () => {
+    let addressExpiration;
+    try {
+      const json = {
+        json: true,
+        code: 'fio.address',
+        scope: 'fio.address',
+        table: 'fionames',
+        limit: 1000,
+        reverse: true,
+        show_payer: false
+      }
+      fionames = await callFioApi("get_table_rows", json);
+      //console.log('fionames: ', fionames);
+      for (fioname in fionames.rows) {
+        if (fionames.rows[fioname].name == user1.address) {
+          //console.log('fioname: ', fionames.rows[fioname]);
+          addressExpiration = fionames.rows[fioname].expiration;
+        }
+      }
+      expect(addressExpiration).to.equal(4294967295);
+    } catch (err) {
+      console.log('Error', err);
       expect(err).to.equal(null);
     }
   })
 
 })
 
-describe('B. Check relevant actions to confirm expired addresses work as expected', () => {
+describe('B. On expired address: confirm actions still work and expire date is no longer checked', () => {
 /*
 Confirm the following do not check for expired addresses anymore:
-remaddress, remalladdr, newfundsreq, cancelfndreq, recordobt, xferaddress, voteproducer, regproxy, unregproxy, 
-regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, remallnfts
+addaddress, remaddress, remalladdr, newfundsreq, cancelfndreq, recordobt, xferaddress, voteproducer, regproxy, unregproxy, 
+regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, remallnfts, voteproxy, claimbprewards
   */
   
-  let user1, user2, user3
+  let user1, user2, user3, user4, requestId, requestId2, requestId3;
+  const requestMemo = 'request memo';
+  const obtMemo = 'obt memo'
 
   it(`Create users`, async () => {
     user1 = await newUser(faucet);
     user2 = await newUser(faucet);
     user3 = await newUser(faucet);
+    user4 = await newUser(faucet);
   })
 
-  it(`Add Address and wait for it to expire`, async () => {
-    // May need to do the timing thing above. Separate these into different tests. One with timing, one with the remove action.
+  it(`Wait 10 seconds for the addresses to expire`, async () => {
+    await timeout(11000);
   })
 
+  it(`Call get_table_rows from fionames. Verify addresses are expired`, async () => {
+    let addressExpiration, addressExpiration2, addressExpiration3;
+    try {
+      const json = {
+        json: true,
+        code: 'fio.address',
+        scope: 'fio.address',
+        table: 'fionames',
+        limit: 1000,
+        reverse: true,
+        show_payer: false
+      }
+      fionames = await callFioApi("get_table_rows", json);
+      //console.log('fionames: ', fionames);
+      for (fioname in fionames.rows) {
+        if (fionames.rows[fioname].name == user1.address) {
+          //console.log('fioname: ', fionames.rows[fioname]);
+          addressExpiration = fionames.rows[fioname].expiration;
+        } else if (fionames.rows[fioname].name == user2.address) {
+          //console.log('fioname: ', fionames.rows[fioname]);
+          addressExpiration2 = fionames.rows[fioname].expiration;
+        } else if (fionames.rows[fioname].name == user3.address) {
+          //console.log('fioname: ', fionames.rows[fioname]);
+          addressExpiration3 = fionames.rows[fioname].expiration;
+        };
+      }
+      curdate = new Date();
+      var utcSeconds = (curdate.getTime() + curdate.getTimezoneOffset() * 60 * 1000) / 1000;  // Convert to UTC
+      //console.log('utcSeconds', utcSeconds);
+      expect(addressExpiration).to.be.lessThan(utcSeconds);
+      expect(addressExpiration2).to.be.lessThan(utcSeconds);
+      expect(addressExpiration3).to.be.lessThan(utcSeconds);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
 
-  // remaddress
+  it(`TEST: addaddress`, async () => { });
+
   it(`Add DASH and BCH addresses to user1`, async () => {
     try {
       const result = await user1.sdk.genericAction('addPublicAddresses', {
@@ -261,6 +466,8 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
     await timeout(2000);
   })
 
+  it(`TEST: remaddress`, async () => { });
+
   it(`Remove BCH and DASH from user1`, async () => {
     try {
       const result = await user1.sdk.genericAction('removePublicAddresses', {
@@ -292,7 +499,7 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
   })
 
 
-  // remalladdr
+  it(`TEST: remalladdr`, async () => { });
 
   it(`Add DASH and BCH addresses to user1`, async () => {
     try {
@@ -365,8 +572,8 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
     }
   })
   
-
-  // newfundsreq
+  
+  it(`TEST: newfundsreq`, async () => { });
 
   it(`user1 requests funds from user2`, async () => {
     try {
@@ -374,21 +581,22 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
         payerFioAddress: user2.address,
         payeeFioAddress: user1.address,
         payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
-        amount: 1000,
+        amount: 1000000000,
         chainCode: 'BTC',
         tokenCode: 'BTC',
-        memo: 'requestMemo',
+        memo: requestMemo,
         maxFee: config.maxFee,
         payerFioPublicKey: user2.publicKey,
         technologyProviderId: ''
       })
-      //console.log('Result: ', result)
-      expect(result.status).to.equal('requested')
+      //console.log('Result: ', result);
+      requestId = result.fio_request_id;
+      expect(result.status).to.equal('requested');
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal(null)
     }
-  })
+  });
 
   it(`get_sent_fio_requests for user1 (payee)`, async () => {
     try {
@@ -409,10 +617,10 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
       console.log('Error: ', err)
       expect(err).to.equal(null)
     }
-  })
+  });
   
 
-  // recordobt
+  it(`TEST: recordobt`, async () => { });
 
   it(`user2 does recordObtData previous payment with the fioRequestId`, async () => {
     try {
@@ -422,14 +630,14 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
         payeeFioAddress: user1.address,
         payerTokenPublicAddress: user2.publicKey,
         payeeTokenPublicAddress: user1.publicKey,
-        amount: payment,
+        amount: 1000000000,
         chainCode: "BTC",
         tokenCode: "BTC",
         status: '',
         obtId: '',
-        maxFee: config.api.record_obt_data.fee,
+        maxFee: config.maxFee,
         technologyProviderId: '',
-        payeeFioPublicKey: userA1.publicKey,
+        payeeFioPublicKey: user1.publicKey,
         memo: obtMemo,
         hash: '',
         offLineUrl: ''
@@ -443,7 +651,7 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
   })
 
 
-  // cancelfndreq
+  it(`TEST: cancelfndreq`, async () => { });
 
   it(`user1 requests funds from user2`, async () => {
     try {
@@ -451,18 +659,18 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
         payerFioAddress: user2.address,
         payeeFioAddress: user1.address,
         payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
-        amount: payment,
+        amount: 1000000000,
         chainCode: 'BTC',
         tokenCode: 'BTC',
         memo: requestMemo,
-        maxFee: config.api.new_funds_request.fee,
+        maxFee: config.maxFee,
         payerFioPublicKey: user2.publicKey,
         technologyProviderId: '',
         hash: '',
         offLineUrl: ''
       })
       //console.log('Result: ', result)
-      user1RequestId = result.fio_request_id
+      requestId2 = result.fio_request_id
       expect(result.status).to.equal('requested')
     } catch (err) {
       console.log('Error: ', err)
@@ -473,8 +681,8 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
   it(`user1 (payee) Call cancel_funds_request to cancel request in pending state`, async () => {
     try {
       const result = await user1.sdk.genericAction('cancelFundsRequest', {
-        fioRequestId: userA1RequestId,
-        maxFee: cancel_funds_request_fee,
+        fioRequestId: requestId2,
+        maxFee: config.maxFee,
         technologyProviderId: ''
       })
       //console.log('Result: ', result);
@@ -487,14 +695,14 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
     }
   })
 
-  it(`Verify request was cancelled: get_sent_fio_requests for userA1 (payee) returns 1 request with status 'cancelled'`, async () => {
+  it(`Verify request was cancelled: getCancelledFioRequests for user1 (payee) returns 1 request with status 'cancelled'`, async () => {
     try {
-      const result = await user1.sdk.genericAction('getSentFioRequests', {
+      const result = await user1.sdk.genericAction('getCancelledFioRequests', {
         limit: '',
         offset: ''
       })
       //console.log('result: ', result)
-      expect(result.requests[0].fio_request_id).to.equal(user1RequestId);
+      expect(result.requests[0].fio_request_id).to.equal(requestId2);
       expect(result.requests[0].payer_fio_address).to.equal(user2.address);
       expect(result.requests[0].payee_fio_address).to.equal(user1.address);
       expect(result.requests[0].payer_fio_public_key).to.equal(user2.publicKey);
@@ -507,7 +715,72 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
     }
   })
 
-  // xferaddress
+  it(`TEST: rejectfndreq`, async () => { });
+
+  it(`user1 requests funds from user2`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('requestFunds', {
+        payerFioAddress: user2.address,
+        payeeFioAddress: user1.address,
+        payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
+        amount: 1000000000,
+        chainCode: 'BTC',
+        tokenCode: 'BTC',
+        memo: requestMemo,
+        maxFee: config.maxFee,
+        payerFioPublicKey: user2.publicKey,
+        technologyProviderId: '',
+        hash: '',
+        offLineUrl: ''
+      })
+      //console.log('Result: ', result)
+      requestId3 = result.fio_request_id;
+      expect(result.status).to.equal('requested');
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`user1 (payee) Call rejectFundsRequest to cancel request in pending state`, async () => {
+    try {
+      const result = await user2.sdk.genericAction('rejectFundsRequest', {
+        fioRequestId: requestId3,
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      //console.log('Result: ', result);
+      expect(result).to.have.all.keys('status', 'fee_collected');
+      expect(result.status).to.equal('request_rejected');
+      expect(result.fee_collected).to.equal(0);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Verify request was rejected: get_sent_fio_requests for userA1 (payee) returns 1 request with status 'cancelled'`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('getSentFioRequests', {
+        limit: '',
+        offset: ''
+      })
+      //console.log('result: ', result);
+      expect(result.requests[2].fio_request_id).to.equal(requestId3);
+      expect(result.requests[2].payer_fio_address).to.equal(user2.address);
+      expect(result.requests[2].payee_fio_address).to.equal(user1.address);
+      expect(result.requests[2].payer_fio_public_key).to.equal(user2.publicKey);
+      expect(result.requests[2].payee_fio_public_key).to.equal(user1.publicKey);
+      expect(result.requests[2].status).to.equal('rejected');
+      expect(result.requests[2].content.memo).to.equal(requestMemo);
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+
+  it(`TEST: xferaddress`, async () => { });
 
   it(`Transfer address from user2 to user3`, async () => {
     try {
@@ -523,15 +796,15 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
         }
       })
       //console.log(`Result: `, result)
-      expect(result.status).to.equal('OK')
+      expect(result.status).to.equal('OK');
 
     } catch (err) {
-      //console.log(err.message)
+      console.log(err);
       expect(err).to.equal(null);
     }
-  })
+  });
 
-  // voteproducer
+  it(`TEST: voteproducer`, async () => { });
 
   it(`user1 votes for bp1@dapixdev`, async () => {
     try {
@@ -550,12 +823,13 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
       //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
-      console.log('Error: ', err)
+      console.log('Error: ', err);
+      expect(err).to.equal('null');
     }
   })
 
 
-  // regproxy
+  it(`TEST: regproxy`, async () => { });
 
   it(`Register user3 as a proxy`, async () => {
     try {
@@ -571,12 +845,35 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
       //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
-      console.log('Error: ', err.json)
-      expect(err).to.equal('null')
+      console.log('Error: ', err.json);
+      expect(err).to.equal('null');
     }
   })
 
-  // unregproxy
+  it(`TEST: voteproxy`, async () => { });
+
+  it(`user1 proxy votes to user3`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'voteproxy',
+        account: 'eosio',
+        data: {
+          proxy: user3.address,
+          fio_address: user1.address,
+          actor: user1.account,
+          max_fee: config.maxFee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json);
+      expect(err).to.equal('null');
+    }
+  })
+
+
+  it(`TEST: unregproxy`, async () => { });
 
   it(`Un-register user3 as a proxy`, async () => {
     try {
@@ -592,54 +889,59 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
       //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
-      console.log('Error: ', err.json)
+      console.log('Error: ', err.json);
+      expect(err).to.equal('null');
     }
   })
 
-  // regproducer
 
-  it(`Register user2 as producer`, async () => {
+  it(`TEST: regproducer`, async () => { });
+
+  it(`Register user4 as producer`, async () => {
     try {
-      const result = await user2.sdk.genericAction('pushTransaction', {
+      const result = await user4.sdk.genericAction('pushTransaction', {
         action: 'regproducer',
         account: 'eosio',
         data: {
-          fio_address: user2.address,
-          fio_pub_key: user2.publicKey,
+          fio_address: user4.address,
+          fio_pub_key: user4.publicKey,
           url: "https://mywebsite.io/",
           location: 80,
-          actor: user2.account,
+          actor: user4.account,
           max_fee: config.maxFee
         }
       })
       //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
-      console.log('Error: ', err.json)
+      console.log('Error: ', err.json);
+      expect(err).to.equal('null');
     }
   })
 
-  // unregprod
+  it(`TEST: unregprod`, async () => { });
 
   it(`Unregister user2 as producer`, async () => {
     try {
-      const result = await user2.sdk.genericAction('pushTransaction', {
+      const result = await user4.sdk.genericAction('pushTransaction', {
         action: 'unregprod',
         account: 'eosio',
         data: {
-          fio_address: user2.address,
-          fio_pub_key: user2.publicKey,
+          fio_address: user4.address,
+          fio_pub_key: user4.publicKey,
           max_fee: config.api.unregister_producer.fee
         }
       })
       //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
-      console.log('Error: ', err)
+      console.log('Error: ', err);
+      expect(err).to.equal('null');
     }
   })
 
-  // addnft
+
+  it(`TEST: addnft`, async () => { });
 
   it(`Add NFT to user1 FIO Address`, async () => {
     try {
@@ -660,12 +962,13 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
       expect(result.status).to.equal('OK')
 
     } catch (err) {
-      //console.log(err.message)
-      expect(err).to.equal(null);
+      console.log('Error: ', err);
+      expect(err).to.equal('null');
     }
   })
 
-  // remnft
+
+  it(`TEST: remnft`, async () => { });
 
   it(`Remove NFT from user1 FIO Address`, async () => {
     try {
@@ -686,11 +989,13 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
       expect(result.status).to.equal('OK')
 
     } catch (err) {
-      console.log(err.message)
+      console.log('Error: ', err);
+      expect(err).to.equal('null');
     }
   })
 
-  // remallnfts
+
+  it(`TEST: remallnfts`, async () => { });
 
   it(`Add 3 NFTs to user1 FIO Address`, async () => {
     try {
@@ -715,8 +1020,8 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
       expect(result.status).to.equal('OK')
 
     } catch (err) {
-      //console.log(err.message)
-      expect(err).to.equal(null);
+      console.log('Error: ', err);
+      expect(err).to.equal('null');
     }
   })
 
@@ -740,8 +1045,11 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
       expect(result.status).to.equal('OK')
 
     } catch (err) {
-      console.log(err.message)
+      console.log('Error: ', err);
+      expect(err).to.equal('null');
     }
   })
   
+
 })
+
