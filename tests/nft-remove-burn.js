@@ -98,7 +98,6 @@ before(async () => {
 //the other NFT file was getting too out of hand
 describe(`************************** nft-remove-burn.js ************************** \n    A. Add all NFTs to nftburnq at once using remallnfts`, () => {
   let user1, user2, user3;
-  let feeAmt = 100000000;
   let user1Hash, user2Hash;
 
   const fundsAmount = 10000000000000;
@@ -229,19 +228,19 @@ describe(`************************** nft-remove-burn.js ************************
     }
   });
 
-  it(`user2 removes all 3 NFTs, expect status=OK and fee_collected=${feeAmt}`, async () => {
+  it(`user2 removes all 3 NFTs, expect status=OK and fee_collected=${config.api.remove_all_nfts.fee}`, async () => {
     const result = await user2.sdk.genericAction('pushTransaction', {
       action: 'remallnfts',
       account: 'fio.address',
       data: {
         fio_address: user2.address,
-        max_fee: feeAmt,
+        max_fee: config.api.remove_all_nfts.fee,
         actor: user2.account,
         tpid: ""
       }
     });
     expect(result.status).to.equal('OK');
-    expect(result.fee_collected).to.equal(feeAmt);
+    expect(result.fee_collected).to.equal(config.api.remove_all_nfts.fee);
   });
 
   it(`verify a hash of user2.address added to nftburnq`, async () => {
@@ -265,7 +264,6 @@ describe(`************************** nft-remove-burn.js ************************
 
 describe(`B. (unhappy) Try to add all NFTs to nftburnq with invalid user input`, () => {
   let user1, user2, user3;
-  let feeAmt = 100000000;
   const fundsAmount = 10000000000000;
 
   before(async () => {
@@ -1297,7 +1295,7 @@ describe(`F. Burn all NFTs in nftburnq`, () => {
   // });
 });
 
-describe.only(`G. (unhappy) Try to burn NFTs in nftburnq, invalid user input`, () => {
+describe(`G. (unhappy) Try to burn NFTs in nftburnq, invalid user input`, () => {
   let user1, user2, user3;
   let user1Hash, user2Hash, user3Hash;
   let burnqnum, newBurnqnum = 0;

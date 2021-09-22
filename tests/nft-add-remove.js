@@ -327,7 +327,7 @@ describe(`************************** nft-add-remove.js *************************
        expect(err).to.equal(null);
       }
   })
-  
+
   it(`user3 attempts to create NFT on transferred address before NFTs are burned. Expect 400 failure: FIO Address NFTs are being burned`, async () => {
     try {
       const addnftResult = await user3.sdk.genericAction('pushTransaction', {
@@ -464,7 +464,7 @@ describe(`************************** nft-add-remove.js *************************
       expect(err).to.equal(null);
     }
   })
-  
+
   it(`consume user1's remaining bundled transactions`, async () => {
     try {
       await consumeRemainingBundles(user1, user3);
@@ -1637,7 +1637,7 @@ describe(`C. (sdk)(unhappy) Try to add NFTs with invalid user input`, () => {
       expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.errorCode).to.equal(400);
-      expect(err.json.fields[0].error).to.equal('Insufficient funds to cover fee');
+      expect(err.json.fields[0].error).to.equal('Fee exceeds supplied maximum.');
     }
   });
 
@@ -2281,7 +2281,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.errorCode).to.equal(400);
-      expect(err.json.fields[0].error).to.equal('NFT not currently mapped');
+      expect(err.json.fields[0].error).to.equal('NFT not found');
     }
   });
   it(`(invalid token_id) try to remove an NFT for user1, expect error`, async () => {
@@ -2309,7 +2309,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.errorCode).to.equal(400);
-      expect(err.json.fields[0].error).to.equal('NFT not currently mapped');
+      expect(err.json.fields[0].error).to.equal('NFT not found');
     }
   });
   it.skip(`(invalid url) try to remove an NFT for user1, expect error`, async () => {
@@ -2482,7 +2482,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.errorCode).to.equal(400);
       expect(err.json.fields[0].value).to.equal(user1.address);
-      expect(err.json.fields[0].error).to.equal('NFT not currently mapped');
+      expect(err.json.fields[0].error).to.equal('NFT not found');
     }
   });
 
@@ -2539,7 +2539,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.errorCode).to.equal(400);
-      expect(err.json.fields[0].error).to.equal('NFT not currently mapped');   //('Invalid Contract Address');
+      expect(err.json.fields[0].error).to.equal('NFT not found');   //('Invalid Contract Address');
     }
   });
   it(`(negative token_id) try to remove an NFT for user1, expect error`, async () => {
@@ -2568,7 +2568,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.errorCode).to.equal(400);
       expect(err.json.fields[0].value).to.equal(user1.address);
-      expect(err.json.fields[0].error).to.equal('NFT not currently mapped');
+      expect(err.json.fields[0].error).to.equal('NFT not found');
     }
   });
 
@@ -3901,7 +3901,7 @@ describe(`J. (api) Confirm that get_nfts_hash returns NFTs with a specific hash`
 });
 
 
-describe.only(`K. (api) Test add_nft, remove_nft, and remove_all_nfts API endpoints`, () => {
+describe(`K. (api) Test add_nft, remove_nft, and remove_all_nfts API endpoints`, () => {
   let user1, user2, user3;
 
   const fundsAmount = 10000000000000
