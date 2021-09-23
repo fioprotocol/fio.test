@@ -556,7 +556,7 @@ describe.only(`B. Add and remove a huge number of NFTs for a single user`, () =>
   });
 
   //TODO: bug -- If the nft-remove-burn tests work, why does burning not remove from nftburnq here?
-  it(`verify NFTs have been removed from the table`, async () => {
+  it(`(BD-2882) verify NFTs have been removed from the table`, async () => {
     try {
       const result = await callFioApi("get_table_rows", {
         code: "fio.address",
@@ -571,7 +571,7 @@ describe.only(`B. Add and remove a huge number of NFTs for a single user`, () =>
       expect(err).to.equal(null);
     }
   });
-  it(`verify nftburnq is empty`, async () => {
+  it(`(BD-2882) verify nftburnq is empty`, async () => {
     try {
       const result = await callFioApi("get_table_rows", {
         json: true,
@@ -590,7 +590,7 @@ describe.only(`B. Add and remove a huge number of NFTs for a single user`, () =>
       expect(err).to.equal(null);
     }
   });
-  it(`verify get_nfts_fio_address returns zero NFTs`, async () => {
+  it(`(BD-2882) verify get_nfts_fio_address returns zero NFTs`, async () => {
     try {
       const result = await callFioApi('get_nfts_fio_address', {
         fio_address: user1.address
@@ -602,7 +602,7 @@ describe.only(`B. Add and remove a huge number of NFTs for a single user`, () =>
       expect(err.message).to.equal('404 - {"message":"No NFTS are mapped"}');
     }
   });
-  it(`verify get_nfts_hash returns zero NFTs`, async () => {
+  it(`(BD-2882) verify get_nfts_hash returns zero NFTs`, async () => {
     try {
       const result = await callFioApi('get_nfts_hash', {
         hash: nftHash
@@ -614,7 +614,7 @@ describe.only(`B. Add and remove a huge number of NFTs for a single user`, () =>
       expect(err.message).to.equal('404 - {"message":"No NFTS are mapped"}');
     }
   });
-  it(`verify get_nfts_contract returns zero NFTs`, async () => {
+  it(`(BD-2882) verify get_nfts_contract returns zero NFTs`, async () => {
     try {
       const result = await callFioApi('get_nfts_contract', {
         contract_address: ethContractAddr,
