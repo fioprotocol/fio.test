@@ -230,7 +230,8 @@ describe(`************************** nft-performance-tests.js ******************
         json: true,
         code: 'fio.address',
         scope: 'fio.address',
-        table: 'nftburnq',limit:numNfts,
+        table: 'nftburnq',
+        limit:numNfts,
         // lower_bound: user1Hash,
         // upper_bound: user1Hash,
         key_type: 'i128',
@@ -245,16 +246,16 @@ describe(`************************** nft-performance-tests.js ******************
   // burn all in nftburnq
 });
 
-describe(`B. Add and remove a huge number of NFTs for a single user`, () => {
+describe.only(`B. Add and remove a huge number of NFTs for a single user`, () => {
   let user1, user2, user1Hash, massNft, bal;
   let nftHash = 'f83b5702557b1ee76d966c6bf92ae0d038cd176aaf36f86a18e2ab59e6aefa4b';
   // let nftHash2 = 'f83b5702557b1ee76d966c6bf92ae0d038cd176aaf36f86a18e2ab59e6aefa4C';
   let ethContractAddr = '0x123456789ABCDEF';
   // let numNfts = 100000;
   // let numNfts = 10000;
-  let numNfts = 5000;
+  // let numNfts = 5000;
   // let numNfts = 500;
-  // let numNfts = 100;
+  let numNfts = 100;
   const fundsAmount = config.api.add_nft.fee * (numNfts);  //1800000000000000;
   const rmFundsAmt = config.api.remove_all_nfts.fee * (numNfts);
 
@@ -422,7 +423,8 @@ describe(`B. Add and remove a huge number of NFTs for a single user`, () => {
         json: true,
         code: 'fio.address',
         scope: 'fio.address',
-        table: 'nftburnq',limit:numNfts,
+        table: 'nftburnq',
+        limit:numNfts,
         lower_bound: user1Hash,
         upper_bound: user1Hash,
         key_type: 'i128',
@@ -452,6 +454,28 @@ describe(`B. Add and remove a huge number of NFTs for a single user`, () => {
       technologyProviderId: ''
     })
     expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  });
+
+  // remove a single NFT
+  it.skip(`Remove a single NFT from user1 FIO Address`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'remnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code":"ETH","contract_address":"0x123456789ABCDEF", "token_id":"1", "url":"", "hash":"","metadata":""
+          }],
+          max_fee: config.maxFee,
+          actor: user1.account,
+          tpid: ""
+        }
+      });
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      expect(err).to.equal(null);
+    }
   });
 
   it(`remove all NFTs with remallnfts`, async () => {
@@ -496,8 +520,6 @@ describe(`B. Add and remove a huge number of NFTs for a single user`, () => {
     expect(result).to.equal(0);
   });
 
-  //
-
   it(`user1 burns all NFTs in nftburnq`, async () => {
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
@@ -533,7 +555,7 @@ describe(`B. Add and remove a huge number of NFTs for a single user`, () => {
     }
   });
 
-  //TODO: If the nft-remove-burn tests work, why does buring not remove from nftburnq here?
+  //TODO: bug -- If the nft-remove-burn tests work, why does burning not remove from nftburnq here?
   it(`verify NFTs have been removed from the table`, async () => {
     try {
       const result = await callFioApi("get_table_rows", {
@@ -549,25 +571,26 @@ describe(`B. Add and remove a huge number of NFTs for a single user`, () => {
       expect(err).to.equal(null);
     }
   });
-  it.skip(`verify nftburnq is empty`, async () => {
+  it(`verify nftburnq is empty`, async () => {
     try {
       const result = await callFioApi("get_table_rows", {
         json: true,
         code: 'fio.address',
         scope: 'fio.address',
-        table: 'nftburnq',limit:numNfts,
+        table: 'nftburnq',
+        limit:numNfts,
         lower_bound: user1Hash,
         upper_bound: user1Hash,
         key_type: 'i128',
         index_position: '2'
       });
       expect(result.rows.length).to.equal(0);
-      console.log(result.rows[0].fio_address_hash);
+      // console.log(result.rows[0].fio_address_hash);
     } catch (err) {
       expect(err).to.equal(null);
     }
   });
-  it.skip(`verify get_nfts_fio_address returns zero NFTs`, async () => {
+  it(`verify get_nfts_fio_address returns zero NFTs`, async () => {
     try {
       const result = await callFioApi('get_nfts_fio_address', {
         fio_address: user1.address
@@ -579,7 +602,7 @@ describe(`B. Add and remove a huge number of NFTs for a single user`, () => {
       expect(err.message).to.equal('404 - {"message":"No NFTS are mapped"}');
     }
   });
-  it.skip(`verify get_nfts_hash returns zero NFTs`, async () => {
+  it(`verify get_nfts_hash returns zero NFTs`, async () => {
     try {
       const result = await callFioApi('get_nfts_hash', {
         hash: nftHash
@@ -591,7 +614,7 @@ describe(`B. Add and remove a huge number of NFTs for a single user`, () => {
       expect(err.message).to.equal('404 - {"message":"No NFTS are mapped"}');
     }
   });
-  it.skip(`verify get_nfts_contract returns zero NFTs`, async () => {
+  it(`verify get_nfts_contract returns zero NFTs`, async () => {
     try {
       const result = await callFioApi('get_nfts_contract', {
         contract_address: ethContractAddr,
