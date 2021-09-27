@@ -2278,6 +2278,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
+      console.log('Error: ', err.json);
       expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.errorCode).to.equal(400);
@@ -3901,7 +3902,7 @@ describe(`J. (api) Confirm that get_nfts_hash returns NFTs with a specific hash`
 });
 
 
-describe.only(`K. (api) Test add_nft, remove_nft, and remove_all_nfts API endpoints`, () => {
+describe(`K. (api) Test add_nft, remove_nft, and remove_all_nfts API endpoints`, () => {
   let user1, user2, user3;
 
   const fundsAmount = 10000000000000

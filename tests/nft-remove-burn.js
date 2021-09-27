@@ -1297,7 +1297,7 @@ describe(`F. Burn all NFTs in nftburnq`, () => {
   // });
 });
 
-describe.only(`G. (unhappy) Try to burn NFTs in nftburnq, invalid user input`, () => {
+describe(`G. (unhappy) Try to burn NFTs in nftburnq, invalid user input`, () => {
   let user1, user2, user3;
   let user1Hash, user2Hash, user3Hash;
   let burnqnum, newBurnqnum = 0;
