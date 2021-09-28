@@ -720,30 +720,6 @@ describe('C. Burn large number of expired domains with gaps between expired and 
   it.skip(`TODO: Expired domain test: Transfer a non-expired domains`, async () => {
   });
 
-  it.skip(`TODO: Expired domain test: Test different domain actions with large numbers of expired domains`, async () => {
-  });
-
-  it.skip(`(Push Transaction) Transfer domain with invalid domain format.  Expect error type 400: ${config.error.invalidDomain}`, async () => {
-    try {
-      const result = await userD1.sdk.genericAction('pushTransaction', {
-        action: 'xferdomain',
-        account: 'fio.address',
-        data: {
-          "fio_domain": '##invaliddomain##',
-          "new_owner_fio_public_key": userD2.publicKey,
-          "max_fee": config.api.transfer_fio_domain.fee,
-          "tpid": '',
-          "actor": userD1.account
-        }
-      })
-      expect(result.status).to.equal(null);
-    } catch (err) {
-      //console.log('Error: ', err.json)
-      expect(err.json.fields[0].error).to.equal(config.error.invalidDomain)
-      expect(err.errorCode).to.equal(400);
-    }
-  })
-
   it(`Call burnexpired until empty`, async () => {
     let offset, limit;
     let retryCount = 0;
@@ -932,7 +908,7 @@ describe('C. Burn large number of expired domains with gaps between expired and 
     }
   });
 
-  it.skip(`Call burnnfts until nftburnq is empty`, async () => {
+  it(`Call burnnfts until nftburnq is empty`, async () => {
     let empty = false;
     try {
       while (!empty) {
