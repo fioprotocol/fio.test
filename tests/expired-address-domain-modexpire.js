@@ -4,6 +4,64 @@
  * Currently in:
  *   fio.contracts - dev/expire_helper
  *   fio.devtools - dev/expire_helper
+ * 
+ * In fio.address.abi:
+ * 
+ *   Add modexpire struct:
+ 
+     {
+        "name": "modexpire",
+        "base": "",
+        "fields": [
+          {
+            "name": "fio_address",
+            "type": "string"
+          },
+          {
+            "name": "expire",
+            "type": "int64"
+          }
+        ]
+      },
+ 
+ *
+ *  Add modexpire action:
+ * 
+ 
+    {
+      "name": "modexpire",
+      "type": "modexpire",
+      "ricardian_contract": ""
+    },
+ *
+ * 
+ * In fio.address.cpp
+ * 
+ *   Add modexpire action: (beware of autoformattig of the "byname"_n>)
+ * 
+ 
+        [[eosio::action]]
+        void modexpire(const string &fio_address, const int64_t &expire) {
+            FioAddress fa;
+            getFioAddressStruct(fio_address, fa);
+            name actor = name{"eosio"};
+            const uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
+            auto namesbyname = domains.get_index<"byname"_n>();
+            auto fioname_iter = namesbyname.find(nameHash);
+
+            namesbyname.modify(fioname_iter, actor, [&](struct domain &a) {
+                a.expiration = expire;
+            });
+        }
+ *
+ *
+ *   Add modexpire to EOSIO_DISPATCH, e.g.: 
+ * 
+ *      EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(remaddress)(remalladdr)(regdomain)(renewdomain)(renewaddress)(
+ *          setdomainpub)(burnexpired)(modexpire)(decrcounter)
+ * 
+ * 
+ *  Rebuild contracts
  */
 
 require('mocha')
@@ -403,10 +461,10 @@ describe('C. Burn large number of expired domains with gaps between expired and 
 
   let nftburnqCount;
   let user = [];
-  const domainBlockCount = 50;
-  const addressBlockCount = 1;
+  const domainBlockCount = 10;
+  const addressBlockCount = 10;
   const nftBlockCount = 3;  // Must be divisible by 3
-  const burnexpiredStepSize = 3; // Offset gets incremented by this number in the while loop. Also index is set to this number.
+  let burnexpiredStepSize = 3; // Offset gets incremented by this number in the while loop. Also index is set to this number.
   const retryLimit = 1; // Number of times to call burnexpired with the same offset/limit when hitting a CPU limit error
 
   it(`Get nftburnq table number of rows (in case there are existing entries)`, async () => {
@@ -436,10 +494,14 @@ describe('C. Burn large number of expired domains with gaps between expired and 
       for (i = 0; i < domainBlockCount; i++) {
         console.log('          (Adding Domain) #' + i);
         user[i] = await newUser(faucet);
+        //console.log('user[i].privateKey: ', user[i].privateKey);
+        //console.log('user[i].privateKey: ', user[i].publicKey);
+        
 
         //console.log('          (Adding ' + addressBlockCount + ' Addresses with ' + nftBlockCount + ' NFTs)');
         for (j = 0; j < addressBlockCount; j++) {
           address[j] = generateFioAddress(user[i].domain, 10)
+          //console.log('address[j]: ', address[j]);
 
           const addressResult = await user[i].sdk.genericAction('registerFioAddress', {
             fioAddress: address[j],
@@ -462,6 +524,7 @@ describe('C. Burn large number of expired domains with gaps between expired and 
                 tpid: ""
               }
             })
+            //console.log(`nft count: `, k)
             //console.log(`addnftResult: `, addnftResult)
             expect(addnftResult.status).to.equal('OK')
           } // k - nfts 
@@ -764,6 +827,91 @@ describe('C. Burn large number of expired domains with gaps between expired and 
 
   });
 
+  it(`To confirm burnexpired, Call with limit = 1 with offset step size of 1`, async () => {
+    let offset, limit;
+    let retryCount = 0;
+    let empty = false;
+    let workDoneThisRound = true;
+    let workDoneThisOffset = false;
+    let count = 1;
+
+    burnexpiredStepSize = 1;
+
+    while (!empty) {
+      offset = burnexpiredStepSize * count;
+      limit = burnexpiredStepSize;
+
+      try {
+        const result = await burnUser.sdk.genericAction('pushTransaction', {
+          action: 'burnexpired',
+          account: 'fio.address',
+          data: {
+            actor: burnUser.account,
+            offset: offset,
+            limit: limit
+          }
+        })
+        console.log('Offset = ' + offset + ', Limit = ' + limit + ', Result: {status: ' + result.status + ', items_burned: ' + result.items_burned + ' }');
+        expect(result.status).to.equal('OK');
+        workDoneThisOffset = true;
+        workDoneThisRound = true;
+        retryCount = 0;
+        await timeout(1000); // To avoid duplicate transaction
+      } catch (err) {
+        workDoneThisOffset = false;
+        //console.log('Error: ', err);
+        if (err.errorCode == 400 && err.json.fields[0].error == 'No work.') {
+          retryCount = 0;
+          console.log('Offset = ' + offset + ', Limit = ' + limit + ', Result: ' + err.json.fields[0].error);
+          expect(err.errorCode).to.equal(400);
+          expect(err.json.fields[0].error).to.equal('No work.');
+        } else if (err.json.code == 500 && err.json.error.what == 'Transaction exceeded the current CPU usage limit imposed on the transaction') {
+          console.log('Offset = ' + offset + ', Limit = ' + limit + ', Result: Transaction exceeded the current CPU usage limit imposed on the transaction');
+          retryCount++;
+        } else {
+          console.log('UNEXPECTED ERROR: ', err);
+        }
+
+      }
+
+      const json = {
+        json: true,
+        code: 'fio.address',
+        scope: 'fio.address',
+        table: 'domains',
+        limit: burnexpiredStepSize,
+        lower_bound: burnexpiredStepSize * count,
+        reverse: false,
+        show_payer: false
+      }
+      result = await callFioApi("get_table_rows", json);
+      //console.log('Table lookup: ', result);
+
+      if (result.rows.length == 0) {
+        console.log("DONE");
+        count = 1;  // Start again
+        // If this is the first round, or work was done during the round, reset 
+        if (workDoneThisRound) {
+          workDoneThisRound = false;
+        } else {
+          empty = true;  // No work was done this round and we are at the end of the domains
+        }
+      } else {
+        // Only increment the offset if no work was done
+        if (!workDoneThisOffset) {
+          // If you have done several retries, move to next offset
+          if (retryCount == 0) {
+            count++;
+          } else if (retryCount >= retryLimit) {
+            retryCount = 0;
+            count++;
+          }
+        }
+      }
+    }
+
+  });
+
   it(`Get nftburnq table. Confirm additional entries = # of expired domain blocks * domainBlockCount * (addressBlockCount + 1) = 2 * ${domainBlockCount} * (${addressBlockCount} + 1) =  ${2 * domainBlockCount * (addressBlockCount + 1)}`, async () => {
     try {
       const json = {
@@ -784,7 +932,7 @@ describe('C. Burn large number of expired domains with gaps between expired and 
     }
   });
 
-  it(`Call burnnfts until nftburnq is empty`, async () => {
+  it.skip(`Call burnnfts until nftburnq is empty`, async () => {
     let empty = false;
     try {
       while (!empty) {
