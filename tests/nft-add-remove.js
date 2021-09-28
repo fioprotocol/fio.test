@@ -2278,6 +2278,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
+      console.log('Error: ', err.json);
       expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.errorCode).to.equal(400);
