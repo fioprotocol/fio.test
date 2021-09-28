@@ -1327,7 +1327,7 @@ describe('G. Burn Address with NFTs, re-register account, confirm cannot add new
             //console.log(`addnftResult: `, addnftResult)
             expect(addnftResult).to.not.equal('OK');
         } catch (err) {
-            console.log('Error: ', err)
+            //console.log('Error: ', err)
             expect(err.errorCode).to.equal(400);
             expect(err.json.fields[0].error).to.equal('FIO Address NFTs are being burned');
         }
