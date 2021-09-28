@@ -250,7 +250,7 @@ describe(`************************** nft-performance-tests.js ******************
   // burn all in nftburnq
 });
 
-describe.only(`B. Add and remove a huge number of NFTs for a single user`, () => {
+describe(`B. Add and remove a huge number of NFTs for a single user`, () => {
   let user1, user2, user1Hash, massNft, bal, nftCount, numUser1Nfts, numUser2Nfts;
   let nftHash = 'f83b5702557b1ee76d966c6bf92ae0d038cd176aaf36f86a18e2ab59e6aefa4b';
   // let nftHash2 = 'f83b5702557b1ee76d966c6bf92ae0d038cd176aaf36f86a18e2ab59e6aefa4C';
