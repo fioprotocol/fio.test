@@ -136,8 +136,6 @@ describe(`************************** nft-performance-tests.js ******************
       console.log('user namehash not found in table');
       throw err;
     }
-
-
   });
 
   it(`has ${numUsers} new users`, async () => {
@@ -161,7 +159,7 @@ describe(`************************** nft-performance-tests.js ******************
           data: {
             fio_address: users[i].address,
             nfts: [massNft],
-            max_fee: 5000000000,
+            max_fee: config.api.add_nft.fee,
             actor: users[i].account,
             tpid: ""
           }
@@ -203,10 +201,6 @@ describe(`************************** nft-performance-tests.js ******************
     }
   });
 
-  // it(`verify nftburnq is empty`, async () => {
-  //
-  // });
-
   it(`remove NFTs for all ${numUsers} users`, async () => {
     for (let i=0; i<users.length; i++) {
       try {
@@ -236,8 +230,8 @@ describe(`************************** nft-performance-tests.js ******************
         scope: 'fio.address',
         table: 'nftburnq',
         // limit: numNfts,
-        // lower_bound: user1Hash,
-        // upper_bound: user1Hash,
+        lower_bound: user1Hash,
+        upper_bound: user1Hash,
         key_type: 'i128',
         index_position: '2'
       });
@@ -246,34 +240,16 @@ describe(`************************** nft-performance-tests.js ******************
       expect(err).to.equal(null);
     }
   });
-
-  // burn all in nftburnq
-  // after(async () => {
-  //   // it(`user1 burns NFTs in nftburnq`, async () => {
-  //   try {
-  //     const result = await users[0].sdk.genericAction('pushTransaction', {
-  //       action: 'burnnfts',
-  //       account: 'fio.address',
-  //       data: {
-  //         actor: users[0].account,
-  //       }
-  //     });
-  //     expect(result.status).to.equal('OK');
-  //   } catch (err) {
-  //     expect(err).to.equal(null);
-  //   }
-  // });
-  // });
 });
 
-describe.only(`B. Add and remove a huge number of NFTs for a single user`, () => {
+describe(`B. Add and remove a huge number of NFTs for a single user`, () => {
   let user1, user2, user1Hash, massNft, bal, nftCount, initNftCount, newNftCount;
   let nftHash = 'f83b5702557b1ee76d966c6bf92ae0d038cd176aaf36f86a18e2ab59e6aefa4b';
   let ethContractAddr = '0x123456789ABCDEF';
 
-  let numNfts = 100000;
+  // let numNfts = 100000;
   // let numNfts = 10000;
-  // let numNfts = 5000;
+  let numNfts = 5000;
   // let numNfts = 1000;
   // let numNfts = 500;
   // let numNfts = 100;
@@ -306,7 +282,7 @@ describe.only(`B. Add and remove a huge number of NFTs for a single user`, () =>
     bal = await user1.sdk.genericAction('getFioBalance', {});
   });
 
-  it(`Transfer ${fundsAmount} FIO to userA1 FIO public key`, async () => {
+  it(`Transfer ${fundsAmount} FIO to user1 FIO public key`, async () => {
     const result = await faucet.genericAction('transferTokens', {
       payeeFioPublicKey: user1.publicKey,
       amount: fundsAmount,
@@ -405,8 +381,6 @@ describe.only(`B. Add and remove a huge number of NFTs for a single user`, () =>
         offset: numNfts-1
       });
 
-      // let total =  result.nfts.length - initNftCount;
-      // expect(total).to.be.greaterThanOrEqual(nftCount);
       expect(result.nfts[0].token_id).to.equal(numNfts.toString());
     } catch (err) {
       expect(err).to.equal(null);
@@ -420,8 +394,6 @@ describe.only(`B. Add and remove a huge number of NFTs for a single user`, () =>
         offset: numNfts-1
       });
 
-      // let total =  result.nfts.length - initNftCount;
-      // expect(total).to.be.greaterThanOrEqual(nftCount);
       expect(result.nfts[0].token_id).to.equal(numNfts.toString());
     } catch (err) {
       expect(err).to.equal(null);
@@ -436,8 +408,6 @@ describe.only(`B. Add and remove a huge number of NFTs for a single user`, () =>
         offset: numNfts-1
       });
 
-      // let total =  result.nfts.length - initNftCount;
-      // expect(total).to.be.greaterThanOrEqual(nftCount);
       expect(result.nfts[0].token_id).to.equal(numNfts.toString());
     } catch (err) {
       expect(err).to.equal(null);
@@ -525,24 +495,7 @@ describe.only(`B. Add and remove a huge number of NFTs for a single user`, () =>
       expect(err).to.equal(null);
     }
   });
-  // it(`verify nftburnq contains a hash of user1's FIO address`, async () => {
-  //   try {
-  //     const result = await callFioApi("get_table_rows", {
-  //       json: true,
-  //       code: 'fio.address',
-  //       scope: 'fio.address',
-  //       table: 'nftburnq',
-  //       limit: numNfts,
-  //       lower_bound: user1Hash,
-  //       upper_bound: user1Hash,
-  //       key_type: 'i128',
-  //       index_position: '2'
-  //     });
-  //     expect(result.rows.length).to.equal(1);
-  //   } catch (err) {
-  //     expect(err).to.equal(null);
-  //   }
-  // });
+
   it(`verify 50 NFTs have been removed from the table`, async () => {
     try {
       const result = await callFioApi("get_table_rows", {
@@ -557,13 +510,9 @@ describe.only(`B. Add and remove a huge number of NFTs for a single user`, () =>
         json: true,
         reverse: false
       });
-      console.log(result);
       let tokenId = nftCount - 50;
       expect(result.rows[0].token_id).to.equal(`${tokenId + 1}`);
 
-      // let total = result.rows.length - initNftCount;
-      // expect(total).to.be.greaterThanOrEqual(nftCount-50);
-      // nftCount -= 50;
     } catch (err) {
       expect(err).to.equal(null);
     }
@@ -669,18 +618,20 @@ describe.only(`B. Add and remove a huge number of NFTs for a single user`, () =>
   });
 });
 
-describe(`C. Try to individually remove a large number of NFTs`, () => {
+describe.only(`C. Try to individually remove a large number of NFTs`, () => {
   let user1, user2, user1Hash, massNft, bal, nftCount, initNftCount, newNftCount;
   let nftHash = 'f83b5702557b1ee76d966c6bf92ae0d038cd176aaf36f86a18e2ab59e6aefa4b';
   let ethContractAddr = '0x123456789ABCDEF';
 
   // let numNfts = 100000;
   // let numNfts = 10000;
-  // let numNfts = 5000;
-  let numNfts = 500;
+  let numNfts = 5000;
+  // let numNfts = 1000;
+  // let numNfts = 500;
   // let numNfts = 100;
 
   const fundsAmount = config.api.add_nft.fee * (numNfts);
+  const rmFundsAmt = config.api.remove_nft.fee * (numNfts);
 
   before(async () => {
     user1 = await newUser(faucet);
@@ -707,7 +658,7 @@ describe(`C. Try to individually remove a large number of NFTs`, () => {
     bal = await user1.sdk.genericAction('getFioBalance', {});
   });
 
-  it(`Transfer ${fundsAmount} FIO to userA1 FIO public key`, async () => {
+  it(`Transfer ${fundsAmount} FIO to user1 FIO public key`, async () => {
     const result = await faucet.genericAction('transferTokens', {
       payeeFioPublicKey: user1.publicKey,
       amount: fundsAmount,
@@ -789,6 +740,18 @@ describe(`C. Try to individually remove a large number of NFTs`, () => {
       expect(err).to.equal(null);
     }
   });
+
+
+  it(`Transfer another ${rmFundsAmt} FIO so user1 can burn NFTs`, async () => {
+    const result = await faucet.genericAction('transferTokens', {
+      payeeFioPublicKey: user1.publicKey,
+      amount: rmFundsAmt,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    })
+    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  });
+
 
   it(`user1 individually removes all NFTs`, async () => {
     while (nftCount > 0) {
