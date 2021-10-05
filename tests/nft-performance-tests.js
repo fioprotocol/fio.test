@@ -404,7 +404,6 @@ describe(`B. Add and remove a huge number of NFTs for a single user`, () => {
         limit: 100,
       });
       expect(result.nfts.length).to.equal(100);
-      expect(result.nfts[result.nfts.length - 1].token_id).to.equal(nftCount.toString());
     } catch (err) {
       expect(err).to.equal(null);
     }
