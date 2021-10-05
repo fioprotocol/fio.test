@@ -1,8 +1,9 @@
-const TESTURL = 'http://localhost:8889'           // Localhost
-//const TESTURL = 'http://dev1.fio.dev:8888'          // DEV1
-//const TESTURL = 'http://44.238.153.162:8889'      // Devnet
-//const TESTURL = 'http://testnet.fioprotocol.io'   // Testnet
-//const TESTURL = 'https://fio.greymass.com'        // Mainnet
+// const TESTURL = 'http://localhost:8889'           // Localhost
+const TESTURL = 'http://fio-devnet.eosblocksmith.io' // Localhost
+//const TESTURL = 'http://dev1.fio.dev:8888'         // DEV1
+//const TESTURL = 'http://44.238.153.162:8889'       // Devnet
+//const TESTURL = 'http://testnet.fioprotocol.io'    // Testnet
+//const TESTURL = 'https://fio.greymass.com'         // Mainnet
 //const TESTURL = 'http://34.222.201.72:8080'        // History
 
 const DEVTOOLSDIR = '../fio.devtools'
@@ -275,6 +276,22 @@ const config = {
         cancel_funds_request: {
             bundledEligible: true,
             fee: 600000000
+        } ,
+        list_domain: {
+            bundledEligible: false,
+            fee: 20000000
+        } ,
+        cancel_list_domain: {
+            bundledEligible: false,
+            fee: 2000000
+        } ,
+        buy_domain: {
+            bundledEligible: false,
+            fee: 3000000
+        } ,
+        set_marketplace_config: {
+            bundledEligible: false,
+            fee: 5000000
         }
 
     },
@@ -330,7 +347,8 @@ const config = {
         XFERDOMAINRAM: 512,
         XFERADDRESSRAM: 512,
         CANCELFUNDSRAM: 512,
-        BUNDLEVOTERAM: 0
+        BUNDLEVOTERAM: 0,
+        FIOESCROWRAM: 512
     },
 
     public_addresses: [
