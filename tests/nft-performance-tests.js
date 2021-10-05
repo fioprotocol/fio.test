@@ -2,97 +2,31 @@ require('mocha');
 const {expect} = require('chai');
 const {newUser, fetchJson, callFioApi, timeout} = require('../utils.js');
 const {FIOSDK} = require('@fioprotocol/fiosdk');
-config = require('../config.js');
+const config = require('../config.js');
 let faucet;
 
-function mintNfts (num) {
-  let nfts = [];
-  if (num === 0) return nfts;
-  for (let i=1; i<=num; i++) {
-    nfts.push({
-      "chain_code":"ETH",
-      "contract_address":"0x123456789ABCDEF",
-      "token_id":`${i}`,
-      "url":"",
-      "hash":"",
-      "metadata":`${Math.random().toString(32).substr(2, 8)}`
-    });
-  }
-  return nfts;
+/**
+ * These performance tests work most reliably when run against a fresh blockchain
+ *
+ * They also take a long time, so should not necessarily be included in every test run
+ *
+ * Due to known timeout issues with large numbers of database records, the NFT getters
+ * (get_nfts_fio_address, get_nfts_hash, get_nfts_contract) will likely time out before
+ * retrieving all records. These tests create large numbers of records, including up to
+ * 1,000,000 NFTs for a single FIO address.
+ *
+ * The other reason the getters might fail: If there are any records in nfts or nftburnq
+ * prior to running these tests, they may show up in the getter responses, thus throwing
+ * off assertions that count the number of records.
+ */
+
+function shuffle (v) {
+  return [...v].sort(_ => Math.random() - .5).join('');
 }
 
 async function getBundleCount (user) {
   const result = await user.genericAction('getFioNames', { fioPublicKey: user.publicKey });
   return result.fio_addresses[0].remaining_bundled_tx;
-}
-
-async function consumeRemainingBundles (user, user2) {
-  let bal, bundles;
-  bundles = await getBundleCount(user.sdk);
-  bal = await user.sdk.genericAction('getFioBalance', {});
-  process.stdout.write('\tconsuming remaining bundled transactions\n\tthis may take a while');
-  if (bundles % 2 !== 0) {
-    try {
-      const result = await user.sdk.genericAction('addPublicAddresses', {
-        fioAddress: user.address,
-        publicAddresses: [
-          {
-            chain_code: 'ETH',
-            token_code: 'ETH',
-            public_address: 'ethaddress',
-          }
-        ],
-        maxFee: config.api.add_pub_address.fee,
-        walletFioAddress: ''
-      })
-      //console.log('Result:', result)
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-      console.log(`Error consuming bundle, retrying (${err.message})`);
-      wait(1000);
-      bal = await user.sdk.genericAction('getFioBalance', {});
-    } finally {
-      bundles = await getBundleCount(user.sdk);
-      bal = await user.sdk.genericAction('getFioBalance', {});
-      expect(bundles % 2).to.equal(0);
-    }
-  }
-
-  while (bundles > 0) {
-    try {
-      await user.sdk.genericAction('recordObtData', {
-        payerFioAddress: user.address,
-        payeeFioAddress: user2.address,
-        payerTokenPublicAddress: user.publicKey,
-        payeeTokenPublicAddress: user2.publicKey,
-        amount: 5000000000,
-        chainCode: "BTC",
-        tokenCode: "BTC",
-        status: '',
-        obtId: '',
-        maxFee: config.api.record_obt_data.fee,
-        technologyProviderId: '',
-        payeeFioPublicKey: user2.publicKey,
-        memo: 'this is a test',
-        hash: '',
-        offLineUrl: ''
-      })
-      process.stdout.write('.');
-      bal = await user.sdk.genericAction('getFioBalance', {});
-      // wait(500);  //1000);
-    } catch (err) {
-      console.log(`Error consuming bundle, retrying (${err.message})`);
-      wait(1000);
-      bal = await user.sdk.genericAction('getFioBalance', {});
-    } finally {
-      bundles = await getBundleCount(user.sdk);
-      bal = await user.sdk.genericAction('getFioBalance', {});
-    }
-  }
-}
-
-async function getFioAddressHash(user) {
-
 }
 
 before(async () => {
@@ -101,20 +35,21 @@ before(async () => {
 
 describe(`************************** nft-performance-tests.js ************************** \n    A. Add a large number of users, mint and remove NFTs for all of them`, () => {
   let users = [];
-  let user1Hash;
-  let massNft;
+  let user1Hash, endUserHash, massNft;
   let nftHash = 'f83b5702557b1ee76d966c6bf92ae0d038cd176aaf36f86a18e2ab59e6aefa4b';
-  let nftHash2 = 'f83b5702557b1ee76d966c6bf92ae0d038cd176aaf36f86a18e2ab59e6aefa4C';
+  // let nftHash2 = 'f83b5702557b1ee76d966c6bf92ae0d038cd176aaf36f86a18e2ab59e6aefa4C';
   let ethContractAddr = '0x123456789ABCDEF';
+
   // let numUsers = 10000;
   // let numUsers = 5000;
-  let numUsers = 500;
-  // let numUsers = 50;
+  let numUsers = 1000;
+  // let numUsers = 500;
+  // let numUsers = 100;
 
   before(async () => {
     for (let i=0; i<numUsers; i++) {
       users[i] = await newUser(faucet);
-      await timeout(3000);
+      // await timeout(1500);    //2000);
     }
     console.log('test users created');
 
@@ -130,8 +65,7 @@ describe(`************************** nft-performance-tests.js ******************
     fionames.rows = fionames.rows.slice(-numUsers);    // only need the last 3 accounts
     try {
       user1Hash = fionames.rows[0].namehash;
-      // user2Hash = fionames.rows[1].namehash;
-      // user3Hash = fionames.rows[2].namehash;
+      endUserHash = fionames.rows[fionames.rows.length - 1].namehash;
     } catch (err) {
       console.log('user namehash not found in table');
       throw err;
@@ -166,6 +100,9 @@ describe(`************************** nft-performance-tests.js ******************
         });
         expect(result.status).to.equal('OK');
       } catch (err) {
+        if (err.json.fields[0].err === 'FIO Domain not registered') {
+          continue;
+        }
         expect(err).to.equal(null);
       }
     }
@@ -173,17 +110,43 @@ describe(`************************** nft-performance-tests.js ******************
   });
 
   it(`verify NFTs have been added to the table`, async () => {
-    const result = await callFioApi("get_table_rows", {
+    // try {
+    const user1Nft = await callFioApi("get_table_rows", {
       code: "fio.address",
       scope: "fio.address",
       table: "nfts",
-      index_position: "1",
+      key_type: "i128",
+      index_position: "2",
+      lower_bound: user1Hash,
+      upper_bound: user1Hash,
       json: true,
       reverse: false
     });
-    const rows = result.rows.slice(-numUsers);
-    expect(rows[0].fio_address).to.equal(users[0].address);
-    expect(rows[rows.length-1].fio_address).to.equal(users[users.length-1].address);
+    // expect(user1Nft.rows[0].token_id).to.equal('1');
+    expect(user1Nft.rows.length).to.equal(1);
+    expect(user1Nft.rows[0].fio_address_hash).to.equal(user1Hash);
+    // } catch (err) {
+    //   expect(err).to.equal(null);
+    // }
+
+    // try {
+    const lastUserNft = await callFioApi("get_table_rows", {
+      code: "fio.address",
+      scope: "fio.address",
+      table: "nfts",
+      key_type: "i128",
+      index_position: "2",
+      lower_bound: endUserHash,
+      upper_bound: endUserHash,
+      json: true,
+      reverse: false
+    });
+    // expect(lastUserNft.rows[0].token_id).to.equal(numUsers.toString());
+    expect(lastUserNft.rows[0].fio_address_hash).to.equal(endUserHash);
+    expect(lastUserNft.rows.length).to.equal(1);
+    // } catch (err) {
+    //   expect(err).to.equal(null);
+    // }
   });
 
   it(`verify get_nfts_contract returns NFTs at ${ethContractAddr}`, async () => {
@@ -209,7 +172,7 @@ describe(`************************** nft-performance-tests.js ******************
           account: 'fio.address',
           data: {
             fio_address: users[i].address,
-            max_fee: 5000000000,
+            max_fee: config.api.remove_all_nfts.fee,
             actor: users[i].account,
             tpid: ""
           }
@@ -229,9 +192,6 @@ describe(`************************** nft-performance-tests.js ******************
         code: 'fio.address',
         scope: 'fio.address',
         table: 'nftburnq',
-        // limit: numNfts,
-        lower_bound: user1Hash,
-        upper_bound: user1Hash,
         key_type: 'i128',
         index_position: '2'
       });
@@ -240,11 +200,50 @@ describe(`************************** nft-performance-tests.js ******************
       expect(err).to.equal(null);
     }
   });
+
+  after(async () => {
+    while (true) {
+      try {
+        await timeout(1500);
+        const result = await users[0].sdk.genericAction('pushTransaction', {
+          action: 'burnnfts',
+          account: 'fio.address',
+          data: {
+            actor: users[0].account,
+          }
+        });
+        expect(result.status).to.equal('OK');
+        // nftCount -= 50;
+      } catch (err) {
+        expect(err.json.fields[0].error).to.equal('Nothing to burn');
+        // nftCount = 0;
+        break;
+      }
+    }
+
+    try {
+      const result = await callFioApi("get_table_rows", {
+        json: true,
+        code: 'fio.address',
+        scope: 'fio.address',
+        table: 'nftburnq',
+        lower_bound: user1Hash,
+        upper_bound: endUserHash,
+        key_type: 'i128',
+        index_position: '2'
+      });
+      expect(result.rows.length).to.equal(0);
+    } catch (err) {
+      expect(err).to.equal(null);
+    }
+  });
 });
 
 describe(`B. Add and remove a huge number of NFTs for a single user`, () => {
-  let user1, user2, user1Hash, massNft, bal, nftCount, initNftCount, newNftCount;
+  let user1, user2, user1Hash, massNft, bal, nftCount, initNftCount, newNftCount, randomEthAddr, randomNftHash;
   let nftHash = 'f83b5702557b1ee76d966c6bf92ae0d038cd176aaf36f86a18e2ab59e6aefa4b';
+  let ethContractPrefix = '0x';
+  let ethContractSuffix = '123456789ABCDEF';
   let ethContractAddr = '0x123456789ABCDEF';
 
   // let numNfts = 100000;
@@ -276,6 +275,9 @@ describe(`B. Add and remove a huge number of NFTs for a single user`, () => {
       console.log('user namehash not found in table');
       throw err;
     }
+    // setting some random known values
+    randomEthAddr = `${ethContractPrefix}${shuffle(ethContractSuffix)}`;
+    randomNftHash = shuffle(nftHash);
   });
 
   it(`getFioBalance for user1`, async () => {
@@ -323,8 +325,30 @@ describe(`B. Add and remove a huge number of NFTs for a single user`, () => {
     }
   });
 
+  it(`add an NFT with a known hash and contract address for searching`, async () => {
+    const result = await user1.sdk.genericAction('pushTransaction', {
+      action: 'addnft',
+      account: 'fio.address',
+      data: {
+        fio_address: user1.address,
+        nfts: [{
+          "chain_code":"ETH",
+          "contract_address":randomEthAddr,
+          "token_id":"1",
+          "url":"http://fio.example.nft",
+          "hash":randomNftHash,
+          "metadata": "abc-xyz-123"
+        }],
+        max_fee: config.api.add_nft.fee,
+        actor: user1.account,
+        tpid: ''
+      }
+    });
+    expect(result.status).to.equal('OK');
+  });
+
   it(`try to mint ${numNfts} NFTs for user1, expect TBD`, async () => {
-    nftCount = 0;
+    nftCount = initNftCount + 1;
     while (nftCount < numNfts) {
       massNft = [{
         "chain_code":"ETH",
@@ -341,7 +365,7 @@ describe(`B. Add and remove a huge number of NFTs for a single user`, () => {
         data: {
           fio_address: user1.address,
           nfts: massNft,
-          max_fee: 600000000,
+          max_fee: config.api.add_nft.fee,
           actor: user1.account,
           tpid: ''
         }
@@ -363,7 +387,7 @@ describe(`B. Add and remove a huge number of NFTs for a single user`, () => {
         index_position: "2",
         lower_bound: user1Hash,
         upper_bound: user1Hash,
-        limit: numNfts,
+        limit: 100,
         json: true,
         reverse: true
       });
@@ -377,38 +401,57 @@ describe(`B. Add and remove a huge number of NFTs for a single user`, () => {
     try {
       const result = await callFioApi('get_nfts_fio_address', {
         fio_address: user1.address,
-        limit: numNfts,
-        offset: numNfts-1
+        limit: 100,
       });
-
-      expect(result.nfts[0].token_id).to.equal(numNfts.toString());
+      expect(result.nfts.length).to.equal(100);
+      expect(result.nfts[result.nfts.length - 1].token_id).to.equal(nftCount.toString());
     } catch (err) {
       expect(err).to.equal(null);
     }
   });
-  it(`verify get_nfts_hash returns ${numNfts} NFTs`, async () => {
+  it(`verify get_nfts_hash returns NFTs`, async () => {
     try {
       const result = await callFioApi('get_nfts_hash', {
         hash: nftHash,
-        limit: numNfts,
-        offset: numNfts-1
+        limit: 100,
       });
-
-      expect(result.nfts[0].token_id).to.equal(numNfts.toString());
+      expect(result.nfts.length).to.equal(99);
     } catch (err) {
       expect(err).to.equal(null);
     }
   });
-  it(`verify get_nfts_contract returns ${numNfts} NFTs`, async () => {
+  it(`verify get_nfts_contract returns NFTs`, async () => {
     try {
       const result = await callFioApi('get_nfts_contract', {
         contract_address: ethContractAddr,
         chain_code: "ETH",
-        limit: numNfts,
-        offset: numNfts-1
+        limit: 100,
       });
+      expect(result.nfts.length).to.equal(99);
+    } catch (err) {
+      expect(err).to.equal(null);
+    }
+  });
 
-      expect(result.nfts[0].token_id).to.equal(numNfts.toString());
+  it(`verify get_nfts_hash returns an NFT with a unique hash`, async () => {
+    try {
+      const result = await callFioApi('get_nfts_hash', {
+        hash: randomNftHash,
+      });
+      expect(result.nfts.length).to.equal(1);
+      expect(result.nfts[0].hash).to.equal(randomNftHash);
+    } catch (err) {
+      expect(err).to.equal(null);
+    }
+  });
+  it(`verify get_nfts_contract returns an NFT with a unique contract_address`, async () => {
+    try {
+      const result = await callFioApi('get_nfts_contract', {
+        contract_address: randomEthAddr,
+        chain_code: "ETH",
+      });
+      expect(result.nfts.length).to.equal(1);
+      expect(result.nfts[0].contract_address).to.equal(randomEthAddr);
     } catch (err) {
       expect(err).to.equal(null);
     }
@@ -496,32 +539,32 @@ describe(`B. Add and remove a huge number of NFTs for a single user`, () => {
     }
   });
 
-  it(`verify 50 NFTs have been removed from the table`, async () => {
-    try {
-      const result = await callFioApi("get_table_rows", {
-        code: "fio.address",
-        scope: "fio.address",
-        table: "nfts",
-        key_type: "i128",
-        index_position: "2",
-        lower_bound: user1Hash,
-        upper_bound: user1Hash,
-        limit: numNfts,
-        json: true,
-        reverse: false
-      });
-      let tokenId = nftCount - 50;
-      expect(result.rows[0].token_id).to.equal(`${tokenId + 1}`);
-
-    } catch (err) {
-      expect(err).to.equal(null);
-    }
-  });
+  // it(`verify 50 NFTs have been removed from the table`, async () => {
+  //   try {
+  //     const result = await callFioApi("get_table_rows", {
+  //       code: "fio.address",
+  //       scope: "fio.address",
+  //       table: "nfts",
+  //       key_type: "i128",
+  //       index_position: "2",
+  //       lower_bound: user1Hash,
+  //       upper_bound: user1Hash,
+  //       limit: numNfts,
+  //       json: true,
+  //       reverse: false
+  //     });
+  //     let tokenId = nftCount - 50;
+  //     expect(result.rows[0].token_id).to.equal(`${tokenId + 1}`);
+  //
+  //   } catch (err) {
+  //     expect(err).to.equal(null);
+  //   }
+  // });
 
   it(`user1 burns the rest of their NFTs`, async () => {
-    while (nftCount > 0) {
+    while (true) {
       try {
-        await timeout(5000);
+        await timeout(1500);
         const result = await user1.sdk.genericAction('pushTransaction', {
           action: 'burnnfts',
           account: 'fio.address',
@@ -532,8 +575,11 @@ describe(`B. Add and remove a huge number of NFTs for a single user`, () => {
         expect(result.status).to.equal('OK');
         nftCount -= 50;
       } catch (err) {
-        expect(err.json.fields[0].error).to.equal('Nothing to burn');
-        nftCount = 0;
+        if (err.json.fields[0].error === 'Nothing to burn') {
+          nftCount = 0;
+          break;
+        }
+        expect(err).to.equal(null);
       }
     }
   });
@@ -618,7 +664,7 @@ describe(`B. Add and remove a huge number of NFTs for a single user`, () => {
   });
 });
 
-describe.only(`C. Try to individually remove a large number of NFTs`, () => {
+describe(`C. Try to individually remove a large number of NFTs`, () => {
   let user1, user2, user1Hash, massNft, bal, nftCount, initNftCount, newNftCount;
   let nftHash = 'f83b5702557b1ee76d966c6bf92ae0d038cd176aaf36f86a18e2ab59e6aefa4b';
   let ethContractAddr = '0x123456789ABCDEF';
@@ -695,7 +741,7 @@ describe.only(`C. Try to individually remove a large number of NFTs`, () => {
     }
   });
 
-  it(`try to mint ${numNfts} NFTs for user1, expect TBD`, async () => {
+  it(`try to mint ${numNfts} NFTs for user1`, async () => {
     nftCount = 0;
     while (nftCount < numNfts) {
       massNft = [{
@@ -713,7 +759,7 @@ describe.only(`C. Try to individually remove a large number of NFTs`, () => {
         data: {
           fio_address: user1.address,
           nfts: massNft,
-          max_fee: 600000000,
+          max_fee: config.api.add_nft.fee,
           actor: user1.account,
           tpid: ''
         }
@@ -741,7 +787,6 @@ describe.only(`C. Try to individually remove a large number of NFTs`, () => {
     }
   });
 
-
   it(`Transfer another ${rmFundsAmt} FIO so user1 can burn NFTs`, async () => {
     const result = await faucet.genericAction('transferTokens', {
       payeeFioPublicKey: user1.publicKey,
@@ -751,7 +796,6 @@ describe.only(`C. Try to individually remove a large number of NFTs`, () => {
     })
     expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
   });
-
 
   it(`user1 individually removes all NFTs`, async () => {
     while (nftCount > 0) {
@@ -771,7 +815,7 @@ describe.only(`C. Try to individually remove a large number of NFTs`, () => {
           data: {
             fio_address: user1.address,
             nfts: massNft,
-            max_fee: config.maxFee,
+            max_fee: config.api.remove_nft.fee,
             actor: user1.account,
             tpid: ""
           }
