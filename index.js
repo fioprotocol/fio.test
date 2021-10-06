@@ -3,6 +3,7 @@ const {expect} = require('chai')
 
 describe('TEST SUITE', () => {
 
+  //require('./tests/nft-performance-tests.js'); //This runs most reliably on a fresh chain
   //require('./tests/bravo-migr-test.js'); //This is required when testing 2.3.0 (bravo) with fio bahamas (need to do the full table migration).
 
 
@@ -31,6 +32,7 @@ describe('TEST SUITE', () => {
   require('./tests/addbundles.js');  // FIP-11.a
   require('./tests/tpid.js');
   require('./tests/nft-add-remove.js'); //FIP-27
+  require('./tests/nft-sdk-tests.js');
   //require('./tests/nft-performance-tests.js'); //FIP-27
   require('./tests/nft-uniqueness.js'); //FIP-27
   //require('./tests/nft-remove-burn.js'); //FIP-27

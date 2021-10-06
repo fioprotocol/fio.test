@@ -3913,7 +3913,7 @@ describe(`K. (api) Test add_nft, remove_nft, and remove_all_nfts API endpoints`,
     user3 = await newUser(faucet);
   })
 
-  it(`add_nft' to user1 FIO Address`, async () => {
+  it(`add NFT to user1 FIO Address`, async () => {
     try {
       const result = await callFioApiSigned('add_nft', {
         action: 'addnft',
@@ -3943,7 +3943,7 @@ describe(`K. (api) Test add_nft, remove_nft, and remove_all_nfts API endpoints`,
       const json = {
         "fio_address": user1.address
       }
-      result = await callFioApi("get_nfts_fio_address", json);
+      const result = await callFioApi("get_nfts_fio_address", json);
       //console.log(`Result: `, result)
       expect(result.nfts.length).to.not.equal(0)
       expect(result.nfts[0].chain_code).to.equal("ETH")
@@ -3953,13 +3953,13 @@ describe(`K. (api) Test add_nft, remove_nft, and remove_all_nfts API endpoints`,
       //console.log('Error', err)
       expect(err).to.equal(null);
     }
-  })
+  });
 
   it('Wait 5 seconds. (Slower test systems)', async () => {
     await timeout(5000);
   })
 
-  it(`remove_nft from user1 FIO Address`, async () => {
+  it(`remove NFT from user1 FIO Address`, async () => {
     try {
       const result = await callFioApiSigned('remove_nft', {
         action: 'remnft',
@@ -3984,7 +3984,7 @@ describe(`K. (api) Test add_nft, remove_nft, and remove_all_nfts API endpoints`,
     }
   })
 
-  it(`add_nft 3 NFTs to user1 FIO Address`, async () => {
+  it(`add 3 NFTs to user1 FIO Address`, async () => {
     try {
       const result = await callFioApiSigned('add_nft', {
         action: 'addnft',
@@ -4013,11 +4013,11 @@ describe(`K. (api) Test add_nft, remove_nft, and remove_all_nfts API endpoints`,
     }
   })
 
-  it('Wait 2 seconds. (Slower test systems)', async () => {
+  it('wait 2 seconds. (Slower test systems)', async () => {
     await timeout(2000);
   })
 
-  it(`remove_all_nfts from user1 FIO Address`, async () => {
+  it(`remove all from user1 FIO Address`, async () => {
     try {
       const result = await callFioApiSigned('remove_all_nfts', {
         action: 'remallnfts',
@@ -4039,7 +4039,7 @@ describe(`K. (api) Test add_nft, remove_nft, and remove_all_nfts API endpoints`,
     }
   })
 
-  it(`add_nft 3 NFTs to user2 FIO Address`, async () => {
+  it(`add 3 NFTs to user2 FIO Address`, async () => {
     try {
       const result = await callFioApiSigned('add_nft', {
         action: 'addnft',
@@ -4107,7 +4107,7 @@ describe(`K. (api) Test add_nft, remove_nft, and remove_all_nfts API endpoints`,
     }
   })
 
-  it(`add_nft to user3 FIO Address`, async () => {
+  it(`add NFT to user3 FIO Address`, async () => {
     try {
       const result = await callFioApiSigned('add_nft', {
         action: 'addnft',
