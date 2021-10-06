@@ -6,7 +6,7 @@ describe('TEST SUITE', () => {
 	//require('./tests/bravo-migr-test.js'); //This is required when testing 2.3.0 (bravo) with fio bahamas (need to do the full table migration).
 
 	// require('./tests/addaddress.js'); // v1.0.x  Also includes FIP-13 tests.
-	// require('./tests/fees.js'); // v1.0.x
+	//require('./tests/fees.js'); // v1.0.x
 	// require('./tests/fio-request.js'); // v1.0.x
 	// require('./tests/producer.js'); // v1.0.x
 	// require('./tests/pushtransaction.js'); // v1.0.x

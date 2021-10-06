@@ -52,7 +52,7 @@ A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
 					"actor"         : "5ufabtv13hv4",
 					"listing_fee"   : "5000000000",
 					"commission_fee": 10,
-					"max_fee"       : "1000000000",
+					"max_fee"       : "5000000000",
 					"e_break"       : 0
 				}
 			})
@@ -86,7 +86,7 @@ A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
 					"actor"         : "5ufabtv13hv4",
 					"listing_fee"   : "5000000000",
 					"commission_fee": 6,
-					"max_fee"       : "1000000000",
+					"max_fee"       : "5000000000",
 					"e_break"       : 1
 				}
 			})
@@ -110,6 +110,10 @@ A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
 		}
 	});
 
+	it.skip(`Wait 45 seconds.`, async () => {
+		await timeout(45000)
+	})
+
 	it(`set marketplace e_break to 0`, async () => {
 		try {
 			await callFioApiSigned('push_transaction', {
@@ -121,7 +125,7 @@ A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
 					"actor"         : "5ufabtv13hv4",
 					"listing_fee"   : "5000000000",
 					"commission_fee": 6,
-					"max_fee"       : "1000000000",
+					"max_fee"       : "5000000000",
 					"e_break"       : 0
 				}
 			})
@@ -143,6 +147,10 @@ A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
 			console.log(err);
 		}
 	});
+
+	it.skip(`Wait 45 seconds.`, async () => {
+		await timeout(45000)
+	})
 
 	// register domain
 	it(`userA1 and userA2 register a domain`, async () => {
@@ -245,17 +253,16 @@ A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
 				fioPublicKey: marketplaceUser.publicKey
 			})
 
-			let commissionFeeSUFs = FIOSDK.amountToSUF(parseInt(commissionFee));
+			let listingFeeSUFs = listing_fee;
 
-			// this is off by 1 FIO... not sure why?
-			// expect(FIOSDK.SUFToAmount(marketplaceBalanceResultAfter.balance)).to.equal(FIOSDK.SUFToAmount(marketplaceBalanceResult.balance + commissionFeeSUFs))
+			expect(FIOSDK.SUFToAmount(marketplaceBalanceResultAfter.balance)).to.equal(FIOSDK.SUFToAmount(marketplaceBalanceResult.balance + listingFeeSUFs))
 
 			const userBalanceResultAfter = await userA1.sdk.genericAction('getFioBalance', {
 				fioPublicKey: userA1.publicKey
 			})
 
 			// this assertion is off too. I am not sure why.
-			//expect(userBalanceResultAfter.balance).to.equal(userA1Balance - parseInt(commissionFee))
+			expect(userBalanceResultAfter.balance).to.equal(userA1Balance - parseInt(listing_fee))
 
 			domainSaleIdA1 = result.domainsale_id;
 
@@ -263,7 +270,7 @@ A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
 				"actor"     : userA2.account,
 				"fio_domain": domainA2,
 				"sale_price": 300000000000,
-				"max_fee"   : 1000000000,
+				"max_fee"   : 5000000000,
 				"tpid"      : ""
 			};
 
@@ -278,7 +285,7 @@ A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
 			expect(resultA2.status).to.equal('OK')
 
 		} catch (err) {
-			console.log(err);
+			// console.log(err.json);
 			expect(err).to.equal(null)
 		}
 	})
@@ -289,7 +296,7 @@ A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
 			let data = {
 				"actor"     : userA1.account,
 				"fio_domain": domain,
-				"max_fee"   : 1000000000,
+				"max_fee"   : 5000000000,
 				"tpid"      : ""
 			};
 
@@ -313,7 +320,7 @@ A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
 				"fio_domain"   : domainA2,
 				"sale_id"      : domainSaleIdA2,
 				"max_buy_price": 300000000000,
-				"max_fee"      : 1000000000,
+				"max_fee"      : 5000000000,
 				"tpid"         : ""
 			};
 
@@ -336,7 +343,7 @@ A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
 				"fio_domain"   : domain,
 				"sale_id"      : domainSaleIdA1,
 				"max_buy_price": 300000000000,
-				"max_fee"      : 1000000000,
+				"max_fee"      : 5000000000,
 				"tpid"         : ""
 			};
 

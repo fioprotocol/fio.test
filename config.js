@@ -279,19 +279,19 @@ const config = {
         } ,
         list_domain: {
             bundledEligible: false,
-            fee: 20000000
+            fee: 2000000000
         } ,
         cancel_list_domain: {
             bundledEligible: false,
-            fee: 2000000
+            fee: 1000000000
         } ,
         buy_domain: {
             bundledEligible: false,
-            fee: 3000000
+            fee: 1000000000
         } ,
         set_marketplace_config: {
             bundledEligible: false,
-            fee: 5000000
+            fee: 500000000
         }
 
     },
