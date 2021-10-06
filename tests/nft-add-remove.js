@@ -132,6 +132,10 @@ describe(`************************** nft-add-remove.js *************************
     }
   })
 
+  it('Wait 5 seconds. (Slower test systems)', async () => {
+    await timeout(5000);
+  })
+
   it(`Confirm 2 bundles were used for addnft (BUG BD-2878)`, async () => {
     let prevBundles = user1Bundles;
     user1Bundles = await getBundleCount(user1.sdk);
@@ -150,13 +154,9 @@ describe(`************************** nft-add-remove.js *************************
         expect(result.nfts[0].contract_address).to.equal("0x123456789ABCDEF")
         expect(result.nfts[0].token_id).to.equal("1")
     } catch (err) {
-        //console.log('Error', err)
+        console.log('Error', err)
         expect(err).to.equal(null);
     }
-  })
-
-  it('Wait 5 seconds. (Slower test systems)', async () => {
-    await timeout(5000);
   })
 
   it(`Try to add same NFT to user1 FIO Address. Expect: `, async () => {
@@ -2278,6 +2278,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
+      //console.log('Error: ', err.json);
       expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.errorCode).to.equal(400);

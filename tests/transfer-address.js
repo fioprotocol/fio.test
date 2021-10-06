@@ -1644,12 +1644,13 @@ describe('H. Transfer Address with NFTs, confirm cannot add new NFT', () => {
                         "chain_code": "ETH", "contract_address": "0x123456789ABCDEF2", "token_id": "2", "url": "", "hash": "", "metadata": ""
                     }],
                     max_fee: config.maxFee,
-                    actor: user1.account,
+                    actor: user2.account,
                     tpid: ""
                 }
             })
             expect(addnftResult).to.not.equal('OK');
         } catch (err) {
+            //console.log(err);
             expect(err.errorCode).to.equal(400);
             expect(err.json.fields[0].error).to.equal('FIO Address NFTs are being burned');
         }
@@ -1731,7 +1732,7 @@ describe('H. Transfer Address with NFTs, confirm cannot add new NFT', () => {
                         "chain_code": "ETH", "contract_address": "0x123456789ABCDEF2", "token_id": "2", "url": "", "hash": "", "metadata": ""
                     }],
                     max_fee: config.maxFee,
-                    actor: user1.account,
+                    actor: user2.account,
                     tpid: ""
                 }
             })
