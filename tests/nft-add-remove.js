@@ -1,6 +1,6 @@
 require('mocha');
 const {expect} = require('chai');
-const { newUser, fetchJson, callFioApi, callFioApiSigned, timeout} = require('../utils.js');
+const { newUser, fetchJson, callFioApi, callFioApiSigned, randStr, timeout} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk');
 config = require('../config.js');
 let faucet;
@@ -264,7 +264,8 @@ describe(`************************** nft-add-remove.js *************************
       expect(result.status).to.equal('OK')
 
     } catch (err) {
-     console.log(err.message)
+      console.log(err)
+      expect(err).to.equal(null);
     }
   })
 
@@ -530,7 +531,7 @@ describe(`************************** nft-add-remove.js *************************
         data: {
           fio_address: user1.address,
           nfts: [{
-            "chain_code": "ETH", "contract_address": "0x123456789ABCDEF", "token_id": "1", "url": "", "hash": "", "metadata": ""
+            "chain_code": "ETH", "contract_address": "0x123456789ABCDEFG", "token_id": "2", "url": "", "hash": "", "metadata": ""
           }],
           max_fee: config.maxFee,
           actor: user1.account,
@@ -543,7 +544,8 @@ describe(`************************** nft-add-remove.js *************************
       expect(result.status).to.equal('OK')
 
     } catch (err) {
-      console.log(err.message)
+      console.log(err)
+      expect(err).to.equal(null);
     }
   })
 
@@ -3913,7 +3915,7 @@ describe(`K. (api) Test add_nft, remove_nft, and remove_all_nfts API endpoints`,
     user3 = await newUser(faucet);
   })
 
-  it(`add NFT to user1 FIO Address`, async () => {
+  it(`add_nft' to user1 FIO Address`, async () => {
     try {
       const result = await callFioApiSigned('add_nft', {
         action: 'addnft',
@@ -3943,7 +3945,7 @@ describe(`K. (api) Test add_nft, remove_nft, and remove_all_nfts API endpoints`,
       const json = {
         "fio_address": user1.address
       }
-      const result = await callFioApi("get_nfts_fio_address", json);
+      result = await callFioApi("get_nfts_fio_address", json);
       //console.log(`Result: `, result)
       expect(result.nfts.length).to.not.equal(0)
       expect(result.nfts[0].chain_code).to.equal("ETH")
@@ -3953,13 +3955,13 @@ describe(`K. (api) Test add_nft, remove_nft, and remove_all_nfts API endpoints`,
       //console.log('Error', err)
       expect(err).to.equal(null);
     }
-  });
+  })
 
   it('Wait 5 seconds. (Slower test systems)', async () => {
     await timeout(5000);
   })
 
-  it(`remove NFT from user1 FIO Address`, async () => {
+  it(`remove_nft from user1 FIO Address`, async () => {
     try {
       const result = await callFioApiSigned('remove_nft', {
         action: 'remnft',
@@ -3984,7 +3986,7 @@ describe(`K. (api) Test add_nft, remove_nft, and remove_all_nfts API endpoints`,
     }
   })
 
-  it(`add 3 NFTs to user1 FIO Address`, async () => {
+  it(`add_nft 3 NFTs to user1 FIO Address`, async () => {
     try {
       const result = await callFioApiSigned('add_nft', {
         action: 'addnft',
@@ -4013,11 +4015,11 @@ describe(`K. (api) Test add_nft, remove_nft, and remove_all_nfts API endpoints`,
     }
   })
 
-  it('wait 2 seconds. (Slower test systems)', async () => {
+  it('Wait 2 seconds. (Slower test systems)', async () => {
     await timeout(2000);
   })
 
-  it(`remove all from user1 FIO Address`, async () => {
+  it(`remove_all_nfts from user1 FIO Address`, async () => {
     try {
       const result = await callFioApiSigned('remove_all_nfts', {
         action: 'remallnfts',
@@ -4039,7 +4041,7 @@ describe(`K. (api) Test add_nft, remove_nft, and remove_all_nfts API endpoints`,
     }
   })
 
-  it(`add 3 NFTs to user2 FIO Address`, async () => {
+  it(`add_nft 3 NFTs to user2 FIO Address`, async () => {
     try {
       const result = await callFioApiSigned('add_nft', {
         action: 'addnft',
@@ -4107,7 +4109,7 @@ describe(`K. (api) Test add_nft, remove_nft, and remove_all_nfts API endpoints`,
     }
   })
 
-  it(`add NFT to user3 FIO Address`, async () => {
+  it(`add_nft to user3 FIO Address`, async () => {
     try {
       const result = await callFioApiSigned('add_nft', {
         action: 'addnft',
@@ -4165,4 +4167,80 @@ describe(`K. (api) Test add_nft, remove_nft, and remove_all_nfts API endpoints`,
       expect(err).to.equal(null);
     }
   });
+});
+
+describe(`L. verify empty token_id acts as wildcard and returns all NFTs`, () => {
+  let user1;
+  let contractAddress = randStr(17);
+
+  before(async () => {
+    user1 = await newUser(faucet);
+  })
+
+  it(`Add 3 NFTs to user1 FIO Address`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'addnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [{
+            "chain_code": "ETH", "contract_address": contractAddress, "token_id": "7", "url": "", "hash": "", "metadata": ""
+          }, {
+            "chain_code": "ETH", "contract_address": contractAddress, "token_id": "8", "url": "", "hash": "", "metadata": ""
+          }, {
+            "chain_code": "ETH", "contract_address": contractAddress, "token_id": "9", "url": "", "hash": "", "metadata": ""
+          }],
+          max_fee: config.maxFee,
+          actor: user1.account,
+          tpid: ""
+        }
+      })
+      //console.log(`Result: `, result)
+      expect(result.status).to.equal('OK')
+
+    } catch (err) {
+      //console.log(err.message)
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`verify user1 has 1 NFT with token_id=7 with get_nfts_contract endpoint`, async () => {
+    try {
+      const json = {
+        "chain_code": "ETH",
+        "contract_address": contractAddress,
+        "token_id": "7"
+      }
+      result = await callFioApi("get_nfts_contract", json);
+      //console.log('Result: ', result);
+      expect(result.nfts.length).to.equal(1)
+      expect(result.nfts[0].chain_code).to.equal("ETH")
+      expect(result.nfts[0].contract_address).to.equal(contractAddress)
+      expect(result.nfts[0].token_id).to.equal("7")
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`verify empty token_id acts as wildcard and returns all NFTs`, async () => {
+    try {
+      const json = {
+        "chain_code": "ETH",
+        "contract_address": contractAddress,
+        "token_id": ""
+      }
+      result = await callFioApi("get_nfts_contract", json);
+      //console.log('Result: ', result);
+      expect(result.nfts.length).to.equal(3)
+      expect(result.nfts[2].chain_code).to.equal("ETH")
+      expect(result.nfts[2].contract_address).to.equal(contractAddress)
+      expect(result.nfts[2].token_id).to.equal("9")
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err).to.equal(null);
+    }
+  });
+  
 });
