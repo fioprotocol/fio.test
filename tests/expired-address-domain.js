@@ -44,7 +44,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
 })
 
-describe('************************** expired-address-domain.js ************************** \n A. General testing for expired domains and addresses', () => {
+describe('************************** expired-address-domain.js ************************** \n A. Test expired addresses: getters return future date, renewaddress', () => {
 
   let user1, user2, bundleCount
 

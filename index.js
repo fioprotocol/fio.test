@@ -32,16 +32,17 @@ describe('TEST SUITE', () => {
   require('./tests/addbundles.js');  // FIP-11.a
   require('./tests/tpid.js');
   require('./tests/nft-add-remove.js'); //FIP-27
-  require('./tests/nft-remove-burn.js');
-  require('./tests/nft-uniqueness.js');
   require('./tests/nft-sdk-tests.js');
+  //require('./tests/nft-performance-tests.js'); //FIP-27
+  require('./tests/nft-uniqueness.js'); //FIP-27
+  //require('./tests/nft-remove-burn.js'); //FIP-27
   //require('./tests/clio.js');  // FIP-16  //Only works with local testing
   //require('./tests/performance-request-obt.js');
 
   require('./tests/testnet-smoketest.js'); // Testnet smoketest. By default runs against local build.
 
-  require('./tests/expired-address-domain.js'); // Requires manual updates to contracts to shorten expiration timing
-  require('./tests/expired-address-domain-modexpire.js'); // Requires modexpire action which allows expiring of domains
-
+  //require('./tests/expired-address-domain.js'); // Requires manual updates to contracts to shorten expiration timing
+  //require('./tests/expired-address-domain-modexpire.js'); // Requires modexpire action which allows expiring of domains
+  
   //require('./tests/history.js'); // Only run against history node.
 });
