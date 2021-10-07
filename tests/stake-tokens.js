@@ -8,6 +8,61 @@ const UNSTAKELOCKDURATIONSECONDS = config.UNSTAKELOCKDURATIONSECONDS;
 const SECONDSPERDAY = config.SECONDSPERDAY;
 let faucet;
 
+/********************* setting up these tests
+ *
+ *
+ * first you must shorten the unstake locking period to become 1 minute
+ *
+ *  go to the contract fio.staking.cpp and change the following lines
+ *
+ *  change
+ *
+ *  int64_t UNSTAKELOCKDURATIONSECONDS = 604800;
+ *
+ *    to become
+ *
+ *  int64_t UNSTAKELOCKDURATIONSECONDS = 70;
+ *
+ * Next, update both instances of SECONDSPERDAY in the unstakefio function to 10:
+ *
+ *   //the days since launch.
+ *   uint32_t insertday = (lockiter->timestamp + insertperiod) / SECONDSPERDAY;
+ *
+ *     to become
+ *
+ *   //the days since launch.
+ *   uint32_t insertday = (lockiter->timestamp + insertperiod) / 10;
+ *
+ *     and
+ *
+ *   daysforperiod = (lockiter->timestamp + lockiter->periods[i].duration)/SECONDSPERDAY;
+ *
+ *     to become
+ *
+ *   daysforperiod = (lockiter->timestamp + lockiter->periods[i].duration)/10;
+ *
+ *
+ *  rebuild the contracts and restart your local chain.
+ *
+ *  you are now ready to run these staking tests!!!
+ */
+
+/********************* Calculations
+ *
+ * For getFioBalance:
+ *   balance =
+ *
+ *   available = balance - staked - unstaked & locked
+ *
+ *   staked = Total staked. Changes when staking/unstaking.
+ *
+ *   srps =
+ *     When Staking: srps = prevSrps + stakeAmount/roe
+ *     When Unstaking: srps = prevSrps - (prevSrps * (unstakeAmount/totalStaked))
+ *
+ *   roe = Calculated (1 SRP = [ Tokens in Combined Token Pool / Global SRPs ] FIO)
+ */
+
 function wait (ms){
   let start = new Date().getTime();
   let end = start;
@@ -290,7 +345,7 @@ describe(`************************** stake-tokens.js ************************** 
       data: {
         producers: [bp1.address],
         fio_address: newFioAddress1,
-        actor: accountnm,
+        actor: userC.account,
         max_fee: config.api.vote_producer.fee
       }
     });
@@ -532,7 +587,7 @@ describe(`A2. Stake some FIO from userA`, () => {
       data: {
         proxy: userP.address,
         fio_address: userA.address,
-        actor: accountnm,
+        actor: userA.account,
         max_fee: config.api.proxy_vote.fee
       }
     });
@@ -552,7 +607,7 @@ describe(`A2. Stake some FIO from userA`, () => {
       data: {
         fio_address: userA.address,
         amount: stakeAmt,
-        actor: userA.address,
+        actor: userA.account,
         max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
@@ -585,7 +640,7 @@ describe(`A2. Stake some FIO from userA`, () => {
       data: {
         fio_address: '',
         amount: stakeAmt,
-        actor: userA.address,
+        actor: userA.account,
         max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
@@ -685,7 +740,7 @@ describe(`A3. Verify staking rewards for block producer`, () => {
       data: {
         proxy: userP.address,
         fio_address: userA.address,
-        actor: accountnm,
+        actor: userA.account,
         max_fee: config.api.proxy_vote.fee
       }
     });
@@ -697,7 +752,7 @@ describe(`A3. Verify staking rewards for block producer`, () => {
       data: {
         fio_address: '',
         amount: stakeAmt,
-        actor: userA.address,
+        actor: userA.account,
         max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
@@ -817,7 +872,7 @@ describe(`A4. Unstake some staked FIO from userA, observe staking reward changes
       data: {
         proxy: userP.address,
         fio_address: userA.address,
-        actor: accountnm,
+        actor: userA.account,
         max_fee: config.api.proxy_vote.fee
       }
     });
@@ -829,7 +884,7 @@ describe(`A4. Unstake some staked FIO from userA, observe staking reward changes
       data: {
         fio_address: '',
         amount: stakeAmt,
-        actor: userA.address,
+        actor: userA.account,
         max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
@@ -977,7 +1032,7 @@ describe(`A5. Stake some FIO from userB, observe staking reward changes`, () => 
       data: {
         proxy: userP.address,
         fio_address: userA.address,
-        actor: accountnm,
+        actor: userA.account,
         max_fee: config.api.proxy_vote.fee
       }
     });
@@ -989,7 +1044,7 @@ describe(`A5. Stake some FIO from userB, observe staking reward changes`, () => 
       data: {
         fio_address: '',
         amount: stakeAmt,
-        actor: userA.address,
+        actor: userA.account,
         max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
@@ -1029,8 +1084,8 @@ describe(`A5. Stake some FIO from userB, observe staking reward changes`, () => 
       data: {
         fio_address: userB.address,
         amount: stakeAmt,
-        actor: accountnm,
-        max_fee: config.maxFee,
+        actor: userB.account,
+        max_fee: config.api.stake_fio_tokens.fee,
         tpid:''
       }
     });
@@ -1129,7 +1184,7 @@ describe(`A6. Verify next set of staking rewards for block producer`, () => {
       data: {
         proxy: userP.address,
         fio_address: userA.address,
-        actor: accountnm,
+        actor: userA.account,
         max_fee: config.api.proxy_vote.fee
       }
     });
@@ -1141,7 +1196,7 @@ describe(`A6. Verify next set of staking rewards for block producer`, () => {
       data: {
         fio_address: '',
         amount: stakeAmt,
-        actor: userA.address,
+        actor: userA.account,
         max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
@@ -1250,7 +1305,7 @@ describe(`A8. Unstake some more FIO from userA, observe staking reward changes`,
       data: {
         proxy: userP.address,
         fio_address: userA.address,
-        actor: accountnm,
+        actor: userA.account,
         max_fee: config.api.proxy_vote.fee
       }
     });
@@ -1262,7 +1317,7 @@ describe(`A8. Unstake some more FIO from userA, observe staking reward changes`,
       data: {
         fio_address: '',
         amount: stakeAmt,
-        actor: userA.address,
+        actor: userA.account,
         max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
@@ -1381,7 +1436,7 @@ describe(`A9. Unstake some more FIO from userB, observe staking reward changes`,
       data: {
         proxy: userP.address,
         fio_address: userB.address,
-        actor: accountnm,
+        actor: userB.account,
         max_fee: config.api.proxy_vote.fee
       }
     });
@@ -1393,7 +1448,7 @@ describe(`A9. Unstake some more FIO from userB, observe staking reward changes`,
       data: {
         fio_address: '',
         amount: stakeAmt,
-        actor: userB.address,
+        actor: userB.account,
         max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
@@ -1588,7 +1643,7 @@ describe(`A11. Stake some FIO from userC, observe staking reward changes`, () =>
       data: {
         proxy: userP.address,
         fio_address: userC.address,
-        actor: accountnm,
+        actor: userC.account,
         max_fee: config.api.proxy_vote.fee
       }
     });
@@ -1606,7 +1661,7 @@ describe(`A11. Stake some FIO from userC, observe staking reward changes`, () =>
       data: {
         fio_address: userC.address,
         amount: stakeAmt,
-        actor: accountnm,
+        actor: userC.account,
         max_fee: config.api.stake_fio_tokens.fee,
         tpid:''
       }
@@ -1701,7 +1756,7 @@ describe('B. Test stakefio Bundled transactions', () => {
       data: {
         fio_address: proxy1.address,
         actor: proxy1.account,
-        max_fee: config.maxFee
+        max_fee: config.api.register_proxy.fee
       }
     });
     expect(result).to.have.all.keys('status', 'fee_collected');
@@ -1726,7 +1781,7 @@ describe('B. Test stakefio Bundled transactions', () => {
   it(`stake FIO from user2, expect bundled tx count to remain the same (no FIO names)`, async () => {
     let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
     stakeAmt = 50000000000;
-    feeAmt = 3000000000;
+    //feeAmt = 3000000000;
     stakedTokenPool = await getStakedTokenPool();
     combinedTokenPool = await getCombinedTokenPool();
     globalSrpCount = await getGlobalSrpCount();
@@ -1738,7 +1793,7 @@ describe('B. Test stakefio Bundled transactions', () => {
       data: {
         proxy: proxy1.address,
         fio_address: '',
-        actor: accountnm,
+        actor: user2.account,
         max_fee: config.api.proxy_vote.fee
       }
     });
@@ -1751,8 +1806,8 @@ describe('B. Test stakefio Bundled transactions', () => {
       data: {
         fio_address: '',
         amount: stakeAmt,
-        actor: accountnm,
-        max_fee: config.maxFee,
+        actor: user2.account,
+        max_fee: config.api.stake_fio_tokens.fee,
         tpid: ''
       }
     });
@@ -1762,7 +1817,7 @@ describe('B. Test stakefio Bundled transactions', () => {
     newGlobalSrpCount = await getGlobalSrpCount();
     expect(result).to.have.all.keys('status', 'fee_collected');
     expect(result.status).to.equal('OK');
-    expect(result.fee_collected).to.equal(feeAmt);
+    expect(result.fee_collected).to.equal(config.api.stake_fio_tokens.fee);
     expect(newBal.staked - bal.staked).to.equal(stakeAmt);
     expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
     expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
@@ -1782,7 +1837,7 @@ describe('B. Test stakefio Bundled transactions', () => {
   it(`stake FIO from user1, expect bundle count to change`, async () => {
     let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
     stakeAmt = 50000000000;
-    feeAmt = 3000000000;
+    //feeAmt = 3000000000;
     stakedTokenPool = await getStakedTokenPool();
     combinedTokenPool = await getCombinedTokenPool();
     globalSrpCount = await getGlobalSrpCount();
@@ -1795,8 +1850,8 @@ describe('B. Test stakefio Bundled transactions', () => {
       data: {
         fio_address: user1.address,
         amount: stakeAmt,
-        actor: user1.address,
-        max_fee: feeAmt,
+        actor: user1.account,
+        max_fee: config.api.stake_fio_tokens.fee,
         tpid: proxy1.address
       }
     });
@@ -1857,7 +1912,7 @@ describe('B. Test stakefio Bundled transactions', () => {
   it(`stake FIO with no bundles remaining, expect fee_collected > 0`, async () => {
     let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
     stakeAmt = 50000000000;
-    feeAmt = 3000000000;
+    //feeAmt = 3000000000;
     stakedTokenPool = await getStakedTokenPool();
     combinedTokenPool = await getCombinedTokenPool();
     globalSrpCount = await getGlobalSrpCount();
@@ -1872,8 +1927,8 @@ describe('B. Test stakefio Bundled transactions', () => {
       data: {
         fio_address: user1.address,
         amount: stakeAmt,
-        actor: user1.address,
-        max_fee: feeAmt,
+        actor: user1.account,
+        max_fee: config.api.stake_fio_tokens.fee,
         tpid: proxy1.address
       }
     });
@@ -1883,7 +1938,7 @@ describe('B. Test stakefio Bundled transactions', () => {
     let newBal = await user1.sdk.genericAction('getFioBalance', {});
     expect(result).to.have.all.keys('status', 'fee_collected');
     expect(result.status).to.equal('OK');
-    expect(result.fee_collected).to.equal(feeAmt);
+    expect(result.fee_collected).to.equal(config.api.stake_fio_tokens.fee);
     expect(newBal.staked - bal.staked).to.equal(stakeAmt);
     expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
     expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
@@ -1959,7 +2014,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
       data: {
         fio_address: proxy1.address,
         actor: proxy1.account,
-        max_fee: config.maxFee
+        max_fee: config.api.register_proxy.fee
       }
     });
     expect(result).to.have.all.keys('status', 'fee_collected');
@@ -1980,7 +2035,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
   it(`stake 50000000000 FIO so user1 has funds to unstake`, async () => {
     let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
     stakeAmt = 50000000000;
-    feeAmt = 3000000000;
+    //feeAmt = 3000000000;
     stakedTokenPool = await getStakedTokenPool();
     combinedTokenPool = await getCombinedTokenPool();
     globalSrpCount = await getGlobalSrpCount();
@@ -1993,8 +2048,8 @@ describe('C. Test unstakefio Bundled transactions', () => {
       data: {
         fio_address: user1.address,
         amount: stakeAmt,
-        actor: user1.address,
-        max_fee: feeAmt,
+        actor: user1.account,
+        max_fee: config.api.stake_fio_tokens.fee,
         tpid: proxy1.address
       }
     });
@@ -2028,7 +2083,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
   it(`unstake 10000000000 FIO from user1`, async () => {
     let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
     stakeAmt = 10000000000;
-    feeAmt = 3000000000;
+    //feeAmt = 3000000000;
     stakedTokenPool = await getStakedTokenPool();
     combinedTokenPool = await getCombinedTokenPool();
     globalSrpCount = await getGlobalSrpCount();
@@ -2041,7 +2096,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
         fio_address: user1.address,
         amount: stakeAmt,
         actor: user1.account,
-        max_fee: feeAmt,
+        max_fee: config.api.unstake_fio_tokens.fee,
         tpid: proxy1.address
       }
     });
@@ -2122,7 +2177,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
   it(`unstake FIO with no bundles remaining, expect fee_collected > 0`, async () => {
     let stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
     stakeAmt = 20000000000;
-    feeAmt = 3000000000;
+    //feeAmt = 3000000000;
     stakedTokenPool = await getStakedTokenPool();
     combinedTokenPool = await getCombinedTokenPool();
     globalSrpCount = await getGlobalSrpCount();
@@ -2136,7 +2191,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
         fio_address: user1.address,
         amount: stakeAmt,
         actor: user1.account,
-        max_fee: feeAmt,
+        max_fee: config.api.unstake_fio_tokens.fee,
         tpid: proxy1.address
       }
     });
@@ -2145,7 +2200,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
     newGlobalSrpCount = await getGlobalSrpCount();
     let newBal = await user1.sdk.genericAction('getFioBalance', {});
     expect(result.status).to.equal('OK');
-    expect(result.fee_collected).to.equal(feeAmt);
+    expect(result.fee_collected).to.equal(config.api.unstake_fio_tokens.fee);
     expect(bal.staked - newBal.staked).to.equal(stakeAmt);
     expect(newStakedTokenPool).to.be.lessThan(stakedTokenPool);
     expect(stakedTokenPool - newStakedTokenPool).to.equal(stakeAmt);
@@ -2169,7 +2224,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
   it(`try to unstake with 0 staked balance, expect error`, async () => {
     let bal, newBal, stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
     stakeAmt = 20000000000;
-    feeAmt = 3000000000;
+    //feeAmt = 3000000000;
     stakedTokenPool = await getStakedTokenPool();
     combinedTokenPool = await getCombinedTokenPool();
     globalSrpCount = await getGlobalSrpCount();
@@ -2184,7 +2239,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
           fio_address: '',
           amount: stakeAmt,
           actor: user3.account,
-          max_fee: feeAmt,
+          max_fee: config.api.unstake_fio_tokens.fee,
           tpid: proxy1.address
         }
       });
@@ -2206,9 +2261,9 @@ describe('C. Test unstakefio Bundled transactions', () => {
 
   it(`try to unstake with 0 bundles and 0 staked balance, expect error`, async () => {
     let bal, newBal, stakedTokenPool, combinedTokenPool, globalSrpCount, stakeAmt, feeAmt, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
-    feeAmt = 3000000000;
+    //feeAmt = 3000000000;
     bal = await user1.sdk.genericAction('getFioBalance', { });
-    stakeAmt = bal.staked - feeAmt;
+    stakeAmt = bal.staked - config.api.unstake_fio_tokens.fee;
     const unstake = await user1.sdk.genericAction('pushTransaction', {
       action: 'unstakefio',
       account: 'fio.staking',
@@ -2216,7 +2271,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
         fio_address: user1.address,
         amount: stakeAmt,
         actor: user1.account,
-        max_fee: feeAmt,
+        max_fee: config.api.unstake_fio_tokens.fee,
         tpid: proxy1.address
       }
     });
@@ -2225,7 +2280,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
     stakedTokenPool = await getStakedTokenPool();
     combinedTokenPool = await getCombinedTokenPool();
     globalSrpCount = await getGlobalSrpCount();
-    expect(bal.staked).to.equal(feeAmt);
+    expect(bal.staked).to.equal(config.api.unstake_fio_tokens.fee);
     expect(await getBundleCount(user1.sdk)).to.equal(0);
 
     try {
@@ -2236,7 +2291,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
           fio_address: user1.address,
           amount: stakeAmt,
           actor: user1.account,
-          max_fee: feeAmt,
+          max_fee: config.api.unstake_fio_tokens.fee,
           tpid: ''
         }
       });
@@ -2311,7 +2366,7 @@ describe(`D. Stake tokens using auto proxy without voting first, \n Then do a fu
         data: {
           fio_address: proxy1.address,
           actor: proxy1.account,
-          max_fee: config.maxFee
+          max_fee: config.api.register_proxy.fee
         }
       });
       expect(result.status).to.equal('OK');
@@ -2386,7 +2441,7 @@ describe(`D. Stake tokens using auto proxy without voting first, \n Then do a fu
           fio_address: user1.address,
           amount: 3000000000000,
           actor: user1.account,
-          max_fee: config.maxFee,
+          max_fee: config.api.stake_fio_tokens.fee,
           tpid: proxy1.address
         }
       });
@@ -2435,7 +2490,7 @@ describe(`D. Stake tokens using auto proxy without voting first, \n Then do a fu
           fio_address: user1.address,
           amount: 900000000000,
           actor: user1.account,
-          max_fee: config.maxFee,
+          max_fee: config.api.stake_fio_tokens.fee,
           tpid:''
         }
       });
@@ -2454,7 +2509,7 @@ describe(`D. Stake tokens using auto proxy without voting first, \n Then do a fu
           fio_address: user1.address,
           amount: 4000000000000,
           actor: user1.account,
-          max_fee: config.maxFee,
+          max_fee: config.api.unstake_fio_tokens.fee,
           tpid:''
         }
       });
@@ -2472,7 +2527,7 @@ describe(`D. Stake tokens using auto proxy without voting first, \n Then do a fu
         fio_address: user1.address,
         amount: 2000000000000,
         actor: user1.account,
-        max_fee: config.maxFee,
+        max_fee: config.api.unstake_fio_tokens.fee,
         tpid:''
       }
     });
@@ -2571,22 +2626,22 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
     newFioDomain1 = generateFioDomain(15);
     const domainRegistered = await userC.sdk.genericAction('registerFioDomain', {
       fioDomain: newFioDomain1,
-      maxFee: 800000000000,
+      maxFee: config.api.register_fio_domain.fee,
       tpid: '',
     });
     expect(domainRegistered).to.have.all.keys('status', 'expiration', 'fee_collected');
     expect(domainRegistered.status).to.equal('OK');
-    expect(domainRegistered.fee_collected).to.equal(800000000000);
+    expect(domainRegistered.fee_collected).to.equal(config.api.register_fio_domain.fee);
 
     newFioAddress1 = generateFioAddress(newFioDomain1,15)
     const addressRegistered = await userC.sdk.genericAction('registerFioAddress', {
       fioAddress: newFioAddress1,
-      maxFee: 400000000000,
+      maxFee: config.api.register_fio_address.fee,
       tpid: '',
     });
     expect(addressRegistered).to.have.all.keys('status', 'expiration', 'fee_collected');
     expect(addressRegistered.status).to.equal('OK');
-    expect(addressRegistered.fee_collected).to.equal(40000000000);
+    expect(addressRegistered.fee_collected).to.equal(config.api.register_fio_address.fee);
 
     const regproxy = await userP.sdk.genericAction('pushTransaction', {
       action: 'regproxy',
@@ -2594,12 +2649,12 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
       data: {
         fio_address: userP.address,
         actor: userP.account,
-        max_fee: config.maxFee
+        max_fee: config.api.register_proxy.fee
       }
     });
     expect(regproxy).to.have.all.keys('status', 'fee_collected');
     expect(regproxy.status).to.equal('OK');
-    expect(regproxy.fee_collected).to.equal(20000000000);
+    expect(regproxy.fee_collected).to.equal(config.api.register_proxy.fee);
   });
 
   it(`attempt to stake without voting, proxying or auto-proxy, expect Error 400`, async () => {
@@ -2610,8 +2665,8 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
         data: {
           fio_address: userC.address,
           amount: 1000000000000,
-          actor: accountnm,
-          max_fee: config.maxFee,
+          actor: userC.account,
+          max_fee: config.api.stake_fio_tokens.fee,
           tpid:'casey@dapixdev'
         }
       });
@@ -2631,8 +2686,8 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
       data: {
         producers: ["bp1@dapixdev"],
         fio_address: newFioAddress1,
-        actor: accountnm,
-        max_fee: config.maxFee
+        actor: userC.account,
+        max_fee: config.api.vote_producer.fee
       }
     });
     expect(vote).to.have.all.keys('status', 'fee_collected');
@@ -2645,8 +2700,8 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
         data: {
           fio_address: userC.address,
           amount: -100000000000,
-          actor: accountnm,
-          max_fee: config.maxFee,
+          actor: userC.account,
+          max_fee: config.api.stake_fio_tokens.fee,
           tpid:'casey@dapixdev'
         }
       });
@@ -2667,8 +2722,8 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
         data: {
           producers: ["bp1@dapixdev"],
           fio_address: newFioAddress2,
-          actor: accountnm,
-          max_fee: config.maxFee
+          actor: userC.account,
+          max_fee: config.api.vote_producer.fee
         }
       });
       expect(vote).to.have.all.keys('status', 'fee_collected');
@@ -2686,8 +2741,7 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
         data: {
           fio_address: userC.address,
           amount: 1000000000000,
-          // actor: locksdk.account,
-          actor: userC.address,
+          actor: userC.account,
           max_fee: -100,
           tpid:'casey@dapixdev'
         }
@@ -2703,17 +2757,17 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
     }
   });
 
-  it(`attempt to stake the exact amount of tokens available in account, expect Error 400`, async () => {
+  it.skip(`attempt to stake the exact amount of tokens available in account, expect Error 400`, async () => {
     let bal = await userC.sdk.genericAction('getFioBalance', {});
     try {
       const result = await userC.sdk.genericAction('pushTransaction', {
         action: 'stakefio',
         account: 'fio.staking',
         data: {
-          fio_address: '',
+          fio_address: userC.address,
           amount: bal.available,
-          actor: accountnm,
-          max_fee: config.maxFee,
+          actor: userC.account,
+          max_fee: config.api.stake_fio_tokens.fee,
           tpid: 'casey@dapixdev'
         }
       });
@@ -2759,7 +2813,7 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
           fio_address: userB.address,
           amount: 50000000000,
           actor: userC.account,
-          max_fee: config.maxFee,
+          max_fee: config.api.stake_fio_tokens.fee,
           tpid:'casey@dapixdev'
         }
       });
@@ -2780,7 +2834,7 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
           fio_address: userC.account,
           amount: -1000000000000,
           actor: userC.account,
-          max_fee: config.maxFee +1,
+          max_fee: config.api.unstake_fio_tokens.fee +1,
           tpid:'casey@dapixdev'
         }
       });
@@ -2800,14 +2854,14 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
       data: {
         fio_address: '',
         amount: 50000000000,
-        actor: accountnm,
-        max_fee: config.maxFee,
+        actor: userC.account,
+        max_fee: config.api.stake_fio_tokens.fee,
         tpid:''
       }
     });
     expect(stake).to.have.all.keys('status', 'fee_collected');
     expect(stake.status).to.equal('OK');
-    expect(stake.fee_collected).to.equal(3000000000);
+    expect(stake.fee_collected).to.equal(config.api.stake_fio_tokens.fee);
     let bal = await userC.sdk.genericAction('getFioBalance', {});
     let unstakeAmt = bal.staked + 1000000000000;
     try {
@@ -2815,15 +2869,14 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
         action: 'unstakefio',
         account: 'fio.staking',
         data: {
-          fio_address: '',
-          amount: unstakeAmt,
+          fio_address: userC.address,
+          amount: 50000000001,
           actor: userC.account,
-          max_fee: config.maxFee +1,
+          max_fee: config.api.unstake_fio_tokens.fee +1,
           tpid:''
         }
       });
     } catch (err) {
-      expect(err).to.not.equal(null);
       expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
       expect(err.errorCode).to.equal(400);
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
@@ -2862,7 +2915,7 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
         data: {
           proxy: userP.address,
           fio_address: userD.address,
-          actor: accountnm,
+          actor: userD.account,
           max_fee: config.api.proxy_vote.fee
         }
       });
@@ -2904,10 +2957,10 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
         action: 'unstakefio',
         account: 'fio.staking',
         data: {
-          fio_address: '',
+          fio_address: userD.address,
           amount: userDBal.staked,
           actor: userD.account,
-          max_fee: config.maxFee,
+          max_fee: config.api.unstake_fio_tokens.fee,
           tpid:''
         }
       });
@@ -2933,7 +2986,7 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
         data: {
           proxy: userP.address,
           fio_address: userD.address,
-          actor: accountnm,
+          actor: userD.account,
           max_fee: config.api.proxy_vote.fee
         }
       });
@@ -2945,8 +2998,8 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
         data: {
           fio_address: '',
           amount: 5000000000,
-          actor: accountnm,
-          max_fee: config.maxFee,
+          actor: userD.account,
+          max_fee: config.api.stake_fio_tokens.fee,
           tpid: ''
         }
       });
@@ -2983,9 +3036,9 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
         account: 'fio.staking',
         data: {
           fio_address: userD.address,
-          amount: userDBal.staked,
-          actor: accountnm,
-          max_fee: config.maxFee,
+          amount: 5000000000, //userDBal.staked,
+          actor: userD.account,
+          max_fee: config.api.unstake_fio_tokens.fee,
           tpid:''
         }
       });
@@ -2994,9 +3047,9 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
     } catch(err) {
       let newUserDBal = await userD.sdk.genericAction('getFioBalance', {});
       expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
-      expect(err.json).to.have.all.keys('type', 'message', 'fields');
-      expect(err.json.fields[0].error).to.equal('Invalid amount value');
+      expect(err.errorCode).to.equal(500);
+      expect(err.json).to.have.all.keys('code', 'message', 'error');
+      expect(err.json.error.details[0].message).to.equal('assertion failure with message: incacctstake, actor has no accountstake record.');
     }
   });
 
@@ -3008,8 +3061,8 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
         data: {
           fio_address: userC.address,
           amount: 1000000000000,
-          actor: locksdk.account,
-          max_fee: config.maxFee,
+          actor: userC.account,
+          max_fee: config.api.unstake_fio_tokens.fee,
           tpid: 'invalidfioaddress!!!@@@#@'
         }
       });
@@ -3030,7 +3083,7 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
           fio_address: userB.address,
           amount: 50000000000,
           actor: userC.account,
-          max_fee: config.maxFee,
+          max_fee: config.api.unstake_fio_tokens.fee,
           tpid:'casey@dapixdev'
         }
       });
@@ -3135,7 +3188,7 @@ describe(`F. (unhappy tests) Stake and unstake some FIO with no bundles tx remai
       data: {
         proxy: userP.address,
         fio_address: userC.address,
-        actor: userA.account,
+        actor: userC.account,
         max_fee: config.api.proxy_vote.fee
       }
     });
@@ -3148,7 +3201,7 @@ describe(`F. (unhappy tests) Stake and unstake some FIO with no bundles tx remai
       data: {
         fio_address: userC.address,
         amount: stakeAmt,
-        actor: userC.address,
+        actor: userC.account,
         max_fee: 1,
         tpid:'casey@dapixdev'
       }
@@ -3156,31 +3209,44 @@ describe(`F. (unhappy tests) Stake and unstake some FIO with no bundles tx remai
     expect(result.status).to.equal('OK');
   });
 
-  it('stake small amounts of FIO so that all bundled tx get consumed', async () => {
-    let stakeAmt = 1;
-    let feeAmt = 3000000000;
-    let bundles = await getBundleCount(userC.sdk)
-    process.stdout.write('\tconsuming remaining bundled transactions\n\tthis may take a while');
-    while (bundles > 0) {
-      process.stdout.write('.');
-      await userC.sdk.genericAction('pushTransaction', {
-        action: 'stakefio',
-        account: 'fio.staking',
-        data: {
-          fio_address: userC.address,
-          amount: stakeAmt,
-          actor: userC.address,
-          max_fee: feeAmt,
-          tpid: ''
-        }
-      });
-      wait(1000); //3000);
-      bundles = await getBundleCount(userC.sdk);
+  // it('stake small amounts of FIO so that all bundled tx get consumed', async () => {
+  //   let stakeAmt = 1;
+  //   //feeAmt = 3000000000;
+  //   let bundles = await getBundleCount(userC.sdk)
+  //   process.stdout.write('\tconsuming remaining bundled transactions\n\tthis may take a while');
+  //   while (bundles > 0) {
+  //     process.stdout.write('.');
+  //     await userC.sdk.genericAction('pushTransaction', {
+  //       action: 'stakefio',
+  //       account: 'fio.staking',
+  //       data: {
+  //         fio_address: userC.address,
+  //         amount: stakeAmt,
+  //         actor: userC.account,
+  //         max_fee: config.api.stake_fio_tokens.fee,
+  //         tpid: ''
+  //       }
+  //     });
+  //     wait(1000); //3000);
+  //     bundles = await getBundleCount(userC.sdk);
+  //   }
+  //   console.log('done');
+  //   bundles = await getBundleCount(userC.sdk);
+  //   expect(bundles).to.equal(0);
+  // });
+
+
+  it(`consume user1's remaining bundled transactions`, async () => {
+    try {
+      await consumeRemainingBundles(userC, userB);
+    } catch (err) {
+      expect(err).to.equal(null);
+    } finally {
+      let bundleCount = await getBundleCount(userC.sdk);
+      expect(bundleCount).to.equal(0);
     }
-    console.log('done');
-    bundles = await getBundleCount(userC.sdk);
-    expect(bundles).to.equal(0);
   });
+
 
   it(`attempt to stake with max_fee = 1 and 0 bundles remaining, expect Error 400 Fee exceeds supplied maximum`, async () => {
     let bal = await userC.sdk.genericAction('getFioBalance', {});
@@ -3191,7 +3257,7 @@ describe(`F. (unhappy tests) Stake and unstake some FIO with no bundles tx remai
         data: {
           fio_address: userC.address,
           amount: stakeAmt,
-          actor: userC.address,
+          actor: userC.account,
           max_fee: 1,
           tpid:'casey@dapixdev'
         }
@@ -3215,7 +3281,7 @@ describe(`F. (unhappy tests) Stake and unstake some FIO with no bundles tx remai
       data: {
         fio_address: '',
         amount: stakeAmt,
-        actor: userA.address,
+        actor: userA.account,
         max_fee: config.api.stake_fio_tokens.fee,
         tpid: ''
       }
@@ -3252,8 +3318,6 @@ describe(`F. (unhappy tests) Stake and unstake some FIO with no bundles tx remai
   it(`attempt to unstake with max_fee 1 and 0 bundles remaining, expect Error 400 Fee exceeds supplied maximum`, async () => {
     let bal = await userC.sdk.genericAction('getFioBalance', {});
     let bundles = await getBundleCount(userC.sdk);
-    expect(bal.staked).to.be.greaterThan(stakeAmt).and.lessThanOrEqual(stakeAmt + 100);
-
     try {
       const result = await userC.sdk.genericAction('pushTransaction', {
         action: 'unstakefio',
@@ -3361,7 +3425,7 @@ describe(`G1. Stake and unstake a single FIO`, () => {
       data: {
         proxy: userP.address,
         fio_address: userA.address,
-        actor: accountnm,
+        actor: userA.account,
         max_fee: config.api.proxy_vote.fee
       }
     });
@@ -3381,7 +3445,7 @@ describe(`G1. Stake and unstake a single FIO`, () => {
       data: {
         fio_address: userA.address,
         amount: stakeAmt,
-        actor: userA.address,
+        actor: userA.account,
         max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
@@ -3509,7 +3573,7 @@ describe(`G1. Stake and unstake a single FIO`, () => {
       data: {
         fio_address: userA.address,
         amount: stakeAmt,
-        actor: userA.address,
+        actor: userA.account,
         max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
@@ -3571,7 +3635,7 @@ describe(`G1. Stake and unstake a single FIO`, () => {
   //     data: {
   //       fio_address: userA.address,
   //       amount: stakeAmt,
-  //       actor: userA.address,
+  //       actor: userA.account,
   //       max_fee: config.api.stake_fio_tokens.fee,
   //       tpid: userP.address
   //     }
@@ -3702,7 +3766,7 @@ describe(`G2. Stake and unstake an unreasonably samll (sub-FIO) denomination of 
       data: {
         proxy: userP.address,
         fio_address: userA.address,
-        actor: accountnm,
+        actor: userA.account,
         max_fee: config.api.proxy_vote.fee
       }
     });
@@ -3722,7 +3786,7 @@ describe(`G2. Stake and unstake an unreasonably samll (sub-FIO) denomination of 
       data: {
         fio_address: userA.address,
         amount: stakeAmt,
-        actor: userA.address,
+        actor: userA.account,
         max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
@@ -3800,7 +3864,14 @@ describe(`G2. Stake and unstake an unreasonably samll (sub-FIO) denomination of 
       expect(combinedTokenPool - newCombinedTokenPool).to.equal(unstakeAmt);
       expect(globalSrpCount - newGlobalSrpCount).to.equal(unstakeAmt);
     } catch (err) {
-      expect(err).to.equal(null);
+      newStakedTokenPool = await getStakedTokenPool();
+      newCombinedTokenPool = await getCombinedTokenPool();
+      newGlobalSrpCount = await getGlobalSrpCount();
+      newBal = await userA.sdk.genericAction('getFioBalance', {});
+      // expect(err).to.equal(null);
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].error).to.equal('Invalid amount value');
     }
   });
 
@@ -3855,7 +3926,7 @@ describe(`G2. Stake and unstake an unreasonably samll (sub-FIO) denomination of 
         data: {
           fio_address: userA.address,
           amount: stakeAmt,
-          actor: userA.address,
+          actor: userA.account,
           max_fee: config.api.stake_fio_tokens.fee,
           tpid: userP.address
         }
@@ -4010,7 +4081,7 @@ describe(`G2. Stake and unstake an unreasonably samll (sub-FIO) denomination of 
 //       data: {
 //         fio_address: userA.address,
 //         amount: stakeAmt,
-//         actor: userA.address,
+//         actor: userA.account,
 //         max_fee: config.api.stake_fio_tokens.fee,
 //         tpid: userP.address
 //       }
@@ -4257,7 +4328,7 @@ describe(`G3. Stake some FIO, then try to unstake an unreasonably small amount (
       data: {
         proxy: userP.address,
         fio_address: userA.address,
-        actor: accountnm,
+        actor: userA.account,
         max_fee: config.api.proxy_vote.fee
       }
     });
@@ -4276,7 +4347,7 @@ describe(`G3. Stake some FIO, then try to unstake an unreasonably small amount (
       data: {
         fio_address: userA.address,
         amount: stakeAmt,
-        actor: userA.address,
+        actor: userA.account,
         max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
@@ -4526,7 +4597,7 @@ describe(`G4. Stake some FIO, then try to unstake an unreasonably small amount (
       data: {
         proxy: userP.address,
         fio_address: userA.address,
-        actor: accountnm,
+        actor: userA.account,
         max_fee: config.api.proxy_vote.fee
       }
     });
@@ -4545,7 +4616,7 @@ describe(`G4. Stake some FIO, then try to unstake an unreasonably small amount (
       data: {
         fio_address: userA.address,
         amount: stakeAmt,
-        actor: userA.address,
+        actor: userA.account,
         max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
@@ -4691,7 +4762,7 @@ describe(`G4. Stake some FIO, then try to unstake an unreasonably small amount (
       data: {
         fio_address: userA.address,
         amount: 1000000000,
-        actor: userA.address,
+        actor: userA.account,
         max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
@@ -4838,7 +4909,7 @@ describe(`G5. Stake some FIO, then try to unstake an unreasonably small amount (
       data: {
         proxy: userP.address,
         fio_address: userA.address,
-        actor: accountnm,
+        actor: userA.account,
         max_fee: config.api.proxy_vote.fee
       }
     });
@@ -4857,7 +4928,7 @@ describe(`G5. Stake some FIO, then try to unstake an unreasonably small amount (
       data: {
         fio_address: userA.address,
         amount: stakeAmt,
-        actor: userA.address,
+        actor: userA.account,
         max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
@@ -5086,7 +5157,7 @@ describe(`G6. Stake some FIO, then try to unstake an unreasonably small amount (
       data: {
         proxy: userP.address,
         fio_address: userA.address,
-        actor: accountnm,
+        actor: userA.account,
         max_fee: config.api.proxy_vote.fee
       }
     });
@@ -5105,7 +5176,7 @@ describe(`G6. Stake some FIO, then try to unstake an unreasonably small amount (
       data: {
         fio_address: userA.address,
         amount: stakeAmt,
-        actor: userA.address,
+        actor: userA.account,
         max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
@@ -5348,7 +5419,7 @@ describe(`H. Malicious staking actions`, () => {
       data: {
         proxy: userP.address,
         fio_address: userA.address,
-        actor: accountnm,
+        actor: userA.account,
         max_fee: config.api.proxy_vote.fee
       }
     });
@@ -5362,14 +5433,16 @@ describe(`H. Malicious staking actions`, () => {
         data: {
           fio_address: userA.address,
           amount: stakeAmt,
-          actor: userA.address,
+          actor: userA.account,
           max_fee: config.api.stake_fio_tokens.fee,
           tpid: userP.address
         }
       });
+      expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(403);
-      expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
+      expect(err.errorCode).to.equal(500);
+      expect(err.json.error.what).to.equal('Missing required authority');
+      expect(err.json.error.details[0].message).to.equal(`missing authority of ${userA.account}`);
     }
   });
 
@@ -5393,14 +5466,15 @@ describe(`H. Malicious staking actions`, () => {
         data: {
           fio_address: userA.address,
           amount: stakeAmt,
-          actor: userA.address,
+          actor: userA.account,
           max_fee: config.api.stake_fio_tokens.fee,
           tpid: userP.address
         }
       });
     } catch (err) {
-      expect(err.errorCode).to.equal(403);
-      expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
+      expect(err.errorCode).to.equal(500);
+      expect(err.json.error.what).to.equal('Missing required authority');
+      expect(err.json.error.details[0].message).to.equal(`missing authority of ${userA.account}`);
     }
   });
 });
@@ -5486,7 +5560,7 @@ describe(`I. Malicious unstaking actions`, () => {
       data: {
         proxy: userP.address,
         fio_address: userA.address,
-        actor: accountnm,
+        actor: userA.account,
         max_fee: config.api.proxy_vote.fee
       }
     });
@@ -5498,7 +5572,7 @@ describe(`I. Malicious unstaking actions`, () => {
       data: {
         fio_address: '',
         amount: stakeAmt,
-        actor: userA.address,
+        actor: userA.account,
         max_fee: config.api.stake_fio_tokens.fee,
         tpid: userP.address
       }
@@ -5519,8 +5593,9 @@ describe(`I. Malicious unstaking actions`, () => {
         }
       });
     } catch (err) {
-      expect(err.errorCode).to.equal(403);
-      expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
+      expect(err.errorCode).to.equal(500);
+      expect(err.json.error.what).to.equal('Missing required authority');
+      expect(err.json.error.details[0].message).to.equal(`missing authority of ${userA.account}`);
     }
   })
 
@@ -5550,8 +5625,9 @@ describe(`I. Malicious unstaking actions`, () => {
         }
       });
     } catch (err) {
-      expect(err.errorCode).to.equal(403);
-      expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
+      expect(err.errorCode).to.equal(500);
+      expect(err.json.error.what).to.equal('Missing required authority');
+      expect(err.json.error.details[0].message).to.equal(`missing authority of ${userA.account}`);
     }
   })
 });
