@@ -287,7 +287,7 @@ const config = {
         } ,
         buy_domain: {
             bundledEligible: false,
-            fee: 1000000000
+            fee: 2000000000
         } ,
         set_marketplace_config: {
             bundledEligible: false,

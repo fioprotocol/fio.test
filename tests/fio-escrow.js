@@ -1,5 +1,7 @@
 require('mocha')
-const {expect} = require('chai')
+const {createHash} = require('crypto');
+const {expect}     = require('chai');
+
 const {
 	      newUser,
 	      existingUser,
@@ -17,7 +19,7 @@ before(async () => {
 })
 
 describe(`************************** fio-escrow.js ************************** \n    
-A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
+	A. Set up 2 users, register domains and list one for sale`, () => {
 
 	let userA1;
 	let userA2
@@ -32,12 +34,12 @@ A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
 		let marketplacePriv = `5KePj5qMF7xvXZwY4Tnxy7KbDCdUe7cyZtYv2rsTgaZ7LBuVpUc`;
 		let marketplacePub  = `FIO77rFFByyLycsrbC5tH1CXqddZdgkDuTYDbCc2BoGp5hdnU59f7`;
 
-		userA1          = await newUser(faucet);
-		userA2          = await newUser(faucet);
+		userA1   = await newUser(faucet);
+		userA2   = await newUser(faucet);
 		marketplaceUser
-		                = await existingUser(`5ufabtv13hv4`, marketplacePriv, marketplacePub, 'marketplace', 'user@marketplace')
-		domain          = generateFioDomain(10);
-		domainA2        = generateFioDomain(10);
+		         = await existingUser(`5ufabtv13hv4`, marketplacePriv, marketplacePub, 'marketplace', 'user@marketplace')
+		domain   = generateFioDomain(10);
+		domainA2 = generateFioDomain(10);
 	})
 
 	// set parameters for marketplace
@@ -110,10 +112,6 @@ A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
 		}
 	});
 
-	it.skip(`Wait 45 seconds.`, async () => {
-		await timeout(45000)
-	})
-
 	it(`set marketplace e_break to 0`, async () => {
 		try {
 			await callFioApiSigned('push_transaction', {
@@ -147,10 +145,6 @@ A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
 			console.log(err);
 		}
 	});
-
-	it.skip(`Wait 45 seconds.`, async () => {
-		await timeout(45000)
-	})
 
 	// register domain
 	it(`userA1 and userA2 register a domain`, async () => {
@@ -209,8 +203,6 @@ A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
 				fioPublicKey: marketplaceUser.publicKey
 			})
 
-			// console.log(marketplaceBalanceResult);
-
 			const userBalanceResult = await userA1.sdk.genericAction('getFioBalance', {
 				fioPublicKey: userA1.publicKey
 			})
@@ -261,8 +253,7 @@ A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
 				fioPublicKey: userA1.publicKey
 			})
 
-			// this assertion is off too. I am not sure why.
-			expect(userBalanceResultAfter.balance).to.equal(userA1Balance - parseInt(listing_fee))
+			expect(userBalanceResultAfter.balance).to.equal(userA1Balance - parseInt(listing_fee) - config.api.list_domain.fee)
 
 			domainSaleIdA1 = result.domainsale_id;
 
@@ -284,8 +275,12 @@ A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
 
 			expect(resultA2.status).to.equal('OK')
 
+			// TODO: check ram allocation after listing a domain
+			// TODO: check no bundle transactions deducted
+
 		} catch (err) {
-			// console.log(err.json);
+			console.log(err);
+			console.log(err.json);
 			expect(err).to.equal(null)
 		}
 	})
@@ -293,10 +288,16 @@ A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
 	// cancel domain listing
 	it(`userA1 cancels domain listing`, async () => {
 		try {
+
+			const userBalanceResult = await userA1.sdk.genericAction('getFioBalance', {
+				fioPublicKey: userA1.publicKey
+			})
+			let userA1Balance       = userBalanceResult.balance;
+
 			let data = {
 				"actor"     : userA1.account,
 				"fio_domain": domain,
-				"max_fee"   : 5000000000,
+				"max_fee"   : config.api.cancel_list_domain.fee,
 				"tpid"      : ""
 			};
 
@@ -306,8 +307,36 @@ A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
 				data   : data
 			})
 
+			const domainHash = stringToHash(domain);
+
+			const domainSaleRow = await callFioApi("get_table_rows", {
+				json          : true,
+				code          : 'fio.escrow',
+				scope         : 'fio.escrow',
+				table         : 'domainsales',
+				upper_bound   : domainHash.toString(),
+				lower_bound   : domainHash.toString(),
+				key_type      : 'i128',
+				index_position: 2,
+				reverse       : true,
+				show_payer    : false
+			});
+
+			expect(domainSaleRow.rows[0].status).to.equal(3); // cancelled listing
+			expect(domainSaleRow.rows[0].date_listed).to.not.equal(domainSaleRow.rows[0].date_updated);
+
+			const userBalanceResultAfter = await userA1.sdk.genericAction('getFioBalance', {
+				fioPublicKey: userA1.publicKey
+			})
+
+			expect(userBalanceResultAfter.balance).to.equal(userA1Balance - config.api.cancel_list_domain.fee)
 			expect(result.status).to.equal('OK')
+
+			// TODO: check ram allocation after listing a domain
+			// TODO: check no bundle transactions deducted
+
 		} catch (err) {
+			console.log(err);
 			expect(err).to.equal(null)
 		}
 	})
@@ -315,14 +344,43 @@ A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
 	// buy domain listed for sale
 	it(`userA1 buys domain listed for sale by userA2`, async () => {
 		try {
+			const userBalanceResult = await userA1.sdk.genericAction('getFioBalance', {
+				fioPublicKey: userA1.publicKey
+			})
+			let userA1Balance       = userBalanceResult.balance;
+
+			const userA2BalanceResult = await userA2.sdk.genericAction('getFioBalance', {
+				fioPublicKey: userA2.publicKey
+			})
+			let userA2Balance       = userA2BalanceResult.balance;
+
+			const configs = await callFioApi("get_table_rows", {
+				json      : true,
+				code      : 'fio.escrow',
+				scope     : 'fio.escrow',
+				table     : 'mrkplconfigs',
+				limit     : 1,
+				reverse   : false,
+				show_payer: false
+			});
+
+			// Getting marketplace configurations
+			const commissionFeePct = configs.rows[0].commission_fee / 100;
+
+			const marketplaceBalanceResult = await marketplaceUser.sdk.genericAction('getFioBalance', {
+				fioPublicKey: marketplaceUser.publicKey
+			})
+
 			let data = {
 				"actor"        : userA1.account,
 				"fio_domain"   : domainA2,
 				"sale_id"      : domainSaleIdA2,
 				"max_buy_price": 300000000000,
-				"max_fee"      : 5000000000,
+				"max_fee"      : config.api.buy_domain.fee,
 				"tpid"         : ""
 			};
+
+			let marketplaceCommission = data.max_buy_price * commissionFeePct;
 
 			const result = await userA1.sdk.genericAction('pushTransaction', {
 				action : 'buydomain',
@@ -330,8 +388,46 @@ A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
 				data   : data
 			})
 
+			const domainHash = stringToHash(domainA2);
+
+			const domainSaleRow = await callFioApi("get_table_rows", {
+				json          : true,
+				code          : 'fio.escrow',
+				scope         : 'fio.escrow',
+				table         : 'domainsales',
+				upper_bound   : domainHash.toString(),
+				lower_bound   : domainHash.toString(),
+				key_type      : 'i128',
+				index_position: 2,
+				reverse       : true,
+				show_payer    : false
+			});
+
+			expect(domainSaleRow.rows[0].status).to.equal(2); // sold listing
+			expect(domainSaleRow.rows[0].date_listed).to.not.equal(domainSaleRow.rows[0].date_updated); // date_updated updated
+
+			const userBalanceResultAfter = await userA1.sdk.genericAction('getFioBalance', {
+				fioPublicKey: userA1.publicKey
+			})
+
+			const userA2BalanceResultAfter = await userA2.sdk.genericAction('getFioBalance', {
+				fioPublicKey: userA2.publicKey
+			})
+			const marketplaceBalanceResultAfter = await marketplaceUser.sdk.genericAction('getFioBalance', {
+				fioPublicKey: marketplaceUser.publicKey
+			})
+
+			// check balance of userA1 (buyer)
+			expect(userBalanceResultAfter.balance).to.equal(userA1Balance - config.api.buy_domain.fee - domainSaleRow.rows[0].sale_price)
+			// check balance of userA2 (seller)
+			expect(userA2BalanceResultAfter.balance).to.equal(userA2Balance + domainSaleRow.rows[0].sale_price - marketplaceCommission)
+			// check balance of marketplace
+			expect(marketplaceBalanceResultAfter.balance).to.equal(marketplaceBalanceResult.balance + marketplaceCommission)
+
 			expect(result.status).to.equal('OK')
 		} catch (err) {
+			console.log(err);
+			console.log(err.json);
 			expect(err).to.equal(null)
 		}
 	})
@@ -367,3 +463,9 @@ A. Add 2 addresses, then add 3 addresses including the original 2`, () => {
 		await timeout(3000)
 	})
 })
+
+let stringToHash = (term) => {
+	const hash = createHash('sha1');
+	return '0x' + hash.update(term).digest().slice(0, 16).reverse().toString('hex');
+};
+
