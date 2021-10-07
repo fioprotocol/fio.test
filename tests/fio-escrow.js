@@ -462,6 +462,37 @@ describe(`************************** fio-escrow.js ************************** \n
 	it.skip(`Wait a few seconds.`, async () => {
 		await timeout(3000)
 	})
+
+	it.skip(`burn domain that is in domainsales table`, async () => {
+		// todo Burn domain that is in the domainsales table
+		// Observe (via table lookup)
+		// All references to burned domain removed from all escrow tables
+	})
+})
+
+describe(`sad path for fio.escrow actions`, () => {
+	it.skip(`listdomain`, async () => {
+		// Create tests for conditions in: https://github.com/fioprotocol/fips/blob/master/fip-0026.md#exception-handling
+	})
+
+	it.skip(`cxlistdomain`, async () => {
+		// Create tests for conditions in: https://github.com/fioprotocol/fips/blob/master/fip-0026.md#exception-handling-1
+	})
+
+	it.skip(`buydomain`, async () => {
+		// Create tests for conditions in: https://github.com/fioprotocol/fips/blob/master/fip-0026.md#exception-handling-2
+	})
+
+	it.skip(`setmrkplcfg`, async () => {
+
+		// Create tests for conditions in: https://github.com/fioprotocol/fips/blob/master/fip-0026.md#exception-handling-3
+	})
+
+	it.skip(`xferescrow`, async () => {
+
+		// Create tests for conditions in: https://github.com/fioprotocol/fips/blob/master/fip-0026.md#exception-handling-4
+	})
+
 })
 
 let stringToHash = (term) => {
