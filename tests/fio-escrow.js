@@ -43,7 +43,7 @@ describe(`************************** fio-escrow.js ************************** \n
 	})
 
 	// set parameters for marketplace
-	it(`set marketplace listing_fee to 50 FIO`, async () => {
+	it.skip(`set marketplace listing_fee to 50 FIO`, async () => {
 		try {
 			await callFioApiSigned('push_transaction', {
 				action : 'setmrkplcfg',
@@ -77,7 +77,7 @@ describe(`************************** fio-escrow.js ************************** \n
 		}
 	});
 
-	it(`set marketplace commission_fee to 6% and enable e_break`, async () => {
+	it.skip(`set marketplace commission_fee to 6% and enable e_break`, async () => {
 		try {
 			await callFioApiSigned('push_transaction', {
 				action : 'setmrkplcfg',
@@ -112,7 +112,7 @@ describe(`************************** fio-escrow.js ************************** \n
 		}
 	});
 
-	it(`set marketplace e_break to 0`, async () => {
+	it.skip(`set marketplace e_break to 0`, async () => {
 		try {
 			await callFioApiSigned('push_transaction', {
 				action : 'setmrkplcfg',
@@ -146,8 +146,11 @@ describe(`************************** fio-escrow.js ************************** \n
 		}
 	});
 
+	it.skip(`Wait a few seconds.`, async () => {
+		await timeout(3000)
+	})
 	// register domain
-	it(`userA1 and userA2 register a domain`, async () => {
+	it.skip(`userA1 and userA2 register a domain`, async () => {
 		try {
 			await faucet.genericAction('transferTokens', {
 				payeeFioPublicKey: userA1.publicKey,
@@ -180,10 +183,12 @@ describe(`************************** fio-escrow.js ************************** \n
 		}
 	})
 
+	it.skip(`Wait a few seconds.`, async () => {
+		await timeout(3000)
+	})
 	// list domain for sale
-	it(`userA1 and userA2 lists domain for sale`, async () => {
+	it.skip(`userA1 and userA2 lists domain for sale`, async () => {
 		try {
-
 			const configs = await callFioApi("get_table_rows", {
 				json      : true,
 				code      : 'fio.escrow',
@@ -285,8 +290,12 @@ describe(`************************** fio-escrow.js ************************** \n
 		}
 	})
 
+	it.skip(`Wait a few seconds.`, async () => {
+		await timeout(3000)
+	})
+
 	// cancel domain listing
-	it(`userA1 cancels domain listing`, async () => {
+	it.skip(`userA1 cancels domain listing`, async () => {
 		try {
 
 			const userBalanceResult = await userA1.sdk.genericAction('getFioBalance', {
@@ -342,7 +351,7 @@ describe(`************************** fio-escrow.js ************************** \n
 	})
 
 	// buy domain listed for sale
-	it(`userA1 buys domain listed for sale by userA2`, async () => {
+	it.skip(`userA1 buys domain listed for sale by userA2`, async () => {
 		try {
 			const userBalanceResult = await userA1.sdk.genericAction('getFioBalance', {
 				fioPublicKey: userA1.publicKey
@@ -352,7 +361,7 @@ describe(`************************** fio-escrow.js ************************** \n
 			const userA2BalanceResult = await userA2.sdk.genericAction('getFioBalance', {
 				fioPublicKey: userA2.publicKey
 			})
-			let userA2Balance       = userA2BalanceResult.balance;
+			let userA2Balance         = userA2BalanceResult.balance;
 
 			const configs = await callFioApi("get_table_rows", {
 				json      : true,
@@ -410,7 +419,7 @@ describe(`************************** fio-escrow.js ************************** \n
 				fioPublicKey: userA1.publicKey
 			})
 
-			const userA2BalanceResultAfter = await userA2.sdk.genericAction('getFioBalance', {
+			const userA2BalanceResultAfter      = await userA2.sdk.genericAction('getFioBalance', {
 				fioPublicKey: userA2.publicKey
 			})
 			const marketplaceBalanceResultAfter = await marketplaceUser.sdk.genericAction('getFioBalance', {
@@ -432,6 +441,467 @@ describe(`************************** fio-escrow.js ************************** \n
 		}
 	})
 
+	it.skip(`Wait a few seconds.`, async () => {
+		await timeout(3000)
+	})
+
+	it.skip(`burn domain that is in domainsales table`, async () => {
+		// TODO: is it possible to burn a domain that is not expired? How do I make a domain expired in a unit test?
+
+		// todo Burn domain that is in the domainsales table
+		// Observe (via table lookup)
+		// All references to burned domain removed from all escrow tables
+	})
+
+	// sad paths
+	let domainSadPath1;
+	let domainSadPath2;
+
+	it.skip(`list domain for sale with sale price too high`, async () => {
+		// Create tests for conditions in: https://github.com/fioprotocol/fips/blob/master/fip-0026.md#exception-handling
+
+		try {
+			domainSadPath1 = generateFioDomain(10);
+			domainSadPath2 = generateFioDomain(10);
+
+			await faucet.genericAction('transferTokens', {
+				payeeFioPublicKey: userA1.publicKey,
+				amount           : 8000000000000,
+				maxFee           : config.api.transfer_tokens_pub_key.fee,
+			})
+			const result = await userA1.sdk.genericAction('registerFioDomain', {
+				fioDomain           : domainSadPath1,
+				maxFee              : config.api.register_fio_domain.fee,
+				technologyProviderId: ''
+			})
+
+			expect(result.status).to.equal('OK')
+
+			let dataA1 = {
+				"actor"     : userA1.account,
+				"fio_domain": domainSadPath1,
+				"sale_price": 1000000000000000,
+				"max_fee"   : config.api.list_domain.fee,
+				"tpid"      : ""
+			};
+
+			const resultListDomain = await userA1.sdk.genericAction('pushTransaction', {
+				action : 'listdomain',
+				account: 'fio.escrow',
+				data   : dataA1
+			})
+		} catch (err) {
+			expect(err.errorCode).to.equal(400)
+			expect(err.json.fields[0].name).to.equal('sale_price')
+			expect(err.json.fields[0].value).to.equal('1000000000000000')
+			expect(err.json.fields[0].error).to.equal('Sale price should be less than 999,999 FIO (999,999,000,000,000 SUF)')
+		}
+	})
+
+	it.skip(`Wait a few seconds.`, async () => {
+		await timeout(3000)
+	})
+
+	it.skip(`list domain for sale with sale price too low`, async () => {
+		// Create tests for conditions in: https://github.com/fioprotocol/fips/blob/master/fip-0026.md#exception-handling
+		try {
+			domainSadPath1 = generateFioDomain(10);
+			domainSadPath2 = generateFioDomain(10);
+
+			await faucet.genericAction('transferTokens', {
+				payeeFioPublicKey: userA1.publicKey,
+				amount           : 8000000000000,
+				maxFee           : config.api.transfer_tokens_pub_key.fee,
+			})
+			const result = await userA1.sdk.genericAction('registerFioDomain', {
+				fioDomain           : domainSadPath1,
+				maxFee              : config.api.register_fio_domain.fee,
+				technologyProviderId: ''
+			})
+
+			expect(result.status).to.equal('OK')
+
+			let dataA1 = {
+				"actor"     : userA1.account,
+				"fio_domain": domainSadPath1,
+				"sale_price": 100000,
+				"max_fee"   : config.api.list_domain.fee,
+				"tpid"      : ""
+			};
+
+			const resultListDomain = await userA1.sdk.genericAction('pushTransaction', {
+				action : 'listdomain',
+				account: 'fio.escrow',
+				data   : dataA1
+			})
+
+			console.log(resultListDomain);
+
+		} catch (err) {
+			// console.log(err);
+			// console.log(err.json.fields[0])
+			expect(err.errorCode).to.equal(400)
+			expect(err.json.fields[0].name).to.equal('sale_price')
+			expect(err.json.fields[0].value).to.equal('100000')
+			expect(err.json.fields[0].error).to.equal('Sale price should be greater than 1 FIO (1,000,000,000 SUF)')
+		}
+
+	})
+
+	it.skip(`Wait a few seconds.`, async () => {
+		await timeout(3000)
+	})
+
+	it(`list domain for sale with invalid fee format`, async () => {
+
+		// Create tests for conditions in: https://github.com/fioprotocol/fips/blob/master/fip-0026.md#exception-handling
+		try {
+			domainSadPath1 = generateFioDomain(10);
+			domainSadPath2 = generateFioDomain(10);
+
+			await faucet.genericAction('transferTokens', {
+				payeeFioPublicKey: userA1.publicKey,
+				amount           : 8000000000000,
+				maxFee           : config.api.transfer_tokens_pub_key.fee,
+			})
+			const result = await userA1.sdk.genericAction('registerFioDomain', {
+				fioDomain           : domainSadPath1,
+				maxFee              : config.api.register_fio_domain.fee,
+				technologyProviderId: ''
+			})
+
+			expect(result.status).to.equal('OK')
+
+			let dataA1 = {
+				"actor"     : userA1.account,
+				"fio_domain": domainSadPath1,
+				"sale_price": 500000000000,
+				"max_fee"   : 0,
+				"tpid"      : ""
+			};
+
+			const resultListDomain = await userA1.sdk.genericAction('pushTransaction', {
+				action : 'listdomain',
+				account: 'fio.escrow',
+				data   : dataA1
+			})
+		} catch (err) {
+			expect(err.errorCode).to.equal(400)
+			expect(err.json.fields[0].name).to.equal('max_fee')
+			expect(err.json.fields[0].value).to.equal('0')
+			expect(err.json.fields[0].error).to.equal('Fee exceeds supplied maximum.')
+		}
+
+	})
+
+	it(`Wait a few seconds.`, async () => {
+		await timeout(3000)
+	})
+
+	it(`list domain for sale with invalid fee`, async () => {
+		// Create tests for conditions in: https://github.com/fioprotocol/fips/blob/master/fip-0026.md#exception-handling
+		try {
+			domainSadPath1 = generateFioDomain(10);
+			domainSadPath2 = generateFioDomain(10);
+
+			await faucet.genericAction('transferTokens', {
+				payeeFioPublicKey: userA1.publicKey,
+				amount           : 8000000000000,
+				maxFee           : config.api.transfer_tokens_pub_key.fee,
+			})
+			const result = await userA1.sdk.genericAction('registerFioDomain', {
+				fioDomain           : domainSadPath1,
+				maxFee              : config.api.register_fio_domain.fee,
+				technologyProviderId: ''
+			})
+
+			expect(result.status).to.equal('OK')
+
+			let dataA1 = {
+				"actor"     : userA1.account,
+				"fio_domain": domainSadPath1,
+				"sale_price": 50000000000,
+				"max_fee"   : config.api.list_domain.fee / 2,
+				"tpid"      : ""
+			};
+
+			const resultListDomain = await userA1.sdk.genericAction('pushTransaction', {
+				action : 'listdomain',
+				account: 'fio.escrow',
+				data   : dataA1
+			})
+
+			console.log(resultListDomain);
+
+		} catch (err) {
+			expect(err.errorCode).to.equal(400)
+			expect(err.json.fields[0].name).to.equal('max_fee')
+			expect(err.json.fields[0].value).to.equal((config.api.list_domain.fee / 2).toString())
+			expect(err.json.fields[0].error).to.equal('Fee exceeds supplied maximum.')
+		}
+
+	})
+
+	it(`Wait a few seconds.`, async () => {
+		await timeout(3000)
+	})
+
+	it(`list domain for sale with invalid tpid`, async () => {
+		// Create tests for conditions in: https://github.com/fioprotocol/fips/blob/master/fip-0026.md#exception-handling
+		try {
+			domainSadPath1 = generateFioDomain(10);
+			domainSadPath2 = generateFioDomain(10);
+
+			await faucet.genericAction('transferTokens', {
+				payeeFioPublicKey: userA1.publicKey,
+				amount           : 8000000000000,
+				maxFee           : config.api.transfer_tokens_pub_key.fee,
+			})
+			const result = await userA1.sdk.genericAction('registerFioDomain', {
+				fioDomain           : domainSadPath1,
+				maxFee              : config.api.register_fio_domain.fee,
+				technologyProviderId: ''
+			})
+
+			expect(result.status).to.equal('OK')
+
+			let dataA1 = {
+				"actor"     : userA1.account,
+				"fio_domain": domainSadPath1,
+				"sale_price": 50000000000,
+				"max_fee"   : config.api.list_domain.fee,
+				"tpid"      : "wrong@tpid@format"
+			};
+
+			const resultListDomain = await userA1.sdk.genericAction('pushTransaction', {
+				action : 'listdomain',
+				account: 'fio.escrow',
+				data   : dataA1
+			})
+
+			console.log(resultListDomain);
+
+		} catch (err) {
+			// console.log(err);
+			expect(err.errorCode).to.equal(400)
+			expect(err.json.fields[0].name).to.equal('tpid')
+			expect(err.json.fields[0].value).to.equal(`wrong@tpid@format`)
+			expect(err.json.fields[0].error).to.equal('TPID must be empty or valid FIO address')
+		}
+	})
+
+	it(`Wait a few seconds.`, async () => {
+		await timeout(3000)
+	})
+
+	it(`list domain for sale with invalid domain format`, async () => {
+		// Create tests for conditions in: https://github.com/fioprotocol/fips/blob/master/fip-0026.md#exception-handling
+		try {
+			domainSadPath1       = generateFioDomain(10);
+			domainSadPath2       = generateFioDomain(10);
+			const fiftyfiveChars = "0123456789012345678901234567890123456789012345678901234"
+			domain0Bad           = "";
+			domain63Bad          = fiftyfiveChars + Math.random().toString(26).substr(2, 8)
+
+			await faucet.genericAction('transferTokens', {
+				payeeFioPublicKey: userA1.publicKey,
+				amount           : 8000000000000,
+				maxFee           : config.api.transfer_tokens_pub_key.fee,
+			})
+			const result = await userA1.sdk.genericAction('registerFioDomain', {
+				fioDomain           : domainSadPath1,
+				maxFee              : config.api.register_fio_domain.fee,
+				technologyProviderId: ''
+			})
+
+			expect(result.status).to.equal('OK')
+
+			let dataA1 = {
+				"actor"     : userA1.account,
+				"fio_domain": domain63Bad,
+				"sale_price": 50000000000,
+				"max_fee"   : config.api.list_domain.fee,
+				"tpid"      : ""
+			};
+
+			const resultListDomain = await userA1.sdk.genericAction('pushTransaction', {
+				action : 'listdomain',
+				account: 'fio.escrow',
+				data   : dataA1
+			})
+
+			console.log(resultListDomain);
+
+		} catch (err) {
+			// console.log(err);
+			// console.log(err.json.fields[0]);
+			expect(err.errorCode).to.equal(400)
+			expect(err.json.fields[0].name).to.equal('fio_domain')
+			expect(err.json.fields[0].value).to.equal(domain63Bad)
+			expect(err.json.fields[0].error).to.equal('FIO domain not found')
+		}
+
+	})
+
+	it(`Wait a few seconds.`, async () => {
+		await timeout(3000)
+	})
+
+	it(`list domain for sale with expired domain`, async () => {
+		// TODO: Not sure how to do this
+
+		// Create tests for conditions in: https://github.com/fioprotocol/fips/blob/master/fip-0026.md#exception-handling
+	})
+
+	it(`Wait a few seconds.`, async () => {
+		await timeout(3000)
+	})
+
+	it(`list domain for sale with unregistered domain`, async () => {
+		// Create tests for conditions in: https://github.com/fioprotocol/fips/blob/master/fip-0026.md#exception-handling
+
+		// this is a dupe of `list domain for sale with invalid domain format`
+		// it will just not find it on the domains table on fio.address
+
+	})
+
+	it(`Wait a few seconds.`, async () => {
+		await timeout(3000)
+	})
+
+	it(`list domain for sale that user does not own`, async () => {
+		// Create tests for conditions in: https://github.com/fioprotocol/fips/blob/master/fip-0026.md#exception-handling
+		try {
+			domainSadPath1       = generateFioDomain(10);
+			domainSadPath2       = generateFioDomain(10);
+
+			await faucet.genericAction('transferTokens', {
+				payeeFioPublicKey: userA1.publicKey,
+				amount           : 8000000000000,
+				maxFee           : config.api.transfer_tokens_pub_key.fee,
+			})
+			const result = await userA1.sdk.genericAction('registerFioDomain', {
+				fioDomain           : domainSadPath1,
+				maxFee              : config.api.register_fio_domain.fee,
+				technologyProviderId: ''
+			})
+
+			expect(result.status).to.equal('OK')
+
+			await faucet.genericAction('transferTokens', {
+				payeeFioPublicKey: userA2.publicKey,
+				amount           : 8000000000000,
+				maxFee           : config.api.transfer_tokens_pub_key.fee,
+			})
+
+			const resultA2 = await userA2.sdk.genericAction('registerFioDomain', {
+				fioDomain           : domainSadPath2,
+				maxFee              : config.api.register_fio_domain.fee,
+				technologyProviderId: ''
+			})
+
+			expect(resultA2.status).to.equal('OK')
+
+			let dataA1 = {
+				"actor"     : userA1.account,
+				"fio_domain": domainSadPath2,
+				"sale_price": 50000000000,
+				"max_fee"   : config.api.list_domain.fee,
+				"tpid"      : ""
+			};
+
+			const resultListDomain = await userA1.sdk.genericAction('pushTransaction', {
+				action : 'listdomain',
+				account: 'fio.escrow',
+				data   : dataA1
+			})
+
+			console.log(resultListDomain);
+
+		} catch (err) {
+			// console.log(err);
+			// console.log(err.json.fields[0]);
+			expect(err.errorCode).to.equal(403)
+			expect(err.json.fields[0].name).to.equal('fio_domain')
+			expect(err.json.fields[0].value).to.equal(domainSadPath2)
+			expect(err.json.fields[0].error).to.equal('FIO domain not owned by actor')
+		}
+
+	})
+
+	it.skip(`list domain for sale where actor doesnt match the signer`, async () => {
+
+		// TODO: I am not sure how to check this either.
+		// I do not have an explict error message for this error path either
+		// unless the `require_auth(actor)` covers this path
+
+		// Create tests for conditions in: https://github.com/fioprotocol/fips/blob/master/fip-0026.md#exception-handling
+		try {
+			domainSadPath1       = generateFioDomain(10);
+			domainSadPath2       = generateFioDomain(10);
+
+			await faucet.genericAction('transferTokens', {
+				payeeFioPublicKey: userA1.publicKey,
+				amount           : 8000000000000,
+				maxFee           : config.api.transfer_tokens_pub_key.fee,
+			})
+			const result = await userA1.sdk.genericAction('registerFioDomain', {
+				fioDomain           : domainSadPath1,
+				maxFee              : config.api.register_fio_domain.fee,
+				technologyProviderId: ''
+			})
+
+			expect(result.status).to.equal('OK')
+
+			await faucet.genericAction('transferTokens', {
+				payeeFioPublicKey: userA2.publicKey,
+				amount           : 8000000000000,
+				maxFee           : config.api.transfer_tokens_pub_key.fee,
+			})
+
+			const resultA2 = await userA2.sdk.genericAction('registerFioDomain', {
+				fioDomain           : domainSadPath2,
+				maxFee              : config.api.register_fio_domain.fee,
+				technologyProviderId: ''
+			})
+
+			expect(resultA2.status).to.equal('OK')
+
+			let dataA1 = {
+				"actor"     : userA1.account,
+				"fio_domain": domainSadPath1,
+				"sale_price": 50000000000,
+				"max_fee"   : config.api.list_domain.fee,
+				"tpid"      : ""
+			};
+
+			const resultListDomain = await userA2.sdk.genericAction('pushTransaction', {
+				action : 'listdomain',
+				account: 'fio.escrow',
+				data   : dataA1
+			})
+
+			console.log(resultListDomain);
+
+		} catch (err) {
+			// console.log(err);
+			// console.log(err.json.fields[0]);
+			expect(err.errorCode).to.equal(403)
+			expect(err.json.fields[0].name).to.equal('fio_domain')
+			expect(err.json.fields[0].value).to.equal(domainSadPath2)
+			expect(err.json.fields[0].error).to.equal('FIO domain not owned by actor')
+		}
+
+	})
+
+	it.skip(`cxlistdomain`, async () => {
+		// Create tests for conditions in: https://github.com/fioprotocol/fips/blob/master/fip-0026.md#exception-handling-1
+	})
+
+	it.skip(`buydomain`, async () => {
+		// Create tests for conditions in: https://github.com/fioprotocol/fips/blob/master/fip-0026.md#exception-handling-2
+	})
+
 	it.skip(`userA2 tries to buy userA1's cancelled domain listing`, async () => {
 		try {
 			let data = {
@@ -448,39 +918,11 @@ describe(`************************** fio-escrow.js ************************** \n
 				account: 'fio.escrow',
 				data   : data
 			})
-
-			console.log(result);
-
 		} catch (err) {
-			// console.log(err);
-			console.log(err.json.fields);
 			expect(err.errorCode).to.equal(400)
+			expect(err.json.fields[0].name).to.equal('status')
 			expect(err.json.fields[0].value).to.equal('3')
 		}
-	})
-
-	it.skip(`Wait a few seconds.`, async () => {
-		await timeout(3000)
-	})
-
-	it.skip(`burn domain that is in domainsales table`, async () => {
-		// todo Burn domain that is in the domainsales table
-		// Observe (via table lookup)
-		// All references to burned domain removed from all escrow tables
-	})
-})
-
-describe(`sad path for fio.escrow actions`, () => {
-	it.skip(`listdomain`, async () => {
-		// Create tests for conditions in: https://github.com/fioprotocol/fips/blob/master/fip-0026.md#exception-handling
-	})
-
-	it.skip(`cxlistdomain`, async () => {
-		// Create tests for conditions in: https://github.com/fioprotocol/fips/blob/master/fip-0026.md#exception-handling-1
-	})
-
-	it.skip(`buydomain`, async () => {
-		// Create tests for conditions in: https://github.com/fioprotocol/fips/blob/master/fip-0026.md#exception-handling-2
 	})
 
 	it.skip(`setmrkplcfg`, async () => {
@@ -494,6 +936,7 @@ describe(`sad path for fio.escrow actions`, () => {
 	})
 
 })
+
 
 let stringToHash = (term) => {
 	const hash = createHash('sha1');
