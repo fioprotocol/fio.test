@@ -1218,7 +1218,7 @@ describe('I. Check prepared transaction', () => {
         memo: 'prepared transaction',
         maxFee: defaultFee,
       })
-      console.log('preparedTrx: ', preparedTrx)
+      //console.log('preparedTrx: ', preparedTrx)
       const result = await fioSdk2.sdk.executePreparedTrx(EndPoint.newFundsRequest, preparedTrx)
       //console.log('transaction_id: ', result.transaction_id)
       expect(result).to.have.all.keys('fio_request_id', 'status', 'fee_collected', 'block_num', 'transaction_id')
