@@ -212,7 +212,7 @@ describe(`************************** fio-request.js ************************** \
       }
     })
 
-    it(`Bahamas TODO: update after added to SDK to include memo check. get_received_fio_requests for userA2 (payer)`, async () => {
+    it(`get_received_fio_requests for userA2 (payer)`, async () => {
       try {
         const json = {
           fio_public_key: userA2.publicKey,
@@ -424,7 +424,7 @@ describe(`************************** fio-request.js ************************** \
     }
   })
 
-  it(`Bahamas TODO: update after added to SDK to include memo check. get_received_fio_requests for userA2 (payer)`, async () => {
+  it(`get_received_fio_requests for userA2 (payer)`, async () => {
     try {
       const json = {
         fio_public_key: userA2.publicKey,
@@ -1285,7 +1285,7 @@ describe(`C. cancel_funds_request with bundles remaining`, () => {
     }
   })
 
-  it(`Bahamas TODO: update after added to SDK to include memo check. get_received_fio_requests for userA2 (payer)`, async () => {
+  it(`get_received_fio_requests for userA2 (payer)`, async () => {
     try {
       const json = {
         fio_public_key: userA2.publicKey,
@@ -2636,7 +2636,7 @@ describe(`I. reject_funds_request: Check all getters after`, () => {
     }
   })
 
-  it(`Bahamas TODO: update after added to SDK to include memo check. get_received_fio_requests for userA2 (payer)`, async () => {
+  it(`get_received_fio_requests for userA2 (payer)`, async () => {
     try {
       const json = {
         fio_public_key: userA2.publicKey,
