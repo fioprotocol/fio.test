@@ -1247,26 +1247,6 @@ describe(`F. Sad - result in error`, () => {
     expect(result.code).to.equal(config.error2.invalidActorAuth.statusCode);
   })
 
-  it(`Not an error. SDK generates the actor from the userA1 private key. So, this will work.`, async () => {
-    try{
-      const result = await userA1.sdk.genericAction('pushTransaction', {
-        action: 'remaddress',
-        account: 'fio.address',
-        data: {
-          "fio_address": userA1.address,
-          "public_addresses": config.public_addresses,
-          "max_fee": config.api.remove_pub_address.fee,
-          "tpid": '',
-          "actor": 'invalidactor'
-        }
-      })
-      //console.log('Result:', result)
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-      console.log('Error', err)
-      expect(err).to.equal(null)
-    }
-  })
 
   it('Wait a few seconds to avoid duplicate transaction.', async () => {
     await timeout(2000);
@@ -1288,7 +1268,7 @@ describe(`F. Sad - result in error`, () => {
     }
   })
 
-  it(`userA2 tries to remove userA1s public addresses. Expect error type ${config.error2.invalidSignature.statusCode}: ${config.error2.invalidSignature.message}`, async () => {
+  it(`userA2 tries to remove userA1s public addresses. Expect error: missing authority`, async () => {
     try{
       const result = await userA2.sdk.genericAction('pushTransaction', {
         action: 'remaddress',
@@ -1303,9 +1283,8 @@ describe(`F. Sad - result in error`, () => {
       })
       expect(result.status).to.equal(null);
     } catch (err) {
-      //console.log('Error', err)
-      expect(err.json.message).to.equal(config.error2.invalidSignature.message)
-      expect(err.errorCode).to.equal(config.error2.invalidSignature.statusCode);
+      //console.log('Error', err.json.error)
+      expect(err.json.error.details[0].message).to.contain('missing authority ');
     }
   })
 
