@@ -97,6 +97,8 @@ before(async () => {
 
 describe(`************************** nft-add-remove.js ************************** \n    A. (sdk) Add and remove NFTs`, () => {
   let user1, user2, user3, user1Bundles, add_nft_fee, remove_nft_fee, remove_all_nfts_fee;
+  const metadata128 = '12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678';
+
 
   before(async () => {
     user1 = await newUser(faucet);
@@ -610,6 +612,35 @@ describe(`************************** nft-add-remove.js *************************
     }
   })
 
+  it(`Try to add an NFT with 128 char metadata to user1 FIO Address, expect Success`, async () => {
+    try {
+      const result = await user3.sdk.genericAction('pushTransaction', {
+        action: 'addnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user3.address,
+          nfts: [{
+            "chain_code": "ETH",
+            "contract_address": "0x123456789ABCDEFG",
+            "token_id": "321",
+            "url": "",
+            "hash": "",
+            "metadata": metadata128
+          }],
+          max_fee: config.maxFee,
+          actor: user3.account,
+          tpid: ""
+        }
+      })
+      //console.log(`Result: `, result)
+      expect(result.status).to.equal('OK')
+
+    } catch (err) {
+      //console.log(err.message)
+      expect(err).to.equal(null);
+    }
+  })
+
 });
 
 describe(`B. (sdk) Try to modify existing NFTs`, () => {
@@ -859,6 +890,7 @@ describe(`B. (sdk) Try to modify existing NFTs`, () => {
 
 describe(`C. (sdk)(unhappy) Try to add NFTs with invalid user input`, () => {
   let user1, user2, user3;
+  const metadata129 = '123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789';
 
   const fundsAmount = 10000000000000;
   const user1Nfts = mintNfts(2);
@@ -895,6 +927,7 @@ describe(`C. (sdk)(unhappy) Try to add NFTs with invalid user input`, () => {
       expect(err.message).to.equal('missing nftparam.chain_code (type=string)');
     }
   });
+  
   it(`(missing contract_address) Try to add an NFT to user1 FIO Address, expect Error`, async () => {
     let badUser1Nfts = user1Nfts.concat({
       "chain_code":"ETH",
@@ -1162,14 +1195,14 @@ describe(`C. (sdk)(unhappy) Try to add NFTs with invalid user input`, () => {
       expect(err.json.fields[0].error).to.equal('Invalid hash');
     }
   });
-  it.skip(`(invalid metadata) Try to add an NFT to user1 FIO Address, expect Error`, async () => {
+  it(`(invalid metadata) Try to add an NFT with 129 char metadata to user1 FIO Address, expect Error`, async () => {
     let badUser1Nfts = user1Nfts.concat({
       "chain_code":"ETH",
       "contract_address":"0x123456789ABCDEF",
       "token_id":"1",
       "url":"",
       "hash":"",
-      "metadata":"!nv@7!d#$"
+      "metadata": metadata129
     });
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
@@ -1185,7 +1218,9 @@ describe(`C. (sdk)(unhappy) Try to add NFTs with invalid user input`, () => {
       })
       expect(result.status).to.not.equal('OK')
     } catch (err) {
-      expect(err.message).to.equal('missing nftparam.metadata (type=string)');
+      //console.log('Error: ', err.json)
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].error).to.equal('Invalid metadata');
     }
   });
 
