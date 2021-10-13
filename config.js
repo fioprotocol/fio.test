@@ -298,7 +298,6 @@ const config = {
             bundledEligible: false,
             fee: 500000000
         }
-
     },
 
     paramMax: {
