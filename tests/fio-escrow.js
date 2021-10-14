@@ -19,10 +19,6 @@ let userA1;
 let userA2;
 let domain;
 let domainA2;
-let domainSaleIdA1;
-let domainSaleIdA2;
-let domainSaleDateListedA1;
-let domainSaleDateListedA2;
 
 // sad paths
 let domainSadPath1;
@@ -32,7 +28,7 @@ let faucet, marketplaceUser;
 let isSetup = false;
 let isDebug = true;
 
-describe(`************************** fio-escrow.js **************************`, async () => {
+describe.only(`************************** fio-escrow.js **************************`, async () => {
 	describe(`Set up Marketplace Config table`, async () => {
 		before(async () => {
 			await setup();
@@ -157,14 +153,14 @@ describe(`************************** fio-escrow.js **************************`, 
 		})
 	});
 
-	describe(`List Domains`, async () => {
+	describe.only(`List Domains`, async () => {
 
 		before(async () => {
 			await setup();
 		})
 
 		afterEach(async () => {
-			await timeout(1000)
+			await timeout(3000)
 		})
 
 		describe(`Golden Path`, async () => {
@@ -276,7 +272,7 @@ describe(`************************** fio-escrow.js **************************`, 
 			})
 		})
 
-		describe(`Error Handling Path`, async () => {
+		describe.only(`Error Handling Path`, async () => {
 			it(`listdomain: sale price too high`, async () => {
 				try {
 					domainSadPath1 = generateFioDomain(10);
@@ -397,6 +393,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					})
 
 				} catch (err) {
+					console.log(err.json)
 					expect(err.errorCode).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('max_fee')
 					expect(err.json.fields[0].value).to.equal((config.api.list_domain.fee / 2).toString())
@@ -699,8 +696,13 @@ describe(`************************** fio-escrow.js **************************`, 
 
 			});
 
-			it(`userA2 tries to buy userA1's cancelled domain listing`, async () => {
+			it.skip(`userA2 tries to buy userA1's cancelled domain listing`, async () => {
 				try {
+
+					// register domain for userA2
+
+					// cancel domain listing and get saleID
+
 					let data = {
 						"actor"        : userA2.account,
 						"fio_domain"   : domain,
@@ -717,7 +719,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					})
 				} catch (err) {
 
-					console.log(err.json);
+					console.log(err);
 
 					expect(err.errorCode).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('status')
@@ -911,7 +913,7 @@ describe(`************************** fio-escrow.js **************************`, 
 				}
 			})
 
-			it(`cxdomain: cancel listing without enough funds to cover fee`, async () => {
+			it.skip(`( ? ) cxdomain: cancel listing without enough funds to cover fee`, async () => {
 				try {
 					let user   = await newUserWithFIO();
 					let domain = generateFioDomain(10);
@@ -938,8 +940,8 @@ describe(`************************** fio-escrow.js **************************`, 
 						data   : data
 					})
 				} catch (err) {
-					console.log(err);
 					console.log(err.json);
+					console.log(err.json.error);
 					expect(err.errorCode).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('max_fee')
 					expect(err.json.fields[0].value).to.equal('500000000')
@@ -955,6 +957,12 @@ describe(`************************** fio-escrow.js **************************`, 
 
 async function setup() {
 	if (!isSetup) {
+		// console.log(`Running Setup`)
+		// console.log(`Creating faucet`)
+		// console.log(`Creating marketplaceUser`)
+		// console.log(`Creating userA1`)
+		// console.log(`Creating userA2`)
+
 		faucet          = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 		marketplaceUser = await existingUser(`5ufabtv13hv4`, config.MARKETPLACE_PRIV_KEY, config.MARKETPLACE_PUB_KEY,
 			'marketplace', 'user@marketplace')
@@ -974,8 +982,9 @@ async function registerDomain(user, domain) {
 			technologyProviderId: ''
 		})
 	} catch (err) {
-		if (err)
-			console.log(err);
+		if (err) {
+			console.log(err.json);
+		}
 		expect(err).to.equal(null)
 	}
 }
@@ -1000,7 +1009,7 @@ async function listDomain(user, domain, salePrice = 2000000000000) {
 	}
 }
 
-async function transferTokens(user, amount = 8000000000000) {
+async function transferTokens(user, amount = 10000000000000) {
 	try {
 		await faucet.genericAction('transferTokens', {
 			payeeFioPublicKey: user.publicKey,
@@ -1043,6 +1052,7 @@ async function newUserWithFIO() {
 		}
 	} catch (err) {
 		console.log('registerFioDomain error: ', err.json)
+		console.log(err.json.error.details)
 		return (err);
 	}
 

@@ -1,4 +1,5 @@
 // const TESTURL = 'http://localhost:8889'           // Localhost
+// ill remove this
 const TESTURL = 'http://fio-devnet.eosblocksmith.io' // Localhost
 //const TESTURL = 'http://dev1.fio.dev:8888'         // DEV1
 //const TESTURL = 'http://44.238.153.162:8889'       // Devnet
