@@ -275,6 +275,18 @@ const config = {
         cancel_funds_request: {
             bundledEligible: true,
             fee: 600000000
+        },
+        add_nft: {
+            bundledEligible: true,
+            fee: 600000000
+        },
+        remove_nft: {
+            bundledEligible: true,
+            fee: 600000000
+        },
+        remove_all_nfts: {
+            bundledEligible: true,
+            fee: 1200000000
         }
 
     },
@@ -306,8 +318,8 @@ const config = {
         ADDADDRESSRAM: 512,
         SETDOMAINPUBRAM: 256,
         BURNEXPIREDRAM: 0,
-        NEWFUNDSREQUESTRAM: 2048,
-        RECORDOBTRAM: 2048,
+        NEWFUNDSREQUESTRAM: 4098,
+        RECORDOBTRAM: 4098,
         RENEWADDRESSRAM: 1024,
         RENEWDOMAINRAM: 1024,
         TPIDCLAIMRAM: 0,
@@ -330,7 +342,8 @@ const config = {
         XFERDOMAINRAM: 512,
         XFERADDRESSRAM: 512,
         CANCELFUNDSRAM: 512,
-        BUNDLEVOTERAM: 0
+        BUNDLEVOTERAM: 0,
+        ADDNFTRAM: 3584
     },
 
     public_addresses: [
