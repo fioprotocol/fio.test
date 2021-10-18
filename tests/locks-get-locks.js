@@ -253,7 +253,7 @@ describe(`B.   Get locks success tests. `, () => {
 
 const UNSTAKELOCKDURATIONSECONDS = 604800
 
-describe.only(`C. Insert stake period in middle of locktokensv2 general locks, then unlock and unstake, skip two periods of general lock`, () => {
+describe(`C. Insert stake period in middle of locktokensv2 general locks, then unlock and unstake, skip two periods of general lock`, () => {
 
   let userA1, locksdk, keys, accountnm, newFioDomain, newFioAddress, lockDuration
 

@@ -23,6 +23,11 @@ async function getCombinedTokenPool () {
   return result.rows[0].combined_token_pool;
 }
 
+async function getLastCombinedTokenPool() {
+  const result = await getStakingTableRows();
+  return result.rows[0].last_combined_token_pool;
+}
+
 async function getRewardsTokenPool () {
   const result = await getStakingTableRows();
   return result.rows[0].rewards_token_pool;
@@ -31,6 +36,11 @@ async function getRewardsTokenPool () {
 async function getGlobalSrpCount () {
   const result = await getStakingTableRows();
   return result.rows[0].global_srp_count;
+}
+
+async function getLastGlobalSrpCount() {
+  const result = await getStakingTableRows();
+  return result.rows[0].last_global_srp_count;
 }
 
 async function getDailyStakingRewards () {
@@ -52,8 +62,10 @@ module.exports = {
   getStakingTableRows,
   getStakedTokenPool,
   getCombinedTokenPool,
+  getLastCombinedTokenPool,
   getRewardsTokenPool,
   getGlobalSrpCount,
+  getLastGlobalSrpCount,
   getDailyStakingRewards,
   getStakingRewardsReservesMinted,
   getStakingRewardsActivated
