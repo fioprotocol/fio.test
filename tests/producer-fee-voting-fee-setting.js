@@ -120,7 +120,7 @@ describe('************************** fee-voting-fee-setting.js *****************
               {end_point: "msig_unapprove", value: amount},
               {end_point: "msig_cancel", value: amount},
               {end_point: "msig_exec", value: amount},
-              {end_point: "msig_invalidate", value: amount
+              {end_point: "msig_invalidate", value: amount}
             ],
             max_fee: 4000000000,
             actor: prodA1.account

@@ -5,6 +5,8 @@
     "dependencies": {
         "@fioprotocol/fiosdk": "github:fioprotocol/fiosdk_typescript#develop",
         "child_process": "",
+        "mathjs": "^9.4.4",
+        "process": "^0.11.10",
         "request": "^2.34.0",
         "request-promise": "",
         "semver": "^7.1.1",
@@ -28,6 +30,7 @@
     },
     "scripts": {
         "test": "node node_modules/mocha/bin/_mocha -t 5000000 index.js",
+        "staking": "node node_modules/mocha/bin/_mocha -t 5000000 index-staking.js",
         "testnet": "mocha -t 5000000 tests/testnet-smoketest.js"
     }
 }

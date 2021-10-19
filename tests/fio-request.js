@@ -10,7 +10,7 @@ before(async () => {
 
 describe(`************************** fio-request.js ************************** \n    A. Send fio request from userA1 to userA2. userA2 responds with OBT Record`, () => {
 
-    let userA1, userA2, requestId
+    let userA1, userA2, userA3, userA4, requestId
     const payment = 5000000000 // 5 FIO
     const requestMemo = 'Memo in the initial request'
     const obtMemo = 'Memo in OBT response to request'
@@ -19,6 +19,47 @@ describe(`************************** fio-request.js ************************** \
     it(`Create users`, async () => {
         userA1 = await newUser(faucet);
         userA2 = await newUser(faucet);
+    })
+  
+    it(`Do an initial Request and OBT to prevent the failure on first run of this test after resetting chain`, async () => {
+      userA3 = await newUser(faucet);
+      userA4 = await newUser(faucet);
+
+      const result = await userA3.sdk.genericAction('requestFunds', {
+        payerFioAddress: userA4.address,
+        payeeFioAddress: userA3.address,
+        payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
+        amount: payment,
+        chainCode: 'BTC',
+        tokenCode: 'BTC',
+        memo: requestMemo,
+        maxFee: config.api.new_funds_request.fee,
+        payerFioPublicKey: userA4.publicKey,
+        technologyProviderId: '',
+        hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
+        offlineUrl: ''
+      })
+      requestId = result.fio_request_id
+
+      const result2 = await userA4.sdk.genericAction('recordObtData', {
+        fioRequestId: requestId,
+        payerFioAddress: userA4.address,
+        payeeFioAddress: userA3.address,
+        payerTokenPublicAddress: userA4.publicKey,
+        payeeTokenPublicAddress: userA3.publicKey,
+        amount: payment,
+        chainCode: "BTC",
+        tokenCode: "BTC",
+        status: '',
+        obtId: '',
+        maxFee: config.api.record_obt_data.fee,
+        technologyProviderId: '',
+        payeeFioPublicKey: userA3.publicKey,
+        memo: obtMemo,
+        hash: '',
+        offLineUrl: ''
+      })
+
     })
 
     it(`Add BTC addresses to userA1`, async () => {
@@ -171,7 +212,7 @@ describe(`************************** fio-request.js ************************** \
       }
     })
 
-    it(`Bahamas TODO: update after added to SDK to include memo check. get_received_fio_requests for userA2 (payer)`, async () => {
+    it(`get_received_fio_requests for userA2 (payer)`, async () => {
       try {
         const json = {
           fio_public_key: userA2.publicKey,
@@ -383,7 +424,7 @@ describe(`************************** fio-request.js ************************** \
     }
   })
 
-  it(`Bahamas TODO: update after added to SDK to include memo check. get_received_fio_requests for userA2 (payer)`, async () => {
+  it(`get_received_fio_requests for userA2 (payer)`, async () => {
     try {
       const json = {
         fio_public_key: userA2.publicKey,
@@ -1244,7 +1285,7 @@ describe(`C. cancel_funds_request with bundles remaining`, () => {
     }
   })
 
-  it(`Bahamas TODO: update after added to SDK to include memo check. get_received_fio_requests for userA2 (payer)`, async () => {
+  it(`get_received_fio_requests for userA2 (payer)`, async () => {
     try {
       const json = {
         fio_public_key: userA2.publicKey,
@@ -2595,7 +2636,7 @@ describe(`I. reject_funds_request: Check all getters after`, () => {
     }
   })
 
-  it(`Bahamas TODO: update after added to SDK to include memo check. get_received_fio_requests for userA2 (payer)`, async () => {
+  it(`get_received_fio_requests for userA2 (payer)`, async () => {
     try {
       const json = {
         fio_public_key: userA2.publicKey,
