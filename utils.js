@@ -129,7 +129,7 @@ async function newUser(faucet, newAccount=null, newPrivateKey=null, newPublicKey
         //console.log('Result', result)
         //expect(result.status).to.equal('OK')
     } catch (err) {
-        console.log('Transfer tokens error: ', err.json)
+        console.log('Transfer tokens error: ', err.json.error)
         return(err);
     }
 
@@ -236,7 +236,7 @@ async function existingUser(caccount, cprivateKey, cpublicKey, cdomain=null, cad
         //console.log('foundationA1 fio balance', result)
         //expect(result.balance).to.equal(proxyA1.last_vote_weight)
       } catch (err) {
-        console.log('Error', err);
+        console.log('Error', err.json.error);
       }
 
     return {
@@ -256,7 +256,7 @@ async function existingUser(caccount, cprivateKey, cpublicKey, cdomain=null, cad
 /**
  * Generic call to API
  * @param {string} apiCall - The FIO API endpoint.
- * @param {json} JSONObject - The json body to pass to the endpoint.
+ * @param {{code: string, show_payer: boolean, scope: string, limit: number, json: boolean, reverse: boolean, table: string}} JSONObject - The json body to pass to the endpoint.
  * @return {json} - Returns json object.
  */
 function callFioApi(apiCall, JSONObject) {
