@@ -12,7 +12,7 @@ describe('TEST SUITE', () => {
   require('./tests/fio-request.js'); // v1.0.x
   require('./tests/producer.js'); // v1.0.x
   require('./tests/pushtransaction.js'); // v1.0.x
-  require('./tests/ram2.js');  // v1.0.x //Eric to update to remove clio
+  require('./tests/ram.js');  // v1.0.x //Eric to update to remove clio
   require('./tests/register-fio-address.js');
   require('./tests/register-fio-domain.js'); // v1.0.x
   require('./tests/transfer-tokens.js'); // v1.0.x
@@ -27,6 +27,19 @@ describe('TEST SUITE', () => {
   require('./tests/transfer-address.js'); // FIP-1.b
   require('./tests/addbundles.js');  // FIP-11.a
   require('./tests/tpid.js');
+  require('./tests/nft-add-remove.js'); //FIP-27
+  require('./tests/nft-sdk-tests.js');
+  //require('./tests/nft-performance-tests.js'); //FIP-27
+  require('./tests/nft-uniqueness.js'); //FIP-27
+  //require('./tests/nft-remove-burn.js'); //FIP-27
+  //require('./tests/clio.js');  // FIP-16  //Only works with local testing
+  //require('./tests/performance-request-obt.js');
+
+  //require('./tests/expired-address-domain.js'); // Requires manual updates to contracts to shorten expiration timing
+  //require('./tests/expired-address-domain-modexpire.js'); // Requires modexpire action which allows expiring of domains
+  
+  //require('./tests/history.js'); // Only run against history node.
+
   require('./tests/testnet-smoketest.js'); // Testnet smoketest. By default runs against local build.
   
   /** 
