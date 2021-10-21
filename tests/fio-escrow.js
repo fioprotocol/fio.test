@@ -1015,41 +1015,55 @@ describe.only(`************************** fio-escrow.js ************************
 				}
 			});
 
-			it.skip(`(in progress) buydomain: not enough FIO to buy`, async () => {
+			it.only(`buydomain: not enough FIO to buy`, async () => {
 				let buydomainErrorUser1 = await newUser(faucet);
 				let buydomainErrorUser2 = await newUser(faucet);
 
-				console.log(buydomainErrorUser1.account);
-				console.log(buydomainErrorUser2.account);
+				// console.log(buydomainErrorUser1.account);
+				// console.log(buydomainErrorUser2.account);
 				try {
 					// lists domain
-					await listDomain(buydomainErrorUser1, buydomainErrorUser1.domain)
+					let listDomainResult = await listDomain(buydomainErrorUser1, buydomainErrorUser1.domain)
+
+					// console.log(listDomainResult);
+
+					const buydomainErrorUser2BalanceResult = await buydomainErrorUser2.sdk.genericAction('getFioBalance', {
+						fioPublicKey: buydomainErrorUser2.publicKey
+					})
+					let buydomainErrorUser2Balance       = buydomainErrorUser2BalanceResult.balance;
+
+					// console.log(buydomainErrorUser2Balance);
 
 					let data = {
 						action: 'trnsfiopubky',
 						account: 'fio.token',
 						data: {
 							payee_public_key: buydomainErrorUser1.publicKey,
-							amount: config.FUNDS - (config.FUNDS - (250000000) - config.api.transfer_tokens_pub_key.fee), // leave ~0.25 FIO left as balance
+							amount: buydomainErrorUser2Balance - ((250000000) + config.api.transfer_tokens_pub_key.fee), // leave ~0.25 FIO left as balance
 							max_fee: config.api.transfer_tokens_pub_key.fee,
 							tpid: '',
 							actor: buydomainErrorUser2.account
 						}
-					}//2'997'750'000'000
-					// 3'000'000'000'000
+					}
 
-					console.log(`${config.FUNDS} - (${config.FUNDS} - (${0.25 * 1000000000}) - ${config.api.transfer_tokens_pub_key.fee})`)
-					console.log(`trying to send ${data.data.amount}`)
+					// console.log(`${buydomainErrorUser2Balance} - (${250000000 + config.api.transfer_tokens_pub_key.fee})`)
+					// console.log(`trying to send ${data.data.amount}`)
 
 					// send all userA2 balance to userA1
 					const result = await buydomainErrorUser2.sdk.genericAction('pushTransaction', data)
 
-					console.log('Result', result)
+					// console.log('Result', result)
 					expect(result.status).to.equal('OK')
 
 					// try to buy domain listed for sale by userA1
+					await buyDomain(buydomainErrorUser2, buydomainErrorUser1.domain, listDomainResult.domainsale_id)
 				} catch (err){
-					console.log(err)
+					// console.log(err.json)
+
+					expect(err.errorCode).to.equal(400);
+					expect(err.json.fields[0].name).to.equal('max_fee');
+					expect(err.json.fields[0].value).to.equal('1880000000000');
+					expect(err.json.fields[0].error).to.equal('Insufficient funds to cover fee');
 				}
 			});
 
@@ -1649,7 +1663,7 @@ async function listDomain(user, domain, salePrice = 2000000000000) {
 	// }
 }
 
-async function buyDomain(user, domain, saleId, salePrice) {
+async function buyDomain(user, domain, saleId, salePrice=2000000000000) {
 	return await user.sdk.genericAction('pushTransaction', {
 		action : 'buydomain',
 		account: 'fio.escrow',
