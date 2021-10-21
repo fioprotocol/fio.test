@@ -173,7 +173,9 @@ async function newUser(faucet, newAccount=null, newPrivateKey=null, newPublicKey
         //console.log('foundationA1 fio balance', result)
         //expect(result.balance).to.equal(proxyA1.last_vote_weight)
       } catch (err) {
-        console.log('getFioBalance Error', err);
+        // TODO Look this over
+        if(err.json.error.code !== 6)
+            console.log('getFioBalance Error', err.json.error);
       }
 
     return {
@@ -236,7 +238,10 @@ async function existingUser(caccount, cprivateKey, cpublicKey, cdomain=null, cad
         //console.log('foundationA1 fio balance', result)
         //expect(result.balance).to.equal(proxyA1.last_vote_weight)
       } catch (err) {
-        console.log('Error', err.json.error);
+        // TODO Look this over
+        if(err.json.error.code !== 6) {
+            console.log('Error', err.json.error);
+        }
       }
 
     return {
