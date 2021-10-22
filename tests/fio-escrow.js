@@ -35,7 +35,7 @@ before(async () => {
 	await setup();
 })
 
-describe.only(`************************** fio-escrow.js **************************`, async () => {
+describe(`************************** fio-escrow.js **************************`, async () => {
 	before(async () => {
 		await setup();
 	})
@@ -463,7 +463,7 @@ describe.only(`************************** fio-escrow.js ************************
 			it(`list 2 domains, purchase 1, expire both and burnexpired`, async () => {
 				try {
 
-					let offset = await getLastDomainId();
+					let offset  = await getLastDomainId();
 					// create domains
 					let domain  = generateFioDomain(10);
 					let domain2 = generateFioDomain(10);
@@ -1787,12 +1787,12 @@ async function getRamForUser(user) {
 
 async function getLastDomainId() {
 	const json = {
-		json      : true,
-		code      : 'fio.address',
-		scope     : 'fio.address',
-		table     : 'domains',
-		limit     : 1,
-		reverse   : true
+		json   : true,
+		code   : 'fio.address',
+		scope  : 'fio.address',
+		table  : 'domains',
+		limit  : 1,
+		reverse: true
 	}
 	let result = await callFioApi("get_table_rows", json);
 
