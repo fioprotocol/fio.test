@@ -6,6 +6,7 @@ describe('TEST SUITE', () => {
   /**
    * General Tests. Should work against all builds. Do not require additional configuration.
    */
+
   /*
   require('./tests/addaddress.js'); // v1.0.x  Also includes FIP-13 tests.
   require('./tests/fees.js'); // v1.0.x
@@ -34,14 +35,14 @@ describe('TEST SUITE', () => {
   //require('./tests/nft-remove-burn.js'); //FIP-27
   //require('./tests/clio.js');  // FIP-16  //Only works with local testing
   //require('./tests/performance-request-obt.js');
-*/
+
   //require('./tests/expired-address-domain.js'); // Requires manual updates to contracts to shorten expiration timing
   //require('./tests/expired-address-domain-modexpire.js'); // Requires modexpire action which allows expiring of domains
   
   //require('./tests/history.js'); // Only run against history node.
 
   //require('./tests/testnet-smoketest.js'); // Testnet smoketest. By default runs against local build.
-  
+  */
   /** 
    * Locked token tests (FIP-6,21). Tests may require additional configuration.
    */

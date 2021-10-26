@@ -6,6 +6,7 @@
         "@fioprotocol/fiosdk": "github:fioprotocol/fiosdk_typescript#develop",
         "child_process": "",
         "mathjs": "^9.4.4",
+        "lossless-json": "",
         "process": "^0.11.10",
         "request": "^2.34.0",
         "request-promise": "",

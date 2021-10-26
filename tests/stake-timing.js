@@ -1,15 +1,16 @@
 require('mocha')
 const { expect } = require('chai')
 const { create, all } = require('mathjs')
-const { newUser, timeout, callFioApi, existingUser, createKeypair, getAccountFromKey, generateFioDomain, generateFioAddress, fetchJson} = require('../utils.js');
+const { newUser, timeout, callFioApi, httpRequest, httpRequestBig, existingUser, createKeypair, getAccountFromKey, generateFioDomain, generateFioAddress, fetchJson} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 const config = require('../config.js');
 const stakeTests = require('./Helpers/stake-timing-tests.js');
 const Staker = require('./Helpers/staker.js');
-const { getStakedTokenPool, getCombinedTokenPool, getLastCombinedTokenPool, getRewardsTokenPool, getGlobalSrpCount, getLastGlobalSrpCount, getDailyStakingRewards, getStakingRewardsReservesMinted, getStakingRewardsActivated } = require('./Helpers/token-pool.js');
+const { getStakedTokenPool, getCombinedTokenPool, getLastCombinedTokenPool, getRewardsTokenPool, getGlobalSrpCount, getLastGlobalSrpCount, getDailyStakingRewards, getStakingRewardsReservesMinted, getStakedTokenPoolBig, getCombinedTokenPoolBig, getLastCombinedTokenPoolBig, getRewardsTokenPoolBig, getGlobalSrpCountBig, getLastGlobalSrpCountBig, getDailyStakingRewardsBig, getStakingRewardsReservesMintedBig } = require('./Helpers/token-pool.js');
+const LosslessJSON = require('lossless-json');
 let faucet, bp1
 
-let prevStakedTokenPoolOld, prevCombinedTokenPoolOld, prevLastCombinedTokenPoolOld, prevRewardsTokenPoolOld, prevGlobalSrpCountOld, prevLastGlobalSrpCountOld, prevDailyStakingRewardsOld, prevStakingRewardsReservesMintedOld, prevStakingRewardsActivatedOld
+let prevStakedTokenPoolOld, prevCombinedTokenPoolOld, prevLastCombinedTokenPoolOld, prevRewardsTokenPoolOld, prevGlobalSrpCountOld, prevLastGlobalSrpCountOld, prevDailyStakingRewardsOld, prevStakingRewardsReservesMintedOld
 
 function wait(ms){
   var start = new Date().getTime();
@@ -141,7 +142,6 @@ const math = create(all, mathconfig)
  *   globalSrpCount:  
  *   dailyStakingRewards: Tracks rewards from the fees. At end of the day, if fees collected < 25,000, then the difference is minted.
  *   stakingRewardsReservesMinted:  Used for token pool accounting for rewards. Tracks total minted over time.
- *   stakingRewardsActivated:  binary flag indicating if ROE time and 1M stake threshold has been reached
  * 
  * Daily staking rewards:
  * 
@@ -150,7 +150,7 @@ const math = create(all, mathconfig)
  *      Reserves Maximum, whichever is smaller) is minted, transferred to treasury account and added to Staking Rewards Reserves Minted.
  */
 
-async function setPrevGlobals(stakedTokenPool = 0, combinedTokenPool = 0, lastCombinedTokenPool = 0, rewardsTokenPool = 0, globalSrpCount = 0, lastGlobalSrpCount = 0, dailyStakingRewards = 0, stakingRewardsReservesMinted = 0, stakingRewardsActivated = 0) {
+async function setPrevGlobals(stakedTokenPool = 0, combinedTokenPool = 0, lastCombinedTokenPool = 0, rewardsTokenPool = 0, globalSrpCount = 0, lastGlobalSrpCount = 0, dailyStakingRewards = 0, stakingRewardsReservesMinted = 0) {
   prevStakedTokenPoolOld = stakedTokenPool;
   prevCombinedTokenPoolOld = combinedTokenPool;
   prevLastCombinedTokenPoolOld = lastCombinedTokenPool;
@@ -159,7 +159,6 @@ async function setPrevGlobals(stakedTokenPool = 0, combinedTokenPool = 0, lastCo
   prevLastGlobalSrpCountOld = lastGlobalSrpCount;
   prevDailyStakingRewardsOld = dailyStakingRewards;
   prevStakingRewardsReservesMintedOld = stakingRewardsReservesMinted;
-  prevStakingRewardsActivatedOld = stakingRewardsActivated;
 }
 
 async function printPrevGlobals() {
@@ -170,7 +169,6 @@ async function printPrevGlobals() {
   console.log('   prevGlobalSrpCount: ', prevGlobalSrpCountOld);
   console.log('   prevDailyStakingRewards: ', prevDailyStakingRewardsOld);
   console.log('   prevStakingRewardsReservesMinted: ', prevStakingRewardsReservesMintedOld);
-  console.log('   prevStakingRewardsActivated: ', prevStakingRewardsActivatedOld);
 }
 
 async function printCurrentGlobals() {
@@ -180,7 +178,6 @@ async function printCurrentGlobals() {
   const globalSrpCount = await getGlobalSrpCount();
   const dailyStakingRewards = await getDailyStakingRewards();
   const stakingRewardsReservesMinted = await getStakingRewardsReservesMinted();
-  const stakingRewardsActivated = await getStakingRewardsActivated();
 
   console.log('\nCURRENT GLOBALS: ');
   console.log(`   stakedTokenPool: ${stakedTokenPool} (changed by ${(stakedTokenPool - prevStakedTokenPoolOld) / 1000000000} FIO)`);
@@ -189,72 +186,135 @@ async function printCurrentGlobals() {
   console.log(`   globalSrpCount: ${globalSrpCount} (changed by ${(globalSrpCount - prevGlobalSrpCountOld) / 1000000000} srps)`);
   console.log(`   dailyStakingRewards: ${dailyStakingRewards} (changed by ${(dailyStakingRewards - prevDailyStakingRewardsOld) / 1000000000} FIO)`);
   console.log(`   stakingRewardsReservesMinted: ${stakingRewardsReservesMinted} (changed by ${(stakingRewardsReservesMinted - prevStakingRewardsReservesMintedOld) / 1000000000} FIO)`);
-  console.log(`   stakingRewardsActivated: ${stakingRewardsActivated}`);
 }
 
-async function calcRoeBig(combinedTokenPool, globalSrpCount, precision, roeCalcMethod, printCalc) {
+// convert LosslessNumber to Big
+function reviver(key, value) {
+  if (value && value.isLosslessNumber) {
+    return math.bignumber(value.toString());
+  }
+  else {
+    return value;
+  }
+}
+
+async function printStakingTable() {
+  const json = {
+    json: true,               // Get the response as json
+    code: 'fio.staking',      // Contract that we target
+    scope: 'fio.staking',         // Account that owns the data
+    table: 'staking',        // Table name
+    limit: 10,                // Maximum number of rows that we want to get
+    reverse: true,           // Optional: Get reversed data
+    show_payer: false          // Optional: Show ram payer
+  }
+  //stakingTable = await callFioApi("get_table_rows", json);
+  const stakingTable = await httpRequestBig("get_table_rows", json);
+  const stakingJson = LosslessJSON.parse(stakingTable, reviver);
+  console.log('stakingTable: ', stakingTable);
+  console.log('LossLessJson: ', stakingJson);
+  console.log('Json: ', JSON.parse(stakingTable));
+}
+
+async function calcRoeBig(combinedTokenPool, globalSrpCount, precision, printCalc) {
   if (printCalc) { console.log('\nROE CALC: '); }
 
   const roePrecision = math.bignumber(Math.pow(10, precision));
-  //let roeBig = math.bignumber(0);
-
   const combinedTokenPoolBig = math.bignumber(combinedTokenPool);
   const globalSrpCountBig = math.bignumber(globalSrpCount);
 
-  if (printCalc) {
-    //console.log('   combinedTokenPool: \t', combinedTokenPool);
-    //console.log('   lastCombinedTokenPool: ', lastCombinedTokenPool);
-    //console.log('   globalSrpCount: \t', globalSrpCount);
-    //console.log('   lastGlobalSrpCount: \t', lastGlobalSrpCount);
-  }
-
-  //let roeBig1 = math.bignumber(0);
   roeBig1 = math.divide(combinedTokenPoolBig, globalSrpCountBig);
   if (printCalc) { console.log('   roeBig1 = combinedTokenPoolBig / globalSrpCountBig = ' + combinedTokenPoolBig + ' / ' + globalSrpCountBig + ' = ' + roeBig1); }
   roeBig2 = math.multiply(roeBig1, roePrecision);
-  if (printCalc) { console.log('   roeBig2 = result * precision = ' + roeBig1 + ' * ' + precision + ' = ' + roeBig2); }
+  if (printCalc) { console.log('   roeBig2 = result * roePrecision = ' + roeBig1 + ' * ' + roePrecision + ' = ' + roeBig2); }
 
-  if (roeCalcMethod == "trunc") {
-    const roeStr = roeBig2.toString();
-    const roeStrTrunc = roeStr.split('.')[0];
-    if (printCalc) { console.log('   roeStrTrunc: ', roeStrTrunc); }
-    roeTruncBig = math.bignumber(roeStrTrunc)
-    if (printCalc) { console.log('   math.bignumber(roeStrTruncBig) = ', roeTruncBig); }
-    roeBig = math.divide(roeTruncBig, roePrecision);
-    if (printCalc) { console.log('   result / roePrecision = ' + roeTruncBig + ' / ' + roePrecision + ' = ' + roeBig); }
-  } else {  // round
-    roeRoundBig = math.round(roeBig2)
-    if (printCalc) { console.log('   math.round(roeBig2) = ', roeRoundBig); }
-    roeBig = math.divide(roeRoundBig, roePrecision);
-    if (printCalc) { console.log('   roeBig = result / roePrecision = ' + roeRoundBig + ' / ' + roePrecision + ' = ' + roeBig); }
-  }
+  roeRoundBig = math.round(roeBig2)
+  if (printCalc) { console.log('   math.round(roeBig2) = ', roeRoundBig); }
+  roeBig = math.divide(roeRoundBig, roePrecision);
+  if (printCalc) { console.log('   roeBig = result / roePrecision = ' + roeRoundBig + ' / ' + roePrecision + ' = ' + roeBig); }
     
   if (printCalc) { console.log('   return '  + roeBig + '\n'); }
   return roeBig;
 }
 
+async function calcRoeBig2(combinedTokenPoolBig, globalSrpCountBig, precision, printCalc) {
+  if (printCalc) { console.log('\nROE CALC: '); }
 
+  const roePrecision = math.bignumber(Math.pow(10, precision));
+  //const combinedTokenPoolBig = math.bignumber(combinedTokenPool);
+  //const globalSrpCountBig = math.bignumber(globalSrpCount);
+
+  roeBig1 = math.divide(combinedTokenPoolBig, globalSrpCountBig);
+  if (printCalc) { console.log('   roeBig1 = combinedTokenPoolBig / globalSrpCountBig = ' + combinedTokenPoolBig + ' / ' + globalSrpCountBig + ' = ' + roeBig1); }
+  roeBig2 = math.multiply(roeBig1, roePrecision);
+  if (printCalc) { console.log('   roeBig2 = result * roePrecision = ' + roeBig1 + ' * ' + roePrecision + ' = ' + roeBig2); }
+
+  roeRoundBig = math.round(roeBig2)
+  if (printCalc) { console.log('   math.round(roeBig2) = ', roeRoundBig); }
+  roeBig = math.divide(roeRoundBig, roePrecision);
+  if (printCalc) { console.log('   roeBig = result / roePrecision = ' + roeRoundBig + ' / ' + roePrecision + ' = ' + roeBig); }
+
+  if (printCalc) { console.log('   return ' + roeBig + '\n'); }
+  return roeBig;
+}
+
+async function divideWithPrecision(numerator, denominator, precision, printCalc) {
+  if (printCalc) { console.log('\nROE CALC: '); }
+
+  const divPrecision = math.bignumber(Math.pow(10, precision));
+  const numeratorBig = math.bignumber(numerator);
+  const denominatorBig = math.bignumber(denominator);
+
+  calcBig1 = math.divide(numeratorBig, globalSrpCountBig);
+  if (printCalc) { console.log('   calcBig1 = numeratorBig / globalSrpCountBig = ' + numeratorBig + ' / ' + globalSrpCountBig + ' = ' + calcBig1); }
+  calcBig2 = math.multiply(calcBig1, divPrecision);
+  if (printCalc) { console.log('   calcBig2 = result * divPrecision = ' + calcBig1 + ' * ' + divPrecision + ' = ' + calcBig2); }
+
+  calcRoundBig = math.round(calcBig2)
+  if (printCalc) { console.log('   math.round(calcBig2) = ', calcRoundBig); }
+  calcBig = math.divide(calcRoundBig, divPrecision);
+  if (printCalc) { console.log('   calcBig = result / divPrecision = ' + calcRoundBig + ' / ' + divPrecision + ' = ' + calcBig); }
+
+  if (printCalc) { console.log('   return ' + calcBig + '\n'); }
+  return calcBig;
+}
+
+// Takes big numbers
+async function divWithRoundingBig(numerator, denominator, printCalc) {
+  if (printCalc) { console.log('\nDIVIDE WITH ROUNDING: '); }
+
+  const numeratorBig = math.bignumber(numerator);
+  const denominatorBig = math.bignumber(denominator);
+
+  calcBig1 = math.divide(numerator, denominator);
+  if (printCalc) { console.log('   calcBig1 = numerator / denominator = ' + numerator + ' / ' + denominator + ' = ' + calcBig1); }
+
+  calcRoundBig = math.round(calcBig1)
+  if (printCalc) { console.log('   math.round(calcBig1) = ', calcRoundBig); }
+
+  if (printCalc) { console.log('   return ' + calcRoundBig + '\n'); }
+  return calcRoundBig;
+}
 
 /**
  * Test constants that need to be set
  */
 const UNSTAKELOCKDURATIONSECONDS = config.UNSTAKELOCKDURATIONSECONDS;
 const STAKINGREWARDSPERCENT = 0.25;
-const ACTIVATIONTHRESHOLD = 1000000000000000  // 1M FIO
-const DAILYSTAKINGMINTTHRESHOLD = 2500000000000000  // 25K FIO
+const DAILYSTAKINGMINTTHRESHOLD = 25000000000000  // 25K FIO
 const STAKINGREWARDSRESERVEMAXIMUM = 25000000000000000 // 25M FIO
-const ROEPRECISION = 18;
+const PRECISION = 18;
+const ROEPRECISION = 15;
 const ROETHRESHOLD = 1000000000000000;  // Threshold for using LAST combined token pool and srps to calculate ROE
 
-const ROECALCMETHOD = "round";  // round or trunc
 const EPSILON = 0;  // The error we are willing to tolerate, in SUFs
 const useEpsilon = false;  // Set to true if you want to allow for error in the results up to EPSILON
 
 /**
- * Need to set. This is the list of tests from stake-timing-tests.js you want to run.
- *   Current list: zeroStaker, largeStaker, smallStaker, medStaker, largeSmallMedStaker, stakeUnstakeStaker, roeRatioLarge
+ * Need to set. This is the list of tests from stake-timing-tests.js you want to run (separate tests with comma)
+ *   Current list: activateChainStaker, zeroStaker, largeStaker, smallStaker, medStaker, largeSmallMedStaker, stakeUnstakeStaker, roeRatioLarge
  */
-const stakeTestList = [stakeTests.activateChainStaker];
+const stakeTestList = [stakeTests.roeRatioLarge];
 
 // To enable debugging:
 const printCalc = true;
@@ -276,10 +336,9 @@ before(async () => {
   bp1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
 })
 
-describe(`************************** stake-regression.js ************************** \n    A. Stake timing test.`, () => {
+describe(`************************** stake-timing.js ************************** \n    A. Stake timing test.`, () => {
 
   let user1, transfer_tokens_pub_key_fee, generalLockStaker
-  let stakingTableExists = 0;
 
   let stakers = [];
 
@@ -290,76 +349,26 @@ describe(`************************** stake-regression.js ***********************
   
   const genLockTotal = genLock1Amount + genLock2Amount + genLock3Amount
 
-  const existingUser1 = {
-    privateKey: '5KAMg5GxX1MGUhRQRnG331GWs1HReXxZrAFrqQ8HzeNVzN3iy2X',
-    publicKey: 'FIO8HiRhFAgUTvSKdbSsf7tvRtGWqboaVkf6JhByMG8nE1eGgy7Br',
-    account: 'znfhu52wuuxz',
-    domain: 'odwcjxcnry',
-    address: 'ykyfh@odwcjxcnry'
-  }
-
   const totalDays = 15
   activationDay = 0; // 0 = Immediately activate
-  const testTransferAmount = 1000000000000  // 1000 FIO
+  const testTransferAmount = 1000000000  // 1 FIO
 
-  it('See if staking table exists', async () => {
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'fio.staking',      // Contract that we target
-        scope: 'fio.staking',         // Account that owns the data
-        table: 'staking',        // Table name
-        limit: 10,                // Maximum number of rows that we want to get
-        reverse: true,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
-      }
-      stakingTable = await callFioApi("get_table_rows", json);
-      if (stakingTable.rows.length != 0) {
-        stakingTableExists = 1;
-      }
-      console.log('stakingTable: ', stakingTable);
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
-  });
 
   it('Create staking users', async () => {
     try {
       
-      let stakingRewardsActivated = 0;
-      if (stakingTableExists) {
-        stakingRewardsActivated = await getStakingRewardsActivated();
-        console.log('stakingRewardsActivated', stakingRewardsActivated);
+      for (let i = 0; i < stakeTestList.length; i++) {
+        let stakeTest = stakeTestList[i];
+
+        stakers[i] = new Staker();
+        stakers[i].name = stakeTest.name;
+        stakers[i].transferAmount = stakeTest.transferAmount;
+        stakers[i].stakeAmount = stakeTest.stakeAmount;
+        stakers[i].unstakeAmount = stakeTest.unstakeAmount;
+        stakers[i].transferToken = stakeTest.transferToken;
+        await stakers[i].createSdk(faucet);
       }
-      
-      // The initial run is used to test activation of the chain. More testing could be done here. 
-      // The remaining post - activation runs are for different edge cases.
-      if (stakingRewardsActivated == 0) {
-        let stakeTest = stakeTests.activateChainStaker;
 
-        stakers[0] = new Staker();
-        stakers[0].name = stakeTest.name;
-        stakers[0].transferAmount = stakeTest.transferAmount;
-        stakers[0].stakeAmount = stakeTest.stakeAmount;
-        stakers[0].unstakeAmount = stakeTest.unstakeAmount;
-        stakers[0].transferToken = stakeTest.transferToken;
-        await stakers[0].createSdk(faucet);
-
-      } else {
-        for (let i = 0; i < stakeTestList.length; i++) {
-          let stakeTest = stakeTestList[i];
-
-          stakers[i] = new Staker();
-          stakers[i].name = stakeTest.name;
-          stakers[i].transferAmount = stakeTest.transferAmount;
-          stakers[i].stakeAmount = stakeTest.stakeAmount;
-          stakers[i].unstakeAmount = stakeTest.unstakeAmount;
-          stakers[i].transferToken = stakeTest.transferToken;
-          await stakers[i].createSdk(faucet);
-        }
-
-      };
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -445,10 +454,9 @@ describe(`************************** stake-regression.js ***********************
       key_type: 'i64',
       index_position: '2'
     }
-    const result = await callFioApi("get_table_rows", json);
+    const result = await httpRequest("get_table_rows", json);
     console.log('loctokensv2 table for staker: ', result);
   })
-
 
   it(`Transfer initial amount into staker accounts`, async () => {
     for (let i = 0; i < stakers.length; i++) {
@@ -483,7 +491,6 @@ describe(`************************** stake-regression.js ***********************
       expect(err).to.equal(null);
     };
   });
-
 
   it(`Staker votes for BP so they can stake.`, async () => {
     for (let i = 0; i < stakers.length; i++) {
@@ -539,7 +546,7 @@ describe(`************************** stake-regression.js ***********************
   });
 
   // This updates the stakingRewardsReserveMinted and sets daily staking reserves
-  it.skip(`Call bpclaim to set initial rewards amount`, async () => {
+  it(`Call bpclaim to set initial rewards amount`, async () => {
     try {
       const result = await bp1.sdk.genericAction('pushTransaction', {
         action: 'bpclaim',
@@ -557,7 +564,7 @@ describe(`************************** stake-regression.js ***********************
     }
   });
 
-  it(`Set global variable values`, async () => {
+  it.skip(`Set global variable values`, async () => {
     try {
       const stakedTokenPool = await getStakedTokenPool();
       const combinedTokenPool = await getCombinedTokenPool();
@@ -567,9 +574,8 @@ describe(`************************** stake-regression.js ***********************
       const lastGlobalSrpCount = await getLastGlobalSrpCount();
       const dailyStakingRewards = await getDailyStakingRewards();
       const stakingRewardsReservesMinted = await getStakingRewardsReservesMinted();
-      const stakingRewardsActivated = await getStakingRewardsActivated();
 
-      await setPrevGlobals(stakedTokenPool, combinedTokenPool, lastCombinedTokenPool, rewardsTokenPool, globalSrpCount, lastGlobalSrpCount, dailyStakingRewards, stakingRewardsReservesMinted, stakingRewardsActivated);
+      await setPrevGlobals(stakedTokenPool, combinedTokenPool, lastCombinedTokenPool, rewardsTokenPool, globalSrpCount, lastGlobalSrpCount, dailyStakingRewards, stakingRewardsReservesMinted);
       //await printCurrentGlobals();
     } catch (err) {
       console.log('Error', err);
@@ -602,109 +608,11 @@ describe(`************************** stake-regression.js ***********************
           }
         };
       })
-
-      it.skip(`If we are beyond target activate day, and if not activated, have user1 vote then stake ${ACTIVATIONTHRESHOLD / 1000000000} tokens to activate`, async () => {
-        const stakingRewardsActivated = await getStakingRewardsActivated();
-        if (dayNumber == activationDay && stakingRewardsActivated == 0) {
-          try {
-            const resultXfer = await faucet.genericAction('transferTokens', {
-              payeeFioPublicKey: user1.publicKey,
-              amount: ACTIVATIONTHRESHOLD,
-              maxFee: config.maxFee,
-              technologyProviderId: ''
-            });
-            expect(resultXfer.status).to.equal('OK')
-
-            const resultVote = await user1.sdk.genericAction('pushTransaction', {
-              action: 'voteproducer',
-              account: 'eosio',
-              data: {
-                producers: ["bp1@dapixdev"],
-                fio_address: user1.address,
-                actor: user1.account,
-                max_fee: config.maxFee
-              }
-            })
-            expect(resultVote.status).to.equal('OK')
-
-            const resultStake = await user1.sdk.genericAction('pushTransaction', {
-              action: 'stakefio',
-              account: 'fio.staking',
-              data: {
-                fio_address: user1.address,
-                amount: ACTIVATIONTHRESHOLD,
-                actor: user1.account,
-                max_fee: config.maxFee,
-                tpid: ''
-              }
-            })
-            expect(resultStake.status).to.equal('OK')
-
-            const stakedTokenPool = await getStakedTokenPool();
-            const combinedTokenPool = await getCombinedTokenPool();
-            const lastCombinedTokenPool = await getLastCombinedTokenPool();
-            const rewardsTokenPool = await getRewardsTokenPool();
-            const globalSrpCount = await getGlobalSrpCount();
-            const lastGlobalSrpCount = await getLastGlobalSrpCount();
-            const dailyStakingRewards = await getDailyStakingRewards();
-            const stakingRewardsReservesMinted = await getStakingRewardsReservesMinted();
-            const stakingRewardsActivated = await getStakingRewardsActivated();
-
-            //await printCurrentGlobals();
-
-            // TODO: check that activation sets these variables as expected.
-            
-            await setPrevGlobals(stakedTokenPool, combinedTokenPool, lastCombinedTokenPool, rewardsTokenPool, globalSrpCount, lastGlobalSrpCount, dailyStakingRewards, stakingRewardsReservesMinted, stakingRewardsActivated);
-
-
-          } catch (err) {
-            console.log('Error', err.json);
-            expect(err).to.equal(null);
-          };
-        };
-      });
-
-      it.skip(`PREVENTS SRPS > AMOUNT BUG FROM HAPPENING. Transfer ${testTransferAmount} tokens from faucet to user1 to see if globals change...`, async () => {
-        try {
-          const result = await faucet.genericAction('transferTokens', {
-            payeeFioPublicKey: user1.publicKey,
-            amount: testTransferAmount,
-            maxFee: config.maxFee,
-            technologyProviderId: ''
-          })
-          //console.log('result: ', result)
-
-          const stakedTokenPool = await getStakedTokenPool();
-          const combinedTokenPool = await getCombinedTokenPool();
-          const lastCombinedTokenPool = await getLastCombinedTokenPool();
-          const rewardsTokenPool = await getRewardsTokenPool();
-          const globalSrpCount = await getGlobalSrpCount();
-          const lastGlobalSrpCount = await getLastGlobalSrpCount();
-          const dailyStakingRewards = await getDailyStakingRewards();
-          const stakingRewardsReservesMinted = await getStakingRewardsReservesMinted();
-          const stakingRewardsActivated = await getStakingRewardsActivated();
-
-          // FOR DEBUGGING
-          //await printCurrentGlobals();
-
-          expect(stakedTokenPool).to.equal(prevStakedTokenPoolOld);
-          expect(combinedTokenPool).to.equal(prevCombinedTokenPoolOld + STAKINGREWARDSPERCENT * transfer_tokens_pub_key_fee);
-          expect(rewardsTokenPool).to.equal(prevRewardsTokenPoolOld + STAKINGREWARDSPERCENT * transfer_tokens_pub_key_fee);
-          expect(globalSrpCount).to.equal(prevGlobalSrpCountOld);
-          expect(dailyStakingRewards).to.equal(prevDailyStakingRewardsOld + STAKINGREWARDSPERCENT * transfer_tokens_pub_key_fee);
-          expect(stakingRewardsReservesMinted).to.equal(prevStakingRewardsReservesMintedOld);
-          expect(stakingRewardsActivated).to.equal(prevStakingRewardsActivatedOld);
-
-          await setPrevGlobals(stakedTokenPool, combinedTokenPool, lastCombinedTokenPool, rewardsTokenPool, globalSrpCount, lastGlobalSrpCount, dailyStakingRewards, stakingRewardsReservesMinted, stakingRewardsActivated);
-        } catch (err) {
-          console.log('Error', err);
-          expect(err).to.equal(null);
-        }
-      });
-     
+    
       it(`Check if any unlock occurred today `, async () => {
         for (let i = 0; i < stakers.length; i++) {
-          let currentSecs = new Date().getTime() / 1000
+          let currentSecs = Math.trunc(new Date().getTime() / 1000);
+          let unlockSecs;
 
           try {
 
@@ -718,7 +626,7 @@ describe(`************************** stake-regression.js ***********************
               key_type: 'i64',
               index_position: '2'
             }
-            const result = await callFioApi("get_table_rows", json);
+            const result = await httpRequest("get_table_rows", json);
 
             if (result.rows.length > 0) { // If the table is not empty
               const lockinfo = result.rows[0];
@@ -728,15 +636,19 @@ describe(`************************** stake-regression.js ***********************
               if (printCalc) { console.log('periods : ', result.rows[0].periods); }
 
               const lockTable = await stakers[i].sdk.genericAction('getLocks', { fioPublicKey: stakers[i].publicKey })
-              console.log('Locktable: ', lockTable);
+              console.log('\nLocktable: ', lockTable);
 
               let unlockHappened = false;
               let unlockAmountBig = math.bignumber(0);
               for (period in lockinfo.periods) {
                 // If an unlock has occurred update expected Available balance and capture the unlockAmount
                 unlockSecs = lockinfo.timestamp + lockinfo.periods[period].duration;
-                if ((currentSecs >= unlockSecs) && (currentSecs < unlockSecs + SECONDSPERDAY)) {  // Need the && so you do not double count if the lock is not removed next round. Just remove locks for this day.
+                if (printCalc) { console.log('currentSecs: ', currentSecs); };
+                if (printCalc) { console.log('unlockSecs: ', unlockSecs); };
+                if (printCalc) { console.log('unlockSecs + SECONDSPERDAY: ', unlockSecs + SECONDSPERDAY); };
+                if ((currentSecs >= unlockSecs) && (currentSecs < unlockSecs + SECONDSPERDAY)) {  // Need the && so you do not double count if the lock is not removed. Just remove locks for this day.
                   unlockAmountBig = math.add(unlockAmountBig, math.bignumber(lockinfo.periods[period].amount));
+                  if (printCalc) { console.log('unlockAmountBig (period ' + period + ') = unlockAmountBig + lockinfo.periods[period].amount = ' + unlockAmountBig + ' + ' + lockinfo.periods[period].amount + ' = ' + unlockAmountBig); };
                   unlockHappened = true;
                 }
               }
@@ -745,14 +657,10 @@ describe(`************************** stake-regression.js ***********************
                 if (printCalc) { console.log('unlockAmountBig: ', unlockAmountBig); };
                 const expectedAvailableBig = math.add(math.bignumber(stakers[i].prevAvailable), unlockAmountBig);
                 if (printCalc) { console.log('expectedAvailableBig = stakers[i].prevAvailable + unlockAmountBig = ' + math.bignumber(stakers[i].prevAvailable) + ' + ' + unlockAmountBig + ' = ' + expectedAvailableBig); };
-                const expectedAvaialbleInt = parseInt(expectedAvailableBig);
-                if (printCalc) { console.log('expectedAvaialbleInt: ', expectedAvaialbleInt); };
+                const expectedAvailable = math.number(expectedAvailableBig);
+                if (printCalc) { console.log('expectedAvailable: ', expectedAvailable); };
 
                 console.log('           ...' + stakers[i].name + ' unlocks ' + parseInt(unlockAmountBig));
-
-                // FOR DEBUGGING
-                if (printCalc) { await stakers[i].printPrevBalances(); }
-                if (printCalc) { await stakers[i].printCurrentBalances(); }
 
 
                 const getBalance = await stakers[i].getUserBalance();
@@ -760,10 +668,10 @@ describe(`************************** stake-regression.js ***********************
                 expect(getBalance.balance).to.equal(stakers[i].prevBalance)
 
                 if (useEpsilon) {
-                  expect(getBalance.available).is.greaterThan(expectedAvaialbleInt - EPSILON);
-                  expect(getBalance.available).is.lessThan(expectedAvaialbleInt + EPSILON);
+                  expect(getBalance.available).is.greaterThan(expectedAvailable - EPSILON);
+                  expect(getBalance.available).is.lessThan(expectedAvailable + EPSILON);
                 } else {
-                  expect(getBalance.available).to.equal(expectedAvaialbleInt);
+                  expect(getBalance.available).to.equal(expectedAvailable);
                 }
 
                 expect(getBalance.staked).to.equal(stakers[i].prevStaked)
@@ -781,31 +689,19 @@ describe(`************************** stake-regression.js ***********************
         };
       })
 
-      it('Print staking table', async () => {
-        try {
-          const json = {
-            json: true,               // Get the response as json
-            code: 'fio.staking',      // Contract that we target
-            scope: 'fio.staking',         // Account that owns the data
-            table: 'staking',        // Table name
-            limit: 10,                // Maximum number of rows that we want to get
-            reverse: true,           // Optional: Get reversed data
-            show_payer: false          // Optional: Show ram payer
-          }
-          stakingTable = await callFioApi("get_table_rows", json);
-          if (printCalc) { console.log('stakingTable: ', stakingTable); }
-        } catch (err) {
-          console.log('Error', err);
-          expect(err).to.equal(null);
-        }
-      });
-
       it(`Do staking.`, async () => {
+
         for (let i = 0; i < stakers.length; i++) {
+
+          const getBalance = await stakers[i].getUserBalance();
+          if (printCalc) { console.log('getBalance: ', getBalance); };
+
           console.log('           ...' + stakers[i].name + ' stakes ', stakers[i].stakeAmount[dayNumber]);
           if (stakers[i].stakeAmount[dayNumber] != 0) {
             try {
               const userStakeAmount = stakers[i].stakeAmount[dayNumber];
+
+              // Get global and user vars BEFORE staking
 
               const prevStakedTokenPool = await getStakedTokenPool();
               const prevCombinedTokenPool = await getCombinedTokenPool();
@@ -815,7 +711,18 @@ describe(`************************** stake-regression.js ***********************
               const prevLastGlobalSrpCount = await getLastGlobalSrpCount();
               const prevDailyStakingRewards = await getDailyStakingRewards();
               const prevStakingRewardsReservesMinted = await getStakingRewardsReservesMinted();
-              const prevStakingRewardsActivated = await getStakingRewardsActivated();
+              if (printCalc) { await printStakingTable(); };
+
+              const prevStakedTokenPoolB = math.bignumber(await getStakedTokenPoolBig());
+              //const prevCombinedTokenPoolB = await getCombinedTokenPoolBig();
+              const prevCombinedTokenPoolB = math.bignumber(await getCombinedTokenPoolBig());
+              console.log('prevCombinedTokenPoolB: ', prevCombinedTokenPoolB)
+              const prevLastCombinedTokenPoolB = math.bignumber(await getLastCombinedTokenPoolBig());
+              const prevRewardsTokenPoolB = math.bignumber(await getRewardsTokenPoolBig());
+              const prevGlobalSrpCountB = math.bignumber(await getGlobalSrpCountBig());
+              const prevLastGlobalSrpCountB = math.bignumber(await getLastGlobalSrpCountBig());
+              const prevDailyStakingRewardsB = math.bignumber(await getDailyStakingRewardsBig());
+              const prevStakingRewardsReservesMintedB = math.bignumber(await getStakingRewardsReservesMintedBig());
 
               const prevGetBalance = await stakers[i].getUserBalance();
               const prevBalance = prevGetBalance.balance;
@@ -823,7 +730,9 @@ describe(`************************** stake-regression.js ***********************
               const prevStaked = prevGetBalance.staked;
               const prevSrps = prevGetBalance.srps;
               const prevRoe = prevGetBalance.roe;
-              if (printCalc) { console.log('prevGetBalance = ', prevGetBalance); };
+              if (printCalc) { console.log('\nprevGetBalance = ', prevGetBalance); };
+
+              // Do the staking
 
               const result = await stakers[i].sdk.genericAction('pushTransaction', {
                 action: 'stakefio',
@@ -837,7 +746,9 @@ describe(`************************** stake-regression.js ***********************
                 }
               })
               expect(result.status).to.equal('OK')
-              console.log('Staking result: ', result)
+              console.log('\nStaking result: ', result)
+
+              // Get global and user vars AFTER staking
 
               const stakedTokenPool = await getStakedTokenPool();
               const combinedTokenPool = await getCombinedTokenPool();
@@ -847,7 +758,16 @@ describe(`************************** stake-regression.js ***********************
               const lastGlobalSrpCount = await getLastGlobalSrpCount();
               const dailyStakingRewards = await getDailyStakingRewards();
               const stakingRewardsReservesMinted = await getStakingRewardsReservesMinted();
-              const stakingRewardsActivated = await getStakingRewardsActivated();
+              if (printCalc) { await printStakingTable(); };
+
+              const stakedTokenPoolB = math.bignumber(await getStakedTokenPoolBig());
+              const combinedTokenPoolB = math.bignumber(await getCombinedTokenPoolBig());
+              const lastCombinedTokenPoolB = math.bignumber(await getLastCombinedTokenPoolBig());
+              const rewardsTokenPoolB = math.bignumber(await getRewardsTokenPoolBig());
+              const globalSrpCountB = math.bignumber(await getGlobalSrpCountBig());
+              const lastGlobalSrpCountB = math.bignumber(await getLastGlobalSrpCountBig());
+              const dailyStakingRewardsB = math.bignumber(await getDailyStakingRewardsBig());
+              const stakingRewardsReservesMintedB = math.bignumber(await getStakingRewardsReservesMintedBig());
 
               const getBalance = await stakers[i].getUserBalance();
               const userBalance = getBalance.balance;
@@ -855,69 +775,82 @@ describe(`************************** stake-regression.js ***********************
               const userStaked = getBalance.staked;
               const userSrps = getBalance.srps;
               const userRoe = getBalance.roe;
-              if (printCalc) { console.log('getBalance = ', getBalance); };
+              if (printCalc) { console.log('\ngetBalance = ', getBalance); };
 
+              // Calculate ROE
 
-              console.log('\n           ...check that global staking variables are correct after staking ');
-
-              expect(stakedTokenPool).to.equal(prevStakedTokenPool + userStakeAmount);
-              expect(combinedTokenPool).to.equal(prevCombinedTokenPool + userStakeAmount);
-              expect(rewardsTokenPool).to.equal(prevRewardsTokenPool);
-
-
-              // FOR DEBUGGING
-              //await printPrevGlobals();
-              //await stakers[i].printPrevBalances();
-              //await printCurrentGlobals();
-              //await stakers[i].printCurrentBalances();
-
-              console.log('           ...Check that getFioBalance is correct after staking ');
-
-              expect(userBalance).to.equal(prevBalance);
-              expect(userAvailable).to.equal(prevAvailable - userStakeAmount);
-              expect(userStaked).to.equal(prevStaked + userStakeAmount);
-
-              let roeBig;
-              if (printCalc) { console.log('   stakedTokenPool = ', stakedTokenPool); };
-              if (printCalc) { console.log('   ROETHRESHOLD = ', ROETHRESHOLD); };
+              let prevRoeBig;
               if (prevStakedTokenPool >= ROETHRESHOLD) {
-                if (printCalc) { console.log('   using prevCombinedTokenPool = ', prevCombinedTokenPool); };
-                roeBig = await calcRoeBig(prevCombinedTokenPool, prevGlobalSrpCount, ROEPRECISION, ROECALCMETHOD, printCalc);
+                //prevRoeBig = await calcRoeBig(prevCombinedTokenPool, prevGlobalSrpCount, PRECISION, printCalc);
+                prevRoeBig = await calcRoeBig2(prevLastCombinedTokenPoolB, prevGlobalSrpCountB, PRECISION, printCalc);
               } else {
-                if (printCalc) { console.log('   using prevLastCombinedTokenPool = ', prevLastCombinedTokenPool); };
-                roeBig = await calcRoeBig(prevLastCombinedTokenPool, prevLastGlobalSrpCount, ROEPRECISION, ROECALCMETHOD, printCalc);
+                //prevRoeBig = await calcRoeBig(prevLastCombinedTokenPool, prevLastGlobalSrpCount, PRECISION, printCalc);
+                prevRoeBig = await calcRoeBig2(prevLastCombinedTokenPoolB, prevLastGlobalSrpCountB, PRECISION, printCalc);
               }
 
-              if (printCalc) { console.log('\nAWARDS CALC:'); };
+              // Do the staking calculations
 
-              if (printCalc) { console.log('   roeBig = ', roeBig); };
+              if (printCalc) { console.log('\nSTAKING CALCS:'); };
+
+              if (printCalc) { console.log('   prevRoeBig = ', prevRoeBig); };
 
               const stakeAmountBig = math.bignumber(userStakeAmount)
               let srpsToAwardBig = math.bignumber(0);
-              srpsToAwardBig = math.divide(stakeAmountBig, roeBig);
-              if (printCalc) { console.log('   srpsToAwardBig = stakeAmountBig / roeBig = ' + stakeAmountBig + ' / ' + roeBig + ' = ' + srpsToAwardBig); };
+              srpsToAwardBig = math.divide(stakeAmountBig, prevRoeBig);
+              if (printCalc) { console.log('   srpsToAwardBig = stakeAmountBig / prevRoeBig = ' + stakeAmountBig + ' / ' + prevRoeBig + ' = ' + srpsToAwardBig); };
 
-              // math.floor and Math.trunc returns round (bug?), so just converting to a string and splitting to do the truncation.
-              //const srpsToAwardStr = srpsToAwardBig.toString();
-              //const srpsToAwardStrTrunc = srpsToAwardStr.split('.')[0];
-              //if (printCalc) { console.log('   srpsToAwardStrTrunc: ', srpsToAwardStrTrunc); };
-
-              //let srpsToAwardTruncBig = math.bignumber(srpsToAwardStrTrunc)
-              //if (printCalc) { console.log('   srpsToAwardTruncBig = math.bignumber(srpsToAwardStrTrunc) = ', srpsToAwardTruncBig); };
+              //const prevGlobalSrpCountBig = math.bignumber(prevGlobalSrpCount);
+              const prevGlobalSrpCountBig = prevGlobalSrpCountB;
+              newSrpGlobalBig = math.add(prevGlobalSrpCountBig, srpsToAwardBig);
+              if (printCalc) { console.log('   newSrpGlobalBig = prevGlobalSrpCountBig + srpsToAwardBig = ' + prevGlobalSrpCountBig + ' + ' + srpsToAwardBig + ' = ' + newSrpGlobalBig); };
+              const newSrpGlobalRnd = math.round(newSrpGlobalBig);
+              if (printCalc) { console.log('   newSrpGlobalRnd: ', newSrpGlobalRnd); }
+              const newSrpGlobal = math.number(newSrpGlobalRnd);
+              if (printCalc) { console.log('   newSrpGlobal: ', newSrpGlobal); }
 
               let srpsToAwardRndBig = math.round(srpsToAwardBig);
               if (printCalc) { console.log('   srpsToAwardRndBig = ' + srpsToAwardRndBig); };
 
               let prevSrpsBig = math.bignumber(prevSrps);
+              const newSrpsBig = math.add(prevSrpsBig, srpsToAwardBig);
+              if (printCalc) { console.log('   newSrpsBig = prevSrpsBig + srpsToAwardBig = ' + prevSrpsBig + ' + ' + srpsToAwardBig + ' = ' + newSrpsBig); };
 
-              //XXXXXX  const newSrpsBig = math.add(prevSrpsBig, srpsToAwardTruncBig);
-              const newSrpsBig = math.add(prevSrpsBig, srpsToAwardRndBig);
-              if (printCalc) { console.log('   newSrpsBig = prevSrpsBig + srpsToAwardRndBig = ' + prevSrpsBig + ' + ' + srpsToAwardRndBig + ' = ' + newSrpsBig); };
-
-              //XXXXX const newSrpsInt = parseInt(newSrpsBig);
               newSrpsRnd = math.round(newSrpsBig)
               newSrpsInt = parseInt(newSrpsRnd);
               if (printCalc) { console.log('   newSrpsInt = parseInt(newSrpsBig) = ', newSrpsInt); };
+
+
+/*
+
+              // NEW
+              const scaleFactor = math.bignumber(Math.pow(10, PRECISION));
+              prevLastCombinedTokenPoolBig = math.bignumber(prevLastCombinedTokenPool);
+              prevLastGlobalSrpCountBig = math.bignumber(prevLastGlobalSrpCount);
+              const lastCombinedTokenPoolBig = math.bignumber(lastCombinedTokenPool);
+              scaledLastCombinedTokenPoolBig = math.multiply(lastCombinedTokenPoolBig, scaleFactor);
+              scaledRoe = await divWithRoundingBig(scaledLastCombinedTokenPoolBig, scaledLastCombinedTokenPoolBig, printCalc)
+
+              scaledStakeAmountBig = math.multiply(stakeAmountBig, scaleFactor);
+              srpsToAwardBig2 = await divWithRoundingBig(scaledStakeAmountBig, scaledRoe, printCalc);
+              if (printCalc) { console.log('   srpsToAwardBig2 = ' + srpsToAwardBig2); };
+              srpsToAwardInt = parseInt(srpsToAwardBig2);
+
+              expect(globalSrpCount).to.equal(prevGlobalSrpCount + srpsToAwardInt);
+
+              if (prevStakedTokenPool >= ROETHRESHOLD) {
+                expect(lastGlobalSrpCount).to.equal(prevLastGlobalSrpCount + srpsToAwardInt);
+              } else {
+                expect(lastGlobalSrpCount).to.equal(prevLastGlobalSrpCount);
+              }
+
+*/
+
+
+              console.log('\n           ...Check that getFioBalance parameters are correct after unstake ');
+
+              expect(userBalance).to.equal(prevBalance);
+              expect(userAvailable).to.equal(prevAvailable - userStakeAmount);
+              expect(userStaked).to.equal(prevStaked + userStakeAmount);
 
               if (useEpsilon) {
                 expect(userSrps).is.greaterThan(newSrpsInt - EPSILON);
@@ -926,35 +859,58 @@ describe(`************************** stake-regression.js ***********************
                 expect(userSrps).to.equal(newSrpsInt);
               }
 
-              expect(parseFloat(userRoe)).to.be.greaterThanOrEqual(parseFloat(prevRoe));
+              let roeBig;
+              if (prevStakedTokenPool >= ROETHRESHOLD) {
+                //roeBig = await calcRoeBig(combinedTokenPool, globalSrpCount, PRECISION, false);
+                roeBig = await calcRoeBig2(combinedTokenPoolB, globalSrpCountB, PRECISION, false);
+              } else {
+                //roeBig = await calcRoeBig(lastCombinedTokenPool, lastGlobalSrpCount, PRECISION, false);
+                roeBig = await calcRoeBig2(lastCombinedTokenPoolB, lastGlobalSrpCountB, PRECISION, false);
+              }
+              const precision = math.bignumber(Math.pow(10, ROEPRECISION));
+              const roeLarge = math.multiply(roeBig, precision);
+              const roeRnd = math.round(roeLarge);
+              const roeDecimal = math.divide(roeRnd, precision);
+              console.log('parseFloat(userRoe): ', parseFloat(userRoe));
+              console.log('roeDecimal: ', roeDecimal);
+              expect(parseFloat(userRoe)).to.equal(math.number(roeDecimal));
 
-              if (printCalc) { console.log('\nAWARDS CALC:'); }
-              const prevGlobalSrpCountBig = math.bignumber(prevGlobalSrpCount);
-              newSrpGlobalBig = math.add(prevGlobalSrpCountBig, srpsToAwardRndBig);
-              if (printCalc) { console.log('   newSrpGlobalBig = prevGlobalSrpCountBig + srpsToAwardRndBig = ' + prevGlobalSrpCountBig + ' + ' + srpsToAwardRndBig + ' = ' + newSrpGlobalBig); };
+              //console.log('roeDecimal: ', roeDecimal.toString());
+              //expect(userRoe).to.equal(roeDecimal.toString());
 
-              const newSrpGlobalRnd = math.round(newSrpGlobalBig);
-              const newSrpGlobalInt = parseInt(newSrpGlobalRnd);
-              if (printCalc) { console.log('   newSrpGlobalInt: ', newSrpGlobalInt); }
+              console.log('\n           ...check that global staking variables are correct after staking ');
+
+              expect(stakedTokenPool).to.equal(prevStakedTokenPool + userStakeAmount);
+              expect(combinedTokenPool).to.equal(prevCombinedTokenPool + userStakeAmount);
+
+              if (stakedTokenPool >= ROETHRESHOLD) {
+                expect(lastCombinedTokenPool).to.equal(prevLastCombinedTokenPool + userStakeAmount);
+              } else {
+                expect(lastCombinedTokenPool).to.equal(prevLastCombinedTokenPool);
+              }
+
+              expect(rewardsTokenPool).to.equal(prevRewardsTokenPool);
 
               if (useEpsilon) {
-                expect(globalSrpCount).is.greaterThan(newSrpGlobalInt - EPSILON);
-                expect(globalSrpCount).is.lessThan(newSrpGlobalInt + EPSILON);
+                expect(globalSrpCount).is.greaterThan(newSrpGlobal - EPSILON);
+                expect(globalSrpCount).is.lessThan(newSrpGlobal + EPSILON);
               } else {
-                expect(newSrpGlobalInt).to.equal(globalSrpCount);
-              }       
+                expect(globalSrpCount).to.equal(newSrpGlobal);
+              }
+              
+              if (prevStakedTokenPool >= ROETHRESHOLD) {
+                expect(lastGlobalSrpCount).to.equal(newSrpGlobal);
+              } else {
+                expect(lastGlobalSrpCount).to.equal(prevLastGlobalSrpCount);
+              }
 
               expect(dailyStakingRewards).to.equal(prevDailyStakingRewards);
               expect(stakingRewardsReservesMinted).to.equal(prevStakingRewardsReservesMinted);
-              if ((prevStakedTokenPool + stakers[i].stakeAmount[dayNumber]) > ACTIVATIONTHRESHOLD) {
-                //XXXXX expect(stakingRewardsActivated).to.equal(1);
-              } else {
-                //XXXXX expect(stakingRewardsActivated).to.equal(prevStakingRewardsActivated);
-              }
+
 
               // ONLY update prev balance and globals if an event happens and you have checked the results.
               await stakers[i].setPrevBalances(getBalance.balance, getBalance.available, getBalance.staked, getBalance.srps, getBalance.roe);
-              await setPrevGlobals(stakedTokenPool, combinedTokenPool, lastCombinedTokenPool, rewardsTokenPool, globalSrpCount, lastGlobalSrpCount, dailyStakingRewards, stakingRewardsReservesMinted, stakingRewardsActivated);
+              await setPrevGlobals(stakedTokenPool, combinedTokenPool, lastCombinedTokenPool, rewardsTokenPool, globalSrpCount, lastGlobalSrpCount, dailyStakingRewards, stakingRewardsReservesMinted);
 
              } catch (err) {
               if (err.errorCode == 400) {
@@ -970,35 +926,21 @@ describe(`************************** stake-regression.js ***********************
         };  // for
       });
 
-      it(`Wait a few seconds.`, async () => { await timeout(WAIT1 * 1005) })
-
-      it('Print staking table', async () => {
-        try {
-          const json = {
-            json: true,               // Get the response as json
-            code: 'fio.staking',      // Contract that we target
-            scope: 'fio.staking',         // Account that owns the data
-            table: 'staking',        // Table name
-            limit: 10,                // Maximum number of rows that we want to get
-            reverse: true,           // Optional: Get reversed data
-            show_payer: false          // Optional: Show ram payer
-          }
-          stakingTable = await callFioApi("get_table_rows", json);
-          console.log('stakingTable: ', stakingTable);
-        } catch (err) {
-          console.log('Error', err);
-          expect(err).to.equal(null);
-        }
-      });
+      it(`Wait a few seconds.`, async () => { await timeout(WAIT1 * 1000) })
 
       it(`Do unstaking.`, async () => {
         for (let i = 0; i < stakers.length; i++) {
           console.log('           ...' + stakers[i].name + ' unstakes ', stakers[i].unstakeAmount[dayNumber]);
 
+          const getBalancetest = await stakers[i].getUserBalance();
+          if (printCalc) { console.log('getBalancetest: ', getBalancetest); };
+
           if (stakers[i].unstakeAmount[dayNumber] != 0) {
             try {
               const userUnstakeAmount = stakers[i].unstakeAmount[dayNumber];
 
+              // Get global and user vars BEFORE staking
+              
               const prevStakedTokenPool = await getStakedTokenPool();
               const prevCombinedTokenPool = await getCombinedTokenPool();
               const prevLastCombinedTokenPool = await getLastCombinedTokenPool();
@@ -1007,7 +949,18 @@ describe(`************************** stake-regression.js ***********************
               const prevLastGlobalSrpCount = await getLastGlobalSrpCount();
               const prevDailyStakingRewards = await getDailyStakingRewards();
               const prevStakingRewardsReservesMinted = await getStakingRewardsReservesMinted();
-              const prevStakingRewardsActivated = await getStakingRewardsActivated();
+              if (printCalc) { await printStakingTable(); };
+
+              const prevStakedTokenPoolB = math.bignumber(await getStakedTokenPoolBig());
+              //const prevCombinedTokenPoolB = await getCombinedTokenPoolBig();
+              const prevCombinedTokenPoolB = math.bignumber(await getCombinedTokenPoolBig());
+              console.log('prevCombinedTokenPoolB: ', prevCombinedTokenPoolB)
+              const prevLastCombinedTokenPoolB = math.bignumber(await getLastCombinedTokenPoolBig());
+              const prevRewardsTokenPoolB = math.bignumber(await getRewardsTokenPoolBig());
+              const prevGlobalSrpCountB = math.bignumber(await getGlobalSrpCountBig());
+              const prevLastGlobalSrpCountB = math.bignumber(await getLastGlobalSrpCountBig());
+              const prevDailyStakingRewardsB = math.bignumber(await getDailyStakingRewardsBig());
+              const prevStakingRewardsReservesMintedB = math.bignumber(await getStakingRewardsReservesMintedBig());
       
               const prevGetBalance = await stakers[i].getUserBalance();
               const prevBalance = prevGetBalance.balance;
@@ -1015,7 +968,9 @@ describe(`************************** stake-regression.js ***********************
               const prevStaked = prevGetBalance.staked;
               const prevSrps = prevGetBalance.srps;
               const prevRoe = prevGetBalance.roe;
-              if (printCalc) { console.log('   prevGetBalance = ', prevGetBalance); };
+              if (printCalc) { console.log('\nprevGetBalance = ', prevGetBalance); };
+
+              // Do the unstaking
 
               const result = await stakers[i].sdk.genericAction('pushTransaction', {
                 action: 'unstakefio',
@@ -1029,7 +984,9 @@ describe(`************************** stake-regression.js ***********************
                 }
               }); 
               expect(result.status).to.equal('OK');
-              console.log('Staking result: ', result)
+              console.log('\nStaking result: ', result)
+
+              // Get global and user vars AFTER staking
               
               const stakedTokenPool = await getStakedTokenPool();
               const combinedTokenPool = await getCombinedTokenPool();
@@ -1039,7 +996,16 @@ describe(`************************** stake-regression.js ***********************
               const lastGlobalSrpCount = await getLastGlobalSrpCount();
               const dailyStakingRewards = await getDailyStakingRewards();
               const stakingRewardsReservesMinted = await getStakingRewardsReservesMinted();
-              const stakingRewardsActivated = await getStakingRewardsActivated();
+              if (printCalc) { await printStakingTable(); };
+
+              const stakedTokenPoolB = math.bignumber(await getStakedTokenPoolBig());
+              const combinedTokenPoolB = math.bignumber(await getCombinedTokenPoolBig());
+              const lastCombinedTokenPoolB = math.bignumber(await getLastCombinedTokenPoolBig());
+              const rewardsTokenPoolB = math.bignumber(await getRewardsTokenPoolBig());
+              const globalSrpCountB = math.bignumber(await getGlobalSrpCountBig());
+              const lastGlobalSrpCountB = math.bignumber(await getLastGlobalSrpCountBig());
+              const dailyStakingRewardsB = math.bignumber(await getDailyStakingRewardsBig());
+              const stakingRewardsReservesMintedB = math.bignumber(await getStakingRewardsReservesMintedBig());
 
               const getBalance = await stakers[i].getUserBalance();
               const userBalance = getBalance.balance;
@@ -1047,54 +1013,62 @@ describe(`************************** stake-regression.js ***********************
               const userStaked = getBalance.staked;
               const userSrps = getBalance.srps;
               const userRoe = getBalance.roe;
-              if (printCalc) { console.log('   getBalance = ', getBalance); };
+              if (printCalc) { console.log('\ngetBalance = ', getBalance); };
+  
+              // Calculate ROE
 
-              // FOR DEBUGGING
-              //await printPrevGlobals();
-              //await stakers[i].printPrevBalances();
-              //await printCurrentGlobals();
-              //await stakers[i].printCurrentBalances();   
-              
-              let roeBig;
+              let prevRoeBig;
               if (prevStakedTokenPool >= ROETHRESHOLD) {
-                roeBig = await calcRoeBig(prevCombinedTokenPool, prevGlobalSrpCount, ROEPRECISION, ROECALCMETHOD, printCalc);
+                prevRoeBig = await calcRoeBig(prevCombinedTokenPool, prevGlobalSrpCount, PRECISION, printCalc);
               } else {
-                roeBig = await calcRoeBig(prevLastCombinedTokenPool, prevLastGlobalSrpCount, ROEPRECISION, ROECALCMETHOD, printCalc);
+                prevRoeBig = await calcRoeBig(prevLastCombinedTokenPool, prevLastGlobalSrpCount, PRECISION, printCalc);
               }
+
+              // Do the unstaking calculations
                           
-              if (printCalc) { console.log('\nAWARDS CALC:'); };
-              if (printCalc) { console.log('   roeBig = ', roeBig); };
+              if (printCalc) { console.log('\nUNSTAKING CALCS:'); };
+              if (printCalc) { console.log('   prevRoeBig = ', prevRoeBig); };
 
               const srpsPercentToClaimBig = math.divide(math.bignumber(userUnstakeAmount), math.bignumber(prevStaked));
               if (printCalc) { console.log('   srpsPercentToClaimBig = userUnstakeAmount / prevStaked = ' + userUnstakeAmount + ' / ' + prevStaked + ' = ' + srpsPercentToClaimBig) };
+
               const srpsToClaimBig = math.multiply(srpsPercentToClaimBig, math.bignumber(prevSrps));
               if (printCalc) { console.log('   srpsToClaimBig = srpsPercentToClaimBig * prevSrps = ' + srpsPercentToClaimBig + ' * ' + prevSrps + ' = ' + srpsToClaimBig) };
 
-              // srps is a int64 so fits in Excel int
-              const srpsToClaim = parseInt(srpsToClaimBig);
+              const srpsToClaimRndBig = math.round(srpsToClaimBig);
+              if (printCalc) { console.log('   srpsToClaimRndBig = ', srpsToClaimRndBig); };
+
+              const srpsToClaim = parseInt(srpsToClaimRndBig);
               if (printCalc) { console.log('   srpsToClaim = ', srpsToClaim); };
 
-              //let globalSrpCountBig = math.bignumber(globalSrpCount);
-              //let prevGlobalSrpCountBig = math.bignumber(prevGlobalSrpCount);
-              //const newGlobalSrpsBig = math.subtract(prevGlobalSrpCountBig, srpsToClaimBig);
+              const remainingSrps = prevSrps - srpsToClaim;
+              if (printCalc) { console.log('   remainingSrps (for user) = prevSrps - srpsToClaim = ' + prevSrps + ' - ' + srpsToClaim + ' = ' + remainingSrps); };
+
+              const remainingSrpsBig = math.subtract(math.bignumber(prevSrps), srpsToClaimBig);
+              if (printCalc) { console.log('   remainingSrpsBig (for user) = math.bignumber(prevSrps) - srpsToClaimBig = ' + math.bignumber(prevSrps) + ' - ' + srpsToClaimBig + ' = ' + remainingSrpsBig); };
 
 
-              //srpsToClaimRndBig = math.round(srpsToClaimBig);
-              //if (printCalc) { console.log('   srpsToClaimRndBig = ', srpsToClaimRndBig); };
-              //const srpsToClaimBig = math.bignumber(srpsToClaim)
 
-              const sufsClaimedBig = math.multiply(srpsToClaimBig, roeBig);
-              if (printCalc) { console.log('   sufsClaimedBig = srpsToClaimBig * roeBig = ' + srpsToClaimBig + ' * ' + roeBig + ' = ' + sufsClaimedBig); };
+              const remainingGlobalSrps = prevGlobalSrpCount - srpsToClaim;
+              if (printCalc) { console.log('   remainingGlobalSrps = prevGlobalSrpCount - srpsToClaim = ' + prevGlobalSrpCount + ' - ' + srpsToClaim + ' = ' + remainingGlobalSrps); };
+
+              
+              prevGlobalSrpCountBig = math.bignumber(prevGlobalSrpCount);
+              const remainingGlobalSrpsBig = math.subtract(prevGlobalSrpCountBig, srpsToClaimBig);
+              if (printCalc) { console.log('   remainingGlobalSrpsBig = prevGlobalSrpCountBig - srpsToClaim = ' + prevGlobalSrpCountBig + ' - ' + srpsToClaimBig + ' = ' + remainingGlobalSrpsBig); };
+              //const remainingGlobalSrpsRndBig = math.round(remainingGlobalSrpsBig);
+              //if (printCalc) { console.log('   remainingGlobalSrpsRndBig = math.round(remainingGlobalSrpsBig) = ' + remainingGlobalSrpsRndBig); };
+              //const remainingGlobalSrps = math.number(remainingGlobalSrpsRndBig);
+              //if (printCalc) { console.log('   remainingGlobalSrps = math.number(remainingGlobalSrpsRndBig) = ' + remainingGlobalSrps); };
+              
+
+
+              const sufsClaimedBig = math.multiply(srpsToClaimBig, prevRoeBig);
+              if (printCalc) { console.log('   sufsClaimedBig = srpsToClaimBig * prevRoeBig = ' + srpsToClaimBig + ' * ' + prevRoeBig + ' = ' + sufsClaimedBig); };
 
               const sufsClaimedRndBig = math.round(parseFloat(sufsClaimedBig));
               if (printCalc) { console.log('   sufsClaimedRndBig = ', sufsClaimedRndBig); };
-
-              // Contract now does an explicit truncate
-              //const fioClaimedTrunc = Math.trunc(parseFloat(fioClaimed));
-              //if (printCalc) { console.log('   fioClaimedTrunc: ', fioClaimedTrunc); };
-
-              // Reward amount is the FIO paid out minus the unstakeAmount
-              
+            
               const rewardAmountTotal = sufsClaimedRndBig - userUnstakeAmount;
               if (printCalc) { console.log('   rewardAmountTotal = sufsClaimedRndBig - userUnstakeAmount = ' + sufsClaimedRndBig + ' - ' + userUnstakeAmount + ' = ' + rewardAmountTotal); };
               
@@ -1107,16 +1081,15 @@ describe(`************************** stake-regression.js ***********************
 
               stakers[i].prevRewardAmountStaker = rewardAmountStaker;
 
+              if (printCalc) { console.log('   expect combinedTokenPool = prevCombinedTokenPool - userUnstakeAmount - rewardAmountStaker = ' + prevCombinedTokenPool + ' - ' + userUnstakeAmount + ' - ' + rewardAmountStaker + ' = ' + combinedTokenPool); };
 
-              console.log('\n           ...Check that getFioBalance is correct after unstake ');
-
-              if (printCalc) { console.log('   userSrps = prevSrps - srpsToClaim = ' + prevSrps + ' - ' + srpsToClaim + ' = ' + userSrps) };
+              console.log('\n           ...Check that getFioBalance parameters are correct after unstaking ');
 
               if (useEpsilon) {
-                expect(userSrps).is.greaterThan(prevSrps - srpsToClaim - EPSILON);
-                expect(userSrps).is.lessThan(prevSrps - srpsToClaim + EPSILON);
+                expect(userSrps).is.greaterThan(remainingSrps - EPSILON);
+                expect(userSrps).is.lessThan(remainingSrps + EPSILON);
               } else {
-                expect(userSrps).to.equal(prevSrps - srpsToClaim);
+                expect(userSrps).to.equal(remainingSrps);
               }
 
               if (useEpsilon) {
@@ -1129,18 +1102,22 @@ describe(`************************** stake-regression.js ***********************
               expect(userAvailable).to.equal(prevAvailable);
               expect(userStaked).to.equal(prevStaked - userUnstakeAmount);
 
-              expect(parseFloat(userRoe)).to.be.greaterThanOrEqual(parseFloat(stakers[i].prevRoe));
+              let roeBig;
+              if (prevStakedTokenPool >= ROETHRESHOLD) {
+                roeBig = await calcRoeBig(combinedTokenPool, globalSrpCount, PRECISION, false);
+              } else {
+                roeBig = await calcRoeBig(lastCombinedTokenPool, lastGlobalSrpCount, PRECISION, false);
+              }
+              const precision = math.bignumber(Math.pow(10, ROEPRECISION));
+              const roeLarge = math.multiply(roeBig, precision);
+              const roeRnd = math.round(roeLarge);
+              const roeDecimal = math.divide(roeRnd, precision);
+              console.log('parseFloat(userRoe): ', parseFloat(userRoe));
+              console.log('roeDecimal: ', roeDecimal);
+              expect(parseFloat(userRoe)).to.equal(math.number(roeDecimal));
+
 
               console.log('\n           ...Check that global staking variables are correct after unstaking ');
-
-              if (printCalc) { console.log('   globalSrpCount = prevGlobalSrpCount2 - srpsToClaim = ' + prevGlobalSrpCount + ' - ' + srpsToClaim + ' = ' + globalSrpCount) };
-
-              if (useEpsilon) {
-                expect(globalSrpCount).is.greaterThan(prevGlobalSrpCount - srpsToClaim - EPSILON);
-                expect(globalSrpCount).is.lessThan(prevGlobalSrpCount - srpsToClaim + EPSILON);
-              } else {
-                expect(globalSrpCount).to.equal(prevGlobalSrpCount - srpsToClaim);
-              }
 
               expect(stakedTokenPool).to.equal(prevStakedTokenPool - userUnstakeAmount);
 
@@ -1151,16 +1128,42 @@ describe(`************************** stake-regression.js ***********************
               } else {
                 expect(combinedTokenPool).to.equal(prevCombinedTokenPool - userUnstakeAmount - rewardAmountStaker);
               }
+
+              if (prevStakedTokenPool >= ROETHRESHOLD) {
+                expect(lastCombinedTokenPool).to.equal(prevLastCombinedTokenPool - userUnstakeAmount - rewardAmountStaker);
+              } else {
+                expect(lastCombinedTokenPool).to.equal(prevLastCombinedTokenPool);
+              }
               
               expect(rewardsTokenPool).to.equal(prevRewardsTokenPool);  // This is cumulative. It never decrements
-              
+
+              if (useEpsilon) {
+                expect(globalSrpCount).is.greaterThan(prevGlobalSrpCount - srpsToClaim - EPSILON);
+                expect(globalSrpCount).is.lessThan(prevGlobalSrpCount - srpsToClaim + EPSILON);
+              } else { //remainingGlobalSrpsBig
+                //expect(globalSrpCount).to.equal(prevGlobalSrpCount - srpsToClaim);
+                //expect(globalSrpCount).to.equal(remainingGlobalSrps);
+                console.log('globalSrpCountB: ', globalSrpCountB)
+                console.log('remainingGlobalSrpsBig: ', remainingGlobalSrpsBig)
+                console.log('remainingGlobalSrps: ', remainingGlobalSrps)
+                expect(globalSrpCountB).to.equal(remainingGlobalSrpsBig);
+              }
+
+              if (prevStakedTokenPool >= ROETHRESHOLD) {
+                expect(lastGlobalSrpCount).to.equal(prevLastGlobalSrpCount - srpsToClaim);
+              } else {
+                expect(lastGlobalSrpCount).to.equal(prevLastGlobalSrpCount);
+              }
+
               expect(dailyStakingRewards).to.equal(prevDailyStakingRewards);
               expect(stakingRewardsReservesMinted).to.equal(prevStakingRewardsReservesMinted);
-              //expect(stakingRewardsActivated).to.equal(prevStakingRewardsActivated);
+
+
+              if (printCalc) { await printStakingTable(); };
 
               // ONLY update prev balance and globals if an event happens and you have checked the results.
               await stakers[i].setPrevBalances(getBalance.balance, getBalance.available, getBalance.staked, getBalance.srps, getBalance.roe);
-              await setPrevGlobals(stakedTokenPool, combinedTokenPool, lastCombinedTokenPool, rewardsTokenPool, globalSrpCount, lastGlobalSrpCount, dailyStakingRewards, stakingRewardsReservesMinted, stakingRewardsActivated);
+              await setPrevGlobals(stakedTokenPool, combinedTokenPool, lastCombinedTokenPool, rewardsTokenPool, globalSrpCount, lastGlobalSrpCount, dailyStakingRewards, stakingRewardsReservesMinted);
 
            } catch (err) {
               if (err.errorCode == 400) {
@@ -1178,6 +1181,10 @@ describe(`************************** stake-regression.js ***********************
 
       it(`Check that locktokensv2 locks are correct after unstake`, async () => {
         for (let i = 0; i < stakers.length; i++) {
+
+          const getBalance = await stakers[i].getUserBalance();
+          if (printCalc) { console.log('getBalance: ', getBalance); };
+
           console.log('           ...for ', stakers[i].name);
           // Only run this if there was an unstake. 
           if (stakers[i].unstakeAmount[dayNumber] != 0) {
@@ -1192,11 +1199,13 @@ describe(`************************** stake-regression.js ***********************
                 key_type: 'i64',
                 index_position: '2'
               }
-              const result = await callFioApi("get_table_rows", json);
+              const result = await httpRequest("get_table_rows", json);
               const lockinfo = result.rows[0];
 
               if (printCalc) { console.log('Result: ', result); };
               if (printCalc) { console.log('periods : ', result.rows[0].periods); };
+
+              if (printCalc) { await printStakingTable(); };
 
               // Only check locks if this account has an entry in locktokensv2
               if (stakers[i].prevOwnerAccount != '') {
@@ -1277,6 +1286,8 @@ describe(`************************** stake-regression.js ***********************
                       expect(lockinfo.periods[period].duration).is.greaterThan(durEstimate - 9);
                       expect(lockinfo.periods[period].duration).is.lessThan(durEstimate + 9);
                     } else {  // It is a previous lock that has not changed
+                      console.log('period: ', period)
+                      console.log('lockinfo.periods[period]: ', lockinfo.periods[period])
                       expect(lockinfo.periods[period].amount).to.equal(stakers[i].prevPeriods[period].amount);
                       expect(lockinfo.periods[period].duration).to.equal(stakers[i].prevPeriods[period].duration);
                     }
@@ -1362,9 +1373,11 @@ describe(`************************** stake-regression.js ***********************
         };
       })
 
-      it.skip(`Call bpclaim as bp1 to process 25K daily staking rewards`, async () => {
+      it(`Call bpclaim as bp1 to process 25K daily staking rewards`, async () => {
         if (dailyRewards.schedule[dayNumber] == 1) {
           try {
+
+            // Get global vars BEFORE staking
 
             const prevStakedTokenPool = await getStakedTokenPool();
             const prevCombinedTokenPool = await getCombinedTokenPool();
@@ -1374,7 +1387,9 @@ describe(`************************** stake-regression.js ***********************
             const prevLastGlobalSrpCount = await getLastGlobalSrpCount();
             const prevDailyStakingRewards = await getDailyStakingRewards();
             const prevStakingRewardsReservesMinted = await getStakingRewardsReservesMinted();
-            const prevStakingRewardsActivated = await getStakingRewardsActivated();
+            if (printCalc) { await printCurrentGlobals(); };
+
+            // Do the bpclaim
 
             const result = await bp1.sdk.genericAction('pushTransaction', {
               action: 'bpclaim',
@@ -1384,16 +1399,27 @@ describe(`************************** stake-regression.js ***********************
                 actor: bp1.account
               }
             })
-            if (printCalc) { console.log('BPCLAIM Result: ', result) };
-            
             if (dayNumber != 0) {
               expect(result.status).to.equal('OK')
             }
+            if (printCalc) { console.log('\nBPCLAIM Result: ', result) };
 
-            console.log('           ...Check that global staking variables are correct after daily staking rewards ');
+            // Get global vars AFTER staking
 
-            // FOR DEBUGGING
-            if (true) { await printCurrentGlobals(); }
+            const stakedTokenPool = await getStakedTokenPool();
+            const combinedTokenPool = await getCombinedTokenPool();
+            const lastCombinedTokenPool = await getLastCombinedTokenPool();
+            const rewardsTokenPool = await getRewardsTokenPool();
+            const globalSrpCount = await getGlobalSrpCount();
+            const lastGlobalSrpCount = await getLastGlobalSrpCount();
+            const dailyStakingRewards = await getDailyStakingRewards();
+            const stakingRewardsReservesMinted = await getStakingRewardsReservesMinted();
+            if (printCalc) { await printCurrentGlobals(); };
+            
+
+            // Do the bpclaim calculations
+
+            if (printCalc) { console.log('\nBPCLAIM CALCS:'); };
 
             // Only the difference between DAILYSTAKINGMINTTHRESHOLD and prevDailyStakingRewards (from fees) is added since
             //   the fee rewards are added as they are received.
@@ -1418,24 +1444,20 @@ describe(`************************** stake-regression.js ***********************
 
             if (printCalc) { console.log('mintedAmount: ', mintedAmount) };
 
-            const stakedTokenPool = await getStakedTokenPool();
-            const combinedTokenPool = await getCombinedTokenPool();
-            const lastCombinedTokenPool = await getLastCombinedTokenPool();
-            const rewardsTokenPool = await getRewardsTokenPool();
-            const globalSrpCount = await getGlobalSrpCount();
-            const lastGlobalSrpCount = await getLastGlobalSrpCount();
-            const dailyStakingRewards = await getDailyStakingRewards();
-            const stakingRewardsReservesMinted = await getStakingRewardsReservesMinted();
-            const stakingRewardsActivated = await getStakingRewardsActivated();
+            console.log('           ...Check that global staking variables are correct after daily staking rewards ');
 
             if (stakingRewardsReservesMinted < STAKINGREWARDSRESERVEMAXIMUM) {
               expect(stakedTokenPool).to.equal(prevStakedTokenPool);
+              if (printCalc) { console.log('combinedTokenPool: ', combinedTokenPool) };
+              if (printCalc) { console.log('prevCombinedTokenPool: ', prevCombinedTokenPool) };
+              if (printCalc) { console.log('mintedAmount: ', mintedAmount) };
+
+              if (printCalc) { console.log('prevCombinedTokenPool + mintedAmount = ', prevCombinedTokenPool + mintedAmount) };
               expect(combinedTokenPool).to.equal(prevCombinedTokenPool + mintedAmount);
               expect(rewardsTokenPool).to.equal(prevRewardsTokenPool);
               expect(globalSrpCount).to.equal(prevGlobalSrpCount);
               expect(dailyStakingRewards).to.equal(0);  // This gets reset when doing a bpclaim because the new tokens are minted
               expect(stakingRewardsReservesMinted).to.equal(prevStakingRewardsReservesMinted + mintedAmount);
-              expect(stakingRewardsActivated).to.equal(prevStakingRewardsActivated);
             } else {  // STAKINGREWARDSRESERVEMAXIMUM has been hit
               if (printCalc) { console.log('STAKINGREWARDSRESERVEMAXIMUM Reached'); };
               expect(stakedTokenPool).to.equal(prevStakedTokenPool);
@@ -1444,12 +1466,14 @@ describe(`************************** stake-regression.js ***********************
               expect(globalSrpCount).to.equal(prevGlobalSrpCount);
               expect(dailyStakingRewards).to.equal(0);
               expect(stakingRewardsReservesMinted).to.equal(STAKINGREWARDSRESERVEMAXIMUM);
-              expect(stakingRewardsActivated).to.equal(prevStakingRewardsActivated);
             }
+
+
             // ONLY update globals if an event happens and you have checked the results.
-            await setPrevGlobals(stakedTokenPool, combinedTokenPool, lastCombinedTokenPool, rewardsTokenPool, globalSrpCount, lastGlobalSrpCount, dailyStakingRewards, stakingRewardsReservesMinted, stakingRewardsActivated);
+            await setPrevGlobals(stakedTokenPool, combinedTokenPool, lastCombinedTokenPool, rewardsTokenPool, globalSrpCount, lastGlobalSrpCount, dailyStakingRewards, stakingRewardsReservesMinted, 0);
 
           } catch (err) {
+            //console.log('Err: ', err)
             if (dayNumber == 0) {
               expect(err.json.fields[0].error).to.equal('FIO Address not producer or nothing payable')             
             } else {
@@ -1466,7 +1490,8 @@ describe(`************************** stake-regression.js ***********************
         }; // if
       });
 
-      it(`transfer ${testTransferAmount} tokens from staker to user1 to update lock table`, async () => {
+      // Note that only unstaking updates the lock table.
+      it.skip(`transfer ${testTransferAmount} tokens from staker to user1 to update lock table`, async () => {
         for (let i = 0; i < stakers.length; i++) {
           console.log('           ...for ', stakers[i].name);
           // Only run this if there was an unstake. 
@@ -1481,7 +1506,8 @@ describe(`************************** stake-regression.js ***********************
               const prevLastGlobalSrpCount = await getLastGlobalSrpCount();
               const prevDailyStakingRewards = await getDailyStakingRewards();
               const prevStakingRewardsReservesMinted = await getStakingRewardsReservesMinted();
-              const prevStakingRewardsActivated = await getStakingRewardsActivated();
+              if (printCalc) { await printCurrentGlobals(); };
+
 
               const result = await stakers[i].sdk.genericAction('transferTokens', {
                 payeeFioPublicKey: user1.publicKey,
@@ -1491,6 +1517,18 @@ describe(`************************** stake-regression.js ***********************
               })
               console.log('Transfer Tokens: ', result)
 
+              const result2 = await stakers[i].sdk.genericAction('pushTransaction', {
+                action: 'voteproducer',
+                account: 'eosio',
+                data: {
+                  producers: ["bp1@dapixdev"],
+                  fio_address: '',
+                  actor: stakers[i].account,
+                  max_fee: config.maxFee
+                }
+              })
+              console.log('BP Claim: ', result2)
+
               const stakedTokenPool = await getStakedTokenPool();
               const combinedTokenPool = await getCombinedTokenPool();
               const lastCombinedTokenPool = await getLastCombinedTokenPool();
@@ -1499,10 +1537,7 @@ describe(`************************** stake-regression.js ***********************
               const lastGlobalSrpCount = await getLastGlobalSrpCount();
               const dailyStakingRewards = await getDailyStakingRewards();
               const stakingRewardsReservesMinted = await getStakingRewardsReservesMinted();
-              const stakingRewardsActivated = await getStakingRewardsActivated();
 
-              // FOR DEBUGGING
-              //await printCurrentGlobals();
 
               expect(stakedTokenPool).to.equal(prevStakedTokenPool);
               expect(combinedTokenPool).to.equal(prevCombinedTokenPool + STAKINGREWARDSPERCENT * transfer_tokens_pub_key_fee);
@@ -1510,14 +1545,13 @@ describe(`************************** stake-regression.js ***********************
               expect(globalSrpCount).to.equal(prevGlobalSrpCount);
               expect(dailyStakingRewards).to.equal(prevDailyStakingRewards + STAKINGREWARDSPERCENT * transfer_tokens_pub_key_fee);
               expect(stakingRewardsReservesMinted).to.equal(prevStakingRewardsReservesMinted);
-              expect(stakingRewardsActivated).to.equal(prevStakingRewardsActivated);
 
               // TODO: Need to check new balance for staker. 
               const getBalance = await stakers[i].getUserBalance();
 
               // ONLY update prev balance and globals if an event happens and you have checked the results.
               await stakers[i].setPrevBalances(getBalance.balance, getBalance.available, getBalance.staked, getBalance.srps, getBalance.roe);
-              await setPrevGlobals(stakedTokenPool, combinedTokenPool, lastCombinedTokenPool, rewardsTokenPool, globalSrpCount, lastGlobalSrpCount, dailyStakingRewards, stakingRewardsReservesMinted, stakingRewardsActivated);
+              await setPrevGlobals(stakedTokenPool, combinedTokenPool, lastCombinedTokenPool, rewardsTokenPool, globalSrpCount, lastGlobalSrpCount, dailyStakingRewards, stakingRewardsReservesMinted);
 
             } catch (err) {
               console.log('Error', err);
@@ -1527,6 +1561,18 @@ describe(`************************** stake-regression.js ***********************
         };
       });
 
+      it(`Set prev balances (Clean up)`, async () => {
+        for (let i = 0; i < stakers.length; i++) {
+          try {
+            const result = await stakers[i].getUserBalance();
+            console.log('Set prev balances: ', result)
+            await stakers[i].setPrevBalances(result.balance, result.available, result.staked, result.srps, result.roe);
+          } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+          }
+        };
+      })
 
       it(`waiting ${SECONDSPERDAY} seconds for next day`, async () => {
         wait(SECONDSPERDAY * 1000)
