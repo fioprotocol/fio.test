@@ -9,6 +9,14 @@ const stakeTests = {
     transferToken : [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   },
 
+  activateChainStaker2: {
+    name: "Activate Chain Staker",
+    transferAmount: 1004000000000000,  // 1,004,000 FIO
+    stakeAmount: [2000000000000, 10000000000, 1000000000000000, 10000000000, 1000000000000, 0, 0, 0, 0, 0, 0],
+    unstakeAmount: [0, 10000000000, 10000000000, 10000000000, 10000000000, 0, 310000000000, 0, 0, 0, 0],
+    transferToken: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  },
+
   /**
    * Use if you want to execute a lot of rewards prior to doing staking.
    */
@@ -18,6 +26,14 @@ const stakeTests = {
     stakeAmount: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     unstakeAmount: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
     transferToken: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  },
+
+  zeroStaker8: {
+    name: "Zero Staker",
+    transferAmount: 100000000000,  // 100 FIO
+    stakeAmount: [0, 0, 0, 0, 0, 0, 0, 0],
+    unstakeAmount: [0, 0, 0, 0, 0, 0, 0, 0],
+    transferToken: [0, 0, 0, 0, 0, 0, 0, 0],
   },
 
   /**
