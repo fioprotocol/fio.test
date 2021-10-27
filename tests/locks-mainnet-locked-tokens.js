@@ -2,7 +2,8 @@ require('mocha')
 const {expect} = require('chai')
 const {newUser, existingUser,callFioApi,fetchJson, generateFioDomain, getAccountFromKey, generateFioAddress, createKeypair} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
-config = require('../config.js');
+const config = require('../config.js');
+let faucet;
 
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
@@ -48,7 +49,7 @@ function wait(ms){
 */
 
 
-describe(`************************** locks-mainet-locked-tokens.js ************************** \n    A. Create large 7075065.123456789 grant. Verify unlocking using voting, can't transfer more than unlocked amount, and multiple calls to voting do not have effect.`, () => {
+describe(`************************** locks-mainnet-locked-tokens.js ************************** \n    A. Create large 7075065.123456789 grant. Verify unlocking using voting, can't transfer more than unlocked amount, and multiple calls to voting do not have effect.`, () => {
 
   let userA1, locksdk, keys, accountnm, transfer_tokens_pub_key_fee
   const lockdurationseconds = 60

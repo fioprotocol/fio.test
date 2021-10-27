@@ -2,11 +2,11 @@ require('mocha')
 const { expect } = require('chai')
 const { create, all } = require('mathjs')
 const { newUser, timeout, callFioApi, existingUser, createKeypair, getAccountFromKey, generateFioDomain, generateFioAddress, fetchJson} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/fiosdk')
+const { FIOSDK } = require('@fioprotocol/fiosdk')
 const config = require('../config.js');
 const stakeTests = require('./Helpers/stake-timing-tests.js');
 const Staker = require('./Helpers/staker.js');
-const {getStakedTokenPool, getCombinedTokenPool, getRewardsTokenPool, getGlobalSrpCount, getDailyStakingRewards, getStakingRewardsReservesMinted, getStakingRewardsActivated } = require('./Helpers/token-pool.js');
+const { getStakedTokenPool, getCombinedTokenPool, getRewardsTokenPool, getGlobalSrpCount, getDailyStakingRewards, getStakingRewardsReservesMinted, getStakingRewardsActivated } = require('./Helpers/token-pool.js');
 let faucet, bp1
 
 let prevStakedTokenPool, prevCombinedTokenPool, prevRewardsTokenPool, prevGlobalSrpCount, prevDailyStakingRewards, prevStakingRewardsReservesMinted, prevStakingRewardsActivated
@@ -278,7 +278,7 @@ before(async () => {
   bp1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
 })
 
-describe(`************************** stake-regression.js ************************** \n    A. Stake timing test.`, () => {
+describe(`************************** stake-timing.js ************************** \n    A. Stake timing test.`, () => {
 
   let user1, transfer_tokens_pub_key_fee, generalLockStaker
   let stakingTableExists = 0;
