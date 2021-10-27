@@ -315,9 +315,9 @@ const useEpsilon = false;  // Set to true if you want to allow for error in the 
  *   Current list: activateChainStaker, zeroStaker, largeStaker, smallStaker, medStaker, largeSmallMedStaker, stakeUnstakeStaker, roeRatioLarge
  */
 //Update fio.contracts: const DAILYSTAKINGMINTTHRESHOLD = 2500000000000000  to 2.5M FIO and rebuild contracts
-//const stakeTestList = [stakeTests.activateChainStaker2];  // First run this
+const stakeTestList = [stakeTests.activateChainStaker2];  // First run this
 //const stakeTestList = [stakeTests.zeroStaker8];  // Next, change to the "schedule" with 1,1,1 below and run this. It will increase ROE. Ignore the errors for bpclaim.
-const stakeTestList = [stakeTests.roeRatioLarge];  // Last, change back to the 0,0,0 "schedule" below and run this
+//const stakeTestList = [stakeTests.roeRatioLarge];  // Last, change back to the 0,0,0 "schedule" below and run this
 
 // To enable debugging:
 const printCalc = true;
