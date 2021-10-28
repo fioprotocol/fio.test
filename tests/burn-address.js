@@ -287,7 +287,7 @@ describe('************************** burn-address.js ************************** 
 
 })
 
-describe('C. Run get_fee on burn_fio_address', () => {
+describe('B. Run get_fee on burn_fio_address', () => {
 
     let walletC1, feeFromTable, feeFromApi
 
@@ -318,7 +318,7 @@ describe('C. Run get_fee on burn_fio_address', () => {
     })
 })
 
-describe('D. burnFioAddress Error testing', () => {
+describe('C. burnFioAddress Error testing', () => {
     let userD1, userD2
 
     it(`Create users`, async () => {
@@ -587,7 +587,7 @@ describe('D. burnFioAddress Error testing', () => {
 
 })
 
-describe('E. Test burnfioaddress SDK call (uses chain/burn_fio_address endpoint)', () => {
+describe('D. Test burnfioaddress SDK call (uses chain/burn_fio_address endpoint)', () => {
 
     let walletA1, walletA1FioNames
 
@@ -693,7 +693,7 @@ describe('E. Test burnfioaddress SDK call (uses chain/burn_fio_address endpoint)
     })
 })
 
-describe('F. Confirm active producers and proxy cannot burn address', () => {
+describe('E. Confirm active producers and proxy cannot burn address', () => {
 
     let user1, prod1, proxy1, burn_fio_address_fee
 
@@ -826,4 +826,576 @@ describe('F. Confirm active producers and proxy cannot burn address', () => {
         }
     })
 
+})
+
+describe('F. Burn Addresses with NFTs. Single account.', () => {
+
+    let user1, nftburnqCount, addressHash, address2Hash, address3Hash, address4Hash
+
+    it(`Create users`, async () => {
+        user1 = await newUser(faucet);
+        // user1.address has no NFTs
+        user1.address2 = generateFioAddress(user1.domain, 5)
+        user1.address3 = generateFioAddress(user1.domain, 5)
+        user1.address4 = generateFioAddress(user1.domain, 5)
+
+    })
+
+    it(`Get nftburnq table number of rows (in case there are existing entries)`, async () => {
+        try {
+            const json = {
+                json: true,
+                code: 'fio.address',
+                scope: 'fio.address',
+                table: 'nftburnq',
+                limit: 1000,
+                reverse: false,
+                show_payer: false
+            }
+            result = await callFioApi("get_table_rows", json);
+            //console.log('result: ', result);
+            nftburnqCount = result.rows.length;
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`Create address with single NFT`, async () => {
+        try {
+            const result = await user1.sdk.genericAction('registerFioAddress', {
+                fioAddress: user1.address2,
+                maxFee: config.maxFee,
+                technologyProviderId: ''
+            })
+            //console.log('Result: ', result)
+            expect(result.status).to.equal('OK')
+
+
+            const addnftResult = await user1.sdk.genericAction('pushTransaction', {
+                action: 'addnft',
+                account: 'fio.address',
+                data: {
+                    fio_address: user1.address2,
+                    nfts: [{
+                        "chain_code": "ETH", "contract_address": "0x123456789ABCDEF", "token_id": "1", "url": "", "hash": "", "metadata": ""
+                    }],
+                    max_fee: config.maxFee,
+                    actor: user1.account,
+                    tpid: ""
+                }
+            })
+            //console.log(`addnftResult: `, addnftResult)
+            expect(addnftResult.status).to.equal('OK')
+
+        } catch (err) {
+            //console.log(err.message)
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`Create address with 6 NFTs`, async () => {
+        try {
+            const result = await user1.sdk.genericAction('registerFioAddress', {
+                fioAddress: user1.address3,
+                maxFee: config.maxFee,
+                technologyProviderId: ''
+            })
+            //console.log('Result: ', result)
+            expect(result.status).to.equal('OK')
+
+            const addnftResult = await user1.sdk.genericAction('pushTransaction', {
+                action: 'addnft',
+                account: 'fio.address',
+                data: {
+                    fio_address: user1.address3,
+                    nfts: [
+                        { "chain_code": "ETH", "contract_address": "0x123456789ABCDEF1", "token_id": "1", "url": "", "hash": "", "metadata": "" },
+                        { "chain_code": "ETH", "contract_address": "0x123456789ABCDEF2", "token_id": "2", "url": "", "hash": "", "metadata": "" },
+                        { "chain_code": "ETH", "contract_address": "0x123456789ABCDEF3", "token_id": "3", "url": "", "hash": "", "metadata": "" }
+                    ],
+                    max_fee: config.maxFee,
+                    actor: user1.account,
+                    tpid: ""
+                }
+            })
+            //console.log(`addnftResult: `, addnftResult)
+            expect(addnftResult.status).to.equal('OK')
+
+            const addnftResult2 = await user1.sdk.genericAction('pushTransaction', {
+                action: 'addnft',
+                account: 'fio.address',
+                data: {
+                    fio_address: user1.address3,
+                    nfts: [
+                        { "chain_code": "ETH", "contract_address": "0x123456789ABCDEF4", "token_id": "4", "url": "", "hash": "", "metadata": "" },
+                        { "chain_code": "ETH", "contract_address": "0x123456789ABCDEF5", "token_id": "5", "url": "", "hash": "", "metadata": "" },
+                        { "chain_code": "ETH", "contract_address": "0x123456789ABCDEF6", "token_id": "6", "url": "", "hash": "", "metadata": "" }
+                    ],
+                    max_fee: config.maxFee,
+                    actor: user1.account,
+                    tpid: ""
+                }
+            })
+            //console.log(`addnftResult2: `, addnftResult2)
+            expect(addnftResult2.status).to.equal('OK')
+
+        } catch (err) {
+            console.log(err.json)
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`Create address with no NFT`, async () => {
+        const result = await user1.sdk.genericAction('registerFioAddress', {
+            fioAddress: user1.address4,
+            maxFee: config.maxFee,
+            technologyProviderId: ''
+        })
+        //console.log('Result: ', result)
+        expect(result.status).to.equal('OK')
+    })
+
+    it(`Call get_table_rows from fionames. Collect Hashes.`, async () => {
+        try {
+            const json = {
+                json: true,               // Get the response as json
+                code: 'fio.address',      // Contract that we target
+                scope: 'fio.address',         // Account that owns the data
+                table: 'fionames',        // Table name
+                limit: 1000,                // Maximum number of rows that we want to get
+                reverse: false,           // Optional: Get reversed data
+                show_payer: false          // Optional: Show ram payer
+            }
+            fionames = await callFioApi("get_table_rows", json);
+            //console.log('fionames: ', fionames);
+            for (fioname in fionames.rows) {
+                if (fionames.rows[fioname].name == user1.address) {
+                    //console.log('fioname: ', fionames.rows[fioname]);
+                    addressHash = fionames.rows[fioname].namehash;
+                }
+                if (fionames.rows[fioname].name == user1.address2) {
+                    //console.log('fioname: ', fionames.rows[fioname]);
+                    address2Hash = fionames.rows[fioname].namehash;
+                }
+                if (fionames.rows[fioname].name == user1.address3) {
+                    //console.log('fioname: ', fionames.rows[fioname]);
+                    address3Hash = fionames.rows[fioname].namehash;
+                }
+                if (fionames.rows[fioname].name == user1.address4) {
+                    //console.log('fioname: ', fionames.rows[fioname]);
+                    address4Hash = fionames.rows[fioname].namehash;
+                }
+            }
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`Burn user1.address`, async () => {
+        try {
+            const result = await callFioApiSigned('push_transaction', {
+                action: 'burnaddress',
+                account: 'fio.address',
+                actor: user1.account,
+                privKey: user1.privateKey,
+                data: {
+                    "fio_address": user1.address,
+                    "max_fee": config.maxFee,
+                    "tpid": '',
+                    "actor": user1.account
+                }
+            })
+            //console.log('Result: ', JSON.parse(result.processed.action_traces[0].receipt.response));
+            expect(JSON.parse(result.processed.action_traces[0].receipt.response).status).to.equal('OK');
+            expect(JSON.parse(result.processed.action_traces[0].receipt.response).fee_collected).to.equal(0);
+        } catch (err) {
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`Get burnnftq table. Confirm no additional entries. (BD-2863)`, async () => {
+        try {
+            const json = {
+                json: true,
+                code: 'fio.address',
+                scope: 'fio.address',
+                table: 'nftburnq',
+                limit: 1000,
+                reverse: false,
+                show_payer: false
+            }
+            result = await callFioApi("get_table_rows", json);
+            //console.log('result: ', result);
+            expect(result.rows.length).to.equal(nftburnqCount);  // No change
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    // Confirm address removed from fionames table
+    it(`Call get_table_rows from fionames. Verify user1.address not in table. Confirm address2,3,4 are in table.`, async () => {
+        let inTable = false, inTable2 = false, inTable3 = false, inTable4 = false;
+        try {
+            const json = {
+                json: true,               // Get the response as json
+                code: 'fio.address',      // Contract that we target
+                scope: 'fio.address',         // Account that owns the data
+                table: 'fionames',        // Table name
+                limit: 1000,                // Maximum number of rows that we want to get
+                reverse: false,           // Optional: Get reversed data
+                show_payer: false          // Optional: Show ram payer
+            }
+            fionames = await callFioApi("get_table_rows", json);
+            //console.log('fionames: ', fionames);
+            for (fioname in fionames.rows) {
+                if (fionames.rows[fioname].name == user1.address) {
+                    //console.log('fioname: ', fionames.rows[fioname]);
+                    inTable = true;
+                }
+                if (fionames.rows[fioname].name == user1.address2) {
+                    //console.log('fioname: ', fionames.rows[fioname]);
+                    inTable2 = true;
+                }
+                if (fionames.rows[fioname].name == user1.address3) {
+                    //console.log('fioname: ', fionames.rows[fioname]);
+                    inTable3 = true;
+                }
+                if (fionames.rows[fioname].name == user1.address4) {
+                    //console.log('fioname: ', fionames.rows[fioname]);
+                    inTable4 = true;
+                }
+            }
+            expect(inTable).to.equal(false);
+            expect(inTable2).to.equal(true);
+            expect(inTable3).to.equal(true);
+            expect(inTable4).to.equal(true);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`Burn user1.address2`, async () => {
+        try {
+            const result = await callFioApiSigned('push_transaction', {
+                action: 'burnaddress',
+                account: 'fio.address',
+                actor: user1.account,
+                privKey: user1.privateKey,
+                data: {
+                    "fio_address": user1.address2,
+                    "max_fee": config.maxFee,
+                    "tpid": '',
+                    "actor": user1.account
+                }
+            })
+            //console.log('Result: ', JSON.parse(result.processed.action_traces[0].receipt.response));
+            expect(JSON.parse(result.processed.action_traces[0].receipt.response).status).to.equal('OK');
+            expect(JSON.parse(result.processed.action_traces[0].receipt.response).fee_collected).to.equal(0);
+        } catch (err) {
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`Get burnnftq table. Confirm one additional entry with fio_address_hash = user1.address2.hash.`, async () => {
+        try {
+            const json = {
+                json: true,
+                code: 'fio.address',
+                scope: 'fio.address',
+                table: 'nftburnq',
+                limit: 1000,
+                reverse: false,
+                show_payer: false
+            }
+            result = await callFioApi("get_table_rows", json);
+            //console.log('result: ', result);
+            nftburnqCount++;
+            expect(result.rows[nftburnqCount - 1].fio_address_hash).to.equal(address2Hash);
+            expect(result.rows.length).to.equal(nftburnqCount);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`Call get_table_rows from fionames. Verify user1.address,2 not in table. Confirm address3,4 are in table.`, async () => {
+        let inTable = false, inTable2 = false, inTable3 = false, inTable4 = false;
+        try {
+            const json = {
+                json: true,               // Get the response as json
+                code: 'fio.address',      // Contract that we target
+                scope: 'fio.address',         // Account that owns the data
+                table: 'fionames',        // Table name
+                limit: 1000,                // Maximum number of rows that we want to get
+                reverse: false,           // Optional: Get reversed data
+                show_payer: false          // Optional: Show ram payer
+            }
+            fionames = await callFioApi("get_table_rows", json);
+            //console.log('fionames: ', fionames);
+            for (fioname in fionames.rows) {
+                if (fionames.rows[fioname].name == user1.address) {
+                    //console.log('fioname: ', fionames.rows[fioname]);
+                    inTable = true;
+                }
+                if (fionames.rows[fioname].name == user1.address2) {
+                    //console.log('fioname: ', fionames.rows[fioname]);
+                    inTable2 = true;
+                }
+                if (fionames.rows[fioname].name == user1.address3) {
+                    //console.log('fioname: ', fionames.rows[fioname]);
+                    inTable3 = true;
+                }
+                if (fionames.rows[fioname].name == user1.address4) {
+                    //console.log('fioname: ', fionames.rows[fioname]);
+                    inTable4 = true;
+                }
+            }
+            expect(inTable).to.equal(false);
+            expect(inTable2).to.equal(false);
+            expect(inTable3).to.equal(true);
+            expect(inTable4).to.equal(true);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+})
+
+describe('G. Burn Address with NFTs, re-register account, confirm cannot add new NFT', () => {
+
+    let user1, user2, addressHash
+
+    it(`Create users`, async () => {
+        user1 = await newUser(faucet);
+        user2 = await newUser(faucet);
+    })
+
+    it(`Call get_table_rows from fionames. Collect Hashes.`, async () => {
+        try {
+            const json = {
+                json: true,
+                code: 'fio.address',
+                scope: 'fio.address',
+                table: 'fionames',
+                lower_bound: user1.account,
+                upper_bound: user1.account,
+                key_type: 'i64',
+                index_position: '4'
+            }
+            fionames = await callFioApi("get_table_rows", json);
+            //console.log('fionames: ', fionames);
+            for (fioname in fionames.rows) {
+                if (fionames.rows[fioname].name == user1.address) {
+                    //console.log('fioname: ', fionames.rows[fioname]);
+                    addressHash = fionames.rows[fioname].namehash;
+                }
+            }
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`set_fio_domain_public for user1 Domain`, async () => {
+        try {
+            const result = await user1.sdk.genericAction('setFioDomainVisibility', {
+                fioDomain: user1.domain,
+                isPublic: true,
+                maxFee: config.maxFee,
+                technologyProviderId: ''
+            })
+            //console.log('Result: ', result)
+            expect(result.status).to.equal('OK')
+        } catch (err) {
+            console.log('Error: ', err)
+        }
+    })
+
+    it(`Add NFT to user1.address`, async () => {
+        try {
+            const addnftResult = await user1.sdk.genericAction('pushTransaction', {
+                action: 'addnft',
+                account: 'fio.address',
+                data: {
+                    fio_address: user1.address,
+                    nfts: [{
+                        "chain_code": "ETH", "contract_address": "0x123456789ABCDEF", "token_id": "1", "url": "", "hash": "", "metadata": ""
+                    }],
+                    max_fee: config.maxFee,
+                    actor: user1.account,
+                    tpid: ""
+                }
+            })
+            //console.log(`addnftResult: `, addnftResult)
+            expect(addnftResult.status).to.equal('OK')
+
+        } catch (err) {
+            //console.log(err.message)
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`Burn user1.address`, async () => {
+        try {
+            const result = await callFioApiSigned('push_transaction', {
+                action: 'burnaddress',
+                account: 'fio.address',
+                actor: user1.account,
+                privKey: user1.privateKey,
+                data: {
+                    "fio_address": user1.address,
+                    "max_fee": config.maxFee,
+                    "tpid": '',
+                    "actor": user1.account
+                }
+            })
+            //console.log('Result: ', JSON.parse(result.processed.action_traces[0].receipt.response));
+            expect(JSON.parse(result.processed.action_traces[0].receipt.response).status).to.equal('OK');
+            expect(JSON.parse(result.processed.action_traces[0].receipt.response).fee_collected).to.equal(0);
+        } catch (err) {
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+
+    it(`user2 re-registers address burned by user1`, async () => {
+        try {
+            const result = await user2.sdk.genericAction('registerFioAddress', {
+                fioAddress: user1.address,
+                maxFee: config.maxFee,
+                technologyProviderId: ''
+            })
+            //console.log('Result: ', result)
+            expect(result.status).to.equal('OK')
+        } catch (err) {
+            console.log(err.json)
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`Get burnnftq table. Confirm user1.address in table.`, async () => {
+        let inTable = false;
+        try {
+            const json = {
+                json: true,               // Get the response as json
+                code: 'fio.address',      // Contract that we target
+                scope: 'fio.address',         // Account that owns the data
+                table: 'nftburnq',        // Table name
+                limit: 1000,                // Maximum number of rows that we want to get
+                reverse: false,           // Optional: Get reversed data
+                show_payer: false          // Optional: Show ram payer
+            }
+            const addresses = await callFioApi("get_table_rows", json);
+            //console.log('addresses: ', addresses);
+            //console.log('addressHash: ', addressHash);
+            for (address in addresses.rows) {
+                if (addresses.rows[address].fio_address_hash == addressHash) {
+                    //console.log('address: ', addresses.rows[address]);
+                    inTable = true;
+                }
+            }
+            expect(inTable).to.equal(true);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`user2 attempts to create NFT on address. Expect failure.`, async () => {
+        try {
+            const addnftResult = await user2.sdk.genericAction('pushTransaction', {
+                action: 'addnft',
+                account: 'fio.address',
+                data: {
+                    fio_address: user1.address,
+                    nfts: [{
+                        "chain_code": "ETH", "contract_address": "0x123456789ABCDEF2", "token_id": "2", "url": "", "hash": "", "metadata": ""
+                    }],
+                    max_fee: config.maxFee,
+                    actor: user2.account,
+                    tpid: ""
+                }
+            })
+            //console.log(`addnftResult: `, addnftResult)
+            expect(addnftResult).to.not.equal('OK');
+        } catch (err) {
+            //console.log('Error: ', err)
+            expect(err.errorCode).to.equal(400);
+            expect(err.json.fields[0].error).to.equal('FIO Address NFTs are being burned');
+        }
+    })
+
+    it(`Call burnnfts until burnnftq is empty`, async () => {
+        let empty = false;
+        try {
+            while (!empty) {
+                const result = await user1.sdk.genericAction('pushTransaction', {
+                    action: 'burnnfts',
+                    account: 'fio.address',
+                    data: {
+                        actor: user1.account,
+                    }
+                })
+                //console.log(`Result: `, result)
+                expect(result.status).to.equal('OK')
+                await timeout(1000); // To avoid duplicate transaction
+            }
+        } catch (err) {
+            //console.log(err.json);
+            expect(err.errorCode).to.equal(400);
+            expect(err.json.fields[0].error).to.equal('Nothing to burn');
+        }
+    })
+
+    it(`Get burnnftq table. Confirm it is empty.`, async () => {
+        try {
+            const json = {
+                json: true,
+                code: 'fio.address',
+                scope: 'fio.address',
+                table: 'nftburnq',
+                limit: 1000,
+                reverse: false,
+                show_payer: false
+            }
+            result = await callFioApi("get_table_rows", json);
+            //console.log('result: ', result);
+            expect(result.rows.length).to.equal(0);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`user2 attempts to create NFT on address. Expect success.`, async () => {
+        try {
+            const addnftResult = await user2.sdk.genericAction('pushTransaction', {
+                action: 'addnft',
+                account: 'fio.address',
+                data: {
+                    fio_address: user1.address,
+                    nfts: [{
+                        "chain_code": "ETH", "contract_address": "0x123456789ABCDEF2", "token_id": "2", "url": "", "hash": "", "metadata": ""
+                    }],
+                    max_fee: config.maxFee,
+                    actor: user2.account,
+                    tpid: ""
+                }
+            })
+            //console.log(`addnftResult: `, addnftResult)
+            expect(addnftResult).to.not.equal('OK');
+        } catch (err) {
+            console.log('Error: ', err);
+            expect(err.errorCode).to.equal(400);
+            expect(err.json.fields[0].error).to.equal('FIO Address NFTs are being burned');
+        }
+    })
 })

@@ -1,8 +1,8 @@
 const TESTURL = 'http://localhost:8889'           // Localhost
-// const TESTURL = 'http://dev1.fio.dev:8888'         // DEV1
-//const TESTURL = 'http://44.238.153.162:8889'       // Devnet
-//const TESTURL = 'http://testnet.fioprotocol.io'    // Testnet
-//const TESTURL = 'https://fio.greymass.com'         // Mainnet
+//const TESTURL = 'http://dev1.fio.dev:8888'          // DEV1
+//const TESTURL = 'http://44.238.153.162:8889'      // Devnet
+//const TESTURL = 'http://testnet.fioprotocol.io'   // Testnet
+//const TESTURL = 'https://fio.greymass.com'        // Mainnet
 //const TESTURL = 'http://34.222.201.72:8080'        // History
 
 const DEVTOOLSDIR = '../fio.devtools'
@@ -16,11 +16,12 @@ const config = {
 
     //use this prod key file after you get a copy of the file from Ed, then you can run the
     //fee-voting-fee-setting.js.
-   // PRODKEYFILE: DEVTOOLSDIR + '/scripts/launch/producers/keys_producers_devnet.csv',
+    // PRODKEYFILE: DEVTOOLSDIR + '/scripts/launch/producers/keys_producers_devnet.csv',
     PRODKEYFILE: DEVTOOLSDIR + '/scripts/launch/producers/keys.csv',
 
     FAUCET_PRIV_KEY: '5KF2B21xT5pE5G3LNA6LKJc6AP2pAd2EnfpAUrJH12SFV8NtvCD',
     FAUCET_PUB_KEY: 'FIO6zwqqzHQcqCc2MB4jpp1F73MXpisEQe2SDghQFSGQKoAPjvQ3H',
+    FAUCET_ACCOUNT: 'qhh25sqpktwh',
 
     FIOESCROW_PUB_KEY: 'FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS',
 
@@ -31,6 +32,10 @@ const config = {
     BILLION: 1000000000,
     maxFee: 800000000000,
     defaultBundleCount: 100,
+
+    // lock duration periods for local testing
+    UNSTAKELOCKDURATIONSECONDS: 70,
+    SECONDSPERDAY: 10,
 
     error: {
         validationError: 'ValidationError',
@@ -276,7 +281,7 @@ const config = {
         msig_invalidate: {
             bundledEligible: false,
             fee: 400000000
-        } ,
+        },
         cancel_funds_request: {
             bundledEligible: true,
             fee: 600000000
@@ -296,6 +301,26 @@ const config = {
         set_marketplace_config: {
             bundledEligible: false,
             fee: 500000000
+        },
+        add_nft: {
+            bundledEligible: true,
+            fee: 600000000
+        },
+        remove_nft: {
+            bundledEligible: true,
+            fee: 600000000
+        },
+        remove_all_nfts: {
+            bundledEligible: true,
+            fee: 1200000000
+        },
+        stake_fio_tokens: {
+            bundledEligible: true,
+            fee: 3000000000
+        },
+        unstake_fio_tokens: {
+            bundledEligible: true,
+            fee: 3000000000
         }
     },
 
@@ -326,8 +351,8 @@ const config = {
         ADDADDRESSRAM: 512,
         SETDOMAINPUBRAM: 256,
         BURNEXPIREDRAM: 0,
-        NEWFUNDSREQUESTRAM: 2048,
-        RECORDOBTRAM: 2048,
+        NEWFUNDSREQUESTRAM: 4098,
+        RECORDOBTRAM: 4098,
         RENEWADDRESSRAM: 1024,
         RENEWDOMAINRAM: 1024,
         TPIDCLAIMRAM: 0,
@@ -351,7 +376,8 @@ const config = {
         XFERADDRESSRAM: 512,
         CANCELFUNDSRAM: 512,
         BUNDLEVOTERAM: 0,
-        FIOESCROWRAM: 512
+        FIOESCROWRAM: 512,
+        ADDNFTRAM: 3584
     },
 
     public_addresses: [
