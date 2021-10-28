@@ -6,7 +6,7 @@ describe('TEST SUITE', () => {
   /**
    * General Tests. Should work against all builds. Do not require additional configuration.
    */
-  
+
   require('./tests/addaddress.js'); // v1.0.x  Also includes FIP-13 tests.
   require('./tests/fees.js'); // v1.0.x
   require('./tests/fio-request.js'); // v1.0.x
@@ -37,12 +37,12 @@ describe('TEST SUITE', () => {
 
   //require('./tests/expired-address-domain.js'); // Requires manual updates to contracts to shorten expiration timing
   //require('./tests/expired-address-domain-modexpire.js'); // Requires modexpire action which allows expiring of domains
-  
+
   //require('./tests/history.js'); // Only run against history node.
 
   require('./tests/testnet-smoketest.js'); // Testnet smoketest. By default runs against local build.
-  
-  /** 
+
+  /**
    * Locked token tests (FIP-6,21). Tests may require additional configuration.
    */
   //require('./tests/locks-transfer-locked-tokens-max-load.js');  // OPTIONAL PERFORMANCE TEST. Loads the chain with lots of general locks. Run this before other general locks tests when its desirable to test a loaded chain.
@@ -55,7 +55,7 @@ describe('TEST SUITE', () => {
   //require('./tests/locks-mainnet-locked-tokens.js'); //FIP-21 tests for FIO genesis locks functionality.
   //### Testnet only. Not sure this will work. May need updates for recent lock changes
   //require('./tests/locks-transfer-locked-tokens-testnet-smoke-tests.js'); //Only works for Testnet
-  
+
   /**
    * Staking Tests (FIP-21)
    * May require additional configuration (see the notes in js files before running these tests)
@@ -73,14 +73,14 @@ describe('TEST SUITE', () => {
   /**
    * clio tests. Only works with local testing since it accesses the fio.devtools/bin directory
    */
-  //require('./tests/clio.js');  // FIP-16 
+  //require('./tests/clio.js');  // FIP-16
 
   /**
    * Producer Tests. Only run on devnet. Requires additional configuration
    */
   //require('./tests/producer-fee-voting-fee-setting.js'); // FIP-10
   //require('./tests/producer-fee-setting.js');  // FIP-10
-  
+
   /**
    * Expired Address and Domain Testing. Requires manual updates to contracts to shorten expiration timing
    */
@@ -89,7 +89,7 @@ describe('TEST SUITE', () => {
   /**
    * History Node tests. Only run against history node.
    */
-  //require('./tests/history.js'); 
+  //require('./tests/history.js');
 
   /**
    * Performance tests. May require additional configuration. See notes in tests
@@ -101,4 +101,5 @@ describe('TEST SUITE', () => {
    */
   //require('./tests/bravo-migr-test.js'); //This is required when testing 2.3.0 (bravo) with fio bahamas (need to do the full table migration).
 
+	require('./tests/fio-escrow') // FIP-26 (marketplace)
 });

@@ -23,6 +23,11 @@ const config = {
     FAUCET_PUB_KEY: 'FIO6zwqqzHQcqCc2MB4jpp1F73MXpisEQe2SDghQFSGQKoAPjvQ3H',
     FAUCET_ACCOUNT: 'qhh25sqpktwh',
 
+    FIOESCROW_PUB_KEY: 'FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS',
+
+    MARKETPLACE_PRIV_KEY : '5KePj5qMF7xvXZwY4Tnxy7KbDCdUe7cyZtYv2rsTgaZ7LBuVpUc',
+    MARKETPLACE_PUB_KEY: 'FIO77rFFByyLycsrbC5tH1CXqddZdgkDuTYDbCc2BoGp5hdnU59f7',
+
     FUNDS: 3000000000000,
     BILLION: 1000000000,
     maxFee: 800000000000,
@@ -280,6 +285,22 @@ const config = {
         cancel_funds_request: {
             bundledEligible: true,
             fee: 600000000
+        } ,
+        list_domain: {
+            bundledEligible: false,
+            fee: 2000000000
+        } ,
+        cancel_list_domain: {
+            bundledEligible: false,
+            fee: 1000000000
+        } ,
+        buy_domain: {
+            bundledEligible: false,
+            fee: 2000000000
+        } ,
+        set_marketplace_config: {
+            bundledEligible: false,
+            fee: 500000000
         },
         add_nft: {
             bundledEligible: true,
@@ -355,6 +376,7 @@ const config = {
         XFERADDRESSRAM: 512,
         CANCELFUNDSRAM: 512,
         BUNDLEVOTERAM: 0,
+        FIOESCROWRAM: 512,
         ADDNFTRAM: 3584
     },
 
