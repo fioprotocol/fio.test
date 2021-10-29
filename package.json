@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "license": "MIT",
     "dependencies": {
-        "@fioprotocol/fiosdk": "github:fioprotocol/fiosdk_typescript#develop",
+        "@fioprotocol/fiosdk": "github:fioprotocol/fiosdk_typescript#project/marketplace",
         "child_process": "",
         "mathjs": "^9.4.4",
         "process": "^0.11.10",
