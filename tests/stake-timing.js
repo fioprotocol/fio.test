@@ -211,9 +211,9 @@ async function printStakingTable() {
   //stakingTable = await callFioApi("get_table_rows", json);
   const stakingTable = await httpRequestBig("get_table_rows", json);
   const stakingJson = LosslessJSON.parse(stakingTable, reviver);
-  console.log('stakingTable: ', stakingTable);
-  console.log('LossLessJson: ', stakingJson);
-  console.log('Json: ', JSON.parse(stakingTable));
+  //console.log('stakingTable: ', stakingTable);
+  console.log('\nLossLessJson Staking Table: ', stakingJson);
+  //console.log('Json: ', JSON.parse(stakingTable));
 }
 
 async function calcRoeBig(combinedTokenPool, globalSrpCount, precision, printCalc) {
@@ -307,15 +307,15 @@ const PRECISION = 18;
 const ROEPRECISION = 15;
 const ROETHRESHOLD = 1000000000000000;  // Threshold for using LAST combined token pool and srps to calculate ROE
 
-const EPSILON = 0;  // The error we are willing to tolerate, in SUFs
-const useEpsilon = false;  // Set to true if you want to allow for error in the results up to EPSILON
+const EPSILON = 10;  // The error we are willing to tolerate, in SUFs
+const useEpsilon = true;  // Set to true if you want to allow for error in the results up to EPSILON
 
 /**
  * Need to set. This is the list of tests from stake-timing-tests.js you want to run (separate tests with comma)
  *   Current list: activateChainStaker, zeroStaker, largeStaker, smallStaker, medStaker, largeSmallMedStaker, stakeUnstakeStaker, roeRatioLarge
  */
 //Update fio.contracts: const DAILYSTAKINGMINTTHRESHOLD = 2500000000000000  to 2.5M FIO and rebuild contracts
-const stakeTestList = [stakeTests.activateChainStaker2];  // First run this
+const stakeTestList = [stakeTests.zeroStaker];  // First run this
 //const stakeTestList = [stakeTests.zeroStaker8];  // Next, change to the "schedule" with 1,1,1 below and run this. It will increase ROE. Ignore the errors for bpclaim.
 //const stakeTestList = [stakeTests.roeRatioLarge];  // Last, change back to the 0,0,0 "schedule" below and run this
 
@@ -328,8 +328,8 @@ const SECONDSPERDAY = config.SECONDSPERDAY - WAIT1;
 
 // 1 = execute bpclaim which adds the 25K staking rewards
 let dailyRewards = {
-  //schedule: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-  schedule: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  schedule: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+  //schedule: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 }
 // If the number of days goes beyond the array, this default is used.
 defaultDailyRewards = 0;
@@ -352,7 +352,7 @@ describe(`************************** stake-timing.js ************************** 
   
   const genLockTotal = genLock1Amount + genLock2Amount + genLock3Amount
 
-  const totalDays = 10
+  const totalDays = 15
   activationDay = 0; // 0 = Immediately activate
   const testTransferAmount = 1000000000  // 1 FIO
 
@@ -887,7 +887,7 @@ describe(`************************** stake-timing.js ************************** 
               expect(combinedTokenPool).to.equal(prevCombinedTokenPool + userStakeAmount);
 
               if (stakedTokenPool >= ROETHRESHOLD) {
-                expect(lastCombinedTokenPool).to.equal(prevLastCombinedTokenPool + userStakeAmount);
+                expect(lastCombinedTokenPool).to.equal(prevCombinedTokenPool + userStakeAmount);
               } else {
                 expect(lastCombinedTokenPool).to.equal(prevLastCombinedTokenPool);
               }
@@ -901,7 +901,7 @@ describe(`************************** stake-timing.js ************************** 
                 expect(globalSrpCount).to.equal(newSrpGlobal);
               }
               
-              if (prevStakedTokenPool >= ROETHRESHOLD) {
+              if (stakedTokenPool >= ROETHRESHOLD) {
                 expect(lastGlobalSrpCount).to.equal(newSrpGlobal);
               } else {
                 expect(lastGlobalSrpCount).to.equal(prevLastGlobalSrpCount);
@@ -1117,8 +1117,13 @@ describe(`************************** stake-timing.js ************************** 
               const roeDecimal = math.divide(roeRnd, precision);
               console.log('parseFloat(userRoe): ', parseFloat(userRoe));
               console.log('roeDecimal: ', roeDecimal);
-              expect(parseFloat(userRoe)).to.equal(math.number(roeDecimal));
-
+              
+              if (useEpsilon) {
+                expect(parseFloat(userRoe)).is.greaterThan(math.number(roeDecimal) - EPSILON);
+                expect(parseFloat(userRoe)).is.lessThan(math.number(roeDecimal)+ EPSILON);
+              } else {
+                expect(parseFloat(userRoe)).to.equal(math.number(roeDecimal));
+              }
 
               console.log('\n           ...Check that global staking variables are correct after unstaking ');
 
@@ -1133,7 +1138,12 @@ describe(`************************** stake-timing.js ************************** 
               }
 
               if (prevStakedTokenPool >= ROETHRESHOLD) {
-                expect(lastCombinedTokenPool).to.equal(prevLastCombinedTokenPool - userUnstakeAmount - rewardAmountStaker);
+                if (useEpsilon) {
+                  expect(lastCombinedTokenPool).is.greaterThan(prevLastCombinedTokenPool - userUnstakeAmount - rewardAmountStaker - EPSILON);
+                  expect(lastCombinedTokenPool).is.lessThan(prevLastCombinedTokenPool - userUnstakeAmount - rewardAmountStaker + EPSILON);
+                } else {
+                  expect(lastCombinedTokenPool).to.equal(prevLastCombinedTokenPool - userUnstakeAmount - rewardAmountStaker);
+                }
               } else {
                 expect(lastCombinedTokenPool).to.equal(prevLastCombinedTokenPool);
               }
@@ -1269,10 +1279,15 @@ describe(`************************** stake-timing.js ************************** 
                   if (useEpsilon) {
                     expect(lockinfo.lock_amount).is.greaterThan(stakers[i].prevLockAmount + stakers[i].unstakeAmount[dayNumber] + stakers[i].prevRewardAmountStaker - stakers[i].prevPeriods[0].amount - EPSILON);
                     expect(lockinfo.lock_amount).is.lessThan(stakers[i].prevLockAmount + stakers[i].unstakeAmount[dayNumber] + stakers[i].prevRewardAmountStaker - stakers[i].prevPeriods[0].amount + EPSILON);
+
+                    expect(lockinfo.remaining_lock_amount).is.greaterThan(stakers[i].prevRemainingLockAmount + stakers[i].unstakeAmount[dayNumber] + stakers[i].prevRewardAmountStaker - stakers[i].prevPeriods[0].amount - EPSILON);
+                    expect(lockinfo.remaining_lock_amount).is.lessThan(stakers[i].prevRemainingLockAmount + stakers[i].unstakeAmount[dayNumber] + stakers[i].prevRewardAmountStaker - stakers[i].prevPeriods[0].amount + EPSILON);
                   } else {
                     expect(lockinfo.lock_amount).to.equal(stakers[i].prevLockAmount + stakers[i].unstakeAmount[dayNumber] + stakers[i].prevRewardAmountStaker - stakers[i].prevPeriods[0].amount);
+
+                    expect(lockinfo.remaining_lock_amount).to.equal(stakers[i].prevRemainingLockAmount + stakers[i].unstakeAmount[dayNumber] + stakers[i].prevRewardAmountStaker - stakers[i].prevPeriods[0].amount);
                   }
-                  expect(lockinfo.remaining_lock_amount).to.equal(stakers[i].prevRemainingLockAmount + stakers[i].unstakeAmount[dayNumber] + stakers[i].prevRewardAmountStaker - stakers[i].prevPeriods[0].amount);
+                  
                 } else if (currentNumberOfPeriods > stakers[i].prevNumberOfPeriods) {
                   //console.log('USE CASE 2')
                   for (period in lockinfo.periods) {
@@ -1567,6 +1582,7 @@ describe(`************************** stake-timing.js ************************** 
       });
 
       it(`Set prev balances (Clean up)`, async () => {
+        if (printCalc) { await printCurrentGlobals(); };
         for (let i = 0; i < stakers.length; i++) {
           try {
             const result = await stakers[i].getUserBalance();

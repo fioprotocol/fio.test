@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="250px" height="250px" viewBox="0 0 250 250" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>NFT_HandlePanel_Wrapped_62</title>
+    <defs>
+        <linearGradient x1="-16.7425781%" y1="89.1761719%" x2="94.0968831%" y2="13.640209%" id="linearGradient-1">
+            <stop stop-color="#040A1E" offset="0%"></stop>
+            <stop stop-color="#040A1E" offset="10.9564167%"></stop>
+            <stop stop-color="#083F67" offset="90.6363448%"></stop>
+            <stop stop-color="#084169" offset="100%"></stop>
+        </linearGradient>
+        <polygon id="path-2" points="0 0 48.1395349 0 48.1395349 55.2713178 0 55.2713178"></polygon>
+    </defs>
+    <g id="NFT_HandlePanel_Wrapped_62" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <polygon id="Rectangle" fill="url(#linearGradient-1)" points="3.22974779e-15 0 250 0 250 250 3.22974779e-15 250"></polygon>
+        <rect id="Rectangle" fill="#083F67" opacity="0.35" x="15" y="160" width="220" height="75" rx="7"></rect>
+        <text id=".domainnamedomainnam" font-family="ProximaNova-Medium, Proxima Nova" font-size="15" font-weight="400" line-spacing="19" fill="#FFFFFF">
+            <tspan x="32" y="183">.domainnamedomainnamed</tspan>
+            <tspan x="32" y="202">omainnamedomainnamedo</tspan>
+            <tspan x="32" y="221">mainnamedomainnamedo</tspan>
+        </text>
+        <g id="FIO-Logo---Color-White-Text" transform="translate(100.000000, 25.000000)">
+            <path d="M27.6356589,74.6098649 L27.6356589,112.561582 C27.6356589,114.576393 26.3882921,115.54106 24.848135,114.690362 L3.69504006,102.91898 C1.98241747,101.746726 0.939602777,99.8011106 0.891472868,97.7048929 L0.891472868,60.620155 C1.20030645,60.8725153 1.52919416,61.0923128 1.87412517,61.2876884 L27.6356589,74.6098649 Z" id="Fill-3" fill="#425CC7" fill-rule="nonzero"></path>
+            <g id="Fill-5-Clipped">
+                <mask id="mask-3" fill="white">
+                    <use xlink:href="#path-2"></use>
+                </mask>
+                <g id="path-1"></g>
+                <path d="M2.41403252,55.0424544 L45.7609411,32.9845178 C47.2061109,32.0784725 48.1026893,30.5101609 48.1395349,28.8118339 L48.1395349,2.00020671 C48.1395349,0.338446513 47.0669161,-0.425394357 45.7609411,0.236871929 L5.816118,20.5680407 C1.69349457,22.7620517 -0.214293437,23.7940495 0.0190626061,28.4299135 L0.0190626061,53.2791198 C0.0190626061,54.8596202 1.10805747,55.7087837 2.41403252,55.0424544" id="Fill-5" fill="#005CB9" fill-rule="nonzero" mask="url(#mask-3)"></path>
+            </g>
+            <path d="M3.28739154,24.3046351 L46.6514717,46.3542663 C48.1013096,47.2680937 48.9941476,48.8398763 49.0310078,50.5416254 L49.0310078,77.3269114 C49.0310078,78.9880459 47.9579641,79.7678448 46.6514717,79.105828 L3.28739154,57.0521352 C1.83345798,56.1464309 0.932428743,54.5746483 0.891472868,52.8688382 L0.891472868,26.0794904 C0.891472868,24.4386631 1.98089913,23.6385568 3.28739154,24.3046351" id="Fill-8" fill="#3CB4E5" fill-rule="nonzero"></path>
+            <path d="M3.31893925,55.0168924 L33.875969,39.6683216 L3.31893925,24.3197508 C2.80439936,23.9864397 2.13632742,23.9864397 1.62178754,24.3197508 C1.17778942,25.1164456 0.928818505,26.0025655 0.891472868,26.9130739 L0.891472868,52.903212 C0.908070929,53.4763444 1.02840687,54.037283 1.24833117,54.5697674 C1.65083415,55.2445192 2.53468088,55.4721465 3.2235004,55.0778638 C3.25254701,55.0575402 3.28574312,55.0372161 3.31893925,55.0168924" id="Fill-10" fill="#00A0DF" fill-rule="nonzero"></path>
+        </g>
+    </g>
+</svg>
