@@ -185,7 +185,7 @@ describe(`************************** fio-escrow.js **************************`, 
 			it(`setmrkplcfg: actor unauthorized`, async () => {
 				try {
 					let data = {
-						"actor"         : "2rvrh54kfro5",
+						"actor"         : userA1.account,
 						"listing_fee"   : "5000000000",
 						"commission_fee": 10,
 						"max_fee"       : "5000000000",
@@ -201,7 +201,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					// console.log(result);
 
 				} catch (err) {
-					// console.log(err.errorCode);
+					// console.log(err);
 					// console.log(err.json.fields[0]);
 					expect(err.errorCode).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('actor')
@@ -372,7 +372,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					// TODO: check no bundle transactions deducted
 				} catch (err) {
 					// console.log(err);
-					console.log(err.json);
+					console.log(err.json.error);
 					expect(err).to.equal(null)
 				}
 			})
@@ -454,7 +454,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					}
 					// if (err) {
 					// 	console.log(err);
-					// 	console.log(err.json);
+					// 	console.log(err.json.error);
 					// }
 					// expect(err).to.equal(null)
 				}
@@ -614,7 +614,7 @@ describe(`************************** fio-escrow.js **************************`, 
 						data   : dataA1
 					})
 				} catch (err) {
-					// console.log(err.json);
+					// console.log(err.json.error);
 					expect(err.errorCode).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('sale_price')
 					expect(err.json.fields[0].value).to.equal('100000')
@@ -679,7 +679,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					})
 
 				} catch (err) {
-					// console.log(err.json)
+					// console.log(err.json.error)
 					expect(err.errorCode).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('max_fee')
 					expect(err.json.fields[0].value).to.equal((config.api.list_domain.fee / 2).toString())
@@ -749,7 +749,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					await listDomain(userA1, domain);
 
 				} catch (err) {
-					// console.log(err.json)
+					// console.log(err.json.error)
 					expect(err.json.fields[0].name).to.equal('fio_domain')
 					expect(err.json.fields[0].value).to.equal(domain)
 					expect(err.json.fields[0].error).to.equal('FIO Domain expired. Renew first.')
@@ -788,12 +788,13 @@ describe(`************************** fio-escrow.js **************************`, 
 						"tpid"      : ""
 					};
 
-					await userA2.sdk.genericAction('pushTransaction', {
+					await userA1.sdk.genericAction('pushTransaction', {
 						action : 'listdomain',
 						account: 'fio.escrow',
 						data   : dataA1
 					})
 				} catch (err) {
+					// console.log(err.json)
 					expect(err.errorCode).to.equal(403)
 					expect(err.json.fields[0].name).to.equal('fio_domain')
 					expect(err.json.fields[0].value).to.equal(domainSadPath2)
@@ -802,9 +803,6 @@ describe(`************************** fio-escrow.js **************************`, 
 			})
 
 			it(`listdomain: actor doesnt match the signer`, async () => {
-				// TODO: I am not sure how to check this either.
-				// I do not have an explicit error message for this error path either
-				// unless the `require_auth(actor)` covers this path
 				try {
 					domainSadPath1 = generateFioDomain(10);
 					domainSadPath2 = generateFioDomain(10);
@@ -827,12 +825,13 @@ describe(`************************** fio-escrow.js **************************`, 
 						"tpid"      : ""
 					};
 
-					await userA2.sdk.genericAction('pushTransaction', {
+					await userA1.sdk.genericAction('pushTransaction', {
 						action : 'listdomain',
 						account: 'fio.escrow',
 						data   : dataA1
 					})
 				} catch (err) {
+					console.log(err.json.error)
 					expect(err.errorCode).to.equal(403)
 					expect(err.json.fields[0].name).to.equal('fio_domain')
 					expect(err.json.fields[0].value).to.equal(domainSadPath1)
@@ -881,7 +880,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					// list domain
 					await listDomain(userA1, domain);
 				} catch (err) {
-					// console.log(err.json)
+					// console.log(err.json.error)
 					expect(err.json.fields[0].name).to.equal('marketplace_iter->e_break')
 					expect(err.json.fields[0].value).to.equal('1')
 					expect(err.json.fields[0].error).to.equal('E-Break Enabled, action disabled')
@@ -945,7 +944,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					await listDomain(errorUser2, errorUser2.domain)
 				} catch (err) {
 					// if(err.json)
-					// 	console.log(err.json)
+					// 	console.log(err.json.error)
 					// else
 					// 	console.log(err);
 					expect(err.errorCode).to.equal(400);
@@ -1064,7 +1063,7 @@ describe(`************************** fio-escrow.js **************************`, 
 				} catch (err) {
 					if (isDebug) {
 						if (err.json)
-							console.log(err.json)
+							console.log(err.json.error)
 						else
 							console.log(err);
 					}
@@ -1088,7 +1087,7 @@ describe(`************************** fio-escrow.js **************************`, 
 
 					// userA2 tries to buy domain not listed for sale
 					let data = {
-						"actor"        : userA2.account,
+						"actor"        : userA1.account,
 						"fio_domain"   : domain + '123',
 						"sale_id"      : listDomainResult.domainsale_id,
 						"max_buy_price": 300000000000,
@@ -1103,7 +1102,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					})
 				} catch (err) {
 					// console.log(err.errorCode)
-					// console.log(err.json.fields[0])
+					// console.log(err.json)
 					expect(err.errorCode).to.equal(403)
 					expect(err.json.fields[0].name).to.equal('domainsale')
 					expect(err.json.fields[0].value).to.equal(domain + '123')
@@ -1144,7 +1143,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					// try to buy domain listed for sale by userA1
 					await buyDomain(buydomainErrorUser2, buydomainErrorUser1.domain, listDomainResult.domainsale_id)
 				} catch (err) {
-					// console.log(err.json)
+					// console.log(err.json.error)
 					expect(err.errorCode).to.equal(400);
 					expect(err.json.fields[0].name).to.equal('max_fee');
 					expect(err.json.fields[0].value).to.equal('1880000000000');
@@ -1171,7 +1170,7 @@ describe(`************************** fio-escrow.js **************************`, 
 						"tpid"         : ""
 					};
 
-					const result = await userA1.sdk.genericAction('pushTransaction', {
+					const result = await userA2.sdk.genericAction('pushTransaction', {
 						action : 'buydomain',
 						account: 'fio.escrow',
 						data   : data
@@ -1179,7 +1178,7 @@ describe(`************************** fio-escrow.js **************************`, 
 
 					// console.log(result);
 				} catch (err) {
-					// console.log(err.errorCode)
+					// console.log(err.json);
 					// console.log(err.json.fields[0])
 					expect(err.errorCode).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('max_fee')
@@ -1217,7 +1216,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					// console.log(result);
 				} catch (err) {
 					// if(err.json)
-					// 	console.log(err.json)
+					// 	console.log(err.json.error)
 					// else
 					// 	console.log(err);
 					expect(err.errorCode).to.equal(400)
@@ -1317,7 +1316,7 @@ describe(`************************** fio-escrow.js **************************`, 
 						actor  : marketplaceUser.account,
 						privKey: marketplaceUser.privateKey,
 						data   : {
-							"actor"         : "5ufabtv13hv4",
+							"actor"         : marketplaceUser.account,
 							"listing_fee"   : "5000000000",
 							"commission_fee": 6,
 							"max_fee"       : "15000000000",
@@ -1349,13 +1348,13 @@ describe(`************************** fio-escrow.js **************************`, 
 						"tpid"         : ""
 					};
 
-					await userA1.sdk.genericAction('pushTransaction', {
+					await userA2.sdk.genericAction('pushTransaction', {
 						action : 'buydomain',
 						account: 'fio.escrow',
 						data   : data
 					})
 				} catch (err) {
-					// console.log(err);
+					// console.log(err.json.error);
 					// console.log(err.json.fields[0]);
 					expect(err.errorCode).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('marketplace_iter->e_break')
@@ -1368,7 +1367,7 @@ describe(`************************** fio-escrow.js **************************`, 
 						actor  : marketplaceUser.account,
 						privKey: marketplaceUser.privateKey,
 						data   : {
-							"actor"         : "5ufabtv13hv4",
+							"actor"         : marketplaceUser.account,
 							"listing_fee"   : "5000000000",
 							"commission_fee": 6,
 							"max_fee"       : "15000000000",
@@ -1424,12 +1423,13 @@ describe(`************************** fio-escrow.js **************************`, 
 						"tpid"         : ""
 					};
 
-					await userA1.sdk.genericAction('pushTransaction', {
+					await userA2.sdk.genericAction('pushTransaction', {
 						action : 'buydomain',
 						account: 'fio.escrow',
 						data   : data
 					})
 				} catch (err) {
+					// console.log(err.json.error)
 					// console.log(err.json.fields[0]);
 					expect(err.errorCode).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('status')
@@ -1573,7 +1573,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					})
 				} catch (err) {
 					// console.log(err);
-					// console.log(err.json);
+					// console.log(err.json.error);
 					expect(err.errorCode).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('max_fee')
 					expect(err.json.fields[0].value).to.equal('0')
@@ -1607,7 +1607,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					})
 				} catch (err) {
 					// console.log(err);
-					// console.log(err.json);
+					// console.log(err.json.error);
 					expect(err.errorCode).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('max_fee')
 					expect(err.json.fields[0].value).to.equal('500000000')
@@ -1659,7 +1659,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					})
 				} catch (err) {
 					// if(err.json)
-					// 	console.log(err.json)
+					// 	console.log(err.json.error)
 					// else
 					// 	console.log(err);
 					expect(err.errorCode).to.equal(400);
