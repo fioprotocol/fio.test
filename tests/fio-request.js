@@ -88,7 +88,8 @@ describe(`************************** fio-request.js ************************** \
 
     it(`userA1 requests funds from userA2`, async () => {
       try {
-        const result = await userA1.sdk.genericAction('requestFunds', {
+        userA1.sdk.setSignedTrxReturnOption(true);
+        const preparedTrx = await userA1.sdk.genericAction('requestFunds', {
           payerFioAddress: userA2.address,
           payeeFioAddress: userA1.address,
           payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
@@ -102,14 +103,45 @@ describe(`************************** fio-request.js ************************** \
           hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
           offlineUrl: ''
         })
+        
+        console.log('preparedTrx: ', preparedTrx)
+        const result = await userA1.sdk.executePreparedTrx('new_funds_request', preparedTrx);
         requestId = result.fio_request_id
-        //console.log('Result: ', result)
+        userA1.sdk.setSignedTrxReturnOption(false);
         expect(result.status).to.equal('requested')
       } catch (err) {
         console.log('Error: ', err)
         expect(err).to.equal(null)
       }
     })
+  
+  it.skip(`BUG BD-2992 userA1 requests funds from userA2`, async () => {
+    try {
+      const result = await userA1.sdk.genericAction('pushTransaction', {
+        action: 'newfundsreq',
+        account: 'fio.reqobt',
+        data: {
+          payer_fio_address: userA2.address,
+          payee_fio_address: userA1.address,
+          tpid: '',
+          content: {
+            payee_public_address: 'thisispayeetokenpublicaddress',
+            amount: 2000000000,
+            chain_code: 'BTC',
+            token_code: 'BTC',
+            memo: requestMemo
+          },
+          max_fee: config.maxFee
+        }
+      })
+      requestId = result.fio_request_id
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('requested')
+    } catch (err) {
+      console.log('Error: ', err.json)
+      expect(err).to.equal(null)
+    }
+  })
 
     it(`get_sent_fio_requests for userA1 (payee)`, async () => {
       try {

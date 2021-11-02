@@ -324,18 +324,18 @@ describe(`************************** tpid.js ************************** \n    A.
 
   it(`xferaddress: user3 transfers user3.address2 to emptyAccount.publicKey using FIO Address of proxy1 (who IS a registered proxy). Expect: no proxy for user1.`, async () => {
     try{
-        const result = await user3.sdk.genericAction('pushTransaction', {
-            action: 'xferaddress',
-            account: 'fio.address',
-            data: {
-              fio_address: user3.address2,
-              new_owner_fio_public_key: newPubKey,
-              max_fee: config.maxFee,
-              tpid: proxy1.address,
-              actor: user3.account
-            }
-        })
-        expect(result.status).to.equal('OK')
+      const result = await user3.sdk.genericAction('pushTransaction', {
+        action: 'xferaddress',
+        account: 'fio.address',
+        data: {
+          fio_address: user3.address2,
+          new_owner_fio_public_key: newPubKey,
+          max_fee: config.maxFee,
+          tpid: proxy1.address,
+          actor: user3.account
+        }
+      })
+      expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json.error.details)
       expect(err).to.equal('null')
@@ -831,9 +831,9 @@ describe(`L. User that is auto proxied registers as proxy`, () => {
 
   it(`Register user1.address2 with proxy1 as TPID (valid tpid)`, async () => {
     const result = await user1.sdk.genericAction('registerFioAddress', {
-        fioAddress: user1.address2,
-        maxFee: config.maxFee,
-        technologyProviderId: proxy1.address
+      fioAddress: user1.address2,
+      maxFee: config.maxFee,
+      technologyProviderId: proxy1.address
     })
     //console.log('Result: ', result)
     expect(result.status).to.equal('OK')
@@ -957,9 +957,9 @@ describe(`M. User that is auto proxied votes for proxy. Confirm is_auto_proxy is
 
   it(`Register user1.address2 with proxy1 as TPID (valid tpid)`, async () => {
     const result = await user1.sdk.genericAction('registerFioAddress', {
-        fioAddress: user1.address2,
-        maxFee: config.maxFee,
-        technologyProviderId: proxy1.address
+      fioAddress: user1.address2,
+      maxFee: config.maxFee,
+      technologyProviderId: proxy1.address
     })
     //console.log('Result: ', result)
     expect(result.status).to.equal('OK')
@@ -1046,4 +1046,3 @@ describe(`M. User that is auto proxied votes for proxy. Confirm is_auto_proxy is
   })
 
 })
-
