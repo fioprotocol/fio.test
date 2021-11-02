@@ -308,6 +308,7 @@ const ROEPRECISION = 15;
 const ROETHRESHOLD = 1000000000000000;  // Threshold for using LAST combined token pool and srps to calculate ROE
 
 const EPSILON = 10;  // The error we are willing to tolerate, in SUFs
+const EPSILONBIG = math.bignumber(EPSILON);
 const useEpsilon = true;  // Set to true if you want to allow for error in the results up to EPSILON
 
 /**
@@ -315,7 +316,7 @@ const useEpsilon = true;  // Set to true if you want to allow for error in the r
  *   Current list: activateChainStaker, zeroStaker, largeStaker, smallStaker, medStaker, largeSmallMedStaker, stakeUnstakeStaker, roeRatioLarge
  */
 //Update fio.contracts: const DAILYSTAKINGMINTTHRESHOLD = 2500000000000000  to 2.5M FIO and rebuild contracts
-const stakeTestList = [stakeTests.zeroStaker];  // First run this
+const stakeTestList = [stakeTests.stakeOneUnstake];  // First run this
 //const stakeTestList = [stakeTests.zeroStaker8];  // Next, change to the "schedule" with 1,1,1 below and run this. It will increase ROE. Ignore the errors for bpclaim.
 //const stakeTestList = [stakeTests.roeRatioLarge];  // Last, change back to the 0,0,0 "schedule" below and run this
 
@@ -717,9 +718,7 @@ describe(`************************** stake-timing.js ************************** 
               if (printCalc) { await printStakingTable(); };
 
               const prevStakedTokenPoolB = math.bignumber(await getStakedTokenPoolBig());
-              //const prevCombinedTokenPoolB = await getCombinedTokenPoolBig();
               const prevCombinedTokenPoolB = math.bignumber(await getCombinedTokenPoolBig());
-              console.log('prevCombinedTokenPoolB: ', prevCombinedTokenPoolB)
               const prevLastCombinedTokenPoolB = math.bignumber(await getLastCombinedTokenPoolBig());
               const prevRewardsTokenPoolB = math.bignumber(await getRewardsTokenPoolBig());
               const prevGlobalSrpCountB = math.bignumber(await getGlobalSrpCountBig());
@@ -823,32 +822,6 @@ describe(`************************** stake-timing.js ************************** 
               if (printCalc) { console.log('   newSrpsInt = parseInt(newSrpsBig) = ', newSrpsInt); };
 
 
-/*
-
-              // NEW
-              const scaleFactor = math.bignumber(Math.pow(10, PRECISION));
-              prevLastCombinedTokenPoolBig = math.bignumber(prevLastCombinedTokenPool);
-              prevLastGlobalSrpCountBig = math.bignumber(prevLastGlobalSrpCount);
-              const lastCombinedTokenPoolBig = math.bignumber(lastCombinedTokenPool);
-              scaledLastCombinedTokenPoolBig = math.multiply(lastCombinedTokenPoolBig, scaleFactor);
-              scaledRoe = await divWithRoundingBig(scaledLastCombinedTokenPoolBig, scaledLastCombinedTokenPoolBig, printCalc)
-
-              scaledStakeAmountBig = math.multiply(stakeAmountBig, scaleFactor);
-              srpsToAwardBig2 = await divWithRoundingBig(scaledStakeAmountBig, scaledRoe, printCalc);
-              if (printCalc) { console.log('   srpsToAwardBig2 = ' + srpsToAwardBig2); };
-              srpsToAwardInt = parseInt(srpsToAwardBig2);
-
-              expect(globalSrpCount).to.equal(prevGlobalSrpCount + srpsToAwardInt);
-
-              if (prevStakedTokenPool >= ROETHRESHOLD) {
-                expect(lastGlobalSrpCount).to.equal(prevLastGlobalSrpCount + srpsToAwardInt);
-              } else {
-                expect(lastGlobalSrpCount).to.equal(prevLastGlobalSrpCount);
-              }
-
-*/
-
-
               console.log('\n           ...Check that getFioBalance parameters are correct after unstake ');
 
               expect(userBalance).to.equal(prevBalance);
@@ -878,13 +851,17 @@ describe(`************************** stake-timing.js ************************** 
               console.log('roeDecimal: ', roeDecimal);
               expect(parseFloat(userRoe)).to.equal(math.number(roeDecimal));
 
-              //console.log('roeDecimal: ', roeDecimal.toString());
-              //expect(userRoe).to.equal(roeDecimal.toString());
 
               console.log('\n           ...check that global staking variables are correct after staking ');
 
               expect(stakedTokenPool).to.equal(prevStakedTokenPool + userStakeAmount);
-              expect(combinedTokenPool).to.equal(prevCombinedTokenPool + userStakeAmount);
+
+              if (useEpsilon) {
+                expect(combinedTokenPool).is.greaterThan(prevCombinedTokenPool + userStakeAmount - EPSILON);
+                expect(combinedTokenPool).is.lessThan(prevCombinedTokenPool + userStakeAmount + EPSILON);
+              } else {
+                expect(combinedTokenPool).to.equal(prevCombinedTokenPool + userStakeAmount);
+              }
 
               if (stakedTokenPool >= ROETHRESHOLD) {
                 expect(lastCombinedTokenPool).to.equal(prevCombinedTokenPool + userStakeAmount);
@@ -955,9 +932,7 @@ describe(`************************** stake-timing.js ************************** 
               if (printCalc) { await printStakingTable(); };
 
               const prevStakedTokenPoolB = math.bignumber(await getStakedTokenPoolBig());
-              //const prevCombinedTokenPoolB = await getCombinedTokenPoolBig();
               const prevCombinedTokenPoolB = math.bignumber(await getCombinedTokenPoolBig());
-              console.log('prevCombinedTokenPoolB: ', prevCombinedTokenPoolB)
               const prevLastCombinedTokenPoolB = math.bignumber(await getLastCombinedTokenPoolBig());
               const prevRewardsTokenPoolB = math.bignumber(await getRewardsTokenPoolBig());
               const prevGlobalSrpCountB = math.bignumber(await getGlobalSrpCountBig());
@@ -972,6 +947,8 @@ describe(`************************** stake-timing.js ************************** 
               const prevSrps = prevGetBalance.srps;
               const prevRoe = prevGetBalance.roe;
               if (printCalc) { console.log('\nprevGetBalance = ', prevGetBalance); };
+
+              const prevBalanceBig = math.bignumber(prevBalance);
 
               // Do the unstaking
 
@@ -1017,6 +994,8 @@ describe(`************************** stake-timing.js ************************** 
               const userSrps = getBalance.srps;
               const userRoe = getBalance.roe;
               if (printCalc) { console.log('\ngetBalance = ', getBalance); };
+
+              const userBalanceBig = math.bignumber(userBalance);
   
               // Calculate ROE
 
@@ -1032,10 +1011,13 @@ describe(`************************** stake-timing.js ************************** 
               if (printCalc) { console.log('\nUNSTAKING CALCS:'); };
               if (printCalc) { console.log('   prevRoeBig = ', prevRoeBig); };
 
-              const srpsPercentToClaimBig = math.divide(math.bignumber(userUnstakeAmount), math.bignumber(prevStaked));
+              const userUnstakeAmountBig = math.bignumber(userUnstakeAmount);
+              const prevStakedBig = math.bignumber(prevStaked);
+              const srpsPercentToClaimBig = math.divide(userUnstakeAmountBig, prevStakedBig);
               if (printCalc) { console.log('   srpsPercentToClaimBig = userUnstakeAmount / prevStaked = ' + userUnstakeAmount + ' / ' + prevStaked + ' = ' + srpsPercentToClaimBig) };
 
-              const srpsToClaimBig = math.multiply(srpsPercentToClaimBig, math.bignumber(prevSrps));
+              const prevSrpsBig = math.bignumber(prevSrps)
+              const srpsToClaimBig = math.multiply(srpsPercentToClaimBig, prevSrpsBig);
               if (printCalc) { console.log('   srpsToClaimBig = srpsPercentToClaimBig * prevSrps = ' + srpsPercentToClaimBig + ' * ' + prevSrps + ' = ' + srpsToClaimBig) };
 
               const srpsToClaimRndBig = math.round(srpsToClaimBig);
@@ -1047,7 +1029,7 @@ describe(`************************** stake-timing.js ************************** 
               const remainingSrps = prevSrps - srpsToClaim;
               if (printCalc) { console.log('   remainingSrps (for user) = prevSrps - srpsToClaim = ' + prevSrps + ' - ' + srpsToClaim + ' = ' + remainingSrps); };
 
-              const remainingSrpsBig = math.subtract(math.bignumber(prevSrps), srpsToClaimBig);
+              const remainingSrpsBig = math.subtract(prevSrpsBig, srpsToClaimBig);
               if (printCalc) { console.log('   remainingSrpsBig (for user) = math.bignumber(prevSrps) - srpsToClaimBig = ' + math.bignumber(prevSrps) + ' - ' + srpsToClaimBig + ' = ' + remainingSrpsBig); };
 
 
@@ -1069,18 +1051,25 @@ describe(`************************** stake-timing.js ************************** 
               const sufsClaimedBig = math.multiply(srpsToClaimBig, prevRoeBig);
               if (printCalc) { console.log('   sufsClaimedBig = srpsToClaimBig * prevRoeBig = ' + srpsToClaimBig + ' * ' + prevRoeBig + ' = ' + sufsClaimedBig); };
 
-              const sufsClaimedRndBig = math.round(parseFloat(sufsClaimedBig));
+              const sufsClaimedRndBig = math.round(sufsClaimedBig);
               if (printCalc) { console.log('   sufsClaimedRndBig = ', sufsClaimedRndBig); };
             
-              const rewardAmountTotal = sufsClaimedRndBig - userUnstakeAmount;
+
+
+              const rewardAmountTotal = math.number(sufsClaimedRndBig) - userUnstakeAmount;
+              const rewardAmountTotalBig = math.subtract(sufsClaimedRndBig, userUnstakeAmountBig)
               if (printCalc) { console.log('   rewardAmountTotal = sufsClaimedRndBig - userUnstakeAmount = ' + sufsClaimedRndBig + ' - ' + userUnstakeAmount + ' = ' + rewardAmountTotal); };
               
+              const rewardAmountTpidBig = math.round(math.divide(rewardAmountTotalBig, 10));
               const rewardAmountTpid = Math.round(rewardAmountTotal / 10);
               if (printCalc) { console.log('   rewardAmountTpid: ', rewardAmountTpid); };
               
+              const rewardAmountStakerBig = math.subtract(rewardAmountTotalBig, rewardAmountTpidBig);
               const rewardAmountStaker = rewardAmountTotal - rewardAmountTpid;
               if (printCalc) { console.log('   rewardAmountStaker: ', rewardAmountStaker); };
               if (printCalc) { console.log('   stakers[i].prevBalance: ', stakers[i].prevBalance); };
+
+              const calculatedUserBalanceBig = math.add(prevBalanceBig, rewardAmountStakerBig);
 
               stakers[i].prevRewardAmountStaker = rewardAmountStaker;
 
@@ -1096,10 +1085,12 @@ describe(`************************** stake-timing.js ************************** 
               }
 
               if (useEpsilon) {
-                expect(userBalance).is.greaterThan(prevBalance + rewardAmountStaker - EPSILON);
-                expect(userBalance).is.lessThan(prevBalance + rewardAmountStaker + EPSILON);
+                const calculatedUserBalanceBigLow = math.subtract(calculatedUserBalanceBig, EPSILONBIG)
+                expect(math.number(userBalanceBig)).is.greaterThan(math.number(calculatedUserBalanceBigLow));
+                const calculatedUserBalanceBigHigh = math.add(calculatedUserBalanceBig, EPSILONBIG)
+                expect(math.number(userBalanceBig)).is.lessThan(math.number(calculatedUserBalanceBigHigh));
               } else {
-                expect(userBalance).to.equal(prevBalance + rewardAmountStaker);
+                expect(userBalanceBig).to.equal(calculatedUserBalanceBig);
               }
               
               expect(userAvailable).to.equal(prevAvailable);
@@ -1165,7 +1156,12 @@ describe(`************************** stake-timing.js ************************** 
               }
 
               if (prevStakedTokenPool >= ROETHRESHOLD) {
-                expect(lastGlobalSrpCount).to.equal(prevLastGlobalSrpCount - srpsToClaim);
+                if (useEpsilon) {
+                  expect(lastGlobalSrpCount).is.greaterThan(prevLastGlobalSrpCount - srpsToClaim - EPSILON);
+                  expect(lastGlobalSrpCount).is.lessThan(prevLastGlobalSrpCount - srpsToClaim + EPSILON);
+                } else {
+                  expect(lastGlobalSrpCount).to.equal(prevLastGlobalSrpCount - srpsToClaim);
+                }
               } else {
                 expect(lastGlobalSrpCount).to.equal(prevLastGlobalSrpCount);
               }
@@ -1196,9 +1192,6 @@ describe(`************************** stake-timing.js ************************** 
 
       it(`Check that locktokensv2 locks are correct after unstake`, async () => {
         for (let i = 0; i < stakers.length; i++) {
-
-          //const getBalance = await stakers[i].getUserBalance();
-          //if (printCalc) { console.log('getBalance: ', getBalance); };
 
           console.log('           ...for ', stakers[i].name);
           // Only run this if there was an unstake. 
@@ -1264,11 +1257,9 @@ describe(`************************** stake-timing.js ************************** 
                       }
                       
                       durEstimate = UNSTAKELOCKDURATIONSECONDS + (dayNumber * SECONDSPERDAY);
-                      //expect(lockinfo.periods[period].duration).is.greaterThan(durEstimate - 6).and.lessThan(durEstimate + 6);
                       expect(lockinfo.periods[period].duration).is.greaterThan(durEstimate - 9);
                       expect(lockinfo.periods[period].duration).is.lessThan(durEstimate + 9);
                     } else {  // It is a previous lock that has a new period - 1
-                      //console.log('typeof: ', typeof period);
                       newPeriod = parseInt(period) + 1;  // Hmmm, period is a string...
                       expect(lockinfo.periods[period].amount).to.equal(stakers[i].prevPeriods[newPeriod].amount);
                       expect(lockinfo.periods[period].duration).to.equal(stakers[i].prevPeriods[newPeriod].duration);
@@ -1302,7 +1293,6 @@ describe(`************************** stake-timing.js ************************** 
                       }
                       
                       durEstimate = UNSTAKELOCKDURATIONSECONDS + (dayNumber * SECONDSPERDAY);
-                      //expect(lockinfo.periods[period].duration).is.greaterThan(durEstimate - 6).and.lessThan(durEstimate + 6);
                       expect(lockinfo.periods[period].duration).is.greaterThan(durEstimate - 9);
                       expect(lockinfo.periods[period].duration).is.lessThan(durEstimate + 9);
                     } else {  // It is a previous lock that has not changed

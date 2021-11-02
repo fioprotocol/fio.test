@@ -81,6 +81,14 @@ const stakeTests = {
     transferToken: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
   },
 
+  stakeOneUnstake: {
+    name: "Stake with one unstake",
+    transferAmount: 7000000000000000,  // 9.4M FIO
+    stakeAmount: [900000000000000, 800000000000000, 700000000000000, 600000000000000, 500000000000000, 400000000000000, 300000000000000, 200000000000000, 100000000000000, 0, 0, 0, 0, 0, 0],
+    unstakeAmount: [0, 0, 0, 0, 1000000000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    transferToken: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  },
+
   /**
    * Small ROE ratio:
    *   Small Combined Token Pool:
