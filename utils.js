@@ -1,7 +1,8 @@
 const rp = require('request-promise');
 const exec = require('child_process').exec;
 var fs = require('fs');
-config = require ('./config');
+config = require('./config');
+var http = require('http');
 
 const fiourl = config.URL + "/v1/chain/";
 const historyUrl = config.URL + "/v1/history/"
@@ -355,6 +356,111 @@ function callFioHistoryApi(apiCall, JSONObject) {
             });
     }));
 };
+
+function httpRequest(apiCall, JSONObject) {
+    return (new Promise(function (resolve, reject) {
+        try {
+            let url, port;
+            const data = JSON.stringify(JSONObject);
+            const urlSplit1 = config.URL.split('//');
+            const urlSplit2 = urlSplit1[1].split(':');
+            url = urlSplit2[0];
+            if (urlSplit2[1] != '') {
+                port = urlSplit2[1];
+            } else {
+                port = '';
+            }
+            //console.log('url: ', url)
+            //console.log('port: ', port)
+            var options = {
+                host: url,
+                path: '/v1/chain/' + apiCall,
+                port: port,
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Length': data.length
+                }
+            };
+
+            callback = function (response) {
+                var str = ''
+                response.on('data', function (chunk) {
+                    str += chunk;
+                });
+
+                response.on('end', function () {
+                    //console.log('json table: ', JSON.parse(str));
+                    //console.log('lossless json table: ', LosslessJSON.parse(str));
+                    //console.log('Raw table: ', str);
+                    resolve(JSON.parse(str));
+                    //resolve(str);
+                });
+            }
+
+            var req = http.request(options, callback);
+            //This is the data we are posting, it needs to be a string or a buffer
+            req.write(data);
+            req.end();
+        } catch (err) {
+            console.log('Error', err);
+            reject(err);
+        }
+    }));
+};
+
+function httpRequestBig(apiCall, JSONObject) {
+    return (new Promise(function (resolve, reject) {
+        try {
+            let url, port;
+            const data = JSON.stringify(JSONObject);
+            const urlSplit1 = config.URL.split('//');
+            const urlSplit2 = urlSplit1[1].split(':');
+            url = urlSplit2[0];
+            if (urlSplit2[1] != '') {
+                port = urlSplit2[1];
+            } else {
+                port = '';
+            }
+            //console.log('url: ', url)
+            //console.log('port: ', port)
+            var options = {
+                host: url,
+                path: '/v1/chain/' + apiCall,
+                port: port,
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Length': data.length
+                }
+            };
+
+            callback = function (response) {
+                var str = ''
+                response.on('data', function (chunk) {
+                    str += chunk;
+                });
+
+                response.on('end', function () {
+                    //console.log('json table: ', JSON.parse(str));
+                    //console.log('lossless json table: ', LosslessJSON.parse(str));
+                    //console.log('Raw table: ', str);
+                    //resolve(JSON.parse(str));
+                    resolve(str);
+                });
+            }
+
+            var req = http.request(options, callback);
+            //This is the data we are posting, it needs to be a string or a buffer
+            req.write(data);
+            req.end();
+        } catch (err) {
+            console.log('Error', err);
+            reject(err);
+        }
+    }));
+};
+
 
 /**
  * Returns an array of fees from the fiofees table.
@@ -1030,4 +1136,4 @@ class Ram {
 } //Ram class
 */
 
-module.exports = {newUser, existingUser, getTestType, getTopprods, callFioApi, callFioApiSigned, callFioHistoryApi, convertToK1, unlockWallet, getFees, getAccountFromKey, getProdVoteTotal, addLock, getTotalVotedFio, getAccountVoteWeight, setRam, printUserRam, user, getMnemonic, fetchJson, randStr, timeout, generateFioDomain, generateFioAddress, createKeypair, readProdFile};
+module.exports = { newUser, existingUser, getTestType, getTopprods, callFioApi, callFioApiSigned, httpRequest, httpRequestBig, callFioHistoryApi, convertToK1, unlockWallet, getFees, getAccountFromKey, getProdVoteTotal, addLock, getTotalVotedFio, getAccountVoteWeight, setRam, printUserRam, user, getMnemonic, fetchJson, randStr, timeout, generateFioDomain, generateFioAddress, createKeypair, readProdFile};
