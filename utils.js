@@ -1031,4 +1031,3 @@ class Ram {
 */
 
 module.exports = {newUser, existingUser, getTestType, getTopprods, callFioApi, callFioApiSigned, callFioHistoryApi, convertToK1, unlockWallet, getFees, getAccountFromKey, getProdVoteTotal, addLock, getTotalVotedFio, getAccountVoteWeight, setRam, printUserRam, user, getMnemonic, fetchJson, randStr, timeout, generateFioDomain, generateFioAddress, createKeypair, readProdFile};
-

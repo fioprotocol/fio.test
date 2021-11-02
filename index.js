@@ -63,8 +63,8 @@ describe('TEST SUITE', () => {
    */
   //###These Staking tests do NOT require additional configuration.
   require('./tests/stake-general-locked-tokens.js'); //FIP-21 tests for general lock accounts performing staking
-  require('./tests/stake-tokens.js');
   //###These Staking tests require additional configuration.
+  //require('./tests/stake-tokens.js');
   //require('./tests/stake-mainnet-locked-tokens-with-staking.js'); //FIP-21 tests for genesis lock accounts performing staking
   //require('./tests/stake-rapid-unstake-with-mainnet-locks.js'); //FIP-21 tests for rapid fire unstaking in succession
   //require('./tests/stake-regression.js'); //FIP-21 tests for new account calling staking using auto proxy, and full pull through to spend after unstaking unlock
