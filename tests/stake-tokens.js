@@ -2763,7 +2763,18 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
     }
   });
 
-  it.skip(`attempt to stake the exact amount of tokens available in account, expect Error 400`, async () => {
+  it(`consume userC's remaining bundled transactions to force staking fee`, async () => {
+    try {
+      await consumeRemainingBundles(userC, userP);
+    } catch (err) {
+      expect(err).to.equal(null);
+    } finally {
+      let bundleCount = await getBundleCount(userC.sdk);
+      expect(bundleCount).to.equal(0);
+    }
+  });
+
+  it(`attempt to stake the exact amount of tokens available in account, expect Error 400`, async () => {
     let bal = await userC.sdk.genericAction('getFioBalance', {});
     try {
       const result = await userC.sdk.genericAction('pushTransaction', {
@@ -2771,24 +2782,20 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
         account: 'fio.staking',
         data: {
           fio_address: userC.address,
-          amount: bal.available,
+          amount: bal.balance,
           actor: userC.account,
           max_fee: config.api.stake_fio_tokens.fee,
           tpid: 'casey@dapixdev'
         }
       });
-      let newBal = await userC.sdk.genericAction('getFioBalance', {});
-      let newLockBal = await locksdk.genericAction('getFioBalance', {});
-      expect(result.status).to.equal('OK');
-      expect(newBal.staked).to.equal(bal.available);
+      expect(result.status).to.not.equal('OK');
 
     } catch (err) {
       let newBal = await userC.sdk.genericAction('getFioBalance', {});
-      let newLockBal = await locksdk.genericAction('getFioBalance', {});
-      expect(newBal.staked).to.equal(bal.available);
+      expect(newBal.staked).to.equal(0);
       expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
-      expect(err.json.fields[0].name).to.equal('max_fee');
+      expect(err.json.fields[0].name).to.equal('amount');
       expect(err.json.fields[0].error).to.equal('Insufficient balance.');
     }
   });
@@ -2802,15 +2809,16 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
           fio_address: userC.address,
           amount: 1000000000000,
           actor: locksdk.account,
-          max_fee: 1,
+          max_fee: config.api.stake_fio_tokens.fee,
           tpid:'invalidfioaddress!!!@@@#@'
         }
       });
+      expect(result.status).to.not.equal('OK');
     } catch (err) {
       expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
       expect(err.errorCode).to.equal(400);
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
-      expect(err.json.fields[0].error).to.equal('FIO Address not registered');
+      expect(err.json.fields[0].error).to.equal('TPID must be empty or valid FIO address');
     }
   });
 
