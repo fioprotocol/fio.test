@@ -10,6 +10,16 @@ let faucet;
 
 /********************* setting up these tests
  *
+ * !!! IF YOU DON'T WANT TO MESS WITH THESE STEPS MANUALLY !!!
+ *
+ * The changes are already made in fio.contracts branch ben/develop
+ *
+ * I will do mybest to keep ben/develop current with the latest develop updates
+ *
+ * If the branch falls out of date or you would rather make the changes yourself, perform the steps below
+ *
+ *
+ *
  *
  * first you must shorten the unstake locking period to become 1 minute
  *

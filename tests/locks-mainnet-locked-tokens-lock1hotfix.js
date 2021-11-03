@@ -6,6 +6,71 @@ const {createNull} = require('typescript');
 const config = require('../config.js');
 let faucet;
 
+/********************* setting up these tests
+ *
+ * !!! IF YOU DON'T WANT TO MESS WITH THESE STEPS MANUALLY !!!
+ *
+ * The changes are already made in fio.contracts branch ben/develop
+ *
+ * I will do mybest to keep ben/develop current with the latest develop updates
+ *
+ * If the branch falls out of date or you would rather make the changes yourself, perform the steps below
+ *
+ *
+ *
+ *
+ * first you must shorten the unstake locking period to become 1 minute
+ *
+ *  go to the contract fio.staking.cpp and change the following lines
+ *
+ *  change
+ *
+ *  int64_t UNSTAKELOCKDURATIONSECONDS = 604800;
+ *
+ *    to become
+ *
+ *  int64_t UNSTAKELOCKDURATIONSECONDS = 70;
+ *
+ * Next, update both instances of SECONDSPERDAY in the unstakefio function to 10:
+ *
+ *   //the days since launch.
+ *   uint32_t insertday = (lockiter->timestamp + insertperiod) / SECONDSPERDAY;
+ *
+ *     to become
+ *
+ *   //the days since launch.
+ *   uint32_t insertday = (lockiter->timestamp + insertperiod) / 10;
+ *
+ *     and
+ *
+ *   daysforperiod = (lockiter->timestamp + lockiter->periods[i].duration)/SECONDSPERDAY;
+ *
+ *     to become
+ *
+ *   daysforperiod = (lockiter->timestamp + lockiter->periods[i].duration)/10;
+ *
+ *
+ *  rebuild the contracts and restart your local chain.
+ *
+ *  you are now ready to run these staking tests!!!
+ */
+
+/********************* Calculations
+ *
+ * For getFioBalance:
+ *   balance =
+ *
+ *   available = balance - staked - unstaked & locked
+ *
+ *   staked = Total staked. Changes when staking/unstaking.
+ *
+ *   srps =
+ *     When Staking: srps = prevSrps + stakeAmount/roe
+ *     When Unstaking: srps = prevSrps - (prevSrps * (unstakeAmount/totalStaked))
+ *
+ *   roe = Calculated (1 SRP = [ Tokens in Combined Token Pool / Global SRPs ] FIO)
+ */
+
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
