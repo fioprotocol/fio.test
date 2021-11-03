@@ -1,9 +1,75 @@
 require('mocha')
 const {expect} = require('chai')
 const {newUser, existingUser,callFioApi,fetchJson, generateFioDomain, getAccountFromKey, generateFioAddress, createKeypair} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/fiosdk');
-const { createNull } = require('typescript');
-config = require('../config.js');
+const {FIOSDK} = require('@fioprotocol/fiosdk');
+const {createNull} = require('typescript');
+const config = require('../config.js');
+let faucet;
+
+/********************* setting up these tests
+ *
+ * !!! IF YOU DON'T WANT TO MESS WITH THESE STEPS MANUALLY !!!
+ *
+ * The changes are already made in fio.contracts branch ben/develop
+ *
+ * I will do mybest to keep ben/develop current with the latest develop updates
+ *
+ * If the branch falls out of date or you would rather make the changes yourself, perform the steps below
+ *
+ *
+ *
+ *
+ * first you must shorten the unstake locking period to become 1 minute
+ *
+ *  go to the contract fio.staking.cpp and change the following lines
+ *
+ *  change
+ *
+ *  int64_t UNSTAKELOCKDURATIONSECONDS = 604800;
+ *
+ *    to become
+ *
+ *  int64_t UNSTAKELOCKDURATIONSECONDS = 70;
+ *
+ * Next, update both instances of SECONDSPERDAY in the unstakefio function to 10:
+ *
+ *   //the days since launch.
+ *   uint32_t insertday = (lockiter->timestamp + insertperiod) / SECONDSPERDAY;
+ *
+ *     to become
+ *
+ *   //the days since launch.
+ *   uint32_t insertday = (lockiter->timestamp + insertperiod) / 10;
+ *
+ *     and
+ *
+ *   daysforperiod = (lockiter->timestamp + lockiter->periods[i].duration)/SECONDSPERDAY;
+ *
+ *     to become
+ *
+ *   daysforperiod = (lockiter->timestamp + lockiter->periods[i].duration)/10;
+ *
+ *
+ *  rebuild the contracts and restart your local chain.
+ *
+ *  you are now ready to run these staking tests!!!
+ */
+
+/********************* Calculations
+ *
+ * For getFioBalance:
+ *   balance =
+ *
+ *   available = balance - staked - unstaked & locked
+ *
+ *   staked = Total staked. Changes when staking/unstaking.
+ *
+ *   srps =
+ *     When Staking: srps = prevSrps + stakeAmount/roe
+ *     When Unstaking: srps = prevSrps - (prevSrps * (unstakeAmount/totalStaked))
+ *
+ *   roe = Calculated (1 SRP = [ Tokens in Combined Token Pool / Global SRPs ] FIO)
+ */
 
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
@@ -69,13 +135,12 @@ const unlock1Percent = 0.06,
   unlock5Percent = 0.06 + .188 + .188 + .188 + .188,
   unlock6Percent = 0.06 + .188 + .188 + .188 + .188 + .188
 
-
 describe(`************************** locks-mainnet-locked-tokens-lock1hotfix.js ************************** \n    A. Create large grant verify unlocking using voting \n       also test error cant transfer more than unlocked amount\n     also test multiple calls to voting do not have effect.`, () => {
 
   let userA1, prevFundsAmount, lockAccount, newFioAddress
   let numberOfVotes = 0
 
-  voteProdFee = config.api.vote_producer.fee
+  let voteProdFee = config.api.vote_producer.fee
 
   const lockdurationseconds = 60,
     //lockAmount = 7075065123456789
@@ -146,7 +211,7 @@ describe(`************************** locks-mainnet-locked-tokens-lock1hotfix.js 
         key_type: 'i64',
         index_position: '1'
       }
-      result = await callFioApi("get_table_rows", json);
+      const result = await callFioApi("get_table_rows", json);
       //console.log('Result: ', result);
 
       expect(result.rows[0].unlocked_period_count).to.equal(0);
@@ -246,7 +311,7 @@ describe(`************************** locks-mainnet-locked-tokens-lock1hotfix.js 
         key_type: 'i64',
         index_position: '1'
       }
-      result = await callFioApi("get_table_rows", json);
+      const result = await callFioApi("get_table_rows", json);
       //console.log('Result: ', result);
 
       expect(result.rows[0].unlocked_period_count).to.equal(1);
@@ -291,7 +356,7 @@ describe(`************************** locks-mainnet-locked-tokens-lock1hotfix.js 
         key_type: 'i64',
         index_position: '1'
       }
-      result = await callFioApi("get_table_rows", json);
+      const result = await callFioApi("get_table_rows", json);
       //console.log('Result: ', result);
 
       expect(result.rows[0].unlocked_period_count).to.equal(1);
@@ -331,9 +396,9 @@ describe(`************************** locks-mainnet-locked-tokens-lock1hotfix.js 
         key_type: "name",
         index_position: "3",
       }
-      voters = await callFioApi("get_table_rows", json);
+      const voters = await callFioApi("get_table_rows", json);
       //console.log('Voters: ', voters);
-      voteWeight = Math.trunc(parseInt(voters.rows[0].last_vote_weight));
+      const voteWeight = Math.trunc(parseInt(voters.rows[0].last_vote_weight));
       //console.log('voteWeight: ', voteWeight);
 
       expect(voteWeight).to.equal(lockAmount * 0.3); //
@@ -390,7 +455,7 @@ describe(`************************** locks-mainnet-locked-tokens-lock1hotfix.js 
         key_type: 'i64',
         index_position: '1'
       }
-      result = await callFioApi("get_table_rows", json);
+      const result = await callFioApi("get_table_rows", json);
       //console.log('Result: ', result);
 
       expect(result.rows[0].unlocked_period_count).to.equal(2);
@@ -414,8 +479,8 @@ describe(`************************** locks-mainnet-locked-tokens-lock1hotfix.js 
         key_type: "name",
         index_position: "3",
       }
-      voters = await callFioApi("get_table_rows", json);
-      voteWeight = Math.trunc(parseInt(voters.rows[0].last_vote_weight));
+      const voters = await callFioApi("get_table_rows", json);
+      const voteWeight = Math.trunc(parseInt(voters.rows[0].last_vote_weight));
       //console.log('Voters: ', voters);
 
       expect(voteWeight).to.equal(lockAmount * 0.3); //
@@ -472,7 +537,7 @@ describe(`************************** locks-mainnet-locked-tokens-lock1hotfix.js 
         key_type: 'i64',
         index_position: '1'
       }
-      result = await callFioApi("get_table_rows", json);
+      const result = await callFioApi("get_table_rows", json);
       //console.log('Result: ', result);
 
       expect(result.rows[0].unlocked_period_count).to.equal(3);
@@ -496,8 +561,8 @@ describe(`************************** locks-mainnet-locked-tokens-lock1hotfix.js 
         key_type: "name",
         index_position: "3",
       }
-      voters = await callFioApi("get_table_rows", json);
-      voteWeight = Math.trunc(parseInt(voters.rows[0].last_vote_weight));
+      const voters = await callFioApi("get_table_rows", json);
+      const voteWeight = Math.trunc(parseInt(voters.rows[0].last_vote_weight));
       //console.log('Voters: ', voters);
       //console.log('fee: ', voteProdFee * numberOfVotes)
 
@@ -555,7 +620,7 @@ describe(`************************** locks-mainnet-locked-tokens-lock1hotfix.js 
         key_type: 'i64',
         index_position: '1'
       }
-      result = await callFioApi("get_table_rows", json);
+      const result = await callFioApi("get_table_rows", json);
     //  console.log('Result: ', result);
 
       expect(result.rows[0].unlocked_period_count).to.equal(4);
@@ -579,8 +644,8 @@ describe(`************************** locks-mainnet-locked-tokens-lock1hotfix.js 
         key_type: "name",
         index_position: "3",
       }
-      voters = await callFioApi("get_table_rows", json);
-      voteWeight = Math.trunc(parseInt(voters.rows[0].last_vote_weight));
+      const voters = await callFioApi("get_table_rows", json);
+      const voteWeight = Math.trunc(parseInt(voters.rows[0].last_vote_weight));
       //console.log('Voters: ', voters);
       //console.log('fee: ', voteProdFee * numberOfVotes)
 
@@ -638,7 +703,7 @@ describe(`************************** locks-mainnet-locked-tokens-lock1hotfix.js 
         key_type: 'i64',
         index_position: '1'
       }
-      result = await callFioApi("get_table_rows", json);
+      const result = await callFioApi("get_table_rows", json);
     //  console.log('Result: ', result);
 
       expect(result.rows[0].unlocked_period_count).to.equal(5);
@@ -662,8 +727,8 @@ describe(`************************** locks-mainnet-locked-tokens-lock1hotfix.js 
         key_type: "name",
         index_position: "3",
       }
-      voters = await callFioApi("get_table_rows", json);
-      voteWeight = Math.trunc(parseInt(voters.rows[0].last_vote_weight));
+      const voters = await callFioApi("get_table_rows", json);
+      const voteWeight = Math.trunc(parseInt(voters.rows[0].last_vote_weight));
       //console.log('Voters: ', voters);
       //console.log('fee: ', voteProdFee * numberOfVotes)
 
@@ -721,7 +786,7 @@ describe(`************************** locks-mainnet-locked-tokens-lock1hotfix.js 
         key_type: 'i64',
         index_position: '1'
       }
-      result = await callFioApi("get_table_rows", json);
+      const result = await callFioApi("get_table_rows", json);
      // console.log('Result: ', result);
 
       expect(result.rows[0].unlocked_period_count).to.equal(6);
@@ -766,7 +831,7 @@ describe(`************************** locks-mainnet-locked-tokens-lock1hotfix.js 
         key_type: 'i64',
         index_position: '1'
       }
-      result = await callFioApi("get_table_rows", json);
+      const result = await callFioApi("get_table_rows", json);
       // console.log('Result: ', result);
 
       expect(result.rows[0].unlocked_period_count).to.equal(6);
@@ -790,8 +855,8 @@ describe(`************************** locks-mainnet-locked-tokens-lock1hotfix.js 
         key_type: "name",
         index_position: "3",
       }
-      voters = await callFioApi("get_table_rows", json);
-      voteWeight = Math.trunc(parseInt(voters.rows[0].last_vote_weight));
+      const voters = await callFioApi("get_table_rows", json);
+      const voteWeight = Math.trunc(parseInt(voters.rows[0].last_vote_weight));
       //console.log('Voters: ', voters);
 
       expect(voteWeight).to.equal(unlock6Amount - voteProdFee * (numberOfVotes - 1)); //
@@ -799,37 +864,35 @@ describe(`************************** locks-mainnet-locked-tokens-lock1hotfix.js 
       console.log('Error', err);
       expect(err).to.equal(null);
     }
-  })
+  });
 
 
-})
-
+});
 
 describe(`B. Create large grant verify unlocking with skipped periods using voting also verify voting power is correct after 3rd unlock period`, () => {
 
-  let userA1, lockAccount, newFioAddress
+  let userA1, locksdk, lockAccount, newFioAddress, keys;
   const lockdurationseconds = 60,
     lockAmount = 7075065123456789,
     //lockAmount = 100000000000,  // 100 FIO
     testTransferAmount = 700000000000  // 50 FIO
 
-  it(`Create lockAccount user`, async () => {
+  before(async () => {
     userA1 = await newUser(faucet);
+    keys = await createKeypair();
 
-    lockAccount = await createKeypair();
-
-    lockAccount.account = await getAccountFromKey(lockAccount.publicKey);
+    lockAccount = await getAccountFromKey(keys.publicKey);
     //console.log("lockAccount priv key: ", lockAccount.privateKey);
     //console.log("lockAccount pub key: ", lockAccount.publicKey);
     //console.log("lockAccount account: ", lockAccount.account);
 
-    lockAccount.sdk = new FIOSDK(lockAccount.privateKey, lockAccount.publicKey, config.BASE_URL, fetchJson);
-  })
+    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+  });
 
   it(`Transfer ${lockAmount} SUFs to lockAccount `, async () => {
     try {
       const result = await faucet.genericAction('transferTokens', {
-        payeeFioPublicKey: lockAccount.publicKey,
+        payeeFioPublicKey: keys.publicKey,
         amount: lockAmount,
         maxFee: config.maxFee,
         technologyProviderId: ''
@@ -839,67 +902,49 @@ describe(`B. Create large grant verify unlocking with skipped periods using voti
       console.log('Error', err.json);
       expect(err).to.equal(null);
     }
-  })
+  });
 
   it(`getFioBalance for genesis lock token holder. Expect available = lockAmount `, async () => {
-    try {
-      const result = await lockAccount.sdk.genericAction('getFioBalance', {})
-      //console.log(result)
-      expect(result.available).to.equal(lockAmount)
-    } catch (err) {
-      console.log('   Error: ', err)
-      expect(err).to.equal(null);
-    }
-  })
+    const result = await locksdk.genericAction('getFioBalance', {});
+    expect(result.available).to.equal(lockAmount)
+  });
 
   it(`Add ${lockAmount} Type 1 locked tokens to lockAccount `, async () => {
-    try {
-      const result1 = await userA1.sdk.genericAction('pushTransaction', {
-        action: 'addlocked',
-        account: 'eosio',
-        data: {
-          owner: lockAccount.account,
-          amount: lockAmount,
-          locktype: 1
-        }
-      })
-      expect(result1.status).to.equal('OK')
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
+    const result1 = await userA1.sdk.genericAction('pushTransaction', {
+      action: 'addlocked',
+      account: 'eosio',
+      data: {
+        owner: lockAccount,
+        amount: lockAmount,
+        locktype: 1
+      }
+    })
+    expect(result1.status).to.equal('OK');
   })
 
   it(`getFioBalance for genesis lock token holder. Expect available = 0 (100% locked) `, async () => {
-    try {
-      const result = await lockAccount.sdk.genericAction('getFioBalance', { })
-      //console.log(result)
-      expect(result.available).to.equal(0)
-    } catch (err) {
-      console.log('   Error: ', err)
-      expect(err).to.equal(null);
-    }
-  })
+    const result = await locksdk.genericAction('getFioBalance', { });
+    expect(result.available).to.equal(0);
+  });
 
   it(`Failure test Transfer 700 FIO to userA1 FIO public key, insufficient balance tokens locked`, async () => {
     try {
-      const result = await lockAccount.sdk.genericAction('transferTokens', {
+      const result = await locksdk.genericAction('transferTokens', {
         payeeFioPublicKey: userA1.publicKey,
         amount: testTransferAmount,
         maxFee: config.api.transfer_tokens_pub_key.fee,
         technologyProviderId: ''
       })
-      expect(result.status).to.not.equal('OK')
+      expect(result.status).to.not.equal('OK');
     } catch (err) {
-      // console.log('Error: ', err)
-      expect(err.json.fields[0].error).to.contain(config.error.insufficientBalance)
+      expect(err.json.fields[0].error).to.contain(config.error.insufficientBalance);
     }
-  })
+  });
 
   //wait for unlock 3
   it(`Waiting for unlock 3 of 6, this is 3 minutes`, async () => {
     console.log("            waiting ",lockdurationseconds * 3," seconds")
-  })
+  });
 
   it(` wait for lock period`, async () => {
     try {
@@ -907,134 +952,101 @@ describe(`B. Create large grant verify unlocking with skipped periods using voti
     } catch (err) {
       console.log('Error', err)
     }
-  })
+  });
 
   it(`Success, vote for producers.`, async () => {
-
-    try {
-      const result = await lockAccount.sdk.genericAction('pushTransaction', {
-        action: 'voteproducer',
-        account: 'eosio',
-        data: {
-          producers: ["bp1@dapixdev"],
-          fio_address: newFioAddress,
-          actor: lockAccount.account,
-          max_fee: config.maxFee
-        }
-      })
-      // console.log('Result: ', result)
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-      console.log("ERROR: ", err)
-    }
-  })
+    const result = await locksdk.genericAction('pushTransaction', {
+      action: 'voteproducer',
+      account: 'eosio',
+      data: {
+        producers: ["bp1@dapixdev"],
+        fio_address: newFioAddress,
+        actor: lockAccount,
+        max_fee: config.api.vote_producer.fee
+      }
+    });
+    expect(result.status).to.equal('OK');
+    expect(result.fee_collected).to.equal(config.api.vote_producer.fee);
+  });
 
   it(`Call get_table_rows from locked tokens and confirm: unlocked amount`, async () => {
-    try {
-      const json = {
-        json: true,
-        code: 'eosio',
-        scope: 'eosio',
-        table: 'lockedtokens',
-        lower_bound: lockAccount.account,
-        upper_bound: lockAccount.account,
-        key_type: 'i64',
-        index_position: '1'
-      }
-      result = await callFioApi("get_table_rows", json);
-      // console.log('Result: ', result);
-
-      expect(result.rows[0].unlocked_period_count).to.equal(3);
-      expect(result.rows[0].remaining_locked_amount).to.equal(3990336729639387); // Includes dust
-
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
+    const json = {
+      json: true,
+      code: 'eosio',
+      scope: 'eosio',
+      table: 'lockedtokens',
+      lower_bound: lockAccount,
+      upper_bound: lockAccount,
+      key_type: 'i64',
+      index_position: '1'
     }
-  })
+    const result = await callFioApi("get_table_rows", json);
 
+    expect(result.rows[0].unlocked_period_count).to.equal(3);
+    expect(result.rows[0].remaining_locked_amount).to.equal(3990336729639387); // Includes dust
+  });
 
   it('Confirm voters record:  ', async () => {
-    try {
-      const json = {
-        json: true,
-        code: 'eosio',
-        scope: 'eosio',
-        table: 'voters',
-        lower_bound: lockAccount.account,
-        upper_bound: lockAccount.account,
-        key_type: "name",
-        index_position: "3",
-      }
-      voters = await callFioApi("get_table_rows", json);
-
-      expect(voters.rows[0].last_vote_weight).to.equal('3084728393817402.00000000000000000'); //
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
+    const json = {
+      json: true,
+      code: 'eosio',
+      scope: 'eosio',
+      table: 'voters',
+      lower_bound: lockAccount,
+      upper_bound: lockAccount,
+      key_type: "name",
+      index_position: "3",
     }
-  })
-
+    const voters = await callFioApi("get_table_rows", json);
+    expect(voters.rows[0].last_vote_weight).to.equal('3084728393817402.00000000000000000');
+  });
 
   //wait for unlock 6
   it(`Waiting for unlock 6 of 6, 3 minutes`, async () => {
     console.log("            waiting ",lockdurationseconds * 3," seconds")
-  })
+  });
 
-  it(` wait for lock period`, async () => {
+  it(`wait for lock period`, async () => {
     try {
-      wait(lockdurationseconds * 1000 * 3)
+      wait(lockdurationseconds * 1000 * 3);
     } catch (err) {
-      console.log('Error', err)
+      console.log('Error', err);
     }
-  })
+  });
 
   it(`Success, vote for producers.`, async () => {
-
-    try {
-      const result = await lockAccount.sdk.genericAction('pushTransaction', {
-        action: 'voteproducer',
-        account: 'eosio',
-        data: {
-          producers: ["bp1@dapixdev"],
-          fio_address: newFioAddress,
-          actor: lockAccount.account,
-          max_fee: config.maxFee
-        }
-      })
-      // console.log('Result: ', result)
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-      console.log("ERROR: ", err)
-    }
-  })
+    const result = await locksdk.genericAction('pushTransaction', {
+      action: 'voteproducer',
+      account: 'eosio',
+      data: {
+        producers: ["bp1@dapixdev"],
+        fio_address: newFioAddress,
+        actor: lockAccount,
+        max_fee: config.api.vote_producer.fee
+      }
+    })
+    expect(result.status).to.equal('OK');
+    expect(result.fee_collected).to.equal(config.api.vote_producer.fee);
+  });
 
   //check that 18.8% was unlocked.
   it(`Call get_table_rows from lockedtokens and confirm: unlocked amount has dust bug`, async () => {
-    try {
-      const json = {
-        json: true,
-        code: 'eosio',
-        scope: 'eosio',
-        table: 'lockedtokens',
-        lower_bound: lockAccount.account,
-        upper_bound: lockAccount.account,
-        key_type: 'i64',
-        index_position: '1'
-      }
-      result = await callFioApi("get_table_rows", json);
-      //console.log('Result: ', result);
-
-      expect(result.rows[0].unlocked_period_count).to.equal(6);
-      expect(result.rows[0].remaining_locked_amount).to.equal(19387);
-
-    } catch (err) {
-      // console.log('Error', err);
-      expect(err).to.equal(null);
+    const json = {
+      json: true,
+      code: 'eosio',
+      scope: 'eosio',
+      table: 'lockedtokens',
+      lower_bound: lockAccount,
+      upper_bound: lockAccount,
+      key_type: 'i64',
+      index_position: '1'
     }
-  })
+    const result = await callFioApi("get_table_rows", json);
 
-})
+    expect(result.rows[0].unlocked_period_count).to.equal(6);
+    expect(result.rows[0].remaining_locked_amount).to.equal(19387); // TODO (Ben): Make sure I didn't break this
+  });
+});
 
 describe(`C. Create large grant verify unlocking using transfer`, () => {
 
@@ -1159,7 +1171,7 @@ describe(`C. Create large grant verify unlocking using transfer`, () => {
         key_type: 'i64',
         index_position: '1'
       }
-      result = await callFioApi("get_table_rows", json);
+      const result = await callFioApi("get_table_rows", json);
       // console.log('Result: ', result);
 
       expect(result.rows[0].unlocked_period_count).to.equal(1);
@@ -1214,7 +1226,7 @@ describe(`C. Create large grant verify unlocking using transfer`, () => {
         key_type: 'i64',
         index_position: '1'
       }
-      result = await callFioApi("get_table_rows", json);
+      const result = await callFioApi("get_table_rows", json);
       //  console.log('Result: ', result);
 
       expect(result.rows[0].unlocked_period_count).to.equal(2);
@@ -1267,7 +1279,7 @@ describe(`C. Create large grant verify unlocking using transfer`, () => {
         key_type: 'i64',
         index_position: '1'
       }
-      result = await callFioApi("get_table_rows", json);
+      const result = await callFioApi("get_table_rows", json);
       //console.log('Result: ', result);
 
       expect(result.rows[0].unlocked_period_count).to.equal(3);
@@ -1610,7 +1622,7 @@ describe(`D. Create large grant verify unlocking with skipped periods using tran
         key_type: 'i64',
         index_position: '1'
       }
-      result = await callFioApi("get_table_rows", json);
+      const result = await callFioApi("get_table_rows", json);
       // console.log('Result: ', result);
 
       expect(result.rows[0].unlocked_period_count).to.equal(6);

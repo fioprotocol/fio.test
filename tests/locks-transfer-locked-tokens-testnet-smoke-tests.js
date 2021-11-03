@@ -1,8 +1,75 @@
 require('mocha')
-const {expect} = require('chai')
+const {expect} = require('chai');
 const {newUser, getProdVoteTotal, fetchJson, generateFioDomain, callFioApi,  generateFioAddress, createKeypair} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/fiosdk')
-config = require('../config.js');
+const {FIOSDK } = require('@fioprotocol/fiosdk');
+const config = require('../config.js');
+const {user} = require("../utils");
+let faucet;
+
+/********************* setting up these tests
+ *
+ * !!! IF YOU DON'T WANT TO MESS WITH THESE STEPS MANUALLY !!!
+ *
+ * The changes are already made in fio.contracts branch ben/develop
+ *
+ * I will do mybest to keep ben/develop current with the latest develop updates
+ *
+ * If the branch falls out of date or you would rather make the changes yourself, perform the steps below
+ *
+ *
+ *
+ *
+ * first you must shorten the unstake locking period to become 1 minute
+ *
+ *  go to the contract fio.staking.cpp and change the following lines
+ *
+ *  change
+ *
+ *  int64_t UNSTAKELOCKDURATIONSECONDS = 604800;
+ *
+ *    to become
+ *
+ *  int64_t UNSTAKELOCKDURATIONSECONDS = 70;
+ *
+ * Next, update both instances of SECONDSPERDAY in the unstakefio function to 10:
+ *
+ *   //the days since launch.
+ *   uint32_t insertday = (lockiter->timestamp + insertperiod) / SECONDSPERDAY;
+ *
+ *     to become
+ *
+ *   //the days since launch.
+ *   uint32_t insertday = (lockiter->timestamp + insertperiod) / 10;
+ *
+ *     and
+ *
+ *   daysforperiod = (lockiter->timestamp + lockiter->periods[i].duration)/SECONDSPERDAY;
+ *
+ *     to become
+ *
+ *   daysforperiod = (lockiter->timestamp + lockiter->periods[i].duration)/10;
+ *
+ *
+ *  rebuild the contracts and restart your local chain.
+ *
+ *  you are now ready to run these staking tests!!!
+ */
+
+/********************* Calculations
+ *
+ * For getFioBalance:
+ *   balance =
+ *
+ *   available = balance - staked - unstaked & locked
+ *
+ *   staked = Total staked. Changes when staking/unstaking.
+ *
+ *   srps =
+ *     When Staking: srps = prevSrps + stakeAmount/roe
+ *     When Unstaking: srps = prevSrps - (prevSrps * (unstakeAmount/totalStaked))
+ *
+ *   roe = Calculated (1 SRP = [ Tokens in Combined Token Pool / Global SRPs ] FIO)
+ */
 
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
@@ -16,11 +83,7 @@ function wait(ms){
   }
 }
 
-let userA1, keys, locksdk
-const fundsAmount = 50000000000 //50 fio
-
-
-describe(`************************** locks-transfer-locked-tokens-testnet-smoke-tests.js ************************** \n A. Create accounts for tests`, () => {
+describe(`************************** locks-transfer-locked-tokens-testnet-smoke-tests.js ************************** \n A. Parameter tests`, () => {
 
 //These tests are for test net only...
 // The userA1 account used must be funded through the test net faucet.
@@ -31,38 +94,41 @@ describe(`************************** locks-transfer-locked-tokens-testnet-smoke-
 // These tests will provide a set of tests on general locks that can be run to show that
   //the locks are functioning without error on test net., it is not meant to be comprehensive, but just
   // a functional smoke check for the test net.
-  it(`Create users`, async () => {
+
+  let userA1, keys, locksdk
+  const fundsAmount = 50000000000 //50 fio
+
+  before(async () => {
    // userA1.account: 3lv2dsu2oavw
    // userA1.publicKey: FIO7KbD6G6gFuTvv8xiJzKSmkUauq5Gm48uECiPkVDcwJhBY6njfB
    // userA1.privateKey: 5KUtrhW1xrHxR5LSdeTjWGVrvN8Zv3Neg8zq9wDWiAvMzUiogeW
     //NOTE -- this userA1 must be funded on test net.
-    userA1 = new FIOSDK('5KUtrhW1xrHxR5LSdeTjWGVrvN8Zv3Neg8zq9wDWiAvMzUiogeW',
-        'FIO7KbD6G6gFuTvv8xiJzKSmkUauq5Gm48uECiPkVDcwJhBY6njfB',
-        config.BASE_URL, fetchJson);
+    // userA1 = new FIOSDK('5KUtrhW1xrHxR5LSdeTjWGVrvN8Zv3Neg8zq9wDWiAvMzUiogeW',
+    //     'FIO7KbD6G6gFuTvv8xiJzKSmkUauq5Gm48uECiPkVDcwJhBY6njfB',
+    //     config.BASE_URL, fetchJson);
+    userA1 = await newUser(faucet);
 
     keys = await createKeypair();
     locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
 
-  })
+  });
 
   it(`Show account info`, async () => {
     console.log("              locked token holder pub key ",keys.publicKey)
     console.log("              locked token holder account ",keys.account)
     console.log("              locked token holder priv key ",keys.privateKey)
-  })
-})
-
-
-
-describe(`B. Parameter tests`, () => {
+  });
+  // })
+//
+//
+//
+// describe(`B. Parameter tests`, () => {
 
   //these tests use userA1 account and key info.
 
-
   it(`Failure test, Transfer locked tokens,  periods total percent not 100`, async () => {
     try {
-
-      const result = await userA1.genericAction('pushTransaction', {
+      const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'trnsloctoks',
         account: 'fio.token',
         data: {
@@ -93,9 +159,9 @@ describe(`B. Parameter tests`, () => {
     }
   })
 
-  it(`Failure test, Transfer locked tokens, period percent larger than 3 decimals`, async () => {
+  it.skip(`Failure test, Transfer locked tokens, period percent larger than 3 decimals`, async () => {
     try {
-      const result = await userA1.genericAction('pushTransaction', {
+      const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'trnsloctoks',
         account: 'fio.token',
         data: {
@@ -114,7 +180,7 @@ describe(`B. Parameter tests`, () => {
           amount: fundsAmount,
           max_fee: 400000000000,
           tpid: '',
-          actor:'3lv2dsu2oavw',
+          actor: userA1.account,
         }
 
       })
@@ -128,7 +194,7 @@ describe(`B. Parameter tests`, () => {
 
   it(`Failure test, Transfer locked tokens, periods are not in ascending order of duration`, async () => {
     try {
-      const result = await userA1.genericAction('pushTransaction', {
+      const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'trnsloctoks',
         account: 'fio.token',
         data: {
@@ -151,17 +217,16 @@ describe(`B. Parameter tests`, () => {
         }
 
       })
-      expect(result.status).to.not.equal('OK')
+      expect(result.status).to.not.equal('OK');
 
     } catch (err) {
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
+      expect(err.json.fields[0].error).to.equal('Invalid duration value in unlock periods, must be sorted');
     }
   })
 
   it(`Failure test, Transfer locked tokens, duration 0`, async () => {
     try {
-      const result = await userA1.genericAction('pushTransaction', {
+      const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'trnsloctoks',
         account: 'fio.token',
         data: {
@@ -184,16 +249,15 @@ describe(`B. Parameter tests`, () => {
         }
 
       })
-      expect(result.status).to.not.equal('OK')
+      expect(result.status).to.not.equal('OK');
     } catch (err) {
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
+      expect(err.json.fields[0].error).to.equal('Invalid duration value in unlock periods');
     }
-  })
+  });
 
   it(`Failute test, Transfer locked tokens, pub key account pre exists`, async () => {
     try {
-      const result = await userA1.genericAction('pushTransaction', {
+      const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'trnsloctoks',
         account: 'fio.token',
         data: {
@@ -201,7 +265,7 @@ describe(`B. Parameter tests`, () => {
           can_vote: 0,
           periods: [
             {
-              duration: 0,
+              duration: 120,
               amount: fundsAmount * .5,
             },
             {
@@ -212,24 +276,23 @@ describe(`B. Parameter tests`, () => {
           amount: fundsAmount,
           max_fee: 400000000000,
           tpid: '',
-          actor: '3lv2dsu2oavw'
+          actor: userA1.account
         }
 
-      })
-      expect(result.status).to.not.equal('OK')
+      });
+      expect(result.status).to.not.equal('OK');
     } catch (err) {
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
+      expect(err.json.fields[0].error).to.equal('Locked tokens can only be transferred to new account');
     }
-  })
+  });
 
   it(`Failute test, Too many lock periods`, async () => {
     try {
-      const result = await userA1.genericAction('pushTransaction', {
+      const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'trnsloctoks',
         account: 'fio.token',
         data: {
-          payee_public_key: keys.publicKey,
+          payee_public_key: userA1.publicKey,
           can_vote: 0,
           periods: [
             {
@@ -447,20 +510,36 @@ describe(`B. Parameter tests`, () => {
       expect(result.status).to.not.equal('OK')
 
     } catch (err) {
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
+      expect(err.message).to.equal('invalid number');
     }
-  })
+  });
 
-})
+});
 
 describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
 
   let rambefore, ramafter, balancebefore, balanceafter, feetransferlocked
 
+  let userA1, keys, locksdk
+  const fundsAmount = 50000000000 //50 fio
+
+  before(async () => {
+    // userA1.account: 3lv2dsu2oavw
+    // userA1.publicKey: FIO7KbD6G6gFuTvv8xiJzKSmkUauq5Gm48uECiPkVDcwJhBY6njfB
+    // userA1.privateKey: 5KUtrhW1xrHxR5LSdeTjWGVrvN8Zv3Neg8zq9wDWiAvMzUiogeW
+    //NOTE -- this userA1 must be funded on test net.
+    // userA1 = new FIOSDK('5KUtrhW1xrHxR5LSdeTjWGVrvN8Zv3Neg8zq9wDWiAvMzUiogeW',
+    //     'FIO7KbD6G6gFuTvv8xiJzKSmkUauq5Gm48uECiPkVDcwJhBY6njfB',
+    //     config.BASE_URL, fetchJson);
+    userA1 = await newUser(faucet);
+
+    keys = await createKeypair();
+    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+  });
+
   it(`get account ram before `, async () => {
     try {
-      const result = await userA1.genericAction('getAccount', {account:'3lv2dsu2oavw'})
+      const result = await userA1.sdk.genericAction('getAccount', {account:'3lv2dsu2oavw'})
       expect(result.ram_quota).to.be.a('number')
       rambefore = result.ram_quota
     } catch (err) {
@@ -469,15 +548,14 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
   })
 
   it(`getFioBalance before `, async () => {
-    const result = await userA1.genericAction('getFioBalance', {})
-
-    expect(result).to.have.all.keys('balance')
+    const result = await userA1.sdk.genericAction('getFioBalance', {})
+    expect(result).to.have.all.keys('balance', 'available', 'staked', 'srps', 'roe');
     balancebefore = result.balance;
   })
 
   it(`SUCCESS transferLockedTokens ${fundsAmount}, canvote false, (20,40 seconds) and (40,60%)`, async () => {
     try {
-      const result = await userA1.genericAction('pushTransaction', {
+      const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'trnsloctoks',
         account: 'fio.token',
         data: {
@@ -494,43 +572,41 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
             }
           ],
           amount: fundsAmount,
-          max_fee: 400000000000,
+          max_fee: config.api.transfer_tokens_pub_key.fee,
           tpid: '',
-          actor: '3lv2dsu2oavw',
+          actor: userA1.account,
         }
 
       })
-      expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys( 'status', 'fee_collected')
+      expect(result).to.have.all.keys( 'status', 'fee_collected');
+      expect(result.status).to.equal('OK');
+      expect(result.fee_collected).to.equal(config.api.transfer_tokens_pub_key.fee);
     } catch (err) {
       console.log(' Error', err)
     }
   })
 
   it(`getFioBalance after, verify Fee transfer_locked_tokens was collected`, async () => {
-    const result = await userA1.genericAction('getFioBalance', {})
+    const result = await userA1.sdk.genericAction('getFioBalance', {})
 
-    expect(result).to.have.all.keys('balance')
+    expect(result).to.have.all.keys('balance', 'available', 'staked', 'srps', 'roe');
     balanceafter = result.balance;
-    const result1 = await userA1.genericAction('getFee', {
+
+    const result1 = await userA1.sdk.genericAction('getFee', {
       endPoint: 'transfer_locked_tokens',
       fioAddress: ''
     })
-
-    let diff1 = balancebefore - balanceafter - fundsAmount
-    //console.log('Returned fee: ', result)
-    expect(diff1).to.equal(result1.fee)
-
-  })
+    let baldiff = balancebefore - balanceafter
+    let diff1 = baldiff - fundsAmount
+    expect(diff1).to.equal(result1.fee);
+  });
 
   it(`verify get balance results for locked funds`, async () => {
     const result = await locksdk.genericAction('getFioBalance', {})
-
-    expect(result).to.have.all.keys('balance')
-    expect(result.balance).to.be.a('number')
-    expect(result.balance).to.equal(50000000000)
-
-  })
+    expect(result).to.have.all.keys('balance', 'available', 'staked', 'srps', 'roe');
+    expect(result.balance).to.be.a('number');
+    expect(result.balance).to.equal(50000000000);
+  });
 
   //try to transfer whole amount, fail.
   it(`FAIL Transfer ${fundsAmount} from locked token account, no funds unlocked`, async () => {
@@ -542,14 +618,13 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
         technologyProviderId: ''
       })
     } catch (err) {
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
+      expect(err.json.fields[0].error).to.eq('Funds locked');
     }
   })
 
   it(`get account ram after, verify RAM bump `, async () => {
     try {
-      const result = await userA1.genericAction('getAccount', {account:'3lv2dsu2oavw'})
+      const result = await userA1.sdk.genericAction('getAccount', {account:'3lv2dsu2oavw'})
       expect(result.ram_quota).to.be.a('number')
       ramafter = result.ram_quota
       let diffram = ramafter-rambefore
@@ -561,7 +636,7 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
 
   it(`Transfer 1000000000000 FIO into locked funds account`, async () => {
     try {
-      const result = await userA1.genericAction('transferTokens', {
+      const result = await userA1.sdk.genericAction('transferTokens', {
         payeeFioPublicKey: keys.publicKey,
         amount: 10000000000,
         maxFee: 400000000000,
