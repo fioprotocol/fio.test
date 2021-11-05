@@ -7,6 +7,7 @@ describe('TEST SUITE', () => {
    * General Tests. Should work against all builds. Do not require additional configuration.
    */
 
+
   require('./tests/addaddress.js'); // v1.0.x  Also includes FIP-13 tests.
   require('./tests/fees.js'); // v1.0.x
   require('./tests/fio-request.js'); // v1.0.x
@@ -35,6 +36,7 @@ describe('TEST SUITE', () => {
   //require('./tests/clio.js');  // FIP-16  //Only works with local testing
   //require('./tests/performance-request-obt.js');
 
+  require('./tests/fio-eth.js'); //FIO ERC20 AND NFT TESTING (ROPSTEN)
   //require('./tests/expired-address-domain.js'); // Requires manual updates to contracts to shorten expiration timing
   //require('./tests/expired-address-domain-modexpire.js'); // Requires modexpire action which allows expiring of domains
 
