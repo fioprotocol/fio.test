@@ -10,6 +10,7 @@ const config = require('../config.js');
 const {newUser, fetchJson, timeout, callFioApi} = require('../utils.js');
 
 const INIT_SUPPLY = 0;
+let faucet;
 
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
@@ -176,7 +177,7 @@ describe(`A2. Custodians (register)`, () => {
       expect(err).to.have.property('stackTrace').which.is.a('array');
       expect(err).to.have.property('stack').which.is.a('string');
       expect(err).to.have.property('message').which.is.a('string');
-      expect(err.message).to.equal('VM Exception while processing transaction: revert Only a wFIO custodian may call this function.');
+      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Only a wFIO custodian may call this function.\'');
     }
   });
 
@@ -263,7 +264,7 @@ describe(`A3. Custodians (unregister)`, () => {
       expect(err).to.have.property('stackTrace').which.is.a('array');
       expect(err).to.have.property('stack').which.is.a('string');
       expect(err).to.have.property('message').which.is.a('string');
-      expect(err.message).to.equal('VM Exception while processing transaction: revert Only a wFIO custodian may call this function.');
+      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Only a wFIO custodian may call this function.\'');
     }
   });
 
@@ -454,7 +455,7 @@ describe(`B2. Oracles (register)`, () => {
       expect(err).to.have.property('stackTrace').which.is.a('array');
       expect(err).to.have.property('stack').which.is.a('string');
       expect(err).to.have.property('message').which.is.a('string');
-      expect(err.message).to.equal('VM Exception while processing transaction: revert Only a wFIO custodian may call this function.');
+      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Only a wFIO custodian may call this function.\'');
     }
   });
 
@@ -537,7 +538,7 @@ describe(`B3. Oracles (unregister)`, () => {
       expect(err).to.have.property('stackTrace').which.is.a('array');
       expect(err).to.have.property('stack').which.is.a('string');
       expect(err).to.have.property('message').which.is.a('string');
-      expect(err.message).to.equal('VM Exception while processing transaction: revert Only a wFIO custodian may call this function.');
+      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Only a wFIO custodian may call this function.\'');
     }
   });
 
@@ -784,11 +785,11 @@ describe(`C1. wFIO wrapping`, () => {
     } catch (err) {
       expect(err).to.have.property('reason').which.is.a('string');
       expect(err).to.have.property('code').which.is.a('string');
-      expect(err).to.have.property('operation').which.is.a('string');
-      expect(err).to.have.property('network').which.is.a('string');
+      expect(err).to.have.property('argument').which.is.a('string');
+      expect(err).to.have.property('value').which.is.a('string');
       expect(err).to.have.property('stack').which.is.a('string');
       expect(err).to.have.property('message').which.is.a('string');
-      expect(err.reason).to.equal('network does not support ENS');
+      expect(err.reason).to.equal('resolver or addr is not configured for ENS name');
     }
   });
 
@@ -872,7 +873,7 @@ describe(`C1. wFIO wrapping`, () => {
       expect(err).to.have.property('stackTrace').which.is.a('array');
       expect(err).to.have.property('stack').which.is.a('string');
       expect(err).to.have.property('message').which.is.a('string');
-      expect(err.message).to.equal('VM Exception while processing transaction: revert Only a wFIO oracle may call this function.');
+      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Only a wFIO oracle may call this function.\'');
     }
   });
 
