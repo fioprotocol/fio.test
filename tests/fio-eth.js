@@ -4,7 +4,7 @@ require("@nomiclabs/hardhat-ethers");
 // require("@nomiclabs/hardhat-ganache");
 require("mocha");
 const { expect } = require("chai");
-const {FIOSDK } = require('@fioprotocol/fiosdk')
+const {FIOSDK } = require('@fioprotocol/fiosdk');
 
 const config = require('../config.js');
 const {newUser, fetchJson, timeout, callFioApi} = require('../utils.js');
@@ -1046,7 +1046,7 @@ describe(`C2. wFIO unwrapping`, () => {
       expect(err).to.have.property('transactionHash').which.is.a('string');
       expect(err).to.have.property('stack').which.is.a('string');
       expect(err).to.have.property('message').which.is.a('string');
-      expect(err.message).to.contain('Invalid FIO Address');
+      expect(err.message).to.eq('VM Exception while processing transaction: reverted with reason string \'Invalid FIO Address\'');
     }
   });
 
