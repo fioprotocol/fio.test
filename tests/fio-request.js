@@ -104,7 +104,7 @@ describe(`************************** fio-request.js ************************** \
           offlineUrl: ''
         })
         
-        console.log('preparedTrx: ', preparedTrx)
+        //console.log('preparedTrx: ', preparedTrx)
         const result = await userA1.sdk.executePreparedTrx('new_funds_request', preparedTrx);
         requestId = result.fio_request_id
         userA1.sdk.setSignedTrxReturnOption(false);
