@@ -15,7 +15,7 @@
         "ethers": "^5.3.0",
         "fs": "0.0.1-security",
         "hardhat": "^2.3.0",
-        "@openzeppelin/contracts": "^3.4.1",
+        "@openzeppelin/contracts": "^4.3.2",
         "request": "^2.34.0",
         "request-promise": "",
         "semver": "^7.1.1",
@@ -40,9 +40,10 @@
     },
     "scripts": {
         "test": "node node_modules/mocha/bin/_mocha -t 5000000 index.js",
-        "staking": "node node_modules/mocha/bin/_mocha -t 5000000 index-staking.js",
         "testnet": "mocha -t 5000000 tests/testnet-smoketest.js",
-        "copyERC20": "cp -R ../fio.erc20/contracts/wfio.sol contracts/",
-        "compileERC20": "npx hardhat compile"
+        "mkContractDir": "mkdir ethContracts/",
+        "copyERC20": "cp -R ../fio.erc20/contracts/wfio.sol ethContracts/",
+        "copyERC721": "cp -R ../fio.erc721/contracts/fionft.sol ethContracts/",
+        "compileERC": "npx hardhat compile"
     }
 }
