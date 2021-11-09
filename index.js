@@ -1,13 +1,49 @@
-require('mocha')
-const {expect} = require('chai')
+require('mocha');
+const {expect} = require('chai');
 
 describe('TEST SUITE', () => {
 
   /**
+   * Staking Tests (FIP-21)
+   * May require additional configuration (see the notes in js files before running these tests)
+   * in addition to this we need to possibly develop more tests for checking voting power when accounts have staked
+   *
+   * To quickly obtain the local changes in fio.contracts, checkout branch ben/develop in that repository
+   */
+  describe.skip('STAKING TESTS', () => {
+
+    /**
+     * !!! These Staking tests require additional configuration !!!
+     */
+    require('./tests/stake-tokens.js');
+    require('./tests/stake-timing.js');
+    require('./tests/locks-mainnet-locked-tokens.js');
+    require('./tests/locks-mainnet-locked-tokens-lock1hotfix.js');
+    require('./tests/locks-transfer-locked-tokens-testnet-smoke-tests.js');
+    require('./tests/locks-get-locks.js');
+
+    // TODO: Should this one be kept unmodified and just fail when we run with local mods to accomodate the other tests?
+    // require('./tests/stake-general-locked-tokens.js');
+
+    require('./tests/stake-rapid-unstake-with-mainnet-locks.js'); //FIP-21 tests for rapid fire unstaking in succession
+    require('./tests/stake-mainnet-locked-tokens-with-staking.js'); //FIP-21 tests for genesis lock accounts performing staking
+
+    /**
+     * Locked token tests (FIP-6,21). Tests may require additional configuration.
+     */
+    require('./tests/locks-transfer-locked-tokens-max-load.js');  // OPTIONAL PERFORMANCE TEST. Loads the chain with lots of general locks. Run this before other general locks tests when its desirable to test a loaded chain.
+
+    /**
+     * These Lock tests do NOT require additional configuration.
+     */
+    require('./tests/locks-transfer-locked-tokens-account-tests.js');  // FIP-6 tests of generic account functionality
+    require('./tests/locks-transfer-locked-tokens-large-grants.js'); //FIP-21 tests for FIO genesis locks functionality.
+    require('./tests/locks-transfer-locked-tokens.js');  //FIP-21 locking tests for general locks
+  });
+
+  /**
    * General Tests. Should work against all builds. Do not require additional configuration.
    */
-
-
   require('./tests/addaddress.js'); // v1.0.x  Also includes FIP-13 tests.
   require('./tests/fees.js'); // v1.0.x
   require('./tests/fio-request.js'); // v1.0.x
@@ -28,49 +64,31 @@ describe('TEST SUITE', () => {
   require('./tests/transfer-address.js'); // FIP-1.b
   require('./tests/addbundles.js');  // FIP-11.a
   require('./tests/tpid.js');
+
+  /**
+   * !!! ERC20 and ERC721 contract tests inside this test suite rely on hardhat
+   * Be sure to rerun npm install !!!
+   */
+
+  /**
+   * FIP-17 FIO Token Wrapping
+   */
+  require('./tests/fio-eth.js');
+  require('./tests/fio-eth-wrap-unwrap.js');
+
+  /**
+   * FIP-27 FIO NFT
+   */
   require('./tests/nft-add-remove.js'); //FIP-27
   require('./tests/nft-sdk-tests.js');
-  //require('./tests/nft-performance-tests.js'); //FIP-27
+  require('./tests/nft-remove-burn.js'); //FIP-27
   require('./tests/nft-uniqueness.js'); //FIP-27
-  //require('./tests/nft-remove-burn.js'); //FIP-27
-  //require('./tests/clio.js');  // FIP-16  //Only works with local testing
-  //require('./tests/performance-request-obt.js');
-
-  require('./tests/fio-eth.js'); //FIO ERC20 AND NFT TESTING (ROPSTEN)
-  //require('./tests/expired-address-domain.js'); // Requires manual updates to contracts to shorten expiration timing
-  //require('./tests/expired-address-domain-modexpire.js'); // Requires modexpire action which allows expiring of domains
-
-  //require('./tests/history.js'); // Only run against history node.
-
-  require('./tests/testnet-smoketest.js'); // Testnet smoketest. By default runs against local build.
+  //require('./tests/nft-performance-tests.js'); //FIP-27
 
   /**
-   * Locked token tests (FIP-6,21). Tests may require additional configuration.
+   * Testnet smoketest. By default runs against local build.
    */
-  //require('./tests/locks-transfer-locked-tokens-max-load.js');  // OPTIONAL PERFORMANCE TEST. Loads the chain with lots of general locks. Run this before other general locks tests when its desirable to test a loaded chain.
-  //### These Lock tests do NOT require additional configuration.
-  require('./tests/locks-transfer-locked-tokens-account-tests.js');  // FIP-6 tests of generic account functionality
-  require('./tests/locks-transfer-locked-tokens-large-grants.js'); //FIP-21 tests for FIO genesis locks functionality.
-  require('./tests/locks-transfer-locked-tokens.js');  //FIP-21 locking tests for general locks
-  //### These Lock tests require additional configuration.
-  //require('./tests/locks-mainnet-locked-tokens-lock1hotfix.js'); //Release 2.4.1 Hotfix for Type 1 locks (was not calculating voting power correctly)
-  //require('./tests/locks-mainnet-locked-tokens.js'); //FIP-21 tests for FIO genesis locks functionality.
-  //### Testnet only. Not sure this will work. May need updates for recent lock changes
-  //require('./tests/locks-transfer-locked-tokens-testnet-smoke-tests.js'); //Only works for Testnet
-
-  /**
-   * Staking Tests (FIP-21)
-   * May require additional configuration (see the notes in js files before running these tests)
-   * in addition to this we need to possibly develop more tests for checking voting power when accounts have staked
-   */
-  //###These Staking tests do NOT require additional configuration.
-  require('./tests/stake-general-locked-tokens.js'); //FIP-21 tests for general lock accounts performing staking
-  //###These Staking tests require additional configuration.
-  //require('./tests/stake-tokens.js');
-  //require('./tests/stake-mainnet-locked-tokens-with-staking.js'); //FIP-21 tests for genesis lock accounts performing staking
-  //require('./tests/stake-rapid-unstake-with-mainnet-locks.js'); //FIP-21 tests for rapid fire unstaking in succession
-  //require('./tests/stake-regression.js'); //FIP-21 tests for new account calling staking using auto proxy, and full pull through to spend after unstaking unlock
-  //require('./tests/stake-timing.js');
+  require('./tests/testnet-smoketest.js');
 
   /**
    * clio tests. Only works with local testing since it accesses the fio.devtools/bin directory
@@ -87,6 +105,7 @@ describe('TEST SUITE', () => {
    * Expired Address and Domain Testing. Requires manual updates to contracts to shorten expiration timing
    */
   //require('./tests/expired-address-domain.js');
+  //require('./tests/expired-address-domain-modexpire.js'); // Requires modexpire action which allows expiring of domains
 
   /**
    * History Node tests. Only run against history node.
@@ -103,5 +122,8 @@ describe('TEST SUITE', () => {
    */
   //require('./tests/bravo-migr-test.js'); //This is required when testing 2.3.0 (bravo) with fio bahamas (need to do the full table migration).
 
-	require('./tests/fio-escrow') // FIP-26 (marketplace)
+  /**
+   * FIP-26 (marketplace)
+   */
+  // require('./tests/fio-escrow.js');
 });
