@@ -332,6 +332,9 @@ let dailyRewards = {
 // If the number of days goes beyond the array, this default is used.
 defaultDailyRewards = 0;
 
+// If you want to use a tpid in the FIO action calls. should be '' or 'bp1@dapixdev'
+const stakingTpid = 'bp1@dapixdev'
+
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
   bp1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
@@ -412,7 +415,7 @@ describe(`************************** stake-timing.js ************************** 
           ],
           amount: genLockTotal,
           max_fee: config.maxFee,
-          tpid: '',
+          tpid: stakingTpid,
           actor: config.FAUCET_ACCOUNT,
         }
       })
@@ -426,7 +429,7 @@ describe(`************************** stake-timing.js ************************** 
           payee_public_key: generalLockStaker.publicKey,
           amount: 1000000000000,  //1000 FIO
           max_fee: config.maxFee,
-          tpid: '',
+          tpid: stakingTpid,
           actor: faucet.account
         }
       });
@@ -470,7 +473,7 @@ describe(`************************** stake-timing.js ************************** 
             payee_public_key: stakers[i].publicKey,
             amount: stakers[i].transferAmount,
             max_fee: config.maxFee,
-            tpid: '',
+            tpid: stakingTpid,
             actor: faucet.account
           }
         });
@@ -741,7 +744,7 @@ describe(`************************** stake-timing.js ************************** 
                   amount: stakers[i].stakeAmount[dayNumber],
                   actor: stakers[i].account,
                   max_fee: config.maxFee,
-                  tpid: ''
+                  tpid: stakingTpid
                 }
               })
               expect(result.status).to.equal('OK')
@@ -957,7 +960,7 @@ describe(`************************** stake-timing.js ************************** 
                   amount: stakers[i].unstakeAmount[dayNumber],
                   actor: stakers[i].account,
                   max_fee: config.maxFee,
-                  tpid: ''
+                  tpid: stakingTpid
                 }
               }); 
               expect(result.status).to.equal('OK');
@@ -1119,18 +1122,18 @@ describe(`************************** stake-timing.js ************************** 
 
               // combinedTokenPool unstaking calculation: combinedTokenPool = prevcombinedTokenPool - unstakeAmount - payout from rewards token pool
               if (useEpsilon) {
-                expect(combinedTokenPool).is.greaterThan(prevCombinedTokenPool - userUnstakeAmount - rewardAmountStaker - EPSILON);
-                expect(combinedTokenPool).is.lessThan(prevCombinedTokenPool - userUnstakeAmount - rewardAmountStaker + EPSILON);
+                expect(combinedTokenPool).is.greaterThan(prevCombinedTokenPool - userUnstakeAmount - rewardAmountStaker - rewardAmountTpid - EPSILON);
+                expect(combinedTokenPool).is.lessThan(prevCombinedTokenPool - userUnstakeAmount - rewardAmountStaker - rewardAmountTpid + EPSILON);
               } else {
-                expect(combinedTokenPool).to.equal(prevCombinedTokenPool - userUnstakeAmount - rewardAmountStaker);
+                expect(combinedTokenPool).to.equal(prevCombinedTokenPool - userUnstakeAmount - rewardAmountStaker - rewardAmountTpid);
               }
 
               if (prevStakedTokenPool >= ROETHRESHOLD) {
                 if (useEpsilon) {
-                  expect(lastCombinedTokenPool).is.greaterThan(prevLastCombinedTokenPool - userUnstakeAmount - rewardAmountStaker - EPSILON);
-                  expect(lastCombinedTokenPool).is.lessThan(prevLastCombinedTokenPool - userUnstakeAmount - rewardAmountStaker + EPSILON);
+                  expect(lastCombinedTokenPool).is.greaterThan(prevLastCombinedTokenPool - userUnstakeAmount - rewardAmountStaker - rewardAmountTpid - EPSILON);
+                  expect(lastCombinedTokenPool).is.lessThan(prevLastCombinedTokenPool - userUnstakeAmount - rewardAmountStaker - rewardAmountTpid + EPSILON);
                 } else {
-                  expect(lastCombinedTokenPool).to.equal(prevLastCombinedTokenPool - userUnstakeAmount - rewardAmountStaker);
+                  expect(lastCombinedTokenPool).to.equal(prevLastCombinedTokenPool - userUnstakeAmount - rewardAmountStaker - rewardAmountTpid);
                 }
               } else {
                 expect(lastCombinedTokenPool).to.equal(prevLastCombinedTokenPool);
