@@ -1031,6 +1031,7 @@ describe(`C2. wFIO unwrapping`, () => {
     let fromEndingWfioBal = await wfio.balanceOf(accounts[0].address);
     expect(fromStartingWfioBal.gt(fromEndingWfioBal))
     expect(fromEndingWfioBal.toNumber()).to.equal(0);
+    await timeout(3000);  // seems to keep subsequent tests from breaking
   });
 
   // unwrap
@@ -1046,7 +1047,7 @@ describe(`C2. wFIO unwrapping`, () => {
       expect(err).to.have.property('transactionHash').which.is.a('string');
       expect(err).to.have.property('stack').which.is.a('string');
       expect(err).to.have.property('message').which.is.a('string');
-      expect(err.message).to.eq('VM Exception while processing transaction: reverted with reason string \'Invalid FIO Address\'');
+      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Invalid FIO Address\'');
     }
   });
 
