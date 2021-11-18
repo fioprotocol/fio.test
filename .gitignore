@@ -4,3 +4,5 @@ package-lock.json
 tests/.DS_Store
 .idea
 ethContracts/*
+artifacts/*
+cache/*
