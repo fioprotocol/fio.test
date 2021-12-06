@@ -521,7 +521,7 @@ describe(`************************** retire-tokens.js **************************
   });
 });
 
-describe.only(`B. (unhappy) Try to retire FIO Tokens`, function () {
+describe(`B. (unhappy) Try to retire FIO Tokens`, function () {
   let userA, userA1, userA2, userA3, userA4, userA5, userA6, userA7, userA8
 
   const RETIRETEST1 = {
@@ -770,7 +770,7 @@ describe.only(`B. (unhappy) Try to retire FIO Tokens`, function () {
   });
 });
 
-describe(`C. (unhappy) Try to retire from an account that has staked tokens`, async function () {
+describe.only(`C. (unhappy) Try to retire from an account that has staked tokens`, async function () {
   let bp1, bp2, bp3, userA, userA4, userB, userC, userP, prevFundsAmount, locksdk, keys, accountnm, newFioDomain1, newFioAddress1, newFioDomain2, newFioAddress2, total_bp_votes, total_voted_fio;
   const fundsAmount = 1000000000000;
   const transferAmt = 100000000000;
