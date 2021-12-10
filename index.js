@@ -34,6 +34,7 @@ describe('TEST SUITE', () => {
   //require('./tests/nft-remove-burn.js'); //FIP-27
   //require('./tests/clio.js');  // FIP-16  //Only works with local testing
   //require('./tests/performance-request-obt.js');
+  require('./tests/fee-distribution.js');
 
   //require('./tests/expired-address-domain.js'); // Requires manual updates to contracts to shorten expiration timing
   //require('./tests/expired-address-domain-modexpire.js'); // Requires modexpire action which allows expiring of domains

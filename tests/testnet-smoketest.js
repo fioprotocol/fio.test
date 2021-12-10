@@ -9,7 +9,7 @@
 require('mocha')
 const {expect} = require('chai')
 const {FIOSDK} = require('@fioprotocol/fiosdk')
-const {newUser, existingUser, fetchJson} = require('../utils.js');
+const { newUser, existingUser, callFioApi, fetchJson} = require('../utils.js');
 config = require('../config.js');
 const { EndPoint } = require('@fioprotocol/fiosdk/lib/entities/EndPoint')
 
@@ -23,15 +23,15 @@ const target = 'local'
 /**
  * Set your testnet existing private/public keys and existing fioAddresses (not needed if running locally)
  */
-privateKey = '',
-publicKey = '',
-account = '',
-privateKey2 = '',
-publicKey2 = '',
-account2 = '',
-testFioDomain = '',
-testFioAddressName = '',
-testFioAddressName2 = ''
+const privateKey = '',
+  publicKey = '',
+  account = '',
+  privateKey2 = '',
+  publicKey2 = '',
+  account2 = '',
+  testFioDomain = '',
+  testFioAddressName = '',
+  testFioAddressName2 = ''
 
 
 /**
@@ -404,7 +404,7 @@ describe('B. Testing domain actions', () => {
 
   it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
-  it(`(push_transaction) user1 run addbundles with sets for FIO Address owned by user2`, async () => {
+  it(`(push_transaction) fioSdk2 run addbundles with sets for FIO Address owned by fioSdk2`, async () => {
     try {
         const result = await fioSdk2.sdk.genericAction('pushTransaction', {
             action: 'addbundles',
@@ -1232,4 +1232,254 @@ describe('I. Check prepared transaction', () => {
       expect(err).to.equal(null)
     }
   })
+})
+
+describe('J. Test transfer_tokens_pub_key fee distribution', () => {
+  let tpid,
+    foundationBalance, foundationBalancePrev,
+    tpidBalance, tpidBalancePrev,
+    stakingBalance, stakingBalancePrev,
+    bpBalance, bpBalancePrev,
+    endpoint_fee,
+    feeCollected
+  
+  // v2.6.x
+  const foundationRewardPercent = '0.05',
+    tpidRewardPercent = '0.1',
+    tpidNewuserbountyPercent = '0.4',
+    bpRewardPercent = '0.6',
+    stakingRewardPercent = 0.25   // Staking returns a number, not a string... ?
+
+  const endpoint = "transfer_tokens_pub_key"
+
+  const transferAmount = 1000000000   // 1 FIO
+
+  if (target == 'local') {
+    tpid = 'bp1@dapixdev'
+  } else {
+    tpid = 'blockpane@fiotestnet'
+  }
+
+  it(`Get balance for fioSdk`, async () => {
+    try {
+      const result = await fioSdk.sdk.genericAction('getFioBalance', {
+        fioPublicKey: fioSdk.publicKey
+      })
+      fioSdkPrevBalance = result.balance
+      //console.log('fioSdk fio balance', result)
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Get current foundation rewards`, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'fio.treasury',
+        scope: 'fio.treasury',
+        table: 'fdtnrewards',
+        limit: 10,
+        reverse: false
+      }
+      result = await callFioApi("get_table_rows", json);
+      foundationBalance = result.rows[0].rewards;
+      //console.log('foundationBalance: ', foundationBalance);
+      expect(foundationBalance).to.greaterThan(0);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Get current bprewards`, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'fio.treasury',
+        scope: 'fio.treasury',
+        table: 'bprewards',
+        limit: 10,
+        reverse: false
+      }
+      result = await callFioApi("get_table_rows", json);
+      bpBalance = result.rows[0].rewards;
+      //console.log('bpBalance: ', bpBalance);
+      expect(bpBalance).to.greaterThan(0);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Get current tpid rewards`, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'fio.tpid',
+        scope: 'fio.tpid',
+        table: 'bounties',
+        limit: 10,
+        reverse: false
+      }
+      result = await callFioApi("get_table_rows", json);
+      tpidBalance = result.rows[0].tokensminted;
+      //console.log('tpidBalance: ', tpidBalance);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Get current staking rewards`, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'fio.staking',
+        scope: 'fio.staking',
+        table: 'staking',
+        limit: 10,
+        reverse: false
+      }
+      result = await callFioApi("get_table_rows", json);
+      stakingBalance = result.rows[0].rewards_token_pool;
+      //console.log('stakingBalance: ', stakingBalance);
+      expect(stakingBalance).to.greaterThan(0);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it('Get endpoint fee', async () => {
+    try {
+      result = await fioSdk.sdk.getFee(endpoint);
+      endpoint_fee = result.fee;
+      //console.log('endpoint_fee: ', endpoint_fee)
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it('Test: transferTokens. Transfer FIO from fioSdk to fioSdk2', async () => {
+    try {
+      const result = await fioSdk.sdk.genericAction('transferTokens', {
+        payeeFioPublicKey: fioSdk2.publicKey,
+        amount: transferAmount,
+        maxFee: endpoint_fee,
+        technologyProviderId: tpid
+      })
+      //console.log('Result: ', result)
+      feeCollected = result.fee_collected;
+      expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
+
+  it(`Confirm fee collected > 0`, async () => {
+    expect(feeCollected).to.greaterThan(0)
+  })
+
+  it(`Get updated foundation rewards. Expect increase of ${foundationRewardPercent} * fee`, async () => {
+    foundationBalancePrev = foundationBalance;
+    try {
+      const json = {
+        json: true,
+        code: 'fio.treasury',
+        scope: 'fio.treasury',
+        table: 'fdtnrewards',
+        limit: 10,
+        reverse: false
+      }
+      result = await callFioApi("get_table_rows", json);
+      foundationBalance = result.rows[0].rewards;
+      //console.log('foundationBalance: ', foundationBalance);
+      percentDiff = (foundationBalance - foundationBalancePrev) / endpoint_fee;
+      percentDiffRnd = percentDiff.toFixed(2);
+      //console.log('foundation Rewards percent diff rnd: ', percentDiffRnd);
+      expect(percentDiffRnd).to.equal(foundationRewardPercent);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Get updated bprewards. Expect increase of ${bpRewardPercent} * fee`, async () => {
+    bpBalancePrev = bpBalance;
+    try {
+      const json = {
+        json: true,
+        code: 'fio.treasury',
+        scope: 'fio.treasury',
+        table: 'bprewards',
+        limit: 10,
+        reverse: false
+      }
+      result = await callFioApi("get_table_rows", json);
+      bpBalance = result.rows[0].rewards;
+      //console.log('bpBalance: ', bpBalance);
+      percentDiff = (bpBalance - bpBalancePrev) / endpoint_fee;
+      percentDiffRnd = percentDiff.toFixed(1);
+      //console.log('bpBalance percent diff round: ', percentDiffRnd);
+      expect(percentDiffRnd).to.equal(bpRewardPercent);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`BUG: Get updated tpid balance. Expect increase of ${tpidNewuserbountyPercent} * fee`, async () => {
+    tpidBalancePrev = tpidBalance;
+    try {
+      const json = {
+        json: true,
+        code: 'fio.tpid',
+        scope: 'fio.tpid',
+        table: 'bounties',
+        limit: 10,
+        reverse: false
+      }
+      result = await callFioApi("get_table_rows", json);
+      tpidBalance = result.rows[0].tokensminted;
+      //console.log('tpidBalance: ', tpidBalance);
+      percentDiff = (tpidBalance - tpidBalancePrev) / endpoint_fee;
+      percentDiffRnd = percentDiff.toFixed(1);
+      //console.log('tpidBalance percent diff round: ', percentDiffRnd);
+      expect(percentDiffRnd).to.equal(tpidNewuserbountyPercent);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Get updated staking rewards. Expect increase of ${stakingRewardPercent} * fee`, async () => {
+    stakingBalancePrev = stakingBalance;
+    try {
+      const json = {
+        json: true,
+        code: 'fio.staking',
+        scope: 'fio.staking',
+        table: 'staking',
+        limit: 10,
+        reverse: false
+      }
+      result = await callFioApi("get_table_rows", json);
+      stakingBalance = result.rows[0].rewards_token_pool;
+      //console.log('stakingBalance: ', stakingBalance);
+      percentDiff = (stakingBalance - stakingBalancePrev) / endpoint_fee;
+      percentDiffRnd = percentDiff.toFixed(2);
+      //console.log('stakingBalance percent diff: ', (stakingBalance - stakingBalancePrev) / endpoint_fee);
+      expect(percentDiff).to.equal(stakingRewardPercent);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
 })
