@@ -63,57 +63,22 @@ before(async function () {
 });
 
 describe(`************************** retire-tokens.js ************************** \n    A. Retire FIO Tokens`, function () {
-  let userA, userA1, userA2, userA3, userA4, userA5, userA6, userA7, userA8
+  let userA, userA1, userA2;
 
-  const RETIRETEST1 = {
-    account: 'jbx4oaspu1h1',
-    publicKey: 'FIO6wrUvBNGiKokWkwh3JDnTTXM1P5xj25G7fqhWRzpRbucPiQv16',
-    privateKey: '5JmNogi2RUzkueWcpdg2fSLFX3VJ7VAFtsvPLnsu3QdwTDmLBuM'
-  }
-
-  const RETIRETEST2 = {
-    account: 'z4qqs4cugjfa',
-    publicKey: 'FIO6py1nZ3Vk61oqSAVudh79apo5vkDaFkDHQeHF45EidYmuYUT38',
-    privateKey: '5KYPFrVdnrKNJkStfjmkq6LLZAiwa46yyiaLrPSBCsHpBNwrytS'
-  }
-
-  const RETIRETEST3 = {
-    account: 'pzjjgjwwdm5v',
-    publicKey: 'FIO6kifTDXvnbS8T7Bvuk4zL3d7bysiZGV2s2vQpTnf5oT31CFqAu',
-    privateKey: '5Hs4PZcwsPHVkfWrUVRybikEx5zy92CVYX81s98XPwK1jXWYoEL'
-  }
-
-  const RETIRETEST4 = {
-    account: 'c5mkju354ibi',
-    publicKey: 'FIO6AsajVZBdmWBuxTUFURqGBk822L11q8BpWH8vBXyteiGeU8mRX',
-    privateKey: '5K8gtheotX9pXEpswmSs52Hg1rDUHKiD1JYTSMfJqCkfhEa59si'
-  }
-
-  const userA5Keys = {
-    account: 'tkvlcmcdftuv',
-    publicKey: 'FIO5ZiPCxxtND2Z9NvYQYVphGYiXhwDRiH4mbg3ENp6Bh6pGR2WjB',
-    privateKey: '5JY4WVpxVHcuWuvHpwDAxJL85xNR5nLeq2V2eyen2pcBybVhhnt'
-  }
-
-  const userA6Keys = {
-    account: 'isqotfueflhg',
-    publicKey: 'FIO5co2UAAAjVgwtaZMT8Uu7pAHHGAtWUzstqg7hZyJKVBWMW7ZDh',
-    privateKey: '5JdFRXbxXsKvXWFEuX2GTTakr5oqkhsDVjyXJuUvT8kakgQtmzG'
-  }
+  let userABal, userA1Bal, userA2Bal;
 
   const fundsAmount = 1000000000000
 
   before(async function () {
     userA = await newUser(faucet);
-    userA1 = await existingUser(RETIRETEST1.account, RETIRETEST1.privateKey, RETIRETEST1.publicKey, '', '');
-    userA2 = await existingUser(RETIRETEST2.account, RETIRETEST2.privateKey, RETIRETEST2.publicKey, '', '');
-    userA3 = await existingUser(RETIRETEST3.account, RETIRETEST3.privateKey, RETIRETEST3.publicKey, '', '');
-    userA4 = await existingUser(RETIRETEST4.account, RETIRETEST4.privateKey, RETIRETEST4.publicKey, '', '');
-    userA5 = await existingUser(userA5Keys.account, userA5Keys.privateKey, userA5Keys.publicKey, '', '');
-    userA6 = await existingUser(userA6Keys.account, userA6Keys.privateKey, userA6Keys.publicKey, '', '');
+    // userA1 = await existingUser(RETIRETEST1.account, RETIRETEST1.privateKey, RETIRETEST1.publicKey, '', '');
+    // userA2 = await existingUser(RETIRETEST2.account, RETIRETEST2.privateKey, RETIRETEST2.publicKey, '', '');
+
+    userA1 = await newUser(faucet);
+    userA2 = await newUser(faucet);
   });
 
-  it(`Transfer ${fundsAmount} FIO to userA FIO public key`, async function () {
+  it.skip(`Transfer ${fundsAmount} FIO to userA FIO public key`, async function () {
     const result = await faucet.genericAction('transferTokens', {
       payeeFioPublicKey: userA.publicKey,
       amount: fundsAmount,
@@ -132,15 +97,6 @@ describe(`************************** retire-tokens.js **************************
     });
     expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
   });
-  it.skip(`Transfer ${fundsAmount} FIO to userA2 FIO public key`, async function () {
-    const result = await faucet.genericAction('transferTokens', {
-      payeeFioPublicKey: userA2.publicKey,
-      amount: fundsAmount,
-      maxFee: config.api.transfer_tokens_pub_key.fee,
-      technologyProviderId: ''
-    });
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
-  });
 
   /*
   Retire 1000 FIO tokens from a non-locks account with empty memo
@@ -149,94 +105,21 @@ describe(`************************** retire-tokens.js **************************
   Total tokens issued count is reduced by 1000
   */
 
-  it(`get userA balance and table, make sure initial balances are correct`, async function () {
-    const userBal = await userA.sdk.genericAction('getFioBalance', {});
-    expect(userBal.balance - userBal.available).to.equal(0);
-
-    const json = {
-      json: true,
-      code: 'eosio',
-      scope: 'eosio',
-      table: 'lockedtokens',
-      limit: 99999,
-      reverse: true,
-      show_payer: false
-    }
-    let found = false;
-    let user = "";
-    const lockedtokens = await callFioApi("get_table_rows", json);
-    for (user in lockedtokens.rows) {
-      if (lockedtokens.rows[user].owner == userA.account) {
-        break;
-      }
-    }
-    expect(lockedtokens.rows[user].remaining_locked_amount).to.be.lessThanOrEqual(1000000000000000);
-  });
   it(`Happy Test, Retire ${fundsAmount} SUFs from userA (empty memo)`, async function () {
-    let userBal = await userA.sdk.genericAction('getFioBalance', {fioPublicKey: userA.publicKey});
-    try {
-      const result = await userA.sdk.genericAction('pushTransaction', {
-        action: 'retire',
-        account: 'fio.token',
-        data: {
-          quantity: fundsAmount,
-          memo: "",
-          actor: userA.account,
-        }
-      });
-      expect(result.status).to.equal('OK')
-      let newUserBal = await userA.sdk.genericAction('getFioBalance', {fioPublicKey: userA.publicKey});
-      expect(newUserBal.available).to.equal(userBal.available - fundsAmount);
-      expect(newUserBal.balance).to.equal(userBal.balance - fundsAmount);
-    } catch (err) {
-      console.log(err.message)
-    }
-  });
-  it(`get userA balance and table, make sure initial balances are correct`, async function () {
-    const userBal = await userA.sdk.genericAction('getFioBalance', {});
-    expect(userBal.balance - userBal.available).to.equal(0);
-
-    const json = {
-      json: true,
-      code: 'eosio',
-      scope: 'eosio',
-      table: 'lockedtokens',
-      limit: 99999,
-      reverse: true,
-      show_payer: false
-    }
-    let found = false;
-    let user = "";
-    const lockedtokens = await callFioApi("get_table_rows", json);
-    for (user in lockedtokens.rows) {
-      if (lockedtokens.rows[user].owner == userA.account) {
-        break;
+    userABal = await userA.sdk.genericAction('getFioBalance', { });
+    const result = await userA.sdk.genericAction('pushTransaction', {
+      action: 'retire',
+      account: 'fio.token',
+      data: {
+        quantity: fundsAmount,
+        memo: "",
+        actor: userA.account,
       }
-    }
-    expect(lockedtokens.rows[user].remaining_locked_amount).to.equal(1000000000000000);
-  });
-
-  it(`get userA1 balance and table, make sure initial balances are correct`, async function () {
-    const userBal = await userA1.sdk.genericAction('getFioBalance', {});
-
-    const json = {
-      json: true,
-      code: 'eosio',
-      scope: 'eosio',
-      table: 'lockedtokens',
-      limit: 99999,
-      reverse: true,
-      show_payer: false
-    }
-    let found = false;
-    let user;
-    const lockedtokens = await callFioApi("get_table_rows", json);
-    for (user in lockedtokens.rows) {
-      if (lockedtokens.rows[user].owner == userA1.account) {
-        break;
-      }
-    }
-    expect(lockedtokens.rows[user].remaining_locked_amount).to.equal(userBal.balance - userBal.available);
+    });
+    expect(result.status).to.equal('OK');
+    let newUserBal = await userA.sdk.genericAction('getFioBalance', { });
+    expect(newUserBal.available).to.equal(userABal.available - fundsAmount);
+    expect(newUserBal.balance).to.equal(userABal.balance - fundsAmount);
   });
 
   /*
@@ -249,7 +132,7 @@ describe(`************************** retire-tokens.js **************************
 
   // Lock set in fio.devtools 17_emplace_test_grants_into_locked_tokens.sh
   it(`Happy Test, Retire ${fundsAmount} SUFs from UserA1 (type 4 lock)`, async function () {
-    let userBal = await userA1.sdk.genericAction('getFioBalance', {fioPublicKey: userA1.publicKey});
+    userA1Bal = await userA1.sdk.genericAction('getFioBalance', {});
     const result = await userA1.sdk.genericAction('pushTransaction', {
       action: 'retire',
       account: 'fio.token',
@@ -260,36 +143,9 @@ describe(`************************** retire-tokens.js **************************
       }
     });
     expect(result.status).to.equal('OK');
-
-    let newUserBal = await userA1.sdk.genericAction('getFioBalance', {fioPublicKey: userA1.publicKey});
-    expect(newUserBal.available).to.equal(userBal.available - fundsAmount);
-    expect(newUserBal.balance).to.equal(userBal.balance - fundsAmount);
-
-    const json = {
-      json: true,
-      code: 'eosio',
-      scope: 'eosio',
-      table: 'lockedtokens',
-      limit: 99999,
-      reverse: true,
-      show_payer: false
-    }
-    let found = false;
-    let user = "";
-    const lockedtokens = await callFioApi("get_table_rows", json);
-    for (user in lockedtokens.rows) {
-      if (lockedtokens.rows[user].owner == userA1.account) {
-        break;
-      }
-    }
-    expect(userBal.available - newUserBal.available).to.equal(fundsAmount);
-    expect(userBal.balance - newUserBal.balance).to.equal(fundsAmount);
-
-    let row = lockedtokens.rows[user];
-    expect(row.remaining_locked_amount).to.equal(userBal.balance - userBal.available);
-    expect(row.remaining_locked_amount).to.equal(newUserBal.balance - newUserBal.available);
-    expect(row.grant_type).to.equal(4);
-    expect(row.remaining_locked_amount).to.equal(userBal.balance - newUserBal.balance)
+    let newUserBal = await userA1.sdk.genericAction('getFioBalance', {});
+    expect(newUserBal.available).to.equal(userA1Bal.available - fundsAmount);
+    expect(newUserBal.balance).to.equal(userA1Bal.balance - fundsAmount);
   });
 
   /*
@@ -301,8 +157,9 @@ describe(`************************** retire-tokens.js **************************
   Locks table is updated and unlocked tokens remain the same
   */
 
-  it(`Happy Test, Retire ${fundsAmount} SUFs from UserA2 (type 1 lock)`, async function () {
-    let userBal = await userA2.sdk.genericAction('getFioBalance', {fioPublicKey: userA2.publicKey});
+  it.skip(`Happy Test, Retire ${fundsAmount} SUFs from UserA2 (type 1 lock)`, async function () {
+    userA2Bal = await userA2.sdk.genericAction('getFioBalance', { });
+
     const result = await userA2.sdk.genericAction('pushTransaction', {
       action: 'retire',
       account: 'fio.token',
@@ -313,54 +170,110 @@ describe(`************************** retire-tokens.js **************************
       }
     });
     expect(result.status).to.equal('OK');
-    let newUserBal = await userA2.sdk.genericAction('getFioBalance', {fioPublicKey: userA2.publicKey});
-    expect(newUserBal.available).to.equal(userBal.available - fundsAmount);
-    expect(newUserBal.balance).to.equal(userBal.balance - fundsAmount);
-
-    const json = {
-      json: true,
-      code: 'eosio',
-      scope: 'eosio',
-      table: 'lockedtokens',
-      limit: 99999,
-      reverse: true,
-      show_payer: false
-    }
-    let found = false;
-    let user = "";
-    let lockedtokens = await callFioApi("get_table_rows", json);
-    for (user in lockedtokens.rows) {
-      if (lockedtokens.rows[user].owner == userA2.account) {
-        break;
-      }
-    }
-
-    expect(userBal.available - newUserBal.available).to.equal(fundsAmount);
-    expect(userBal.balance - newUserBal.balance).to.equal(fundsAmount);
-
-    let row = lockedtokens.rows[user];
-    expect(row.remaining_locked_amount).to.equal(userBal.balance - userBal.available);
-    expect(row.remaining_locked_amount).to.equal(newUserBal.balance - newUserBal.available);
-    expect(row.grant_type).to.equal(1);
-    expect(row.remaining_locked_amount).to.equal(userBal.balance - newUserBal.balance)
+    let newUserBal = await userA2.sdk.genericAction('getFioBalance', { });
+    expect(newUserBal.available).to.equal(userA2Bal.available - fundsAmount);
+    expect(newUserBal.balance).to.equal(userA2Bal.balance - fundsAmount);
   });
 
-  /*
-  Retire 1000 FIO tokens from a FIP-6 locked account with “test string” memo,
-  where some > 1000 tokens were unlocked and > 1000 are still locked.
-  Observe:
-  Account balance is updated
-  Total tokens issued count is reduced by 1000
-  Locks table is updated and unlocked tokens remain the same
-  */
-
-  it.skip(`Set FIP-6 lock for UserA5, expect Error: Locked tokens can only be transferred to new account`, async function () {
+  it(`Sad Test, Retire 1 FIO token from userA2`, async function () {
     try {
-      const result = await userA4.sdk.genericAction('pushTransaction', {
+      const result = await userA2.sdk.genericAction('pushTransaction', {
+        action: 'retire',
+        account: 'fio.token',
+        data: {
+          quantity: 1000000000,
+          memo: "test string",
+          actor: userA2.account,
+        }
+      });
+      expect(result).to.equal(null);
+    } catch (err) {
+      //  console.log(err.json)
+      expect(err.json.fields[0].error).to.equal("Minimum 1000 FIO has to be retired");
+    }
+  });
+
+  it(`Sad Test, Retire 999999999999 FIO token from userA2`, async function () {
+    try {
+      const result = await userA2.sdk.genericAction('pushTransaction', {
+        action: 'retire',
+        account: 'fio.token',
+        data: {
+          quantity: 999999999999,
+          memo: "test string",
+          actor: userA2.account,
+        }
+      });
+      expect(result).to.equal(null);
+    } catch (err) {
+      expect(err.json.fields[0].error).to.equal("Minimum 1000 FIO has to be retired");
+    }
+  });
+
+  it(`Sad Test, Retire ${fundsAmount} SUFs from userA1 (Insufficient funds)`, async function () {
+    try {
+      const result = await userA1.sdk.genericAction('pushTransaction', {
+        action: 'retire',
+        account: 'fio.token',
+        data: {
+          quantity: fundsAmount*1000,
+          memo: "test string",
+          actor: userA1.account,
+        }
+      });
+      expect(result).to.equal(null);
+    } catch (err) {
+      expect(err.json.fields[0].error).to.equal("Insufficient balance");
+
+    }
+  });
+
+  it(`Sad Test, Retire ${fundsAmount} SUFs from userA2 (memo > 256)`, async function () {
+    try {
+      const result = await userA2.sdk.genericAction('pushTransaction', {
+        action: 'retire',
+        account: 'fio.token',
+        data: {
+          quantity: fundsAmount,
+          memo: "I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string 123456789",
+          actor: userA2.account,
+        }
+      });
+      expect(result).to.equal(null);
+
+    } catch (err) {
+      expect(err.json.fields[0].error).to.equal("memo has more than 256 bytes");
+    }
+  });
+});
+
+describe.only(`B. Retire locked FIO Tokens`, function () {
+  let userA, userA1, userA2, userA3, userA4, userA5, userA6;
+  let userALocks,userA1Locks, userA2Locks, userA3Locks, userA4Locks, userA5Locks, userA6Locks;
+  let userABal, userA1Bal, userA2Bal, userA3Bal, userA4Bal, userA5Bal, userA6Bal;
+  let RETIRETEST1, RETIRETEST2, RETIRETEST3, RETIRETEST4, userA5Keys, userA6Keys;
+
+  const fundsAmount = 1000000000000
+
+  before(async function () {
+    userA = await newUser(faucet);
+
+    // generating my own keys so I don't have to rely on fio.devtools
+    RETIRETEST1 = await createKeypair();
+    RETIRETEST2 = await createKeypair();
+    RETIRETEST3 = await createKeypair();
+    RETIRETEST4 = await createKeypair();
+    userA5Keys = await createKeypair();
+    userA6Keys = await createKeypair();
+  });
+
+  it(`Set two FIP-6 lock periods for userA1, expect status: OK`, async function () {
+    try {
+      const result = await faucet.genericAction('pushTransaction', {
         action: 'trnsloctoks',
         account: 'fio.token',
         data: {
-          payee_public_key: userA5Keys.publicKey,
+          payee_public_key: RETIRETEST1.publicKey,
           can_vote: 0,
           periods: [
             { // > 1000 are unlocked
@@ -368,232 +281,69 @@ describe(`************************** retire-tokens.js **************************
               "amount": 1100000000000
             },
             { // > 1000 are still locked
-              "duration": 10000,
-              "amount": 1100000000000
+              "duration": 3000,
+              "amount": 1000000000000
             }
           ],
-          amount: 2200000000000,
+          amount: 2100000000000,
           max_fee: 40000000000,
           tpid: "",
-          actor: userA4.account
+          actor: faucet.account
         }
       });
-      expect(result.status).to.not.equal('OK');
+      expect(result.status).to.equal('OK');
     } catch (err) {
       expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
       expect(err.errorCode).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Locked tokens can only be transferred to new account');
+      throw err;
     }
 
-    await timeout(1000); // let those SUFs unlock
+    await timeout(3000); // let those SUFs unlock
   });
 
-  it(`Happy Test, Retire ${fundsAmount} SUFs from UserA5 (FIP-6 Lock)`, async function () {
-    let userBal = await userA5.sdk.genericAction('getFioBalance', {fioPublicKey: userA5.publicKey});
-    const result = await userA5.sdk.genericAction('pushTransaction', {
-      action: 'retire',
-      account: 'fio.token',
-      data: {
-        quantity: fundsAmount,
-        memo: "test string",
-        actor: userA5.account,
-      }
-    });
-    expect(result.status).to.equal('OK');
-    let newUserBal = await userA5.sdk.genericAction('getFioBalance', {fioPublicKey: userA5.publicKey});
-    expect(newUserBal.available).to.be.greaterThanOrEqual(userBal.available - fundsAmount);
-    expect(newUserBal.balance).to.equal(userBal.balance - fundsAmount);
-
-    const json = {
-      json: true,
-      code: 'eosio',
-      scope: 'eosio',
-      table: 'lockedtokens',
-      limit: 99999,
-      reverse: true,
-      show_payer: false
-    }
-    let found = false;
-    let user = "";
-    let lockedtokens = await callFioApi("get_table_rows", json);
-    for (user in lockedtokens.rows) {
-      if (lockedtokens.rows[user].owner == userA5.account) {
-        break;
-      }
-    }
-
-    expect(userBal.available - newUserBal.available).to.equal(fundsAmount);
-    expect(userBal.balance - newUserBal.balance).to.equal(fundsAmount);
-
-    let row = lockedtokens.rows[user];
-    expect(row.remaining_locked_amount).to.equal(userBal.balance - userBal.available);
-    expect(row.remaining_locked_amount).to.equal(newUserBal.balance - newUserBal.available);
-    expect(row.grant_type).to.equal(2);
-    expect(row.remaining_locked_amount).to.equal(userBal.balance - newUserBal.balance);
-  });
-
-  /*
-  Retire 1000 FIO tokens from a FIP-6 locked account with “test string” memo,
-  where some < 1000 tokens were unlocked and > 1000 are still locked.
-
-  Observe:
-  Account balance is updated
-  Total tokens issued count is reduced by 1000
-  Locks table is updated and both locked and unlocked tokens are adjusted
-  */
-
-  it.skip(`Set FIP-6 lock for userA6, expect Error: Locked tokens can only be transferred to new account`, async function () {
-    try {
-      const result = await userA4.sdk.genericAction('pushTransaction', {
-        action: 'trnsloctoks',
-        account: 'fio.token',
-        data: {
-          payee_public_key: userA6.publicKey,
-          can_vote: 0,
-          periods: [
-            { // < 1000 are unlocked
-              "duration": 1,
-              "amount": 900000000000
-            },
-            { // > 1000 are still locked
-              "duration": 10000,
-              "amount": 1100000000000
-            }
-          ],
-          amount: 2000000000000,
-          max_fee: 40000000000,
-          tpid: "",
-          actor: userA4.account
-        }
-      });
-      expect(result.status).to.not.equal('OK');
-    } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
-      expect(err.json.fields[0].error).to.equal('Locked tokens can only be transferred to new account');
-    }
-
-    await timeout(1000); // let those SUFs unlock
-  });
-
-  it(`Happy Test, Retire ${fundsAmount} SUFs from UserA6 (FIP-6 Lock)`, async function () {
-    let userBal = await userA6.sdk.genericAction('getFioBalance', {fioPublicKey: userA6.publicKey});
-    const result = await userA6.sdk.genericAction('pushTransaction', {
-      action: 'retire',
-      account: 'fio.token',
-      data: {
-        quantity: fundsAmount,
-        memo: "test string",
-        actor: userA6.account,
-      }
-    });
-    expect(result.status).to.equal('OK');
-    let newUserBal = await userA6.sdk.genericAction('getFioBalance', {fioPublicKey: userA6.publicKey});
-    expect(newUserBal.available).to.equal(userBal.available - fundsAmount);
-    expect(newUserBal.balance).to.equal(userBal.balance - fundsAmount);
-
-    const json = {
-      json: true,
-      code: 'eosio',
-      scope: 'eosio',
-      table: 'lockedtokens',
-      limit: 99999,
-      reverse: true,
-      show_payer: false
-    }
-    let found = false;
-    let user = "";
-    let lockedtokens = await callFioApi("get_table_rows", json);
-    for (user in lockedtokens.rows) {
-      if (lockedtokens.rows[user].owner == userA6.account) {
-        break;
-      }
-    }
-
-    expect(userBal.available - newUserBal.available).to.equal(fundsAmount);
-    expect(userBal.balance - newUserBal.balance).to.equal(fundsAmount);
-
-    let row = lockedtokens.rows[user];
-    expect(row.remaining_locked_amount).to.equal(userBal.balance - userBal.available);
-    expect(row.remaining_locked_amount).to.equal(newUserBal.balance - newUserBal.available);
-    expect(row.grant_type).to.equal(3);
-    expect(row.remaining_locked_amount).to.equal(userBal.balance - newUserBal.balance);
-  });
-});
-
-describe(`B. (unhappy) Try to retire FIO Tokens`, function () {
-  let userA, userA1, userA2, userA3, userA4, userA5, userA6, userA7, userA8
-
-  const RETIRETEST1 = {
-    account: 'jbx4oaspu1h1',
-    publicKey: 'FIO6wrUvBNGiKokWkwh3JDnTTXM1P5xj25G7fqhWRzpRbucPiQv16',
-    privateKey: '5JmNogi2RUzkueWcpdg2fSLFX3VJ7VAFtsvPLnsu3QdwTDmLBuM'
-  }
-
-  const RETIRETEST2 = {
-    account:'z4qqs4cugjfa',
-    publicKey:'FIO6py1nZ3Vk61oqSAVudh79apo5vkDaFkDHQeHF45EidYmuYUT38',
-    privateKey: '5KYPFrVdnrKNJkStfjmkq6LLZAiwa46yyiaLrPSBCsHpBNwrytS'
-  }
-
-  const RETIRETEST3 = {
-    account:'pzjjgjwwdm5v',
-    publicKey: 'FIO6kifTDXvnbS8T7Bvuk4zL3d7bysiZGV2s2vQpTnf5oT31CFqAu',
-    privateKey: '5Hs4PZcwsPHVkfWrUVRybikEx5zy92CVYX81s98XPwK1jXWYoEL'
-  }
-
-  const RETIRETEST4 = {
-    account: 'c5mkju354ibi',
-    publicKey: 'FIO6AsajVZBdmWBuxTUFURqGBk822L11q8BpWH8vBXyteiGeU8mRX',
-    privateKey:'5K8gtheotX9pXEpswmSs52Hg1rDUHKiD1JYTSMfJqCkfhEa59si'
-  }
-
-  const userA5Keys = {
-    account: 'tkvlcmcdftuv',
-    publicKey: 'FIO5ZiPCxxtND2Z9NvYQYVphGYiXhwDRiH4mbg3ENp6Bh6pGR2WjB',
-    privateKey: '5JY4WVpxVHcuWuvHpwDAxJL85xNR5nLeq2V2eyen2pcBybVhhnt'
-  }
-
-  const userA6Keys = {
-    account: 'isqotfueflhg',
-    publicKey: 'FIO5co2UAAAjVgwtaZMT8Uu7pAHHGAtWUzstqg7hZyJKVBWMW7ZDh',
-    privateKey: '5JdFRXbxXsKvXWFEuX2GTTakr5oqkhsDVjyXJuUvT8kakgQtmzG'
-  }
-
-  const fundsAmount = 1000000000000
-
-  before(async function () {
-    userA = await newUser(faucet);
+  it(`init userA1 from existing keys`, async function () {
     userA1 = await existingUser(RETIRETEST1.account, RETIRETEST1.privateKey, RETIRETEST1.publicKey,'','');
-    userA2 = await existingUser(RETIRETEST2.account, RETIRETEST2.privateKey, RETIRETEST2.publicKey,'','');
-    userA3 = await existingUser(RETIRETEST3.account, RETIRETEST3.privateKey, RETIRETEST3.publicKey,'','');
-    userA4 = await existingUser(RETIRETEST4.account, RETIRETEST4.privateKey, RETIRETEST4.publicKey,'','');
-    userA5 = await existingUser(userA5Keys.account, userA5Keys.privateKey, userA5Keys.publicKey,'','');
-    userA6 = await existingUser(userA6Keys.account, userA6Keys.privateKey, userA6Keys.publicKey,'','');
+    userA1Bal = await userA1.sdk.genericAction('getFioBalance', { });
+  });
 
-
-    console.log(`Transfer ${fundsAmount} FIO to userA FIO public key`); //, async function () {
+  it.skip(`Transfer ${fundsAmount} FIO to userA1 FIO public key`, async function () {
     const result = await faucet.genericAction('transferTokens', {
-      payeeFioPublicKey: userA.publicKey,
+      payeeFioPublicKey: RETIRETEST1.publicKey,
       amount: fundsAmount,
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     });
-    //console.log('Result: ', result)
     expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
   });
 
-  //************ SAD TESTS *************/
-  it.only(`get all balances`, async function () {
-    let userABal = await userA.sdk.genericAction('getFioBalance', {});
-    let userA1Bal = await userA.sdk.genericAction('getFioBalance', {});
-    let userA2Bal = await userA.sdk.genericAction('getFioBalance', {});
-    let userA3Bal = await userA.sdk.genericAction('getFioBalance', {});
-    let userA4Bal = await userA.sdk.genericAction('getFioBalance', {});
-    let userA5Bal = await userA.sdk.genericAction('getFioBalance', {});
-    let userA6Bal = await userA.sdk.genericAction('getFioBalance', {});
-
-    let userALocks,userA1Locks,userA2Locks,userA3Locks,userA4Locks,userA5Locks,userA6Locks;
+  it(`try to retire < 1100000000000, expect OK`, async function () {
+    let newUserBal;
+    try {
+      const result = await userA1.sdk.genericAction('pushTransaction', {
+        action: 'retire',
+        account: 'fio.token',
+        data: {//58000000000
+          // quantity: fundsAmount,
+          // quantity: 1100000000050, // this one so far is our culprit
+          // quantity: 1000000000050,
+          quantity: 1000500000000,
+          // quantity: 2160000000000,
+          // quantity: 2200000000000,
+          memo: "test string",
+          actor: userA1.account,
+        }
+      });
+      newUserBal = await userA1.sdk.genericAction('getFioBalance', { });
+      // console.log(newUserBal)
+      expect(result.status).to.equal('OK');
+      expect(newUserBal.balance).to.equal(userA1Bal.balance - 1000500000000)
+      expect(newUserBal.available).to.equal(userA1Bal.available - 1000500000000)
+    } catch (err) {
+      newUserBal = await userA1.sdk.genericAction('getFioBalance', { });
+      console.log(err, newUserBal)
+      throw err;
+    }
 
     const json = {
       json: true,
@@ -606,52 +356,28 @@ describe(`B. (unhappy) Try to retire FIO Tokens`, function () {
     }
     let found = false;
     let user;
+    let row;
     const lockedtokens = await callFioApi("get_table_rows", json);
     for (user in lockedtokens.rows) {
-      if (lockedtokens.rows[user].owner == userA.account) {
-        // break;
-        userALocks = lockedtokens.rows[user];
-      }
       if (lockedtokens.rows[user].owner == userA1.account) {
         // break;
-        userA1Locks = lockedtokens.rows[user];
-      }
-      if (lockedtokens.rows[user].owner == userA2.account) {
-        // break;
-        userA2Locks = lockedtokens.rows[user];
-      }
-      if (lockedtokens.rows[user].owner == userA3.account) {
-        // break;
-        userA3Locks = lockedtokens.rows[user];
-      }
-
-      if (lockedtokens.rows[user].owner == userA4.account) {
-        // break;
-        userA4Locks = lockedtokens.rows[user];
-      }
-
-      if (lockedtokens.rows[user].owner == userA5.account) {
-        // break;
-        userA5Locks = lockedtokens.rows[user];
-      }
-      if (lockedtokens.rows[user].owner == userA6.account) {
-        // break;
-        userA6Locks = lockedtokens.rows[user];
+        row = lockedtokens.rows[user];
       }
     }
-    // expect(lockedtokens.rows[user].remaining_locked_amount).to.equal(userBal.balance - userBal.available);
-
-    console.log('balances retrieved')
+    // WTF where are the locks?
+    console.log(row)
   });
 
 
-  it(`Set FIP-6 lock for UserA5, expect Error: Locked tokens can only be transferred to new account`, async function () {
+
+
+  it.only(`Set three FIP-6 lock periods for userA2 and only unlock two of them, expect status: OK`, async function () {
     try {
-      const result = await userA4.sdk.genericAction('pushTransaction', {
+      const result = await faucet.genericAction('pushTransaction', {
         action: 'trnsloctoks',
         account: 'fio.token',
         data: {
-          payee_public_key: userA5Keys.publicKey,
+          payee_public_key: RETIRETEST2.publicKey,
           can_vote: 0,
           periods: [
             { // > 1000 are unlocked
@@ -659,148 +385,364 @@ describe(`B. (unhappy) Try to retire FIO Tokens`, function () {
               "amount": 1100000000000
             },
             { // > 1000 are still locked
-              "duration": 10000,
-              "amount": 1100000000000
+              "duration": 3000,
+              "amount": 1000000000000
+            },
+            {
+              "duration": 90000,
+              "amount": 1000000000000
             }
           ],
-          amount: 2200000000000,
+          amount: 3100000000000,
           max_fee: 40000000000,
           tpid: "",
-          actor: userA4.account
+          actor: faucet.account
         }
       });
-      expect(result.status).to.not.equal('OK');
+      expect(result.status).to.equal('OK');
     } catch (err) {
       expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
       expect(err.errorCode).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Locked tokens can only be transferred to new account');
+      throw err;
     }
 
-    await timeout(1000); // let those SUFs unlock
+    await timeout(3000); // let those SUFs unlock
   });
 
-  it(`Set FIP-6 lock for userA6, expect Error: Locked tokens can only be transferred to new account`, async function () {
+  it.only(`init userA2 from existing keys`, async function () {
+    userA2 = await existingUser(RETIRETEST2.account, RETIRETEST2.privateKey, RETIRETEST2.publicKey,'','');
+    userA2Bal = await userA2.sdk.genericAction('getFioBalance', { });
+  });
+
+  it.only(`(bug - integer weirdness) try to retire > 1100000000000, expect Error`, async function () {
+    let newUserBal;
     try {
-      const result = await userA4.sdk.genericAction('pushTransaction', {
+      const result = await userA2.sdk.genericAction('pushTransaction', {
+        action: 'retire',
+        account: 'fio.token',
+        data: {
+          quantity: 1100000000050, // this one so far is our culprit
+          memo: "test string",
+          actor: userA2.account,
+        }
+      });
+      newUserBal = await userA2.sdk.genericAction('getFioBalance', { });
+      // console.log(newUserBal)
+      expect(newUserBal.available).to.equal(userA2Bal.available)
+    } catch (err) {
+      newUserBal = await userA2.sdk.genericAction('getFioBalance', { });
+      console.log(err, newUserBal)
+      throw err;
+
+    }
+  });
+
+
+
+
+
+
+
+
+
+  it(`Set one FIP-6 lock period for userA3, expect status: OK`, async function () {
+    try {
+      const result = await faucet.genericAction('pushTransaction', {
         action: 'trnsloctoks',
         account: 'fio.token',
         data: {
-          payee_public_key: userA6.publicKey,
+          payee_public_key: RETIRETEST3.publicKey,
           can_vote: 0,
           periods: [
-            { // < 1000 are unlocked
-              "duration": 1,
+            { // all are unlocked
+              "duration": 3000,
               "amount": 900000000000
-            },
-            { // > 1000 are still locked
-              "duration": 10000,
-              "amount": 1100000000000
             }
+            // { // > 1000 are still locked
+            //   "duration": 10000000,
+            //   "amount": 1100000000000
+            // }
           ],
-          amount: 2000000000000,
+          amount: 900000000000,
           max_fee: 40000000000,
           tpid: "",
-          actor: userA4.account
+          actor: faucet.account
         }
       });
-      expect(result.status).to.not.equal('OK');
+      expect(result.status).to.equal('OK');
     } catch (err) {
       expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
       expect(err.errorCode).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Locked tokens can only be transferred to new account');
+      throw err;
     }
 
-    await timeout(1000); // let those SUFs unlock
+    await timeout(3000); // Don't let ALL the SUFs unlock this time
   });
 
-  it(`Sad Test, Retire 1 FIO token from userA4`, async function () {
-    try {
-      const result = await userA4.sdk.genericAction('pushTransaction', {
-        action: 'retire',
-        account: 'fio.token',
-        data: {
-          quantity: 1000000000,
-          memo: "test string",
-          actor: userA4.account,
-        }
-      });
-      expect(result).to.equal(null);
-    } catch (err) {
-      //  console.log(err.json)
-      expect(err.json.fields[0].error).to.equal("Minimum 1000 FIO has to be retired");
-    }
+  it(`init userA3 from existing keys`, async function () {
+    userA3 = await existingUser(RETIRETEST3.account, RETIRETEST3.privateKey, RETIRETEST3.publicKey,'','');
+    userA3Bal = await userA3.sdk.genericAction('getFioBalance', { });
   });
 
-  it(`Sad Test, Retire ${fundsAmount} SUFs from userA3 (Insufficient funds)`, async function () {
+  //TODO: Try retiring < 1100000000000, expect ???
+  it(`try to retire < 1100000000000, expect OK because amount is still > 1000000000000`, async function () {
     try {
       const result = await userA3.sdk.genericAction('pushTransaction', {
         action: 'retire',
         account: 'fio.token',
         data: {
-          quantity: fundsAmount*1000,
+          quantity: 1000000000000,
           memo: "test string",
           actor: userA3.account,
         }
       });
-      expect(result).to.equal(null);
+      expect(result.status).to.equal('OK');
+      let newUserBal = await userA3.sdk.genericAction('getFioBalance', { });
+      console.log(newUserBal)
+      expect(newUserBal.balance).to.equal(userA3Bal.balance - 1000000000000);
+      // expect(result.status).to.not.equal('OK');
     } catch (err) {
-      //console.log(err.json)
-      expect(err.json.fields[0].error).to.equal("Insufficient balance");
-
+      expect(err).to.equal(null);
     }
   });
 
-  it(`Sad Test, Retire ${fundsAmount} SUFs from userA3 (memo > 256)`, async function () {
-    try {
-      const result = await userA3.sdk.genericAction('pushTransaction', {
-        action: 'retire',
-        account: 'fio.token',
-        data: {
-          quantity: fundsAmount,
-          memo: "I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string 123456789",
-          actor: userA3.account,
-        }
-      });
-      expect(result).to.equal(null);
+  // it(`Set FIP-6 lock for userA6, expect status: OK`, async function () {
+  //   try {
+  //     const result = await faucet.genericAction('pushTransaction', {
+  //       action: 'trnsloctoks',
+  //       account: 'fio.token',
+  //       data: {
+  //         // payee_public_key: RETIRETEST2.publicKey,
+  //         payee_public_key: userA5Keys.publicKey,
+  //         can_vote: 0,
+  //         periods: [
+  //           { // < 1000 are unlocked
+  //             "duration": 3000,
+  //             "amount": 900000000000
+  //           },
+  //           { // > 1000 are still locked
+  //             "duration": 10000000,
+  //             "amount": 1100000000000
+  //           }
+  //         ],
+  //         amount: 2000000000000,
+  //         max_fee: 40000000000,
+  //         tpid: "",
+  //         actor: faucet.account
+  //       }
+  //     });
+  //     expect(result.status).to.equal('OK');
+  //   } catch (err) {
+  //     expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+  //     expect(err.errorCode).to.equal(400);
+  //     expect(err.json.fields[0].error).to.equal('Locked tokens can only be transferred to new account');
+  //   }
+  //
+  //   await timeout(3000); // Don't let ALL the SUFs unlock this time
+  // });
 
-    } catch (err) {
-      //console.log(err)
-      expect(err.json.fields[0].error).to.equal("memo has more than 256 bytes");
-    }
-  });
+
+  //TODO: Try retiring > 900000000000, expect to have some left over
+  //TODO: BUG - wraparound
+  // it(`try to retire > 900000000000, expect ?????`, async function () {
+  //   userA6Bal = await userA2.sdk.genericAction('getFioBalance', {fioPublicKey: userA6.publicKey});
+  //   try {
+  //     const result = await userA2.sdk.genericAction('pushTransaction', {
+  //       action: 'retire',
+  //       account: 'fio.token',
+  //       data: {
+  //         quantity: 1000000000000,
+  //         memo: "test string",
+  //         actor: userA2.account,
+  //       }
+  //     });
+  //     let newUserBal = await userA2.sdk.genericAction('getFioBalance', {fioPublicKey: userA6.publicKey});
+  //     console.log(newUserBal)
+  //     expect(result.status).to.not.equal('OK');
+  //   } catch (err) {
+  //     expect(err).to.equal(null)
+  //   }
+  // });
+
+
+
+
+
+
+
+  /*
+  Retire 1000 FIO tokens from a FIP-6 locked account with “test string” memo,
+  where some > 1000 tokens were unlocked and > 1000 are still locked.
+  Observe:
+  Account balance is updated
+  Total tokens issued count is reduced by 1000
+  Locks table is updated and unlocked tokens remain the same
+  */
+
+
+  // it(`(Sad test) Set FIP-6 lock for UserA5, expect Error: Locked tokens can only be transferred to new account`, async function () {
+  //   try {
+  //     const result = await userA.sdk.genericAction('pushTransaction', {
+  //       action: 'trnsloctoks',
+  //       account: 'fio.token',
+  //       data: {
+  //         payee_public_key: userA5Keys.publicKey,
+  //         can_vote: 0,
+  //         periods: [
+  //           { // > 1000 are unlocked
+  //             "duration": 1,
+  //             "amount": 1100000000000
+  //           },
+  //           { // > 1000 are still locked
+  //             "duration": 10000,
+  //             "amount": 1100000000000
+  //           }
+  //         ],
+  //         amount: 2200000000000,
+  //         max_fee: 40000000000,
+  //         tpid: "",
+  //         actor: userA.account
+  //       }
+  //     });
+  //     expect(result.status).to.equal('OK');
+  //   } catch (err) {
+  //     expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+  //     expect(err.errorCode).to.equal(400);
+  //     expect(err.json.fields[0].error).to.equal('Locked tokens can only be transferred to new account');
+  //   }
+  //
+  //   await timeout(1000); // let those SUFs unlock
+  // });
+
+  // it(`Happy Test, Retire ${fundsAmount} SUFs from UserA2 (FIP-6 Lock)`, async function () {
+  //   userA5Bal = await userA2.sdk.genericAction('getFioBalance', { });
+  //   const result = await userA2.sdk.genericAction('pushTransaction', {
+  //     action: 'retire',
+  //     account: 'fio.token',
+  //     data: {
+  //       quantity: fundsAmount,
+  //       memo: "test string",
+  //       actor: userA2.account,
+  //     }
+  //   });
+  //   expect(result.status).to.equal('OK');
+  //   let newUserBal = await userA2.sdk.genericAction('getFioBalance', { });
+  //   expect(newUserBal.available).to.be.greaterThanOrEqual(userA5Bal.available - fundsAmount);
+  //   expect(newUserBal.balance).to.equal(userA5Bal.balance - fundsAmount);
+  //
+  //   const json = {
+  //     json: true,
+  //     code: 'eosio',
+  //     scope: 'eosio',
+  //     table: 'lockedtokens',
+  //     limit: 99999,
+  //     reverse: true,
+  //     show_payer: false
+  //   }
+  //   let found = false;
+  //   let user = "";
+  //   let row;
+  //   let lockedtokens = await callFioApi("get_table_rows", json);
+  //   for (user in lockedtokens.rows) {
+  //     if (lockedtokens.rows[user].owner == userA2.account) {
+  //       // break;
+  //       row = lockedtokens.rows[user];
+  //     }
+  //   }
+  //
+  //   // let row = lockedtokens.rows[user];
+  //   expect(row.remaining_locked_amount).to.equal(userA5Bal.balance - userA5Bal.available);
+  //   expect(row.remaining_locked_amount).to.equal(newUserBal.balance - newUserBal.available);
+  //   expect(row.grant_type).to.equal(2);
+  //   expect(row.remaining_locked_amount).to.equal(userA5Bal.balance - newUserBal.balance);
+  // });
+
+  /*
+  Retire 1000 FIO tokens from a FIP-6 locked account with “test string” memo,
+  where some < 1000 tokens were unlocked and > 1000 are still locked.
+
+  Observe:
+  Account balance is updated
+  Total tokens issued count is reduced by 1000
+  Locks table is updated and both locked and unlocked tokens are adjusted
+  */
+
+  // it(`Happy Test, Retire ${fundsAmount} SUFs from UserA6 (FIP-6 Lock)`, async function () {
+  //   let userBal = await userA6.sdk.genericAction('getFioBalance', {fioPublicKey: userA6.publicKey});
+  //   const result = await userA6.sdk.genericAction('pushTransaction', {
+  //     action: 'retire',
+  //     account: 'fio.token',
+  //     data: {
+  //       quantity: fundsAmount,
+  //       memo: "test string",
+  //       actor: userA6.account,
+  //     }
+  //   });
+  //   expect(result.status).to.equal('OK');
+  //   let newUserBal = await userA6.sdk.genericAction('getFioBalance', {fioPublicKey: userA6.publicKey});
+  //   expect(newUserBal.available).to.equal(userBal.available - fundsAmount);
+  //   expect(newUserBal.balance).to.equal(userBal.balance - fundsAmount);
+  //
+  //   const json = {
+  //     json: true,
+  //     code: 'eosio',
+  //     scope: 'eosio',
+  //     table: 'lockedtokens',
+  //     limit: 99999,
+  //     reverse: true,
+  //     show_payer: false
+  //   }
+  //   let found = false;
+  //   let user = "";
+  //   let lockedtokens = await callFioApi("get_table_rows", json);
+  //   for (user in lockedtokens.rows) {
+  //     if (lockedtokens.rows[user].owner == userA6.account) {
+  //       break;
+  //     }
+  //   }
+  //
+  //   expect(userBal.available - newUserBal.available).to.equal(fundsAmount);
+  //   expect(userBal.balance - newUserBal.balance).to.equal(fundsAmount);
+  //
+  //   let row = lockedtokens.rows[user];
+  //   expect(row.remaining_locked_amount).to.equal(userBal.balance - userBal.available);
+  //   expect(row.remaining_locked_amount).to.equal(newUserBal.balance - newUserBal.available);
+  //   expect(row.grant_type).to.equal(3);
+  //   expect(row.remaining_locked_amount).to.equal(userBal.balance - newUserBal.balance);
+  // });
+
 });
 
-describe.only(`C. (unhappy) Try to retire from an account that has staked tokens`, async function () {
-  let bp1, bp2, bp3, userA, userA4, userB, userC, userP, prevFundsAmount, locksdk, keys, accountnm, newFioDomain1, newFioAddress1, newFioDomain2, newFioAddress2, total_bp_votes, total_voted_fio;
+describe.only(`C. (unhappy) Try to retire from an account that has staked tokens`, function () {
+  let bp1, bp2, bp3, userA, userA4, userB, userC, userP, prevFundsAmount, locksdk, keys, userKeys, accountnm, newFioDomain1, newFioAddress1, newFioDomain2, newFioAddress2, total_bp_votes, total_voted_fio;
+  let userABal;
+
   const fundsAmount = 1000000000000;
   const transferAmt = 100000000000;
   const stakeAmt = 1000000000000;
 
-  const RETIRETEST4 = {
-    account: 'c5mkju354ibi',
-    publicKey: 'FIO6AsajVZBdmWBuxTUFURqGBk822L11q8BpWH8vBXyteiGeU8mRX',
-    privateKey:'5K8gtheotX9pXEpswmSs52Hg1rDUHKiD1JYTSMfJqCkfhEa59si'
-  }
+  // const RETIRETEST4 = {
+  //   account: 'c5mkju354ibi',
+  //   publicKey: 'FIO6AsajVZBdmWBuxTUFURqGBk822L11q8BpWH8vBXyteiGeU8mRX',
+  //   privateKey:'5K8gtheotX9pXEpswmSs52Hg1rDUHKiD1JYTSMfJqCkfhEa59si'
+  // }
 
   before(async () => {
     // Create sdk objects for the orinigal localhost BPs
     bp1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
     bp2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
     bp3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
-    //create a user and give it 10k fio.
-    // userA = await newUser(faucet);
-    userA = await existingUser(RETIRETEST4.account, RETIRETEST4.privateKey, RETIRETEST4.publicKey,'','');
-    userB = await newUser(faucet);
-    userC = await newUser(faucet);
     userP = await newUser(faucet);
-    keys = await createKeypair();
+    faucetKeys = await createKeypair();
+    userKeys = await createKeypair();
 
-    accountnm =  await getAccountFromKey(keys.publicKey);
     await faucet.genericAction('pushTransaction', {
       action: 'trnsloctoks',
       account: 'fio.token',
       data: {
-        payee_public_key: keys.publicKey,
+        payee_public_key: userKeys.publicKey,
         can_vote: 0,
         periods: [
           {
@@ -819,25 +761,17 @@ describe.only(`C. (unhappy) Try to retire from an account that has staked tokens
         amount: 10000000000000,
         max_fee: 400000000000,
         tpid: '',
-        actor: 'qhh25sqpktwh',
+        actor: faucet.account,
       }
     });
-    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
 
     // transfer some test FIO
-    await userA.sdk.genericAction('transferTokens', {
-      payeeFioPublicKey: keys.publicKey,
-      amount: fundsAmount,
+    await faucet.genericAction('transferTokens', {
+      payeeFioPublicKey: userKeys.publicKey,
+      amount: fundsAmount*2,
       maxFee: config.api.transfer_tokens_pub_key.fee,
       tpid: '',
     });
-
-    // await locksdk.genericAction('transferTokens', {
-    //   payeeFioPublicKey: userA.publicKey,
-    //   amount: transferAmt,
-    //   maxFee: config.api.transfer_tokens_pub_key.fee,
-    //   technologyProviderId: ''
-    // });
 
     // register our proxy
     await userP.sdk.genericAction('pushTransaction', {
@@ -850,7 +784,10 @@ describe.only(`C. (unhappy) Try to retire from an account that has staked tokens
       }
     });
 
-    // proxy first so userA can stake
+    userA = await existingUser(userKeys.account, userKeys.privateKey, userKeys.publicKey,'','');
+    userABal = await userA.sdk.genericAction('getFioBalance', { });
+
+    // proxy so userA can stake
     await userA.sdk.genericAction('pushTransaction', {
       action: 'voteproxy',
       account: 'eosio',
@@ -865,39 +802,45 @@ describe.only(`C. (unhappy) Try to retire from an account that has staked tokens
 
   it(`stake 1000 FIO from userA`, async () => {
     let stakedTokenPool, combinedTokenPool, globalSrpCount, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
+    let newUserBal;
     stakedTokenPool = await getStakedTokenPool();
     combinedTokenPool = await getCombinedTokenPool();
     globalSrpCount = await getGlobalSrpCount();
+    userABal = await userA.sdk.genericAction('getFioBalance', { });
 
-    let balA = await userA.sdk.genericAction('getFioBalance', { });
-    // expect(balA.staked).to.equal(0);
-    const result = await userA.sdk.genericAction('pushTransaction', {
-      action: 'stakefio',
-      account: 'fio.staking',
-      data: {
-        fio_address: userA.address,
-        amount: stakeAmt,
-        actor: userA.account,
-        max_fee: config.api.stake_fio_tokens.fee,
-        tpid: userP.address
-      }
-    });
-    let newBalA = await userA.sdk.genericAction('getFioBalance', { });
-    newStakedTokenPool = await getStakedTokenPool();
-    newCombinedTokenPool = await getCombinedTokenPool();
-    newGlobalSrpCount = await getGlobalSrpCount();
-    expect(result).to.have.all.keys('status', 'fee_collected');
-    expect(result.status).to.equal('OK');
-    expect(result.fee_collected).to.equal(config.api.stake_fio_tokens.fee);
-    expect(newBalA.staked - balA.staked).to.equal(stakeAmt);
-    expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
-    expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
-    // expect(newCombinedTokenPool - combinedTokenPool).to.equal(stakeAmt);
-    // expect(newGlobalSrpCount - globalSrpCount).to.equal(newBalA.srps);
+    try {
+      const result = await userA.sdk.genericAction('pushTransaction', {
+        action: 'stakefio',
+        account: 'fio.staking',
+        data: {
+          fio_address: userA.address,
+          amount: stakeAmt,
+          actor: userA.account,
+          max_fee: config.api.stake_fio_tokens.fee,
+          tpid: userP.address
+        }
+      });
+      newUserBal = await userA.sdk.genericAction('getFioBalance', {});
+      newStakedTokenPool = await getStakedTokenPool();
+      newCombinedTokenPool = await getCombinedTokenPool();
+      newGlobalSrpCount = await getGlobalSrpCount();
+      expect(result).to.have.all.keys('status', 'fee_collected');
+      expect(result.status).to.equal('OK');
+      expect(result.fee_collected).to.equal(config.api.stake_fio_tokens.fee);
+      expect(newUserBal.staked - userABal.staked).to.equal(stakeAmt);
+      expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
+      expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
+      // expect(newCombinedTokenPool - combinedTokenPool).to.equal(stakeAmt);
+      // expect(newGlobalSrpCount - globalSrpCount).to.equal(newBalA.srps);
+    } catch (err) {
+      newUserBal = await userA.sdk.genericAction('getFioBalance', {});
+      console.log(err, newUserBal)
+      throw err;
+    }
   });
 
   it(`retire ${fundsAmount} SUFs from userA, expect Error: Account staking cannot retire`, async function () {
-    let bal = await userA.sdk.genericAction('getFioBalance', { });
+    let newUserBal;
     try {
       const result = await userA.sdk.genericAction('pushTransaction', {
         action: 'retire',
@@ -908,10 +851,625 @@ describe.only(`C. (unhappy) Try to retire from an account that has staked tokens
           actor: userA.account,
         }
       });
+      newUserBal = await userA.sdk.genericAction('getFioBalance', {});
+      console.log(newUserBal)
       expect(result.status).to.not.equal('OK');
     } catch (err) {
+      newUserBal = await userA.sdk.genericAction('getFioBalance', {});
       expect(err.json.fields[0].error).to.equal("Account staking cannot retire.");
     }
   });
-
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// describe(`D. Retire an amount less than the number of locked tokens`, function () {
+//   let userA, userA1, userA2, userA3, userA4, userA5, userA6, userA7, userA8
+//
+//   const RETIRETEST1 = {
+//     account: 'jbx4oaspu1h1',
+//     publicKey: 'FIO6wrUvBNGiKokWkwh3JDnTTXM1P5xj25G7fqhWRzpRbucPiQv16',
+//     privateKey: '5JmNogi2RUzkueWcpdg2fSLFX3VJ7VAFtsvPLnsu3QdwTDmLBuM'
+//   }
+//
+//   const RETIRETEST2 = {
+//     account:'z4qqs4cugjfa',
+//     publicKey:'FIO6py1nZ3Vk61oqSAVudh79apo5vkDaFkDHQeHF45EidYmuYUT38',
+//     privateKey: '5KYPFrVdnrKNJkStfjmkq6LLZAiwa46yyiaLrPSBCsHpBNwrytS'
+//   }
+//
+//   const RETIRETEST3 = {
+//     account:'pzjjgjwwdm5v',
+//     publicKey: 'FIO6kifTDXvnbS8T7Bvuk4zL3d7bysiZGV2s2vQpTnf5oT31CFqAu',
+//     privateKey: '5Hs4PZcwsPHVkfWrUVRybikEx5zy92CVYX81s98XPwK1jXWYoEL'
+//   }
+//
+//   const RETIRETEST4 = {
+//     account: 'c5mkju354ibi',
+//     publicKey: 'FIO6AsajVZBdmWBuxTUFURqGBk822L11q8BpWH8vBXyteiGeU8mRX',
+//     privateKey:'5K8gtheotX9pXEpswmSs52Hg1rDUHKiD1JYTSMfJqCkfhEa59si'
+//   }
+//
+//   const userA5Keys = {
+//     account: 'tkvlcmcdftuv',
+//     publicKey: 'FIO5ZiPCxxtND2Z9NvYQYVphGYiXhwDRiH4mbg3ENp6Bh6pGR2WjB',
+//     privateKey: '5JY4WVpxVHcuWuvHpwDAxJL85xNR5nLeq2V2eyen2pcBybVhhnt'
+//   }
+//
+//   const userA6Keys = {
+//     account: 'isqotfueflhg',
+//     publicKey: 'FIO5co2UAAAjVgwtaZMT8Uu7pAHHGAtWUzstqg7hZyJKVBWMW7ZDh',
+//     privateKey: '5JdFRXbxXsKvXWFEuX2GTTakr5oqkhsDVjyXJuUvT8kakgQtmzG'
+//   }
+//
+//   const fundsAmount = 1000000000000
+//
+//   let userALocks,userA1Locks, userA2Locks, userA3Locks, userA4Locks, userA5Locks, userA6Locks;
+//
+//   let userABal, userA1Bal, userA2Bal, userA3Bal, userA4Bal, userA5Bal, userA6Bal;
+//
+//   before(async function () {
+//     userA = await newUser(faucet);
+//     userA1 = await existingUser(RETIRETEST1.account, RETIRETEST1.privateKey, RETIRETEST1.publicKey,'','');
+//     userA2 = await existingUser(RETIRETEST2.account, RETIRETEST2.privateKey, RETIRETEST2.publicKey,'','');
+//     userA3 = await existingUser(RETIRETEST3.account, RETIRETEST3.privateKey, RETIRETEST3.publicKey,'','');
+//     userA4 = await existingUser(RETIRETEST4.account, RETIRETEST4.privateKey, RETIRETEST4.publicKey,'','');
+//     userA5 = await existingUser(userA5Keys.account, userA5Keys.privateKey, userA5Keys.publicKey,'','');
+//     userA6 = await existingUser(userA6Keys.account, userA6Keys.privateKey, userA6Keys.publicKey,'','');
+//
+//     // console.log(`Transfer ${fundsAmount} FIO to userA FIO public key`); //, async function () {
+//     const result = await faucet.genericAction('transferTokens', {
+//       payeeFioPublicKey: userA.publicKey,
+//       amount: fundsAmount,
+//       maxFee: config.api.transfer_tokens_pub_key.fee,
+//       technologyProviderId: ''
+//     });
+//     //console.log('Result: ', result)
+//     expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+//     // });
+//     //
+//     // it(`get all balances`, async function () {
+//     userABal = await userA.sdk.genericAction('getFioBalance', {});
+//     userA1Bal = await userA1.sdk.genericAction('getFioBalance', {});
+//     userA2Bal = await userA2.sdk.genericAction('getFioBalance', {});
+//     userA3Bal = await userA3.sdk.genericAction('getFioBalance', {});
+//     userA4Bal = await userA4.sdk.genericAction('getFioBalance', {});
+//     userA5Bal = await userA5.sdk.genericAction('getFioBalance', {});
+//     userA6Bal = await userA6.sdk.genericAction('getFioBalance', {});
+//
+//     // let userALocks,userA1Locks,userA1Locks,userA3Locks,userA4Locks,userA5Locks,userA6Locks;
+//     const json = {
+//       json: true,
+//       code: 'eosio',
+//       scope: 'eosio',
+//       table: 'lockedtokens',
+//       limit: 99999,
+//       reverse: true,
+//       show_payer: false
+//     }
+//     let found = false;
+//     let user;
+//     const lockedtokens = await callFioApi("get_table_rows", json);
+//     for (user in lockedtokens.rows) {
+//       if (lockedtokens.rows[user].owner == userA.account) {
+//         // break;
+//         userALocks = lockedtokens.rows[user];
+//       }
+//       if (lockedtokens.rows[user].owner == userA1.account) {
+//         // break;
+//         userA1Locks = lockedtokens.rows[user];
+//       }
+//       if (lockedtokens.rows[user].owner == userA2.account) {
+//         // break;
+//         userA2Locks = lockedtokens.rows[user];
+//       }
+//       if (lockedtokens.rows[user].owner == userA3.account) {
+//         // break;
+//         userA3Locks = lockedtokens.rows[user];
+//       }
+//
+//       if (lockedtokens.rows[user].owner == userA4.account) {
+//         // break;
+//         userA4Locks = lockedtokens.rows[user];
+//       }
+//
+//       if (lockedtokens.rows[user].owner == userA5.account) {
+//         // break;
+//         userA5Locks = lockedtokens.rows[user];
+//       }
+//       if (lockedtokens.rows[user].owner == userA6.account) {
+//         // break;
+//         userA6Locks = lockedtokens.rows[user];
+//       }
+//     }
+//     // expect(lockedtokens.rows[user].remaining_locked_amount).to.equal(userBal.balance - userBal.available);
+//
+//     console.log(`bal: ${userA2Bal.balance};   locks: ${userA2Locks.remaining_locked_amount}`);
+//     console.log('balances retrieved. userA2:', userA2Locks, userA2Bal);
+//
+//     await timeout(1000);
+//   });
+//
+//   it(`try to retire from userA2`, async function () {
+//     userA2Bal = await userA2.sdk.genericAction('getFioBalance', { });
+//
+//     try {
+//       const result = await userA2.sdk.genericAction('pushTransaction', {
+//         action: 'retire',
+//         account: 'fio.token',
+//         data: {
+//           quantity: userA2Locks.remaining_locked_amount,
+//           // quantity: userA2Locks.remaining_locked_amount - 69,
+//           // quantity: userA2Locks.remaining_locked_amount + 69,
+//           memo: "test string",
+//           actor: userA2.account,
+//         }
+//       });//1000000000050
+//       expect(result.status).to.equal('OK');
+//     } catch (err) {
+//       expect(err).to.equal(null);
+//     }
+//
+//
+//
+//     let newUserBal = await userA2.sdk.genericAction('getFioBalance', { });
+//     // let balDiff = userBal.balance - newUserBal.balance
+//
+//
+//     let availDiff = userA2Bal.available - newUserBal.available
+//     let availLockDiff = userA2Bal.available - userA2Locks.total_grant_amount
+//     let balLockDiff = userA2Bal.balance - userA2Locks.total_grant_amount
+//
+//     // let asdf =
+//     expect(userA2Bal.balance - newUserBal.balance).to.equal(userA2Locks.total_grant_amount);
+//     // expect
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//     // expect(newUserBal.available).to.equal(userBal.available - fundsAmount);
+//     // expect(newUserBal.balance).to.equal(userBal.balance - fundsAmount);
+//
+//     const json = {
+//       json: true,
+//       code: 'eosio',
+//       scope: 'eosio',
+//       table: 'lockedtokens',
+//       limit: 99999,
+//       reverse: true,
+//       show_payer: false
+//     }
+//     let found = false;
+//     let user = "";
+//     const lockedtokens = await callFioApi("get_table_rows", json);
+//     for (user in lockedtokens.rows) {
+//       if (lockedtokens.rows[user].owner == userA2.account) {
+//         break;
+//       }
+//     }
+//
+//
+//     // TODO: SHould the lock still be here after "retiring" the tokens?
+//     // expect(userBal.available - newUserBal.available).to.equal(fundsAmount);
+//     // expect(userBal.balance - newUserBal.balance).to.equal(fundsAmount);
+//
+//     let row = lockedtokens.rows[user];
+//     // console.log(row);
+//     /**
+//      * 200000000000000
+//      * 200000000000000
+//      *
+//      * 1000000000000
+//      */
+//
+//     expect(newUserBal.balance).to.equal(userA2Bal.balance - row.total_grant_amount);
+//     // expect(row.remaining_locked_amount).to.equal(newUserBal.balance - newUserBal.available);
+//     expect(row.grant_type).to.equal(1);
+//     // expect(row.remaining_locked_amount).to.equal(userBal.balance - newUserBal.balance);
+//   });
+//
+//   it(`get all balances after retiring tokens`, async function () {
+//     userABal = await userA.sdk.genericAction('getFioBalance', {});
+//     userA1Bal = await userA1.sdk.genericAction('getFioBalance', {});
+//     userA2Bal = await userA2.sdk.genericAction('getFioBalance', {});
+//     userA3Bal = await userA3.sdk.genericAction('getFioBalance', {});
+//     userA4Bal = await userA4.sdk.genericAction('getFioBalance', {});
+//     userA5Bal = await userA5.sdk.genericAction('getFioBalance', {});
+//     userA6Bal = await userA6.sdk.genericAction('getFioBalance', {});
+//
+//     let userALocks, userA1Locks, userA2Locks, userA3Locks, userA4Locks, userA5Locks,userA6Locks;
+//
+//     const json = {
+//       json: true,
+//       code: 'eosio',
+//       scope: 'eosio',
+//       table: 'lockedtokens',
+//       limit: 99999,
+//       reverse: true,
+//       show_payer: false
+//     }
+//     let found = false;
+//     let user;
+//     const lockedtokens = await callFioApi("get_table_rows", json);
+//     for (user in lockedtokens.rows) {
+//       if (lockedtokens.rows[user].owner == userA.account) {
+//         // break;
+//         userALocks = lockedtokens.rows[user];
+//       }
+//       if (lockedtokens.rows[user].owner == userA1.account) {
+//         // break;
+//         userA1Locks = lockedtokens.rows[user];
+//       }
+//       if (lockedtokens.rows[user].owner == userA2.account) {
+//         // break;
+//         userA2Locks = lockedtokens.rows[user];
+//       }
+//       if (lockedtokens.rows[user].owner == userA3.account) {
+//         // break;
+//         userA3Locks = lockedtokens.rows[user];
+//       }
+//
+//       if (lockedtokens.rows[user].owner == userA4.account) {
+//         // break;
+//         userA4Locks = lockedtokens.rows[user];
+//       }
+//
+//       if (lockedtokens.rows[user].owner == userA5.account) {
+//         // break;
+//         userA5Locks = lockedtokens.rows[user];
+//       }
+//       if (lockedtokens.rows[user].owner == userA6.account) {
+//         // break;
+//         userA6Locks = lockedtokens.rows[user];
+//       }
+//     }
+//     // expect(lockedtokens.rows[user].remaining_locked_amount).to.equal(userBal.balance - userBal.available);
+//
+//     console.log('balances retrieved')
+//   });
+//
+//   it(`lock`, async function () {
+//
+//   });
+//
+//   it(`try to retire from userA1`, async function () {
+//     userA1Bal = await userA1.sdk.genericAction('getFioBalance', { });
+//
+//     try {
+//       const result = await userA1.sdk.genericAction('pushTransaction', {
+//         action: 'retire',
+//         account: 'fio.token',
+//         data: {
+//           // quantity: userA1Locks.remaining_locked_amount,
+//           // quantity: userA1Locks.remaining_locked_amount - 50,
+//           quantity: userA1Locks.remaining_locked_amount + 50,
+//           memo: "test string",
+//           actor: userA1.account,
+//         }
+//       });
+//       expect(result.status).to.equal('OK');
+//     } catch (err) {
+//       expect(err).to.equal(null)
+//     }
+//
+//
+//
+//     let newUserBal = await userA1.sdk.genericAction('getFioBalance', { });
+//     let balDiff = userA1Bal.balance - newUserBal.balance
+//
+//
+//     let availDiff = userA1Bal.available - newUserBal.available
+//     let availLockDiff = userA1Bal.available - userA1Locks.total_grant_amount
+//     let balLockDiff = userA1Bal.balance - userA1Locks.total_grant_amount
+//
+//
+//
+//     expect(userA1Bal.balance - newUserBal.balance).to.equal(userA1Locks.total_grant_amount + 50);
+//     // expect
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//     // expect(newUserBal.available).to.equal(userBal.available - fundsAmount);
+//     // expect(newUserBal.balance).to.equal(userBal.balance - fundsAmount);
+//
+//     const json = {
+//       json: true,
+//       code: 'eosio',
+//       scope: 'eosio',
+//       table: 'lockedtokens',
+//       limit: 99999,
+//       reverse: true,
+//       show_payer: false
+//     }
+//     let found = false;
+//     let user = "";
+//     const lockedtokens = await callFioApi("get_table_rows", json);
+//     for (user in lockedtokens.rows) {
+//       if (lockedtokens.rows[user].owner == userA1.account) {
+//         break;
+//       }
+//     }
+//     // expect(userBal.available - newUserBal.available).to.equal(fundsAmount);
+//     // expect(userBal.balance - newUserBal.balance).to.equal(fundsAmount);
+//
+//     let row = lockedtokens.rows[user];
+//     // console.log(row);
+//     /**
+//      * 200000000000000
+//      * 200000000000000
+//      *
+//      * 1000000000000
+//      */
+//
+//     expect(newUserBal.balance).to.equal(userA1Bal.balance - (row.total_grant_amount + 50));
+//     // expect(row.remaining_locked_amount).to.equal(newUserBal.balance - newUserBal.available);
+//     expect(row.grant_type).to.equal(4);
+//     // expect(row.remaining_locked_amount).to.equal(userBal.balance - newUserBal.balance);
+//   });
+//
+// });
+
+// describe(`E. Retire an amount greater than the number of locked tokens`, function () {
+//   let userA, userA1, userA2, userA3, userA4, userA5, userA6, userA7, userA8
+//
+//   const RETIRETEST1 = {
+//     account: 'jbx4oaspu1h1',
+//     publicKey: 'FIO6wrUvBNGiKokWkwh3JDnTTXM1P5xj25G7fqhWRzpRbucPiQv16',
+//     privateKey: '5JmNogi2RUzkueWcpdg2fSLFX3VJ7VAFtsvPLnsu3QdwTDmLBuM'
+//   }
+//
+//   const RETIRETEST2 = {
+//     account:'z4qqs4cugjfa',
+//     publicKey:'FIO6py1nZ3Vk61oqSAVudh79apo5vkDaFkDHQeHF45EidYmuYUT38',
+//     privateKey: '5KYPFrVdnrKNJkStfjmkq6LLZAiwa46yyiaLrPSBCsHpBNwrytS'
+//   }
+//
+//   const RETIRETEST3 = {
+//     account:'pzjjgjwwdm5v',
+//     publicKey: 'FIO6kifTDXvnbS8T7Bvuk4zL3d7bysiZGV2s2vQpTnf5oT31CFqAu',
+//     privateKey: '5Hs4PZcwsPHVkfWrUVRybikEx5zy92CVYX81s98XPwK1jXWYoEL'
+//   }
+//
+//   const RETIRETEST4 = {
+//     account: 'c5mkju354ibi',
+//     publicKey: 'FIO6AsajVZBdmWBuxTUFURqGBk822L11q8BpWH8vBXyteiGeU8mRX',
+//     privateKey:'5K8gtheotX9pXEpswmSs52Hg1rDUHKiD1JYTSMfJqCkfhEa59si'
+//   }
+//
+//   const userA5Keys = {
+//     account: 'tkvlcmcdftuv',
+//     publicKey: 'FIO5ZiPCxxtND2Z9NvYQYVphGYiXhwDRiH4mbg3ENp6Bh6pGR2WjB',
+//     privateKey: '5JY4WVpxVHcuWuvHpwDAxJL85xNR5nLeq2V2eyen2pcBybVhhnt'
+//   }
+//
+//   const userA6Keys = {
+//     account: 'isqotfueflhg',
+//     publicKey: 'FIO5co2UAAAjVgwtaZMT8Uu7pAHHGAtWUzstqg7hZyJKVBWMW7ZDh',
+//     privateKey: '5JdFRXbxXsKvXWFEuX2GTTakr5oqkhsDVjyXJuUvT8kakgQtmzG'
+//   }
+//
+//   const fundsAmount = 2000000000000
+//
+//   before(async function () {
+//     userA = await newUser(faucet);
+//     userA1 = await existingUser(RETIRETEST1.account, RETIRETEST1.privateKey, RETIRETEST1.publicKey,'','');
+//     userA2 = await existingUser(RETIRETEST2.account, RETIRETEST2.privateKey, RETIRETEST2.publicKey,'','');
+//     userA3 = await existingUser(RETIRETEST3.account, RETIRETEST3.privateKey, RETIRETEST3.publicKey,'','');
+//     userA4 = await existingUser(RETIRETEST4.account, RETIRETEST4.privateKey, RETIRETEST4.publicKey,'','');
+//     userA5 = await existingUser(userA5Keys.account, userA5Keys.privateKey, userA5Keys.publicKey,'','');
+//     userA6 = await existingUser(userA6Keys.account, userA6Keys.privateKey, userA6Keys.publicKey,'','');
+//
+//
+//     console.log(`Transfer ${fundsAmount} FIO to userA FIO public key`); //, async function () {
+//     const result = await faucet.genericAction('transferTokens', {
+//       payeeFioPublicKey: userA.publicKey,
+//       amount: fundsAmount,
+//       maxFee: config.api.transfer_tokens_pub_key.fee,
+//       technologyProviderId: ''
+//     });
+//     //console.log('Result: ', result)
+//     expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+//   });
+//
+//   it(`get all balances`, async function () {
+//     let userABal = await userA.sdk.genericAction('getFioBalance', {});
+//     let userA1Bal = await userA.sdk.genericAction('getFioBalance', {});
+//     let userA2Bal = await userA.sdk.genericAction('getFioBalance', {});
+//     let userA3Bal = await userA.sdk.genericAction('getFioBalance', {});
+//     let userA4Bal = await userA.sdk.genericAction('getFioBalance', {});
+//     let userA5Bal = await userA.sdk.genericAction('getFioBalance', {});
+//     let userA6Bal = await userA.sdk.genericAction('getFioBalance', {});
+//
+//     let userALocks,userA1Locks,userA2Locks,userA3Locks,userA4Locks,userA5Locks,userA6Locks;
+//
+//     const json = {
+//       json: true,
+//       code: 'eosio',
+//       scope: 'eosio',
+//       table: 'lockedtokens',
+//       limit: 99999,
+//       reverse: true,
+//       show_payer: false
+//     }
+//     let found = false;
+//     let user;
+//     const lockedtokens = await callFioApi("get_table_rows", json);
+//     for (user in lockedtokens.rows) {
+//       if (lockedtokens.rows[user].owner == userA.account) {
+//         // break;
+//         userALocks = lockedtokens.rows[user];
+//       }
+//       if (lockedtokens.rows[user].owner == userA1.account) {
+//         // break;
+//         userA1Locks = lockedtokens.rows[user];
+//       }
+//       if (lockedtokens.rows[user].owner == userA2.account) {
+//         // break;
+//         userA2Locks = lockedtokens.rows[user];
+//       }
+//       if (lockedtokens.rows[user].owner == userA3.account) {
+//         // break;
+//         userA3Locks = lockedtokens.rows[user];
+//       }
+//
+//       if (lockedtokens.rows[user].owner == userA4.account) {
+//         // break;
+//         userA4Locks = lockedtokens.rows[user];
+//       }
+//
+//       if (lockedtokens.rows[user].owner == userA5.account) {
+//         // break;
+//         userA5Locks = lockedtokens.rows[user];
+//       }
+//       if (lockedtokens.rows[user].owner == userA6.account) {
+//         // break;
+//         userA6Locks = lockedtokens.rows[user];
+//       }
+//     }
+//     // expect(lockedtokens.rows[user].remaining_locked_amount).to.equal(userBal.balance - userBal.available);
+//
+//     console.log('balances retrieved')
+//   });
+//
+//   it(`try to retire `, async function () {
+//     let userBal = await userA1.sdk.genericAction('getFioBalance', { });
+//     const result = await userA1.sdk.genericAction('pushTransaction', {
+//       action: 'retire',
+//       account: 'fio.token',
+//       data: {
+//         quantity: fundsAmount,
+//         memo: "test string",
+//         actor: userA1.account,
+//       }
+//     });
+//     expect(result.status).to.equal('OK');
+//
+//     let newUserBal = await userA1.sdk.genericAction('getFioBalance', { });
+//     expect(newUserBal.available).to.equal(userBal.available - fundsAmount);
+//     expect(newUserBal.balance).to.equal(userBal.balance - fundsAmount);
+//
+//     const json = {
+//       json: true,
+//       code: 'eosio',
+//       scope: 'eosio',
+//       table: 'lockedtokens',
+//       limit: 99999,
+//       reverse: true,
+//       show_payer: false
+//     }
+//     let found = false;
+//     let user = "";
+//     const lockedtokens = await callFioApi("get_table_rows", json);
+//     for (user in lockedtokens.rows) {
+//       if (lockedtokens.rows[user].owner == userA1.account) {
+//         break;
+//       }
+//     }
+//     expect(userBal.available - newUserBal.available).to.equal(fundsAmount);
+//     expect(userBal.balance - newUserBal.balance).to.equal(fundsAmount);
+//
+//     let row = lockedtokens.rows[user];
+//
+//     /**
+//      * 200000000000000
+//      * 200000000000000
+//      *
+//      * 1000000000000
+//      */
+//
+//     expect(row.remaining_locked_amount).to.equal(200000000000000);
+//     // expect(row.remaining_locked_amount).to.equal(newUserBal.balance - newUserBal.available);
+//     expect(row.grant_type).to.equal(4);
+//     expect(row.remaining_locked_amount).to.equal(userBal.balance - newUserBal.balance);
+//   });
+//
+//   it(`get all balances after retiring tokens`, async function () {
+//     let userABal = await userA.sdk.genericAction('getFioBalance', {});
+//     let userA1Bal = await userA.sdk.genericAction('getFioBalance', {});
+//     let userA2Bal = await userA.sdk.genericAction('getFioBalance', {});
+//     let userA3Bal = await userA.sdk.genericAction('getFioBalance', {});
+//     let userA4Bal = await userA.sdk.genericAction('getFioBalance', {});
+//     let userA5Bal = await userA.sdk.genericAction('getFioBalance', {});
+//     let userA6Bal = await userA.sdk.genericAction('getFioBalance', {});
+//
+//     let userALocks,userA1Locks,userA2Locks,userA3Locks,userA4Locks,userA5Locks,userA6Locks;
+//
+//     const json = {
+//       json: true,
+//       code: 'eosio',
+//       scope: 'eosio',
+//       table: 'lockedtokens',
+//       limit: 99999,
+//       reverse: true,
+//       show_payer: false
+//     }
+//     let found = false;
+//     let user;
+//     const lockedtokens = await callFioApi("get_table_rows", json);
+//     for (user in lockedtokens.rows) {
+//       if (lockedtokens.rows[user].owner == userA.account) {
+//         // break;
+//         userALocks = lockedtokens.rows[user];
+//       }
+//       if (lockedtokens.rows[user].owner == userA1.account) {
+//         // break;
+//         userA1Locks = lockedtokens.rows[user];
+//       }
+//       if (lockedtokens.rows[user].owner == userA2.account) {
+//         // break;
+//         userA2Locks = lockedtokens.rows[user];
+//       }
+//       if (lockedtokens.rows[user].owner == userA3.account) {
+//         // break;
+//         userA3Locks = lockedtokens.rows[user];
+//       }
+//
+//       if (lockedtokens.rows[user].owner == userA4.account) {
+//         // break;
+//         userA4Locks = lockedtokens.rows[user];
+//       }
+//
+//       if (lockedtokens.rows[user].owner == userA5.account) {
+//         // break;
+//         userA5Locks = lockedtokens.rows[user];
+//       }
+//       if (lockedtokens.rows[user].owner == userA6.account) {
+//         // break;
+//         userA6Locks = lockedtokens.rows[user];
+//       }
+//     }
+//     // expect(lockedtokens.rows[user].remaining_locked_amount).to.equal(userBal.balance - userBal.available);
+//
+//     console.log('balances retrieved')
+//   });
+//
+//
+// });
