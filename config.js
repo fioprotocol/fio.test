@@ -1,7 +1,7 @@
 const TESTURL = 'http://localhost:8889'           // Localhost
 //const TESTURL = 'http://dev1.fio.dev:8888'          // DEV1
 //const TESTURL = 'http://44.238.153.162:8889'      // Devnet
-//const TESTURL = 'http://fiotestnet.greymass.com'   // Testnet
+//const TESTURL = 'http://fiotestnet.blockpane.com'   // Testnet
 //const TESTURL = 'https://fio.greymass.com'        // Mainnet
 //const TESTURL = 'http://34.222.201.72:8080'        // History
 

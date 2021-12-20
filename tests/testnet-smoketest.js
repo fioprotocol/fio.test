@@ -1198,13 +1198,6 @@ describe('H. Encrypting/Decrypting', () => {
 
 describe('I. Check prepared transaction', () => {
 
-  it(`Create users`, async () => {
-    userA1 = await newUser(faucet);
-    userA2 = await newUser(faucet);
-
-    userA1.sdk.setSignedTrxReturnOption(true)
-  })
-
   it(`requestFunds prepared transaction`, async () => {
     try {
       fioSdk2.sdk.setSignedTrxReturnOption(true);
