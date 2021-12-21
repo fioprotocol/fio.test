@@ -2,7 +2,7 @@ require('mocha')
 const {expect} = require('chai')
 const { newUser, callFioApi, generateFioDomain, generateFioAddress, fetchJson, randStr} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
-config = require('../config.js');
+const config = require('../config.js');
 
 
 
@@ -258,7 +258,7 @@ describe('************************** ram.js ************************** \n    A. 
     }
   })
 
-  it(`Test: ADDNFTRAM`, async () => {
+  it(`Test: ADDNFTRAM - Add 1 NFT`, async () => {
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
         action: 'addnft',
@@ -268,7 +268,7 @@ describe('************************** ram.js ************************** \n    A. 
           nfts: [{
             "chain_code": "ETH", "contract_address": "0x123456789ABCDEF", "token_id": "1", "url": "", "hash": "", "metadata": ""
           }],
-          max_fee: 5000000000,
+          max_fee: config.maxFee,
           actor: user1.account,
           tpid: ""
         }
@@ -282,7 +282,7 @@ describe('************************** ram.js ************************** \n    A. 
     }
   })
 
-  it(`Confirm RAM quota for user1 was incremented by ${config.RAM.ADDNFTRAM}`, async () => {
+  it(`Confirm RAM quota for user1 was incremented by ${config.RAM.ADDNFTRAMBASE + (1 * config.RAM.ADDNFTRAM)}`, async () => {
     try {
       let prevRam = user1Ram;
       const json = {
@@ -290,13 +290,53 @@ describe('************************** ram.js ************************** \n    A. 
       }
       result = await callFioApi("get_account", json);
       user1Ram = result.ram_quota;
-      //console.log('Ram quota: ', result.ram_quota);
-      expect(user1Ram).to.equal(prevRam + config.RAM.ADDNFTRAM);
+      expect(user1Ram).to.equal(prevRam + config.RAM.ADDNFTRAMBASE + (1 * config.RAM.ADDNFTRAM));
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
     }
   })
+
+  it(`Test: ADDNFTRAM - Add 2 NFTs`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'addnft',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          nfts: [
+            {"chain_code": "TEST1", "contract_address": "0x123456789ABCDEF", "token_id": "1", "url": "", "hash": "", "metadata": ""},
+            {"chain_code": "TEST2", "contract_address": "0x123456789ABCDEFHIJK", "token_id": "2", "url": "", "hash": "", "metadata": ""}
+          ],
+          max_fee: config.maxFee,
+          actor: user1.account,
+          tpid: ""
+        }
+      })
+      //console.log(`Result: `, result)
+      expect(result.status).to.equal('OK')
+
+    } catch (err) {
+      console.log(err.message)
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Confirm RAM quota for user1 was incremented by ${config.RAM.ADDNFTRAMBASE + (2 * config.RAM.ADDNFTRAM)}`, async () => {
+    try {
+      let prevRam = user1Ram;
+      const json = {
+        "account_name": user1.account
+      }
+      result = await callFioApi("get_account", json);
+      user1Ram = result.ram_quota;
+      expect(user1Ram).to.equal(prevRam + config.RAM.ADDNFTRAMBASE + (2 * config.RAM.ADDNFTRAM));
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
 })
 
 describe('B. Test add_pub_address RAM Consumption', () => {

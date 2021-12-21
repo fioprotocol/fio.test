@@ -2248,12 +2248,12 @@ describe(`E. Check ram quota for stakefio and unstakefio`, () => {
     }
   })
 
-  it(`get account ram after. Expect RAM After = RAM Before + 256  `, async () => {
+  it(`get account ram after. Expect RAM After = RAM Before + ${config.RAM.STAKEFIOTOKENSRAM}  `, async () => {
     try {
       let rambefore = ram
       const result = await userA1.sdk.genericAction('getAccount', { account: userA1.account })
       ram = result.ram_quota
-      expect(result.ram_quota).to.equal(rambefore + 256)
+      expect(result.ram_quota).to.equal(rambefore + config.RAM.STAKEFIOTOKENSRAM)
     } catch (err) {
       console.log('Error', err)
     }
@@ -2275,11 +2275,11 @@ describe(`E. Check ram quota for stakefio and unstakefio`, () => {
     expect(result.status).to.equal('OK')
   })
 
-  it(`get account ram after. Expect RAM After = RAM Before + 256  `, async () => {
+  it(`get account ram after. Expect RAM After = RAM Before + ${config.RAM.STAKEFIOTOKENSRAM}  `, async () => {
     try {
       let rambefore = ram
       const result = await userA1.sdk.genericAction('getAccount', { account: userA1.account })
-      expect(result.ram_quota).to.equal(rambefore + 256)
+      expect(result.ram_quota).to.equal(rambefore + config.RAM.STAKEFIOTOKENSRAM)
     } catch (err) {
       console.log('Error', err)
     }

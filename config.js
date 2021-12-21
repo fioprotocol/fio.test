@@ -351,7 +351,7 @@ const config = {
         ADDADDRESSRAM: 512,
         SETDOMAINPUBRAM: 256,
         BURNEXPIREDRAM: 0,
-        NEWFUNDSREQUESTRAM: 4098,
+        NEWFUNDSREQUESTRAM: 3120,
         RECORDOBTRAM: 4098,
         RENEWADDRESSRAM: 1024,
         RENEWDOMAINRAM: 1024,
@@ -377,7 +377,9 @@ const config = {
         CANCELFUNDSRAM: 512,
         BUNDLEVOTERAM: 0,
         FIOESCROWRAM: 512,
-        ADDNFTRAM: 3584
+        ADDNFTRAMBASE: 512,
+        ADDNFTRAM: 2048,
+        STAKEFIOTOKENSRAM: 512
     },
 
     public_addresses: [
