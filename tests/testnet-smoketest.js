@@ -23,15 +23,15 @@ const target = 'local'
 /**
  * Set your testnet existing private/public keys and existing fioAddresses (not needed if running locally)
  */
-const privateKey = '',
-  publicKey = '',
-  account = '',
-  privateKey2 = '',
-  publicKey2 = '',
-  account2 = '',
-  testFioDomain = '',
-  testFioAddressName = '',
-  testFioAddressName2 = ''
+privateKey = '',
+publicKey = '',
+account = '',
+privateKey2 = '',
+publicKey2 = '',
+account2 = '',
+testFioDomain = '',
+testFioAddressName = '',
+testFioAddressName2 = ''
 
 
 /**
