@@ -1,9 +1,34 @@
-require('mocha')
-const {expect} = require('chai')
-const {newUser, fetchJson, callFioApi, timeout} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/fiosdk')
-config = require('../config.js');
+require('mocha');
+const { expect } = require('chai');
+const { newUser, fetchJson, callFioApi, randStr, timeout} = require('../utils.js');
+const { FIOSDK } = require('@fioprotocol/fiosdk');
+const config = require('../config.js');
 
+// Used to get content size
+const fiojs_1 = require('@fioprotocol/fiojs');
+const text_encoding_1 = require("text-encoding");
+const textEncoder = new text_encoding_1.TextEncoder();
+const textDecoder = new text_encoding_1.TextDecoder();
+
+/*
+async function getContentSize(contentType, content, privateKey, publicKey) {
+  const textEncoder = new text_encoding_1.TextEncoder();
+  const textDecoder = new text_encoding_1.TextDecoder();
+
+  content = {
+    payee_public_address: 'adsfasdf',
+    amount: 1000000,
+    chain_code: 'FIO',
+    token_code: 'FIO',
+    memo: 'adsfasdf',
+    hash: '',
+    offline_url: ''
+  };
+
+  const cipher = fiojs_1.Fio.createSharedCipher({ privateKey, publicKey, textEncoder, textDecoder });
+  cipher.encrypt(contentType, content);
+}
+*/
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
@@ -2836,6 +2861,354 @@ describe(`J. get_received_fio_requests error conditions`, () => {
       //console.log('Error: ', err.error)
       expect(err.error.fields[0].error).to.equal(config.error.invalidOffset)
     }
+  })
+
+})
+
+
+describe.only(`K. Test content size and dynamic fees`, () => {
+
+  /**
+   * FIO Requests now have the following logic:
+   * 
+   *   BASECONTENTAMOUNT = 1000
+   * 
+   *   if(content.size() >= BASECONTENTAMOUNT){ feeMultiplier = ( content.size() / BASECONTENTAMOUNT) + 1; }
+   *   uint64_t bundleAmount = 2 * feeMultiplier;
+   */
+
+  let user1, bundleCount, user2, requestId, contentSize, feeMultiplier
+  const payment = 1000000000; // 1 FIO
+
+  const BASECONTENTAMOUNT = 1000;
+  const bundleBase = 2;
+
+  const requestMemoBase = randStr(659);  // A memo field of 659 chars (bytes) makes the total Content Field 999 bytes
+  const requestMemoBasePlus1 = randStr(660);            // Content = 1000, multiplier = 2
+  const requestMemoBasePlus1000 = randStr(1656);        // Content = 1999, multiplier = 2
+  const requestMemoBasePlus1001 = randStr(1660);        // Content = 2000, multiplier = 3
+  const requestMemoBasePlus100000 = randStr(5905);    // Content = 100999, multiplier = 100
+  const requestMemoBasePlus100001 = randStr(5910);    // Content = 101000, multiplier = 101
+  
+    payeeTokenPublicAddressMin = '1';
+
+  it(`Create users`, async () => {
+    user1 = await newUser(faucet);
+    user2 = await newUser(faucet);
+  })
+
+  it(`Get bundle count for user1 `, async () => {
+    const result = await user1.sdk.genericAction('getFioNames', { fioPublicKey: user1.publicKey })
+    //console.log('Result: ', result)
+    bundleCount = result.fio_addresses[0].remaining_bundled_tx;
+    expect(bundleCount).to.be.greaterThan(0)
+  })
+
+  it(`user1 requests funds from user2 with memo of length ${requestMemoBase.length}`, async () => {
+    try {
+      const content = {
+        payee_public_address: payeeTokenPublicAddressMin,
+        amount: payment,
+        chain_code: 'FIO',
+        token_code: 'FIO',
+        memo: requestMemoBase,
+        hash: '',
+        offline_url: ''
+      }
+
+      const cipherContent = faucet.transactions.getCipherContent('new_funds_content', content, user1.privateKey, user1.publicKey);
+      feeMultiplier = Math.trunc(cipherContent.length / BASECONTENTAMOUNT) + 1;
+      console.log('           Content length: ', cipherContent.length);
+
+      const result = await user1.sdk.genericAction('requestFunds', {
+        payerFioAddress: user2.address,
+        payeeFioAddress: user1.address,
+        payeeTokenPublicAddress: content.payee_public_address,
+        amount: content.amount,
+        chainCode: content.chain_code,
+        tokenCode: content.token_code,
+        memo: content.memo,
+        maxFee: config.maxFee,
+        payerFioPublicKey: user2.publicKey,
+        technologyProviderId: '',
+        hash: '',  
+        offlineUrl: ''
+      })
+      //console.log('result: ', result)
+      requestId = result.fio_request_id
+      expect(result.status).to.equal('requested')
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Get bundle count for user1.`, async () => {
+    let bundleCountPrev = bundleCount;
+    const result = await user1.sdk.genericAction('getFioNames', { fioPublicKey: user1.publicKey })
+    //console.log('Result: ', result)
+    bundleCount = result.fio_addresses[0].remaining_bundled_tx;
+    expect(bundleCount).to.equal(bundleCountPrev - (bundleBase * feeMultiplier))
+  })
+
+  it(`user1 requests funds from user2 with memo of length ${requestMemoBasePlus1.length}`, async () => {
+    try {
+      const content = {
+        payee_public_address: payeeTokenPublicAddressMin,
+        amount: payment,
+        chain_code: 'FIO',
+        token_code: 'FIO',
+        memo: requestMemoBasePlus1,
+        hash: '',
+        offline_url: ''
+      }
+
+      const cipherContent = faucet.transactions.getCipherContent('new_funds_content', content, user1.privateKey, user1.publicKey);
+      feeMultiplier = Math.trunc(cipherContent.length / BASECONTENTAMOUNT) + 1;
+      console.log('           Content length: ', cipherContent.length);
+
+      const result = await user1.sdk.genericAction('requestFunds', {
+        payerFioAddress: user2.address,
+        payeeFioAddress: user1.address,
+        payeeTokenPublicAddress: content.payee_public_address,
+        amount: content.amount,
+        chainCode: content.chain_code,
+        tokenCode: content.token_code,
+        memo: content.memo,
+        maxFee: config.maxFee,
+        payerFioPublicKey: user2.publicKey,
+        technologyProviderId: '',
+        hash: '',
+        offlineUrl: ''
+      })
+      //console.log('result: ', result)
+      requestId = result.fio_request_id
+      expect(result.status).to.equal('requested')
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Get bundle count for user1.`, async () => {
+    let bundleCountPrev = bundleCount;
+    const result = await user1.sdk.genericAction('getFioNames', { fioPublicKey: user1.publicKey })
+    //console.log('Result: ', result)
+    bundleCount = result.fio_addresses[0].remaining_bundled_tx;
+    expect(bundleCount).to.equal(bundleCountPrev - (bundleBase * 2))
+  })
+
+
+  it(`user1 requests funds from user2 with memo of length ${requestMemoBasePlus1000.length}`, async () => {
+    try {
+      const content = {
+        payee_public_address: payeeTokenPublicAddressMin,
+        amount: payment,
+        chain_code: 'FIO',
+        token_code: 'FIO',
+        memo: requestMemoBasePlus1000,
+        hash: '',
+        offline_url: ''
+      }
+
+      const cipherContent = faucet.transactions.getCipherContent('new_funds_content', content, user1.privateKey, user1.publicKey);
+      feeMultiplier = Math.trunc(cipherContent.length / BASECONTENTAMOUNT) + 1;
+      console.log('           Content length: ', cipherContent.length);
+
+      const result = await user1.sdk.genericAction('requestFunds', {
+        payerFioAddress: user2.address,
+        payeeFioAddress: user1.address,
+        payeeTokenPublicAddress: content.payee_public_address,
+        amount: content.amount,
+        chainCode: content.chain_code,
+        tokenCode: content.token_code,
+        memo: content.memo,
+        maxFee: config.maxFee,
+        payerFioPublicKey: user2.publicKey,
+        technologyProviderId: '',
+        hash: '',
+        offlineUrl: ''
+      })
+      //console.log('result: ', result)
+      requestId = result.fio_request_id
+      expect(result.status).to.equal('requested')
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Get bundle count for user1.`, async () => {
+    let bundleCountPrev = bundleCount;
+    const result = await user1.sdk.genericAction('getFioNames', { fioPublicKey: user1.publicKey })
+    //console.log('Result: ', result)
+    bundleCount = result.fio_addresses[0].remaining_bundled_tx;
+    expect(bundleCount).to.equal(bundleCountPrev - (bundleBase * feeMultiplier))
+  })
+
+  it(`user1 requests funds from user2 with memo of length ${requestMemoBasePlus1001.length}`, async () => {
+    try {
+      const content = {
+        payee_public_address: payeeTokenPublicAddressMin,
+        amount: payment,
+        chain_code: 'FIO',
+        token_code: 'FIO',
+        memo: requestMemoBasePlus1001,
+        hash: '',
+        offline_url: ''
+      }
+
+      const cipherContent = faucet.transactions.getCipherContent('new_funds_content', content, user1.privateKey, user1.publicKey);
+      feeMultiplier = Math.trunc(cipherContent.length / BASECONTENTAMOUNT) + 1;
+      console.log('           Content length: ', cipherContent.length);
+      console.log('           Bundle Payment: ', bundleBase * feeMultiplier);
+
+      const result = await user1.sdk.genericAction('requestFunds', {
+        payerFioAddress: user2.address,
+        payeeFioAddress: user1.address,
+        payeeTokenPublicAddress: content.payee_public_address,
+        amount: content.amount,
+        chainCode: content.chain_code,
+        tokenCode: content.token_code,
+        memo: content.memo,
+        maxFee: config.maxFee,
+        payerFioPublicKey: user2.publicKey,
+        technologyProviderId: '',
+        hash: '',
+        offlineUrl: ''
+      })
+      //console.log('result: ', result)
+      requestId = result.fio_request_id
+      expect(result.status).to.equal('requested')
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Get bundle count for user1.`, async () => {
+    let bundleCountPrev = bundleCount;
+    const result = await user1.sdk.genericAction('getFioNames', { fioPublicKey: user1.publicKey })
+    //console.log('Result: ', result)
+    bundleCount = result.fio_addresses[0].remaining_bundled_tx;
+    expect(bundleCount).to.equal(bundleCountPrev - (bundleBase * feeMultiplier))
+  })
+
+  it(`(push_transaction) Add 100 * 5 = 500 bundles to user1`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'addbundles',
+        account: 'fio.address',
+        data: {
+          fio_address: user1.address,
+          bundle_sets: 5,
+          max_fee: config.maxFee,
+          technologyProviderId: ''
+        }
+      })
+      //console.log('Result: ', result);
+      bundleCount = bundleCount + 500;
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`user1 requests funds from user2 with memo of length ${requestMemoBasePlus100000.length}`, async () => {
+    try {
+      const content = {
+        payee_public_address: payeeTokenPublicAddressMin,
+        amount: payment,
+        chain_code: 'FIO',
+        token_code: 'FIO',
+        memo: requestMemoBasePlus100000,
+        hash: '',
+        offline_url: ''
+      }
+
+      const cipherContent = faucet.transactions.getCipherContent('new_funds_content', content, user1.privateKey, user1.publicKey);
+      feeMultiplier = Math.trunc(cipherContent.length / BASECONTENTAMOUNT) + 1;
+      console.log('           Content length: ', cipherContent.length);
+      console.log('           Bundle Payment: ', bundleBase * feeMultiplier);
+
+      const result = await user1.sdk.genericAction('requestFunds', {
+        payerFioAddress: user2.address,
+        payeeFioAddress: user1.address,
+        payeeTokenPublicAddress: content.payee_public_address,
+        amount: content.amount,
+        chainCode: content.chain_code,
+        tokenCode: content.token_code,
+        memo: content.memo,
+        maxFee: config.maxFee,
+        payerFioPublicKey: user2.publicKey,
+        technologyProviderId: '',
+        hash: '',
+        offlineUrl: ''
+      })
+      //console.log('result: ', result)
+      requestId = result.fio_request_id
+      expect(result.status).to.equal('requested')
+    } catch (err) {
+      console.log('Error: ', err.json)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Get bundle count for user1.`, async () => {
+    let bundleCountPrev = bundleCount;
+    const result = await user1.sdk.genericAction('getFioNames', { fioPublicKey: user1.publicKey })
+    //console.log('Result: ', result)
+    bundleCount = result.fio_addresses[0].remaining_bundled_tx;
+    expect(bundleCount).to.equal(bundleCountPrev - (bundleBase * feeMultiplier))
+  })
+
+  it(`user1 requests funds from user2 with memo of length ${requestMemoBasePlus100001.length}`, async () => {
+    try {
+      const content = {
+        payee_public_address: payeeTokenPublicAddressMin,
+        amount: payment,
+        chain_code: 'FIO',
+        token_code: 'FIO',
+        memo: requestMemoBasePlus100001,
+        hash: '',
+        offline_url: ''
+      }
+
+      const cipherContent = faucet.transactions.getCipherContent('new_funds_content', content, user1.privateKey, user1.publicKey);
+      feeMultiplier = Math.trunc(cipherContent.length / BASECONTENTAMOUNT) + 1;
+      console.log('           Content length: ', cipherContent.length);
+      console.log('           Bundle Payment: ', bundleBase * feeMultiplier);
+
+      const result = await user1.sdk.genericAction('requestFunds', {
+        payerFioAddress: user2.address,
+        payeeFioAddress: user1.address,
+        payeeTokenPublicAddress: content.payee_public_address,
+        amount: content.amount,
+        chainCode: content.chain_code,
+        tokenCode: content.token_code,
+        memo: content.memo,
+        maxFee: config.maxFee,
+        payerFioPublicKey: user2.publicKey,
+        technologyProviderId: '',
+        hash: '',
+        offlineUrl: ''
+      })
+      //console.log('result: ', result)
+      requestId = result.fio_request_id
+      expect(result.status).to.equal('requested')
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Get bundle count for user1.`, async () => {
+    let bundleCountPrev = bundleCount;
+    const result = await user1.sdk.genericAction('getFioNames', { fioPublicKey: user1.publicKey })
+    //console.log('Result: ', result)
+    bundleCount = result.fio_addresses[0].remaining_bundled_tx;
+    expect(bundleCount).to.equal(bundleCountPrev - (bundleBase * feeMultiplier))
   })
 
 })
