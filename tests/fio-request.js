@@ -1,12 +1,13 @@
 require('mocha');
 const { expect } = require('chai');
-const { newUser, fetchJson, callFioApi, randStr, consumeRemainingBundles, getBundleCount, timeout} = require('../utils.js');
+const { newUser, fetchJson, callFioApi, callFioApiSigned, randStr, consumeRemainingBundles, getBundleCount, timeout} = require('../utils.js');
 const { FIOSDK } = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
 
 // Used to get content size
 const fiojs_1 = require('@fioprotocol/fiojs');
 const text_encoding_1 = require("text-encoding");
+const { receiveMessageOnPort } = require('worker_threads');
 const textEncoder = new text_encoding_1.TextEncoder();
 const textDecoder = new text_encoding_1.TextDecoder();
 
@@ -2865,7 +2866,7 @@ describe(`J. get_received_fio_requests error conditions`, () => {
 
 })
 
-describe(`K. Test bundles, fees, and RAM for dynamic content size`, () => {
+describe(`K. Test bundles, fees, and RAM for dynamic content size (FIP-32)`, () => {
 
   /**
    * FIO Requests now have the following logic:
@@ -3737,6 +3738,92 @@ describe(`K. Test bundles, fees, and RAM for dynamic content size`, () => {
     } catch (err) {
       //console.log('Error: ', err)
       expect(err.json.fields[0].error).to.equal('Transaction is too large')
+    }
+  })
+
+})
+
+describe.only(`L. Test getters with large content (FIP-32)`, () => {
+  let user1, user2
+  const payment = 5000000000 // 5 FIO
+
+  const requestMemoLarge = randStr(1660);        // Content = 2000, multiplier = 3
+  const requestMemoXLarge = randStr(5905);    // Content = 100999, multiplier = 100
+
+  it(`Create users`, async () => {
+    user1 = await newUser(faucet);
+    user2 = await newUser(faucet);
+  })
+
+  it(`user1 requests funds from user2 with memo of length ${requestMemoLarge.length}`, async () => {
+    try {
+      const content = {
+        payee_public_address: payeeTokenPublicAddressMin,
+        amount: payment,
+        chain_code: 'FIO',
+        token_code: 'FIO',
+        memo: requestMemoLarge,
+        hash: '',
+        offline_url: ''
+      }
+
+      const cipherContent = faucet.transactions.getCipherContent('new_funds_content', content, user1.privateKey, user1.publicKey);
+
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'newfundsreq',
+        account: 'fio.reqobt',
+        actor: user1.account,
+        privKey: user1.privateKey,
+        data: {
+          payer_fio_address: user2.address,
+          payee_fio_address: user1.address,
+          tpid: '',
+          content: cipherContent,
+          max_fee: config.maxFee,
+          actor: user1.account
+        }
+      })
+      //console.log('result: ', result)
+      expect(result.processed.receipt.status).to.equal('executed')
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`user1 requests funds from user2 with memo of length ${requestMemoXLarge.length}`, async () => {
+    try {
+      const content = {
+        payee_public_address: payeeTokenPublicAddressMin,
+        amount: payment,
+        chain_code: 'FIO',
+        token_code: 'FIO',
+        memo: requestMemoXLarge,
+        hash: '',
+        offline_url: ''
+      }
+
+      const cipherContent = faucet.transactions.getCipherContent('new_funds_content', content, user1.privateKey, user1.publicKey);
+
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'newfundsreq',
+        account: 'fio.reqobt',
+        actor: user1.account,
+        privKey: user1.privateKey,
+        data: {
+          payer_fio_address: user2.address,
+          payee_fio_address: user1.address,
+          tpid: '',
+          content: cipherContent,
+          max_fee: config.maxFee,
+          actor: user1.account
+        }
+      })
+      //console.log('result: ', result)
+      expect(result.processed.receipt.status).to.equal('executed')
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
     }
   })
 
