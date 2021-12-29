@@ -1,7 +1,7 @@
 require('mocha')
 const {expect} = require('chai')
 const {newUser, existingUser, callFioApi, generateFioDomain, generateFioAddress, createKeypair, timeout, fetchJson} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/FIOSDK');
+const {FIOSDK} = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
 
 before(async () => {
@@ -9,7 +9,7 @@ before(async () => {
 })
 
 describe(`************************** tpid.js ************************** \n    A. Test TPIDs with proxy`, () => {
-  
+
   let proxy1, user1, user2, user3, user4, newPubKey
 
   it(`Create users`, async () => {
@@ -88,14 +88,14 @@ describe(`************************** tpid.js ************************** \n    A.
       for (voter in voters.rows) {
         if (voters.rows[voter].owner == proxy1.account) {
           inVotersTable = true;
-          //console.log('voters.rows[voter].is_proxy: ', voters.rows[voter].is_proxy); 
-          //console.log('voters.rows[voter].is_auto_proxy: ', voters.rows[voter].is_auto_proxy); 
-          //console.log('voters.rows[voter].proxy: ', voters.rows[voter].proxy); 
+          //console.log('voters.rows[voter].is_proxy: ', voters.rows[voter].is_proxy);
+          //console.log('voters.rows[voter].is_auto_proxy: ', voters.rows[voter].is_auto_proxy);
+          //console.log('voters.rows[voter].proxy: ', voters.rows[voter].proxy);
           break;
         }
       }
-      expect(voters.rows[voter].is_auto_proxy).to.equal(0);  
-      expect(voters.rows[voter].is_proxy).to.equal(1);  
+      expect(voters.rows[voter].is_auto_proxy).to.equal(0);
+      expect(voters.rows[voter].is_proxy).to.equal(1);
       expect(inVotersTable).to.equal(true)
     } catch (err) {
       console.log('Error', err);
@@ -324,18 +324,18 @@ describe(`************************** tpid.js ************************** \n    A.
 
   it(`xferaddress: user3 transfers user3.address2 to emptyAccount.publicKey using FIO Address of proxy1 (who IS a registered proxy). Expect: no proxy for user1.`, async () => {
     try{
-        const result = await user3.sdk.genericAction('pushTransaction', {
-            action: 'xferaddress',
-            account: 'fio.address',
-            data: {
-              fio_address: user3.address2,
-              new_owner_fio_public_key: newPubKey,
-              max_fee: config.maxFee,
-              tpid: proxy1.address,
-              actor: user3.account
-            }
-        })
-        expect(result.status).to.equal('OK')
+      const result = await user3.sdk.genericAction('pushTransaction', {
+        action: 'xferaddress',
+        account: 'fio.address',
+        data: {
+          fio_address: user3.address2,
+          new_owner_fio_public_key: newPubKey,
+          max_fee: config.maxFee,
+          tpid: proxy1.address,
+          actor: user3.account
+        }
+      })
+      expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json.error.details)
       expect(err).to.equal('null')
@@ -394,7 +394,7 @@ describe(`************************** tpid.js ************************** \n    A.
 })
 
 describe(`B. User that has proxied their vote is sent FIO with TPID registered as proxy`, () => {
-  
+
   let proxy1, user1, user2
 
   it(`Create users`, async () => {
@@ -443,8 +443,8 @@ describe(`B. User that has proxied their vote is sent FIO with TPID registered a
           break;
         }
       }
-      expect(voters.rows[voter].is_auto_proxy).to.equal(0);  
-      expect(voters.rows[voter].is_proxy).to.equal(1);  
+      expect(voters.rows[voter].is_auto_proxy).to.equal(0);
+      expect(voters.rows[voter].is_proxy).to.equal(1);
       expect(inVotersTable).to.equal(true)
     } catch (err) {
       console.log('Error', err);
@@ -587,7 +587,7 @@ describe(`B. User that has proxied their vote is sent FIO with TPID registered a
 })
 
 describe(`C. User that has proxied their votes is sent FIO with TPID registered as proxy`, () => {
-  
+
   let proxy1, proxyThief, user1, user2
 
   it(`Create users`, async () => {
@@ -656,8 +656,8 @@ describe(`C. User that has proxied their votes is sent FIO with TPID registered 
           break;
         }
       }
-      expect(voters.rows[voter].is_auto_proxy).to.equal(0);  
-      expect(voters.rows[voter].is_proxy).to.equal(1);  
+      expect(voters.rows[voter].is_auto_proxy).to.equal(0);
+      expect(voters.rows[voter].is_proxy).to.equal(1);
       expect(inVotersTable).to.equal(true)
     } catch (err) {
       console.log('Error', err);
@@ -831,9 +831,9 @@ describe(`L. User that is auto proxied registers as proxy`, () => {
 
   it(`Register user1.address2 with proxy1 as TPID (valid tpid)`, async () => {
     const result = await user1.sdk.genericAction('registerFioAddress', {
-        fioAddress: user1.address2,
-        maxFee: config.maxFee,
-        technologyProviderId: proxy1.address
+      fioAddress: user1.address2,
+      maxFee: config.maxFee,
+      technologyProviderId: proxy1.address
     })
     //console.log('Result: ', result)
     expect(result.status).to.equal('OK')
@@ -862,7 +862,7 @@ describe(`L. User that is auto proxied registers as proxy`, () => {
           break;
         }
       }
-      expect(voters.rows[voter].is_auto_proxy).to.equal(1);   
+      expect(voters.rows[voter].is_auto_proxy).to.equal(1);
       expect(inVotersTable).to.equal(true)
     } catch (err) {
       console.log('Error', err);
@@ -912,8 +912,8 @@ describe(`L. User that is auto proxied registers as proxy`, () => {
           break;
         }
       }
-      expect(voters.rows[voter].is_auto_proxy).to.equal(0);  
-      expect(voters.rows[voter].is_proxy).to.equal(1);  
+      expect(voters.rows[voter].is_auto_proxy).to.equal(0);
+      expect(voters.rows[voter].is_proxy).to.equal(1);
       expect(inVotersTable).to.equal(true)
     } catch (err) {
       console.log('Error', err);
@@ -957,9 +957,9 @@ describe(`M. User that is auto proxied votes for proxy. Confirm is_auto_proxy is
 
   it(`Register user1.address2 with proxy1 as TPID (valid tpid)`, async () => {
     const result = await user1.sdk.genericAction('registerFioAddress', {
-        fioAddress: user1.address2,
-        maxFee: config.maxFee,
-        technologyProviderId: proxy1.address
+      fioAddress: user1.address2,
+      maxFee: config.maxFee,
+      technologyProviderId: proxy1.address
     })
     //console.log('Result: ', result)
     expect(result.status).to.equal('OK')
@@ -986,7 +986,7 @@ describe(`M. User that is auto proxied votes for proxy. Confirm is_auto_proxy is
           break;
         }
       }
-      expect(voters.rows[voter].is_auto_proxy).to.equal(1);   
+      expect(voters.rows[voter].is_auto_proxy).to.equal(1);
       expect(inVotersTable).to.equal(true)
     } catch (err) {
       console.log('Error', err);
@@ -1015,7 +1015,7 @@ describe(`M. User that is auto proxied votes for proxy. Confirm is_auto_proxy is
       expect(err).to.equal('null')
     }
   })
-  
+
   it.skip('(BUG BD-2270) Confirm user1: is_auto_proxy = 0', async () => {
     let inVotersTable;
     try {
@@ -1037,7 +1037,7 @@ describe(`M. User that is auto proxied votes for proxy. Confirm is_auto_proxy is
           break;
         }
       }
-      expect(voters.rows[voter].is_auto_proxy).to.equal(0);  
+      expect(voters.rows[voter].is_auto_proxy).to.equal(0);
       expect(inVotersTable).to.equal(true)
     } catch (err) {
       console.log('Error', err);
@@ -1046,4 +1046,3 @@ describe(`M. User that is auto proxied votes for proxy. Confirm is_auto_proxy is
   })
 
 })
-

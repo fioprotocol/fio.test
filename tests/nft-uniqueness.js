@@ -127,7 +127,7 @@ before(async () => {
  NFTs being burned
  */
 
-describe(`************************** nft-uniqueness.js ************************** \n    A. `, () => {
+describe(`************************** nft-uniqueness.js ************************** \n    A. Add same NFT to multiple users`, () => {
   let users = [];
   let massNft;
   let nftHash = 'f83b5702557b1ee76d966c6bf92ae0d038cd176aaf36f86a18e2ab59e6aefa4b';
