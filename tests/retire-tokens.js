@@ -271,7 +271,7 @@ describe(`************************** retire-tokens.js **************************
   });
 });
 
-describe.only(`B. BD-3153 - accounts with remaining locked FIP-6 periods should not be able to retire any tokens`, function () {
+describe(`B. (BD-3153) accounts with remaining locked FIP-6 periods should not be able to retire any tokens`, function () {
   let userA, userA1, userA2, userA3, userA4, userA5, userA6;
   let userALocks,userA1Locks, userA2Locks, userA3Locks, userA4Locks, userA5Locks, userA6Locks;
   let userABal, userA1Bal, userA2Bal, userA3Bal, userA4Bal, userA5Bal, userA6Bal;
@@ -417,7 +417,7 @@ describe.only(`B. BD-3153 - accounts with remaining locked FIP-6 periods should 
   })
 });
 
-describe.only(`C. Retire locked FIO Tokens`, function () {
+describe(`C. Retire locked FIO Tokens`, function () {
   let userA, userA1, userA2, userA3, userA4, userA5, userA6;
   let userALocks,userA1Locks, userA2Locks, userA3Locks, userA4Locks, userA5Locks, userA6Locks;
   let userABal, userA1Bal, userA2Bal, userA3Bal, userA4Bal, userA5Bal, userA6Bal;
@@ -962,7 +962,7 @@ describe.only(`C. Retire locked FIO Tokens`, function () {
     userA4Locks = row;
   });
 
-  it(`(bug - integer wraparound) try to retire more tokens than are unlocked, expect Error`, async function () {
+  it(`(BD-3132) try to retire more tokens than are unlocked, expect Error`, async function () {
     let newUserBal;
     try {
       const result = await userA4.sdk.genericAction('pushTransaction', {
@@ -1129,7 +1129,7 @@ describe.only(`C. Retire locked FIO Tokens`, function () {
     expect(found).to.equal(true);
   });
 
-  it(`(bug - integer wraparound) try to retire 4000000000000 tokens, expect Error`, async function () {
+  it(`(BD-3132) try to retire 4000000000000 tokens, expect Error`, async function () {
     let newUserBal;
     try {
       const result = await userA5.sdk.genericAction('pushTransaction', {
@@ -1236,7 +1236,7 @@ describe.only(`C. Retire locked FIO Tokens`, function () {
   // });
 });
 
-describe(`D. Try to retire from an account that has staked tokens`, function () {
+describe(`D. (BD-3133) Try to retire from an account that has staked tokens`, function () {
   let bp1, bp2, bp3, userA, userA4, userB, userC, userP, prevFundsAmount, locksdk, keys, userKeys, accountnm, newFioDomain1, newFioAddress1, newFioDomain2, newFioAddress2, total_bp_votes, total_voted_fio;
   let userABal;
 
