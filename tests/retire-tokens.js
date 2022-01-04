@@ -15,16 +15,13 @@ describe(`************************** retire-tokens.js **************************
 
   let userABal, userA1Bal, userA2Bal;
 
-  const fundsAmount = 1000000000000
+  const fundsAmount = 1000000000000;
+  const grantAmount = 1250000000000;
 
   before(async function () {
     userAKeys = await createKeypair();
     userA1Keys = await createKeypair();
     userA2Keys = await createKeypair();
-
-    // });
-    //
-    // it(`initialize user accounts`, async function () {
 
     await faucet.genericAction('pushTransaction', {
       action: 'trnsfiopubky',
@@ -38,8 +35,6 @@ describe(`************************** retire-tokens.js **************************
       }
     });
 
-    // try {
-    //const result =
     await faucet.genericAction('pushTransaction', {
       action: 'trnsloctoks',
       account: 'fio.token',
@@ -47,13 +42,13 @@ describe(`************************** retire-tokens.js **************************
         payee_public_key: userA1Keys.publicKey,
         can_vote: 0,
         periods: [
-          { // > 1000 are unlocked
+          { // 1000 are unlocked
             "duration": 1,
             "amount": 1000000000000
           },
           { // > 1000 are still locked
-            "duration": 3000000000000,
-            // "duration": 2,
+            // "duration": 3000000000000,
+            "duration": 2,
             "amount": 1250000000000
           }
         ],
@@ -63,13 +58,6 @@ describe(`************************** retire-tokens.js **************************
         actor: faucet.account
       }
     });
-    // expect(result.status).to.equal('OK');
-    // } catch (err) {
-    //   expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-    //   expect(err.errorCode).to.equal(400);
-    //   expect(err.json.fields[0].error).to.equal('Locked tokens can only be transferred to new account');
-    //   throw err;
-    // }
 
     await timeout(3500);
 
@@ -110,7 +98,7 @@ describe(`************************** retire-tokens.js **************************
     expect(userABal.balance).to.equal(1000000000000);
     expect(userABal.available).to.equal(1000000000000);
     expect(userA1Bal.balance).to.equal(5250000000000);
-    expect(userA1Bal.available).to.equal(4000000000000);
+    expect(userA1Bal.available).to.equal(5250000000000);
     expect(userA2Bal.balance).to.equal(15000000000000);
     expect(userA2Bal.available).to.equal(15000000000000);
   });
@@ -138,6 +126,7 @@ describe(`************************** retire-tokens.js **************************
       newUserBal = await userA.sdk.genericAction('getFioBalance', {});
       expect(newUserBal.available).to.equal(userABal.available - fundsAmount);
       expect(newUserBal.balance).to.equal(userABal.balance - fundsAmount);
+      userABal = newUserBal;
     } catch (e) {
       newUserBal = await userA.sdk.genericAction('getFioBalance', {});
       console.log(e, newUserBal);
@@ -153,7 +142,29 @@ describe(`************************** retire-tokens.js **************************
   Locks table is updated
   */
 
-  // Lock set in fio.devtools 17_emplace_test_grants_into_locked_tokens.sh
+  it(`add type 4 lock to userA1`, async function () {
+    let newUserBal;
+    try {
+      const result = await faucet.genericAction('pushTransaction', {
+        action: 'addlocked',
+        account: 'eosio',
+        data: {
+          owner: userA1Keys.account,
+          amount: fundsAmount,
+          locktype: 4,
+        }
+      });
+      expect(result.status).to.equal('OK');
+      newUserBal = await userA1.sdk.genericAction('getFioBalance', {});
+      expect(newUserBal.balance).to.equal(userA1Bal.balance);
+      expect(newUserBal.available).to.equal(userA1Bal.available - fundsAmount);
+      userA1Bal = newUserBal;
+    } catch (err) {
+      newUserBal = await userA1.sdk.genericAction('getFioBalance', {});
+      console.log(err, newUserBal);
+      throw err;
+    }
+  });
   it(`Happy Test, Retire ${fundsAmount} SUFs from UserA1 (type 4 lock)`, async function () {
     let newUserBal;
     userA1Bal = await userA1.sdk.genericAction('getFioBalance', {});
@@ -181,7 +192,31 @@ describe(`************************** retire-tokens.js **************************
   Locks table is updated and unlocked tokens remain the same
   */
 
+  it(`add type 1 lock to userA2`, async function () {
+    let newUserBal;
+    try {
+      const result = await faucet.genericAction('pushTransaction', {
+        action: 'addlocked',
+        account: 'eosio',
+        data: {
+          owner: userA2Keys.account,
+          amount: grantAmount,
+          locktype: 1,
+        }
+      });
+      expect(result.status).to.equal('OK');
+      newUserBal = await userA2.sdk.genericAction('getFioBalance', {});
+      expect(newUserBal.balance).to.equal(userA2Bal.balance);
+      expect(newUserBal.available).to.equal(userA2Bal.available - grantAmount);
+      userA2Bal = newUserBal;
+    } catch (err) {
+      newUserBal = await userA2.sdk.genericAction('getFioBalance', {});
+      console.log(err, newUserBal);
+      throw err;
+    }
+  });
   it(`Happy Test, Retire ${fundsAmount} SUFs from UserA2 (type 1 lock)`, async function () {
+    let newUserBal;
     userA2Bal = await userA2.sdk.genericAction('getFioBalance', { });
 
     const result = await userA2.sdk.genericAction('pushTransaction', {
@@ -194,80 +229,9 @@ describe(`************************** retire-tokens.js **************************
       }
     });
     expect(result.status).to.equal('OK');
-    let newUserBal = await userA2.sdk.genericAction('getFioBalance', { });
-    expect(newUserBal.available).to.equal(userA2Bal.available - fundsAmount);
-    expect(newUserBal.balance).to.equal(userA2Bal.balance - fundsAmount);
-  });
-
-  it(`Sad Test, Retire 1 FIO token from userA2`, async function () {
-    try {
-      const result = await userA2.sdk.genericAction('pushTransaction', {
-        action: 'retire',
-        account: 'fio.token',
-        data: {
-          quantity: 1000000000,
-          memo: "test string",
-          actor: userA2.account,
-        }
-      });
-      expect(result).to.equal(null);
-    } catch (err) {
-      //  console.log(err.json)
-      expect(err.json.fields[0].error).to.equal("Minimum 1000 FIO has to be retired");
-    }
-  });
-
-  it(`Sad Test, Retire 999999999999 FIO token from userA2`, async function () {
-    try {
-      const result = await userA2.sdk.genericAction('pushTransaction', {
-        action: 'retire',
-        account: 'fio.token',
-        data: {
-          quantity: 999999999999,
-          memo: "test string",
-          actor: userA2.account,
-        }
-      });
-      expect(result).to.equal(null);
-    } catch (err) {
-      expect(err.json.fields[0].error).to.equal("Minimum 1000 FIO has to be retired");
-    }
-  });
-
-  it(`Sad Test, Retire ${fundsAmount} SUFs from userA1 (Insufficient funds)`, async function () {
-    try {
-      const result = await userA1.sdk.genericAction('pushTransaction', {
-        action: 'retire',
-        account: 'fio.token',
-        data: {
-          quantity: fundsAmount*1000,
-          memo: "test string",
-          actor: userA1.account,
-        }
-      });
-      expect(result).to.equal(null);
-    } catch (err) {
-      expect(err.json.fields[0].error).to.equal("Insufficient balance");
-
-    }
-  });
-
-  it(`Sad Test, Retire ${fundsAmount} SUFs from userA2 (memo > 256)`, async function () {
-    try {
-      const result = await userA2.sdk.genericAction('pushTransaction', {
-        action: 'retire',
-        account: 'fio.token',
-        data: {
-          quantity: fundsAmount,
-          memo: "I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string 123456789",
-          actor: userA2.account,
-        }
-      });
-      expect(result).to.equal(null);
-
-    } catch (err) {
-      expect(err.json.fields[0].error).to.equal("memo has more than 256 bytes");
-    }
+    newUserBal = await userA2.sdk.genericAction('getFioBalance', { });
+    expect(newUserBal.balance).to.equal(14000000000000);
+    expect(newUserBal.available).to.equal(13000000000000);
   });
 });
 
@@ -1271,6 +1235,276 @@ describe(`D. (BD-3133) Try to retire from an account that has staked tokens`, fu
     } catch (err) {
       newUserBal = await userA.sdk.genericAction('getFioBalance', {});
       expect(err.json.fields[0].error).to.equal("Account staking cannot retire.");
+    }
+  });
+});
+
+describe(`E. Unhappy tests. Try to retire FIO tokens with invalid input`, function () {
+  let userA, userA1, userA2, userAKeys, userA1Keys, userA2Keys;
+
+  let userABal, userA1Bal, userA2Bal;
+
+  const fundsAmount = 1000000000000
+
+  before(async function () {
+    userAKeys = await createKeypair();
+    userA1Keys = await createKeypair();
+    userA2Keys = await createKeypair();
+
+    await faucet.genericAction('pushTransaction', {
+      action: 'trnsfiopubky',
+      account: 'fio.token',
+      data: {
+        payee_public_key: userAKeys.publicKey,
+        amount: 1000000000000,
+        max_fee: 1000000000000,
+        actor: faucet.account,
+        tpid: ""
+      }
+    });
+
+    await faucet.genericAction('pushTransaction', {
+      action: 'trnsloctoks',
+      account: 'fio.token',
+      data: {
+        payee_public_key: userA1Keys.publicKey,
+        can_vote: 0,
+        periods: [
+          {
+            "duration": 1,
+            "amount": 1000000000000
+          },
+          {
+            "duration": 2,
+            "amount": 1250000000000
+          }
+        ],
+        amount: 2250000000000,
+        max_fee: 40000000000,
+        tpid: "",
+        actor: faucet.account
+      }
+    });
+
+    await timeout(3500);
+
+    await faucet.genericAction('pushTransaction', {
+      action: 'trnsfiopubky',
+      account: 'fio.token',
+      data: {
+        payee_public_key: userA1Keys.publicKey,
+        amount: 3000000000000,
+        max_fee: 1000000000000,
+        actor: faucet.account,
+        tpid: ""
+      }
+    });
+
+    await faucet.genericAction('pushTransaction', {
+      action: 'trnsfiopubky',
+      account: 'fio.token',
+      data: {
+        payee_public_key: userA2Keys.publicKey,
+        amount: 15000000000000,
+        max_fee: 1000000000000,
+        actor: faucet.account,
+        tpid: ""
+      }
+    });
+
+    userA = await existingUser(userAKeys.account, userAKeys.privateKey, userAKeys.publicKey,'','');
+    userA1 = await existingUser(userA1Keys.account, userA1Keys.privateKey, userA1Keys.publicKey,'','');
+    userA2 = await existingUser(userA2Keys.account, userA2Keys.privateKey, userA2Keys.publicKey,'','');
+
+    userABal = await userA.sdk.genericAction('getFioBalance', { });
+    userA1Bal = await userA1.sdk.genericAction('getFioBalance', { });
+    userA2Bal = await userA2.sdk.genericAction('getFioBalance', { });
+  });
+
+  it(`verify initial balances`, async function () {
+    expect(userABal.balance).to.equal(1000000000000);
+    expect(userABal.available).to.equal(1000000000000);
+    expect(userA1Bal.balance).to.equal(5250000000000);
+    expect(userA1Bal.available).to.equal(5250000000000);
+    expect(userA2Bal.balance).to.equal(15000000000000);
+    expect(userA2Bal.available).to.equal(15000000000000);
+  });
+
+  it(`(minimum amount not met) Retire 1 SUF from userA2`, async function () {
+    try {
+      const result = await userA2.sdk.genericAction('pushTransaction', {
+        action: 'retire',
+        account: 'fio.token',
+        data: {
+          quantity: 1000000000,
+          memo: "test string",
+          actor: userA2.account,
+        }
+      });
+      expect(result).to.equal(null);
+    } catch (err) {
+
+      expect(err.json.fields[0].error).to.equal("Minimum 1000 FIO has to be retired");
+    }
+  });
+
+  it(`(minimum amount not met) Retire 999999999999 SUFs from userA2`, async function () {
+    try {
+      const result = await userA2.sdk.genericAction('pushTransaction', {
+        action: 'retire',
+        account: 'fio.token',
+        data: {
+          quantity: 999999999999,
+          memo: "test string",
+          actor: userA2.account,
+        }
+      });
+      expect(result).to.equal(null);
+    } catch (err) {
+      expect(err.json.fields[0].error).to.equal("Minimum 1000 FIO has to be retired");
+    }
+  });
+
+  it(`(insufficient funds) Retire ${fundsAmount} SUFs from userA1`, async function () {
+    try {
+      const result = await userA1.sdk.genericAction('pushTransaction', {
+        action: 'retire',
+        account: 'fio.token',
+        data: {
+          quantity: fundsAmount*1000,
+          memo: "test string",
+          actor: userA1.account,
+        }
+      });
+      expect(result).to.equal(null);
+    } catch (err) {
+      expect(err.json.fields[0].error).to.equal("Insufficient balance");
+
+    }
+  });
+
+  it(`(memo > 256) Retire ${fundsAmount} SUFs from userA2`, async function () {
+    try {
+      const result = await userA2.sdk.genericAction('pushTransaction', {
+        action: 'retire',
+        account: 'fio.token',
+        data: {
+          quantity: fundsAmount,
+          memo: "I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string I am a really long string 123456789",
+          actor: userA2.account,
+        }
+      });
+      expect(result).to.equal(null);
+
+    } catch (err) {
+      expect(err.json.fields[0].error).to.equal("memo has more than 256 bytes");
+    }
+  });
+
+  it(`(missing quantity) Retire SUFs from userA1`, async function () {
+    try {
+      const result = await userA2.sdk.genericAction('pushTransaction', {
+        action: 'retire',
+        account: 'fio.token',
+        data: {
+          // quantity: 1000000000000,
+          memo: "test string",
+          actor: userA2.account,
+        }
+      });
+      expect(result).to.equal(null);
+    } catch (err) {
+
+      expect(err.message).to.equal("missing retire.quantity (type=int64)");
+    }
+  });
+
+  it(`(empty quantity) Retire SUFs from userA1`, async function () {
+    try {
+      const result = await userA2.sdk.genericAction('pushTransaction', {
+        action: 'retire',
+        account: 'fio.token',
+        data: {
+          quantity: "", //1000000000000,
+          memo: "test string",
+          actor: userA2.account,
+        }
+      });
+      expect(result).to.equal(null);
+    } catch (err) {
+
+      expect(err.json.fields[0].error).to.equal("Minimum 1000 FIO has to be retired");
+    }
+  });
+
+  it(`(invalid quantity) Retire SUFs from userA1`, async function () {
+    try {
+      const result = await userA2.sdk.genericAction('pushTransaction', {
+        action: 'retire',
+        account: 'fio.token',
+        data: {
+          quantity: "invalid-quantity",
+          memo: "test string",
+          actor: userA2.account,
+        }
+      });
+      expect(result).to.equal(null);
+    } catch (err) {
+
+      expect(err.message).to.equal("invalid number");
+    }
+  });
+
+  it(`(missing memo) Retire ${fundsAmount} SUFs from userA1`, async function () {
+    try {
+      const result = await userA2.sdk.genericAction('pushTransaction', {
+        action: 'retire',
+        account: 'fio.token',
+        data: {
+          quantity: 1000000000000,
+          actor: userA2.account,
+        }
+      });
+      expect(result).to.equal(null);
+    } catch (err) {
+      expect(err.message).to.equal('missing retire.memo (type=string)');
+    }
+  });
+
+  it(`(invalid actor) Retire ${fundsAmount} SUFs from userA1`, async function () {
+    try {
+      const result = await userA2.sdk.genericAction('pushTransaction', {
+        action: 'retire',
+        account: 'fio.token',
+        data: {
+          quantity: 1000000000000,
+          memo: "test string",
+          actor: "invalid"
+        }
+      });
+      expect(result).to.equal(null);
+    } catch (err) {
+
+      expect(err.json.error.details[0].message).to.equal('missing authority of invalid');
+    }
+  });
+
+  it(`(invalid signer) Retire ${fundsAmount} SUFs from userA1`, async function () {
+    try {
+      const result = await userA2.sdk.genericAction('pushTransaction', {
+        action: 'retire',
+        account: 'fio.token',
+        data: {
+          quantity: 1000000000000,
+          memo: "test string",
+          actor: "bp1@dapixdev",
+        }
+      });
+      expect(result).to.equal(null);
+    } catch (err) {
+      // different verbiage, same error condition
+      // expect(err.json.error.details[0].message).to.equal('Signer not actor')
+      expect(err.json.error.details[0].message).to.equal('missing authority of bp1.dapixdev');
     }
   });
 });
