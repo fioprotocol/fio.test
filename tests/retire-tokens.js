@@ -6,6 +6,37 @@ const config = require('../config.js');
 const {getStakedTokenPool, getCombinedTokenPool, getGlobalSrpCount} = require("./Helpers/token-pool.js");
 let faucet;
 
+/*
+ MANUAL CONFIGURATION REQUIRED TO RUN TEST
+
+ The following changes must be made to run these tests:
+
+ 1. Shorten the main net locking period to become 1 minute
+
+  In: fio.token.hpp
+
+  Comment out the following lines in the computeremaininglockedtokens method:
+
+    //uint32_t daysSinceGrant = (int) ((present_time - lockiter->timestamp) / SECONDSPERDAY);
+    //uint32_t firstPayPeriod = 90;
+    //uint32_t payoutTimePeriod = 180;
+
+  Then add the following code beneath what you commented out.
+
+    // TESTING ONLY!!! shorten genesis locking periods..DO NOT DELIVER THIS
+    uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / 60);
+    uint32_t firstPayPeriod = 1;
+    uint32_t payoutTimePeriod = 1;
+
+  2. Permit anyone to call the addlocked action in the system contract.
+
+  In: fio.system.cpp
+
+  Comment out the following line in the addlocked action of the fio.system.cpp file
+
+    // require_auth(_self);
+*/
+
 before(async function () {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 });
