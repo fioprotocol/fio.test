@@ -349,7 +349,6 @@ describe(`B. (BD-3153) accounts with remaining locked FIP-6 periods should not b
 
   it(`(bug - should not be able to retire with locked periods remaining) try to retire tokens with a remaining locked FIP-6 period, expect Error`, async function () {
 
-    //
     let locks = await userA1.sdk.getLocks(RETIRETEST1.publicKey);
     // leaving this assertion for proof of concept, but if unlock_periods.length > 0 then this should fail
     expect(locks.unlock_periods.length).to.equal(2);
@@ -513,7 +512,7 @@ describe(`C. Retire locked FIO Tokens`, function () {
     let row;
     const lockedtokens = await callFioApi("get_table_rows", json);
     for (user in lockedtokens.rows) {
-      if (lockedtokens.rows[user].owner == userA3.account) {
+      if (lockedtokens.rows[user].owner === userA3.account) {
         found = true;
         row = lockedtokens.rows[user];
         break
@@ -571,7 +570,7 @@ describe(`C. Retire locked FIO Tokens`, function () {
     let row;
     const lockedtokens = await callFioApi("get_table_rows", json);
     for (user in lockedtokens.rows) {
-      if (lockedtokens.rows[user].owner == userA3.account) {
+      if (lockedtokens.rows[user].owner === userA3.account) {
         found = true;
         row = lockedtokens.rows[user];
         break
@@ -682,7 +681,7 @@ describe(`C. Retire locked FIO Tokens`, function () {
     let row;
     const lockedtokens = await callFioApi("get_table_rows", json);
     for (user in lockedtokens.rows) {
-      if (lockedtokens.rows[user].owner == userA4.account) {
+      if (lockedtokens.rows[user].owner === userA4.account) {
         found = true;
         row = lockedtokens.rows[user];
         break
@@ -742,7 +741,7 @@ describe(`C. Retire locked FIO Tokens`, function () {
     let user = "";
     let lockedtokens = await callFioApi("get_table_rows", json);
     for (user in lockedtokens.rows) {
-      if (lockedtokens.rows[user].owner == RETIRETEST4.account) {
+      if (lockedtokens.rows[user].owner === RETIRETEST4.account) {
         userA4Locks = lockedtokens.rows[user];
         found = true;
         break;
@@ -854,7 +853,7 @@ describe(`C. Retire locked FIO Tokens`, function () {
     let user = "";
     let lockedtokens = await callFioApi("get_table_rows", json);
     for (user in lockedtokens.rows) {
-      if (lockedtokens.rows[user].owner == userA5.account) {
+      if (lockedtokens.rows[user].owner === userA5.account) {
         found = true;
         userA5Locks = lockedtokens.rows[user];
         break;
@@ -908,7 +907,7 @@ describe(`C. Retire locked FIO Tokens`, function () {
     let user = "";
     let lockedtokens = await callFioApi("get_table_rows", json);
     for (user in lockedtokens.rows) {
-      if (lockedtokens.rows[user].owner == userA5.account) {
+      if (lockedtokens.rows[user].owner === userA5.account) {
         found = true;
         userA5Locks = lockedtokens.rows[user];
         break;
@@ -1013,7 +1012,7 @@ describe(`C. Retire locked FIO Tokens`, function () {
     let row;
     const lockedtokens = await callFioApi("get_table_rows", json);
     for (user in lockedtokens.rows) {
-      if (lockedtokens.rows[user].owner == userA6.account) {
+      if (lockedtokens.rows[user].owner === userA6.account) {
         found = true;
         row = lockedtokens.rows[user];
         break
@@ -1074,7 +1073,7 @@ describe(`C. Retire locked FIO Tokens`, function () {
     let user;
     const lockedtokens = await callFioApi("get_table_rows", json);
     for (user in lockedtokens.rows) {
-      if (lockedtokens.rows[user].owner == userA6.account) {
+      if (lockedtokens.rows[user].owner === userA6.account) {
         found = true;
         userA6Locks = lockedtokens.rows[user];
         break
