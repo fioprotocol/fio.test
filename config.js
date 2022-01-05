@@ -379,7 +379,8 @@ const config = {
         FIOESCROWRAM: 512,
         ADDNFTRAMBASE: 512,
         ADDNFTRAM: 2048,
-        STAKEFIOTOKENSRAM: 512
+        STAKEFIOTOKENSRAM: 512,
+        UNSTAKEFIOTOKENSRAM: 512
     },
 
     public_addresses: [
