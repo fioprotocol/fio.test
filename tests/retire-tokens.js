@@ -1360,7 +1360,7 @@ describe(`E. Unhappy tests. Try to retire FIO tokens with invalid input`, functi
     expect(userA2Bal.available).to.equal(15000000000000);
   });
 
-  it(`(minimum amount not met) Retire 1 SUF from userA2`, async function () {
+  it(`(minimum amount not met) Retire 1000000000 SUFs from userA2`, async function () {
     try {
       const result = await userA2.sdk.genericAction('pushTransaction', {
         action: 'retire',
@@ -1482,6 +1482,56 @@ describe(`E. Unhappy tests. Try to retire FIO tokens with invalid input`, functi
     } catch (err) {
 
       expect(err.message).to.equal("invalid number");
+    }
+  });
+
+  it(`(BD-3166 - negative quantity) Retire -1000000000 SUFs from userA2`, async function () {
+    let newUserBal;
+    userA2Bal = await userA2.sdk.genericAction('getFioBalance', {});
+    try {
+      const result = await userA2.sdk.genericAction('pushTransaction', {
+        action: 'retire',
+        account: 'fio.token',
+        data: {
+          quantity: -1000000000,
+          memo: "test string",
+          actor: userA2.account,
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+      newUserBal = await userA2.sdk.genericAction('getFioBalance', {});
+      expect(newUserBal.balance).to.equal(userA2Bal.balance);
+      expect(newUserBal.available).to.equal(userA2Bal.available);
+    } catch (err) {
+      newUserBal = await userA2.sdk.genericAction('getFioBalance', {});
+      expect(newUserBal.balance).to.equal(userA2Bal.balance);
+      expect(newUserBal.available).to.equal(userA2Bal.available);
+      throw err;
+    }
+  });
+
+  it(`(BD-3166 - negative quantity) Retire -999999999999 SUFs from userA2`, async function () {
+    let newUserBal;
+    userA2Bal = await userA2.sdk.genericAction('getFioBalance', {});
+    try {
+      const result = await userA2.sdk.genericAction('pushTransaction', {
+        action: 'retire',
+        account: 'fio.token',
+        data: {
+          quantity: -999999999999,
+          memo: "test string",
+          actor: userA2.account,
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+      newUserBal = await userA2.sdk.genericAction('getFioBalance', {});
+      expect(newUserBal.balance).to.equal(userA2Bal.balance);
+      expect(newUserBal.available).to.equal(userA2Bal.available);
+    } catch (err) {
+      newUserBal = await userA2.sdk.genericAction('getFioBalance', {});
+      expect(newUserBal.balance).to.equal(userA2Bal.balance);
+      expect(newUserBal.available).to.equal(userA2Bal.available);
+      throw err;
     }
   });
 
