@@ -1,6 +1,6 @@
 require('mocha');
 const {expect} = require('chai');
-const {newUser, existingUser, getAccountFromKey, fetchJson, generateFioDomain, generateFioAddress, createKeypair, getTotalVotedFio, getProdVoteTotal, callFioApi} = require('../utils.js');
+const {newUser, existingUser, getAccountFromKey, fetchJson, generateFioDomain, generateFioAddress, createKeypair, getTotalVotedFio, getProdVoteTotal, timeout, callFioApi} = require('../utils.js');
 const {FIOSDK} = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
 const {getStakedTokenPool, getCombinedTokenPool, getGlobalSrpCount} = require('./Helpers/token-pool.js');
@@ -21,7 +21,7 @@ let faucet;
  *
  *
  *
- * first you must shorten the unstake locking period to become 1 minute
+ * 1. you must shorten the unstake locking period
  *
  *  go to the contract fio.staking.cpp and change the following lines
  *
@@ -33,7 +33,7 @@ let faucet;
  *
  *  int64_t UNSTAKELOCKDURATIONSECONDS = 70;
  *
- * Next, update both instances of SECONDSPERDAY in the unstakefio function to 10:
+ *  Next, update both instances of SECONDSPERDAY in the unstakefio function to 10:
  *
  *   //the days since launch.
  *   uint32_t insertday = (lockiter->timestamp + insertperiod) / SECONDSPERDAY;
@@ -52,9 +52,30 @@ let faucet;
  *   daysforperiod = (lockiter->timestamp + lockiter->periods[i].duration)/10;
  *
  *
- *  rebuild the contracts and restart your local chain.
+ *  2. To enable daily staking rewards, change the foundation account to be one of the accounts we use to test:
  *
- *  you are now ready to run these staking tests!!!
+ *    2.1 In fio.accounts.hpp
+ *
+ *      change the following line:
+ *
+ *      static const name FOUNDATIONACCOUNT = name("tw4tjkmo4eyd");
+ *
+ *      to become:
+ *
+ *     //must change foundation account for testing BPCLAIM...test change only!!
+ *     static const name FOUNDATIONACCOUNT = name("htjonrkf1lgs");
+ * 
+ *  3. Change the allowable BP claim time (usually 4 hours)
+ * 
+ *    In fio.common.hpp 
+ *      
+ *      change the following line:
+ *  
+ *      #define SECONDSBETWEENBPCLAIM (SECONDSPERHOUR * 4)
+ * 
+ *      to become
+ * 
+ *      #define SECONDSBETWEENBPCLAIM (5)
  */
 
 /********************* Calculations
@@ -117,6 +138,8 @@ async function consumeRemainingBundles (user, user2) {
       expect(bundles % 2).to.equal(0);
     }
   }
+
+  
 
   while (bundles > 0) {
     try {
@@ -507,7 +530,7 @@ describe(`************************** stake-tokens.js ************************** 
   });
 
   it(`Wait a few seconds.`, async () => {
-    wait(4000);
+    await timeout(5000);
   });
 
   it(`bp1@dapixdev total_votes did not change (votes just shifted from direct vote to proxy vote via proxyA1)`, async () => {
@@ -795,7 +818,7 @@ describe(`A3. Verify staking rewards for block producer`, () => {
       //console.log('BPCLAIM Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
-      console.log('Error', err);
+      console.log('Error', err.json);
       expect(err).to.equal(null);
     }
   });
@@ -2310,12 +2333,8 @@ describe('C. Test unstakefio Bundled transactions', () => {
   });
 
   it(`wait 70 seconds for unlock`, async () => {
-    try {
-      wait(70000);
-    } catch (err) {
-      console.log('Error', err);
-    }
-  });
+    await timeout(UNSTAKELOCKDURATIONSECONDS * 1000);
+  })
 
   it(`get locks for user1, expect lock_amount, remaining_lock_amount and unlock period amount to equal 20000000000Z`, async () => {
     const locks = await user1.sdk.genericAction('getLocks', {fioPublicKey: user1.publicKey});
@@ -2564,13 +2583,9 @@ describe(`D. Stake tokens using auto proxy without voting first, \n Then do a fu
     }
   });
 
-  it(`wait 60 seconds for unlock`, async () => {
-    try {
-      wait(60000);
-    } catch (err) {
-      console.log('Error', err);
-    }
-  });
+  it(`wait for unlock`, async () => {
+    await timeout(UNSTAKELOCKDURATIONSECONDS * 1000);
+  })
 
   it(`success, Transfer 2000 FIO to proxy1 FIO public key from user1`, async () => {
     try {
@@ -2583,6 +2598,7 @@ describe(`D. Stake tokens using auto proxy without voting first, \n Then do a fu
       expect(result.status).to.equal('OK');
     }catch (err){
       console.log("ERROR: ", err);
+      expect(err).to.equal(null);
     }
   });
 });
@@ -3509,12 +3525,8 @@ describe(`G1. Stake and unstake a single FIO`, () => {
   });
 
   it(`wait ${SECONDSPERDAY} seconds`, async () => {
-    try {
-      wait(SECONDSPERDAY * 1000);
-    } catch (err) {
-      console.log('Error', err)
-    }
-  });
+    await timeout(SECONDSPERDAY * 1000);
+  })
 
   it(`unstake 1 FIO (unstake_fio_tokens) from userA, expect status=OK and fee_collected=0`, async () => {
     let bal, newBal, bundleCount, stakedTokenPool, combinedTokenPool, globalSrpCount, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
@@ -3812,12 +3824,8 @@ describe(`G2. Stake and unstake an unreasonably samll (sub-FIO) denomination of 
   });
 
   it(`wait ${SECONDSPERDAY} seconds`, async () => {
-    try {
-      wait(SECONDSPERDAY * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  });
+    await timeout(SECONDSPERDAY * 1000);
+  })
 
   it(`(unhappy) unstake 1 SUF (unstake_fio_tokens) from userA, expect Error Invalid amount value`, async () => {
     let bal, newBal, bundleCount, stakedTokenPool, combinedTokenPool, globalSrpCount, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
@@ -4281,11 +4289,7 @@ describe(`G3. Stake some FIO, then try to unstake an unreasonably small amount (
   })
 
   it(`wait ${SECONDSPERDAY} seconds`, async () => {
-    try {
-      wait(SECONDSPERDAY * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+    await timeout(SECONDSPERDAY * 1000);
   })
 
   it(`unstake 1 SUF (unstake_fio_tokens) from userA, expect Error: Invalid amount value`, async () => {
@@ -4538,12 +4542,8 @@ describe(`G4. Stake some FIO, then try to unstake an unreasonably small amount (
   })
 
   it(`wait ${SECONDSPERDAY} seconds`, async () => {
-    try {
-      wait(SECONDSPERDAY * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  });
+    await timeout(SECONDSPERDAY * 1000);
+  })
 
   it(`unstake 1 FIO (unstake_fio_tokens) from userA, expect status=OK`, async () => {
     let bundleCount, newBundleCount, bal, newBal, stakedTokenPool, combinedTokenPool, globalSrpCount, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
@@ -4657,12 +4657,8 @@ describe(`G4. Stake some FIO, then try to unstake an unreasonably small amount (
   });
 
   it(`wait ${SECONDSPERDAY} seconds`, async () => {
-    try {
-      wait(SECONDSPERDAY * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  });
+    await timeout(SECONDSPERDAY * 1000);
+  })
 
   it(`(zero bundles left) unstake 1 FIO from userA, expect status=OK, fee_collected=${config.api.unstake_fio_tokens.fee}`, async () => {
     let bal, newBal, stakedTokenPool, combinedTokenPool, globalSrpCount, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
@@ -4835,12 +4831,8 @@ describe(`G5. Stake some FIO, then try to unstake an unreasonably small amount (
   });
 
   it(`wait ${SECONDSPERDAY} seconds`, async () => {
-    try {
-      wait(SECONDSPERDAY * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  });
+    await timeout(SECONDSPERDAY * 1000);
+  })
 
   it(`unstake 999999999 SUF (unstake_fio_tokens) from userA`, async () => { //, expect Error: Invalid amount value`, async () => {
     let bundleCount, newBundleCount, bal, newBal, stakedTokenPool, combinedTokenPool, globalSrpCount, newStakedTokenPool, newCombinedTokenPool, newGlobalSrpCount;
@@ -5103,11 +5095,7 @@ describe(`G6. Stake some FIO, then try to unstake an unreasonably small amount (
   })
 
   it(`wait ${SECONDSPERDAY} seconds`, async () => {
-    try {
-      wait(SECONDSPERDAY * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+    await timeout(SECONDSPERDAY * 1000);
   })
 
   it(`unstake 1000000001 SUF (unstake_fio_tokens) from userA, expect Error: Invalid amount value`, async () => {

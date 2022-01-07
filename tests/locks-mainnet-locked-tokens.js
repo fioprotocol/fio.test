@@ -6,82 +6,9 @@ const config = require('../config.js');
 const {timeout} = require("../utils");
 let faucet;
 
-/********************* setting up these tests
- *
- * !!! IF YOU DON'T WANT TO MESS WITH THESE STEPS MANUALLY !!!
- *
- * The changes are already made in fio.contracts branch ben/develop
- *
- * I will do mybest to keep ben/develop current with the latest develop updates
- *
- * If the branch falls out of date or you would rather make the changes yourself, perform the steps below
- *
- *
- *
- *
- * first you must shorten the unstake locking period to become 1 minute
- *
- *  go to the contract fio.staking.cpp and change the following lines
- *
- *  change
- *
- *  int64_t UNSTAKELOCKDURATIONSECONDS = 604800;
- *
- *    to become
- *
- *  int64_t UNSTAKELOCKDURATIONSECONDS = 70;
- *
- * Next, update both instances of SECONDSPERDAY in the unstakefio function to 10:
- *
- *   //the days since launch.
- *   uint32_t insertday = (lockiter->timestamp + insertperiod) / SECONDSPERDAY;
- *
- *     to become
- *
- *   //the days since launch.
- *   uint32_t insertday = (lockiter->timestamp + insertperiod) / 10;
- *
- *     and
- *
- *   daysforperiod = (lockiter->timestamp + lockiter->periods[i].duration)/SECONDSPERDAY;
- *
- *     to become
- *
- *   daysforperiod = (lockiter->timestamp + lockiter->periods[i].duration)/10;
- *
- *
- *  rebuild the contracts and restart your local chain.
- *
- *  you are now ready to run these staking tests!!!
- */
-
-/********************* Calculations
- *
- * For getFioBalance:
- *   balance =
- *
- *   available = balance - staked - unstaked & locked
- *
- *   staked = Total staked. Changes when staking/unstaking.
- *
- *   srps =
- *     When Staking: srps = prevSrps + stakeAmount/roe
- *     When Unstaking: srps = prevSrps - (prevSrps * (unstakeAmount/totalStaked))
- *
- *   roe = Calculated (1 SRP = [ Tokens in Combined Token Pool / Global SRPs ] FIO)
- */
-
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
-
-function wait(ms){
-  var start = new Date().getTime();
-  var end = start;
-  while(end < start + ms) {
-    end = new Date().getTime();
-  }
-}
 
 /*
  MANUAL CONFIGURATION REQUIRED TO RUN TEST
@@ -101,7 +28,7 @@ function wait(ms){
   Then add the following code beneath what you commented out.
 
     // TESTING ONLY!!! shorten genesis locking periods..DO NOT DELIVER THIS
-    uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / 60);
+    uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / 10);
     uint32_t firstPayPeriod = 1;
     uint32_t payoutTimePeriod = 1;
 
@@ -114,11 +41,12 @@ function wait(ms){
     // require_auth(_self);
 */
 
+const lockdurationseconds = 10;   // What was set in the contract above in place of SECONDSPERDAY
 
 describe(`************************** locks-mainnet-locked-tokens.js ************************** \n    A. Create large 7075065.123456789 grant. Verify unlocking using voting, can't transfer more than unlocked amount, and multiple calls to voting do not have effect.`, () => {
 
   let userA1, locksdk, keys, accountnm, transfer_tokens_pub_key_fee
-  const lockdurationseconds = 60
+  
   const lockAmount = 7075065123456789
   const eightpercent = Math.trunc(lockAmount * 0.08);
 
@@ -230,12 +158,8 @@ describe(`************************** locks-mainnet-locked-tokens.js ************
     console.log("            waiting ",lockdurationseconds," seconds")
   });
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait for lock period', async () => {
+    await timeout(lockdurationseconds * 1000);
   });
 
   it(`locksdk votes for producer`, async () => {
@@ -359,13 +283,9 @@ describe(`************************** locks-mainnet-locked-tokens.js ************
     console.log("            waiting ",lockdurationseconds," seconds")
   });
 
-  it(`Wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  });
+  it('Wait for lock period', async () => {
+    await timeout(lockdurationseconds * 1000);
+  })
 
   it(`locksdk votes for producer`, async () => {
     try {
@@ -416,13 +336,9 @@ describe(`************************** locks-mainnet-locked-tokens.js ************
     console.log("            waiting ",lockdurationseconds," seconds")
   });
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  });
+  it('Wait for lock period', async () => {
+    await timeout(lockdurationseconds * 1000);
+  })
 
   it(`locksdk votes for producer`, async () => {
     try {
@@ -473,13 +389,9 @@ describe(`************************** locks-mainnet-locked-tokens.js ************
     console.log("            waiting ",lockdurationseconds," seconds")
   });
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  });
+  it('Wait for lock period', async () => {
+    await timeout(lockdurationseconds * 1000);
+  })
 
   it(`locksdk votes for producer`, async () => {
     try {
@@ -530,13 +442,9 @@ describe(`************************** locks-mainnet-locked-tokens.js ************
     console.log("            waiting ",lockdurationseconds," seconds")
   });
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  });
+  it('Wait for lock period', async () => {
+    await timeout(lockdurationseconds * 1000);
+  })
 
   it(`locksdk votes for producer`, async () => {
     try {
@@ -587,13 +495,9 @@ describe(`************************** locks-mainnet-locked-tokens.js ************
     console.log("            waiting ",lockdurationseconds," seconds")
   });
 
-  it(`Wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  });
+  it('Wait for lock period', async () => {
+    await timeout(lockdurationseconds * 1000);
+  })
 
   it(`locksdk votes for producer`, async () => {
     try {
@@ -684,7 +588,6 @@ describe(`************************** locks-mainnet-locked-tokens.js ************
 describe(`B. Create large 7075065.123456789 grant verify unlocking using transferTokens`, () => {
 
   let userA1, locksdk, keys, accountnm
-  const lockdurationseconds = 60
   const lockAmount = 7075065123456789
 
   it(`Create users: locksdk`, async () => {
@@ -748,12 +651,8 @@ describe(`B. Create large 7075065.123456789 grant verify unlocking using transfe
     console.log("            waiting ",lockdurationseconds," seconds")
   })
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait for lock period', async () => {
+    await timeout(lockdurationseconds * 1000);
   })
 
   it(`Success, Transfer 1 FIO to userA1 FIO public key`, async () => {
@@ -800,12 +699,8 @@ describe(`B. Create large 7075065.123456789 grant verify unlocking using transfe
     console.log("            waiting ",lockdurationseconds," seconds")
   })
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait for lock period', async () => {
+    await timeout(lockdurationseconds * 1000);
   })
 
   it(`Success, Transfer 1 FIO to userA1 FIO public key`, async () => {
@@ -851,12 +746,8 @@ describe(`B. Create large 7075065.123456789 grant verify unlocking using transfe
     console.log("            waiting ",lockdurationseconds," seconds")
   })
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait for lock period', async () => {
+    await timeout(lockdurationseconds * 1000);
   })
 
   it(`Success, Transfer 1 FIO to userA1 FIO public key`, async () => {
@@ -902,12 +793,8 @@ describe(`B. Create large 7075065.123456789 grant verify unlocking using transfe
     console.log("            waiting ",lockdurationseconds," seconds")
   })
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait for lock period', async () => {
+    await timeout(lockdurationseconds * 1000);
   })
 
   it(`Success, Transfer 1 FIO to userA1 FIO public key`, async () => {
@@ -953,12 +840,8 @@ describe(`B. Create large 7075065.123456789 grant verify unlocking using transfe
     console.log("            waiting ",lockdurationseconds," seconds")
   })
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait for lock period', async () => {
+    await timeout(lockdurationseconds * 1000);
   })
 
   it(`Success, Transfer 1 FIO to userA1 FIO public key`, async () => {
@@ -1004,12 +887,8 @@ describe(`B. Create large 7075065.123456789 grant verify unlocking using transfe
     console.log("            waiting ",lockdurationseconds," seconds")
   })
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait for lock period', async () => {
+    await timeout(lockdurationseconds * 1000);
   })
 
   it(`Success, Transfer 1 FIO to userA1 FIO public key`, async () => {
@@ -1055,7 +934,6 @@ describe(`B. Create large 7075065.123456789 grant verify unlocking using transfe
 describe(`C. Create large grant verify unlocking with skipped periods using voting`, () => {
 
   let userA1, locksdk, keys, accountnm
-  const lockdurationseconds = 60
   const lockAmount = 7075065123456789
 
   it(`Create users: locksdk`, async () => {
@@ -1119,12 +997,8 @@ describe(`C. Create large grant verify unlocking with skipped periods using voti
     console.log("            waiting ",lockdurationseconds * 3," seconds")
   })
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000 * 3)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait for lock period', async () => {
+    await timeout(lockdurationseconds * 1000 * 3);
   })
 
   it(`Success, vote for producers.`, async () => {
@@ -1176,12 +1050,8 @@ describe(`C. Create large grant verify unlocking with skipped periods using voti
     console.log("            waiting ",lockdurationseconds * 3," seconds")
   })
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000 * 3)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait for lock period', async () => {
+    await timeout(lockdurationseconds * 1000 * 3);
   })
 
   it(`Success, vote for producers.`, async () => {
@@ -1231,7 +1101,6 @@ describe(`C. Create large grant verify unlocking with skipped periods using voti
 describe(`D. Create large grant verify unlocking with skipped periods using transfer`, () => {
 
   let userA1, locksdk, keys, accountnm
-  const lockdurationseconds = 60
   const lockAmount = 7075065123456789
 
   it(`Create users: locksdk`, async () => {
@@ -1295,12 +1164,8 @@ describe(`D. Create large grant verify unlocking with skipped periods using tran
     console.log("            waiting ",lockdurationseconds * 3," seconds")
   })
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000 * 3)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait for lock period', async () => {
+    await timeout(lockdurationseconds * 1000 * 3);
   })
 
   it(`Success, Transfer 1 FIO to userA1 FIO public key`, async () => {
@@ -1347,12 +1212,8 @@ describe(`D. Create large grant verify unlocking with skipped periods using tran
     console.log("            waiting ",lockdurationseconds * 3," seconds")
   })
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000 * 3)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait for lock period', async () => {
+    await timeout(lockdurationseconds * 1000 * 3);
   })
 
   it(`Success, Transfer 1 FIO to userA1 FIO public key`, async () => {
@@ -1397,9 +1258,8 @@ describe(`D. Create large grant verify unlocking with skipped periods using tran
 describe(`E. (BD-2632, BD-2759) Verify get_fio_balance returns accurate balance when an expired mainnet lock is in the table`, () => {
   // create two mainnet (genesis) locks
   let user1, locksdk1, locksdk2, keys1, keys2, accountnm1, accountnm2, transfer_tokens_pub_key_fee
-  const lockdurationseconds = 60;
-  const lockAmount1 = 7000000000000000;
-  const lockAmount2 = 6000000000000000;
+  const lockAmount1 = 7000000000000;
+  const lockAmount2 = 6000000000000;
   const eightpercent = Math.trunc(lockAmount1 * 0.08);
   let initialLockSdk1Bal, initialLockSdk2Bal;
   const numPeriods = 6;
@@ -1424,6 +1284,7 @@ describe(`E. (BD-2632, BD-2759) Verify get_fio_balance returns accurate balance 
       technologyProviderId: ''
     });
     expect(transfer1.status).to.equal('OK');
+
     const transfer2 = await faucet.genericAction('transferTokens', {
       payeeFioPublicKey: keys2.publicKey,
       amount: lockAmount2,
@@ -1463,6 +1324,7 @@ describe(`E. (BD-2632, BD-2759) Verify get_fio_balance returns accurate balance 
       }
     })
     expect(lock2.status).to.equal('OK');
+
   });
 
   // call get_fio_balance, record results
@@ -1500,10 +1362,9 @@ describe(`E. (BD-2632, BD-2759) Verify get_fio_balance returns accurate balance 
     }
   });
 
-  // wait for an unlock period duration to go by
   it(`wait for ${numPeriods} lock periods`, async () => {
-    wait(lockdurationseconds * (numPeriods * 1000));
-  });
+    await timeout(lockdurationseconds * (numPeriods * 1000));
+  })
 
   it(`lock more tokens`, async () => {
     try {

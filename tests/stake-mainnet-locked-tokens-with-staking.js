@@ -8,14 +8,6 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-function wait(ms){
-  var start = new Date().getTime();
-  var end = start;
-  while(end < start + ms) {
-    end = new Date().getTime();
-  }
-}
-
 /**
  * FIP-21 tests for genesis (mainnet) lock accounts performing staking
  */
@@ -38,10 +30,18 @@ function wait(ms){
   Then add the following code beneath what you commented out.
 
     // TESTING ONLY!!! shorten genesis locking periods..DO NOT DELIVER THIS
-    uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / 60);
+    uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / 10);
     uint32_t firstPayPeriod = 1;
     uint32_t payoutTimePeriod = 1;
 
+  3. Change the unlock period:
+
+  int64_t UNSTAKELOCKDURATIONSECONDS = 604800;
+
+    to become
+
+  int64_t UNSTAKELOCKDURATIONSECONDS = 70;
+ 
   2. Permit anyone to call the addlocked action in the system contract.
 
   In: fio.system.cpp
@@ -52,6 +52,9 @@ function wait(ms){
   
 */
 
+const lockdurationseconds = 10;      // This should equal whatever you updated in the contract.
+const stakingLockPeriod = 70;        // This should equal whatever you updated in the contract. Default is 604800
+
 
 describe(`************************** stake-mainet-locked-tokens-with-staking.js ************************** \n    A. Test genesis/mainnet locked tokens with staked, unstaked (and including a general lock for the unstake). Ensure all genesis locking works as expected using voting`, () => {
 
@@ -59,9 +62,8 @@ describe(`************************** stake-mainet-locked-tokens-with-staking.js 
   const fundsAmount = 1000000000000   // 1,000 FIO
   const stakeAmount = 400000000000   // 400 FIO
   const unstakeAmount = 200000000000  // 200 FIO
-  const lockdurationseconds = 60
   const lockAmount = 7075065123456789
-  const stakingLockPeriod = 30        // This should equal whatever you updated in the contrac. Default is 604800
+  
 
   it(`Create users: locksdk`, async () => {
     userA1 = await newUser(faucet);
@@ -254,12 +256,8 @@ describe(`************************** stake-mainet-locked-tokens-with-staking.js 
     console.log("            waiting ",lockdurationseconds," seconds")
   })
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait.', async () => {
+    await timeout(lockdurationseconds * 1000);
   })
 
   it(`Success, locksdk votes for producers`, async () => {
@@ -369,12 +367,8 @@ describe(`************************** stake-mainet-locked-tokens-with-staking.js 
     console.log("            waiting ",lockdurationseconds," seconds")
   })
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait a few seconds.', async () => {
+    await timeout(lockdurationseconds * 1000);
   })
 
   it(`Success, locksdk votes for producers`, async () => {
@@ -425,12 +419,8 @@ describe(`************************** stake-mainet-locked-tokens-with-staking.js 
     console.log("            waiting ",lockdurationseconds," seconds")
   })
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait a few seconds.', async () => {
+    await timeout(lockdurationseconds * 1000);
   })
 
   it(`Success, locksdk votes for producers`, async () => {
@@ -482,12 +472,8 @@ describe(`************************** stake-mainet-locked-tokens-with-staking.js 
     console.log("            waiting ",lockdurationseconds," seconds")
   })
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait a few seconds.', async () => {
+    await timeout(lockdurationseconds * 1000);
   })
 
   it(`Success, locksdk votes for producers`, async () => {
@@ -537,12 +523,8 @@ describe(`************************** stake-mainet-locked-tokens-with-staking.js 
     console.log("            waiting ",lockdurationseconds," seconds")
   })
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait a few seconds.', async () => {
+    await timeout(lockdurationseconds * 1000);
   })
 
   it(`Success, locksdk votes for producers`, async () => {
@@ -592,12 +574,8 @@ describe(`************************** stake-mainet-locked-tokens-with-staking.js 
     console.log("            waiting ",lockdurationseconds," seconds")
   })
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait a few seconds.', async () => {
+    await timeout(lockdurationseconds * 1000);
   })
 
   it(`Success, locksdk votes for producers`, async () => {
@@ -688,11 +666,8 @@ describe(`************************** stake-mainet-locked-tokens-with-staking.js 
 
 describe(`B. Test genesis locked tokens with staked, unstaked (and including a general lock for the unstake, ensure all genesis locking works as expected using transfer`, () => {
 
-
-
   let userA1, prevFundsAmount, locksdk, keys, accountnm, newFioDomain, newFioAddress
   const fundsAmount = 1000000000000
-  const lockdurationseconds = 60
 
 
   it(`Create users`, async () => {
@@ -857,12 +832,8 @@ describe(`B. Test genesis locked tokens with staked, unstaked (and including a g
     console.log("            waiting ",lockdurationseconds," seconds")
   })
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait a few seconds.', async () => {
+    await timeout(lockdurationseconds * 1000);
   })
 
   it(`Success, Transfer 1 FIO to userA1 FIO public key`, async () => {
@@ -929,7 +900,7 @@ describe(`B. Test genesis locked tokens with staked, unstaked (and including a g
       result = await callFioApi("get_table_rows", json);
       // console.log('Result: ', result);
       //console.log('periods : ', result.rows[0].periods[0].duration)
-      expect(result.rows[0].periods[0].duration).to.equal(604800);
+      expect(result.rows[0].periods[0].duration).to.equal(stakingLockPeriod);
       // expect(result.rows[0].periods[0].percent - 100).to.equal(0);
     } catch (err) {
       console.log('Error', err);
@@ -942,12 +913,8 @@ describe(`B. Test genesis locked tokens with staked, unstaked (and including a g
     console.log("            waiting ",lockdurationseconds," seconds")
   })
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait a few seconds.', async () => {
+    await timeout(lockdurationseconds * 1000);
   })
 
   it(`Success, Transfer 1 FIO to userA1 FIO public key`, async () => {
@@ -995,12 +962,8 @@ describe(`B. Test genesis locked tokens with staked, unstaked (and including a g
     console.log("            waiting ",lockdurationseconds," seconds")
   })
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait a few seconds.', async () => {
+    await timeout(lockdurationseconds * 1000);
   })
 
   it(`Success, Transfer 1 FIO to userA1 FIO public key`, async () => {
@@ -1048,12 +1011,8 @@ describe(`B. Test genesis locked tokens with staked, unstaked (and including a g
     console.log("            waiting ",lockdurationseconds," seconds")
   })
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait a few seconds.', async () => {
+    await timeout(lockdurationseconds * 1000);
   })
 
   it(`Success, Transfer 1 FIO to userA1 FIO public key`, async () => {
@@ -1101,12 +1060,8 @@ describe(`B. Test genesis locked tokens with staked, unstaked (and including a g
     console.log("            waiting ",lockdurationseconds," seconds")
   })
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait a few seconds.', async () => {
+    await timeout(lockdurationseconds * 1000);
   })
 
   it(`Success, Transfer 1 FIO to userA1 FIO public key`, async () => {
@@ -1154,12 +1109,8 @@ describe(`B. Test genesis locked tokens with staked, unstaked (and including a g
     console.log("            waiting ",lockdurationseconds," seconds")
   })
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait a few seconds.', async () => {
+    await timeout(lockdurationseconds * 1000);
   })
 
   it(`Success, Transfer 1 FIO to userA1 FIO public key`, async () => {

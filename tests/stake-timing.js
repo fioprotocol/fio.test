@@ -1,7 +1,7 @@
 require('mocha')
 const { expect } = require('chai')
 const { create, all } = require('mathjs')
-const { newUser, timeout, callFioApi, httpRequest, httpRequestBig, existingUser, createKeypair, getAccountFromKey, generateFioDomain, generateFioAddress, fetchJson} = require('../utils.js');
+const { newUser, timeout, httpRequest, httpRequestBig, existingUser, createKeypair, getAccountFromKey, fetchJson} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 const config = require('../config.js');
 const stakeTests = require('./Helpers/stake-timing-tests.js');
@@ -11,14 +11,6 @@ const LosslessJSON = require('lossless-json');
 let faucet, bp1
 
 let prevStakedTokenPoolOld, prevCombinedTokenPoolOld, prevLastCombinedTokenPoolOld, prevRewardsTokenPoolOld, prevGlobalSrpCountOld, prevLastGlobalSrpCountOld, prevDailyStakingRewardsOld, prevStakingRewardsReservesMintedOld
-
-function wait(ms){
-  var start = new Date().getTime();
-  var end = start;
-  while(end < start + ms) {
-    end = new Date().getTime();
-  }
-}
 
 const mathconfig = {
   // Default type of number
@@ -43,7 +35,7 @@ const math = create(all, mathconfig)
  *
  *    #define ENABLESTAKINGREWARDSEPOCHSEC  1627686000  //July 30 5:00PM MST 11:00PM GMT
  *
- * 1.2 To enable daily staking rewards, change:
+ * 1.2 Change the unlock period:
  *
  *  int64_t UNSTAKELOCKDURATIONSECONDS = 604800;
  *
@@ -1585,8 +1577,8 @@ describe(`************************** stake-timing.js ************************** 
         };
       })
 
-      it(`waiting ${SECONDSPERDAY} seconds for next day`, async () => {
-        wait(SECONDSPERDAY * 1000)
+      it(`wait for ${SECONDSPERDAY} seconds`, async () => {
+        await timeout(SECONDSPERDAY * 1000);
       })
 
     }
