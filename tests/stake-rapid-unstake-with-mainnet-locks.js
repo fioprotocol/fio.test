@@ -1,29 +1,31 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, existingUser,callFioApi,fetchJson, generateFioDomain, getAccountFromKey, generateFioAddress, createKeypair} = require('../utils.js');
+const {newUser, callFioApi,fetchJson, generateFioDomain, getAccountFromKey, generateFioAddress, createKeypair, timeout} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
-
-const GENESIS_LOCK_PERIOD = 60;
 
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
-
-function wait(ms){
-  var start = new Date().getTime();
-  var end = start;
-  while(end < start + ms) {
-    end = new Date().getTime();
-  }
-}
 
 /*
  MANUAL CONFIGURATION REQUIRED TO RUN TEST
 
  The following changes must be made to run these tests:
 
- 1. Shorten the main net locking period to become 1 minute
+ 1. you must shorten the unstake locking period to become 1 minute
+ 
+   go to the contract fio.staking.cpp and change the following lines
+ 
+   change
+ 
+   int64_t UNSTAKELOCKDURATIONSECONDS = 604800;
+ 
+     to become
+ 
+   int64_t UNSTAKELOCKDURATIONSECONDS = 70;
+
+ 2. Shorten the main net locking period
 
   In: fio.token.hpp
 
@@ -36,11 +38,11 @@ function wait(ms){
   Then add the following code beneath what you commented out.
 
     // TESTING ONLY!!! shorten genesis locking periods..DO NOT DELIVER THIS
-    uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / 60);
+    uint32_t daysSinceGrant =  (int)((present_time  - lockiter->timestamp) / 10);
     uint32_t firstPayPeriod = 1;
     uint32_t payoutTimePeriod = 1;
 
-  2. Permit anyone to call the addlocked action in the system contract.
+  3. Permit anyone to call the addlocked action in the system contract.
 
   In: fio.system.cpp
 
@@ -49,15 +51,16 @@ function wait(ms){
     // require_auth(_self);
 */
 
+const lockdurationseconds = 10;     // What was set for SECONDSPERDAY in the contracts
+const UNSTAKELOCKDURATIONSECONDS = 70;   // What was set for UNSTAKELOCKDURATIONSECONDS in the contracts
+
 describe(`************************** stake-rapid-unstake-with-mainnet-locks.js ************************** \n    A. Stake tokens genesis lock account`, () => {
 
   //FIP-21 tests for rapid fire unstaking in succession
   
   let userA1, prevFundsAmount, locksdk, keys, accountnm,newFioDomain, newFioAddress
   const fundsAmount = 1000000000000
-  const lockdurationseconds = 60
-
-
+  
   it(`Create users`, async () => {
     userA1 = await newUser(faucet);
 
@@ -221,12 +224,8 @@ describe(`************************** stake-rapid-unstake-with-mainnet-locks.js *
     console.log("            waiting ",lockdurationseconds," seconds")
   })
 
-  it(` wait for lock period`, async () => {
-    try {
-      wait(lockdurationseconds * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait for lock period', async () => {
+    await timeout(lockdurationseconds * 1000);
   })
 
   it(`Success, Transfer 700 FIO to userA1 FIO public key`, async () => {
@@ -293,7 +292,7 @@ describe(`************************** stake-rapid-unstake-with-mainnet-locks.js *
       result = await callFioApi("get_table_rows", json);
      // console.log('Result: ', result);
       //console.log('periods : ', result.rows[0].periods[0].duration)
-      expect(result.rows[0].periods[0].duration).to.equal(GENESIS_LOCK_PERIOD);
+      expect(result.rows[0].periods[0].duration).to.equal(UNSTAKELOCKDURATIONSECONDS);
      // expect(result.rows[0].periods[0].percent - 100).to.equal(0);
     } catch (err) {
       console.log('Error', err);
@@ -325,12 +324,8 @@ describe(`************************** stake-rapid-unstake-with-mainnet-locks.js *
     console.log("            waiting 5 seconds ")
   })
 
-  it(` wait 5 seconds`, async () => {
-    try {
-      wait(5000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it('Wait for lock period', async () => {
+    await timeout(5000);
   })
 
    it(`Success, unstake 100 tokens `, async () => {
@@ -369,7 +364,7 @@ describe(`************************** stake-rapid-unstake-with-mainnet-locks.js *
       result = await callFioApi("get_table_rows", json);
       // console.log('Result: ', result);
       //console.log('periods : ', result.rows[0].periods[0].duration)
-      expect(result.rows[0].periods[0].duration).to.equal(GENESIS_LOCK_PERIOD);
+      expect(result.rows[0].periods[0].duration).to.equal(UNSTAKELOCKDURATIONSECONDS);
      // expect(result.rows[0].periods[0].percent - 50).to.equal(0);
      // expect(result.rows[0].periods[1].duration - 604800 ).greaterThan(4);
      // expect(result.rows[0].periods[1].percent - 50).to.equal(0);
