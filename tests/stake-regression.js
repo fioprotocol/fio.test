@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, existingUser,callFioApi,fetchJson, generateFioDomain, generateFioAddress, createKeypair} = require('../utils.js');
+const {newUser, callFioApi,fetchJson, timeout} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 const config = require('../config.js');
 let faucet;
@@ -9,18 +9,10 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-function wait(ms){
-  var start = new Date().getTime();
-  var end = start;
-  while(end < start + ms) {
-    end = new Date().getTime();
-  }
-}
-
 /********************* setting up these tests
  *
  *
- * first you must shorten the unstake locking period to become 1 minute
+ * first you must shorten the unstake locking period
  *
  *  go to the contract fio.staking.cpp and change the following lines
  *
@@ -54,7 +46,10 @@ function wait(ms){
  *  rebuild the contracts and restart your local chain.
  *
  *  you are now ready to run these staking tests!!!
+ * 
+ * 
  */
+
 
 /********************* Calculations
  *
@@ -75,6 +70,7 @@ function wait(ms){
 
 const UNSTAKELOCKDURATIONSECONDS = config.UNSTAKELOCKDURATIONSECONDS;
 const SECONDSPERDAY = config.SECONDSPERDAY;
+const INITIALROE = '0.500000000000000';
 
 describe(`************************** stake-regression.js ************************** \n    A. Stake tokens using auto proxy without voting first, \n Then do a full pull through unstaking including testing the locking period.`, () => {
 
@@ -232,7 +228,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(result.balance)
       expect(result.staked).to.equal(0)
       prevSrps = result.srps
-      expect(result.roe).to.equal('1.000000000000000');
+      expect(result.roe).to.equal(INITIALROE);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -270,7 +266,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevBalance - stakeAmount1)
       expect(result.staked).to.equal(stakeAmount1)
       expect(result.srps).to.equal(prevSrps + stakeAmount1 / result.roe)
-      expect(result.roe).to.equal('1.000000000000000');
+      expect(result.roe).to.equal(INITIALROE);
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -378,7 +374,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevBalance - stakeAmount1)
       expect(result.staked).to.equal(stakeAmount1 - unstake1)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake1 / prevStaked)))
-      expect(result.roe).to.equal('1.000000000000000');
+      expect(result.roe).to.equal(INITIALROE);
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -456,7 +452,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevBalance - stakeAmount1)
       expect(result.staked).to.equal(prevStaked - unstake2)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake2 / prevStaked)))
-      expect(result.roe).to.equal('1.000000000000000');
+      expect(result.roe).to.equal(INITIALROE);
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -499,12 +495,8 @@ describe(`************************** stake-regression.js ***********************
     console.log("            DAY #" + dayNumber + ": waiting " + SECONDSPERDAY + " seconds ")
   })
 
-  it(` wait ${SECONDSPERDAY} seconds`, async () => {
-    try {
-      wait(SECONDSPERDAY * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it(`wait for ${SECONDSPERDAY} seconds for unlock`, async () => {
+    await timeout(SECONDSPERDAY * 1000);
   })
 
   it(`Success. userA1 vote for producer to trigger locktokensv2 update.`, async () => {
@@ -577,7 +569,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable)
       expect(result.staked).to.equal(prevStaked - unstake3)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake3 / prevStaked)))
-      expect(result.roe).to.equal('1.000000000000000');
+      expect(result.roe).to.equal(INITIALROE);
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -649,7 +641,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable - stakeAmount2)
       expect(result.staked).to.equal(prevStaked + stakeAmount2)
       expect(result.srps).to.equal(prevSrps + stakeAmount2 / result.roe)
-      expect(result.roe).to.equal('1.000000000000000');
+      expect(result.roe).to.equal(INITIALROE);
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -685,7 +677,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable)
       expect(result.staked).to.equal(prevStaked - unstake4)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake4 / prevStaked)))
-      expect(result.roe).to.equal('1.000000000000000');
+      expect(result.roe).to.equal(INITIALROE);
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -730,12 +722,8 @@ describe(`************************** stake-regression.js ***********************
     console.log("            DAY #" + dayNumber + ": waiting " + SECONDSPERDAY + " seconds ")
   })
 
-  it(` wait ${SECONDSPERDAY} seconds`, async () => {
-    try {
-      wait(SECONDSPERDAY * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it(`wait for ${SECONDSPERDAY} seconds`, async () => {
+    await timeout(SECONDSPERDAY * 1000);
   })
 
   it(`success , userA1 unstake ${unstake5 / 1000000000} tokens `, async () => {
@@ -762,7 +750,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable)
       expect(result.staked).to.equal(prevStaked - unstake5)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake5 / prevStaked)))
-      expect(result.roe).to.equal('1.000000000000000');
+      expect(result.roe).to.equal(INITIALROE);
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -812,12 +800,8 @@ describe(`************************** stake-regression.js ***********************
     console.log("            DAY #" + dayNumber + ": waiting " + SECONDSPERDAY + " seconds ")
   })
 
-  it(` wait ${SECONDSPERDAY} seconds`, async () => {
-    try {
-      wait(SECONDSPERDAY * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it(`wait for ${SECONDSPERDAY} seconds`, async () => {
+    await timeout(SECONDSPERDAY * 1000);
   })
 
   it(`success , userA1 unstake ${unstake6 / 1000000000} tokens `, async () => {
@@ -844,7 +828,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable)
       expect(result.staked).to.equal(prevStaked - unstake6)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake6 / prevStaked)))
-      expect(result.roe).to.equal('1.000000000000000');
+      expect(result.roe).to.equal(INITIALROE);
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -896,12 +880,8 @@ describe(`************************** stake-regression.js ***********************
     console.log("            DAY #" + dayNumber + ": waiting " + SECONDSPERDAY + " seconds ")
   })
 
-  it(` wait ${SECONDSPERDAY} seconds`, async () => {
-    try {
-      wait(SECONDSPERDAY * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it(`wait for ${SECONDSPERDAY} seconds`, async () => {
+    await timeout(SECONDSPERDAY * 1000);
   })
 
   it(`success , userA1 unstake ${unstake7 / 1000000000} tokens `, async () => {
@@ -928,7 +908,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable)
       expect(result.staked).to.equal(prevStaked - unstake7)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake7 / prevStaked)))
-      expect(result.roe).to.equal('1.000000000000000');
+      expect(result.roe).to.equal(INITIALROE);
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -981,12 +961,8 @@ describe(`************************** stake-regression.js ***********************
     console.log("            DAY #" + dayNumber + ": waiting " + SECONDSPERDAY + " seconds ")
   })
 
-  it(` wait ${SECONDSPERDAY} seconds`, async () => {
-    try {
-      wait(SECONDSPERDAY * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it(`wait for ${SECONDSPERDAY} seconds`, async () => {
+    await timeout(SECONDSPERDAY * 1000);
   })
 
   it(`success , userA1 unstake ${unstake8 / 1000000000} tokens `, async () => {
@@ -1013,7 +989,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable)
       expect(result.staked).to.equal(prevStaked - unstake8)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake8 / prevStaked)))
-      expect(result.roe).to.equal('1.000000000000000');
+      expect(result.roe).to.equal(INITIALROE);
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -1068,12 +1044,8 @@ describe(`************************** stake-regression.js ***********************
     console.log("            DAY #" + dayNumber + ": waiting " + SECONDSPERDAY + " seconds ")
   })
 
-  it(` wait ${SECONDSPERDAY} seconds`, async () => {
-    try {
-      wait(SECONDSPERDAY * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it(`wait for ${SECONDSPERDAY} seconds`, async () => {
+    await timeout(SECONDSPERDAY * 1000);
   })
 
   it(`success , userA1 unstake ${unstake9 / 1000000000} tokens `, async () => {
@@ -1100,7 +1072,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable)
       expect(result.staked).to.equal(prevStaked - unstake9)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake9 / prevStaked)))
-      expect(result.roe).to.equal('1.000000000000000');
+      expect(result.roe).to.equal(INITIALROE);
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -1157,12 +1129,8 @@ describe(`************************** stake-regression.js ***********************
     console.log("            DAY #" + dayNumber + ": waiting " + SECONDSPERDAY + " seconds ")
   })
 
-  it(` wait ${SECONDSPERDAY} seconds`, async () => {
-    try {
-      wait(SECONDSPERDAY * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
+  it(`wait for ${SECONDSPERDAY} seconds`, async () => {
+    await timeout(SECONDSPERDAY * 1000);
   })
 
   it(`success , userA1 unstake ${unstake10 / 1000000000} tokens (BUG BD-2755)`, async () => {
@@ -1195,7 +1163,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.available).to.equal(prevAvailable + unstake1 + unstake2)
       expect(result.staked).to.equal(prevStaked - unstake10)
       expect(result.srps).to.equal(prevSrps - (prevSrps * (unstake10 / prevStaked)))
-      expect(result.roe).to.equal('1.000000000000000');
+      expect(result.roe).to.equal(INITIALROE);
 
       prevBalance = result.balance
       prevAvailable = result.available
@@ -1239,7 +1207,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.rows[0].periods[5].duration).to.equal(durActual6);
       expect(result.rows[0].periods[6].amount).to.equal(unstake10)
       durEstimate = UNSTAKELOCKDURATIONSECONDS + (dayNumber * SECONDSPERDAY)
-      expect(result.rows[0].periods[6].duration).is.greaterThan(durEstimate - 3).and.lessThan(durEstimate + 3);
+      expect(result.rows[0].periods[6].duration).is.greaterThan(durEstimate - 4).and.lessThan(durEstimate + 4);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
