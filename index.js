@@ -26,6 +26,7 @@ describe('TEST SUITE', () => {
   require('./tests/record-obt-data.js'); //FIP-1.b testing
   require('./tests/transfer-address.js'); // FIP-1.b
   require('./tests/addbundles.js');  // FIP-11.a
+  require('./tests/retire-tokens.js');  // FIP-22 Retire tokens
   require('./tests/tpid.js');
   require('./tests/nft-add-remove.js'); //FIP-27
   require('./tests/nft-sdk-tests.js');
@@ -34,6 +35,7 @@ describe('TEST SUITE', () => {
   //require('./tests/nft-remove-burn.js'); //FIP-27
   //require('./tests/clio.js');  // FIP-16  //Only works with local testing
   //require('./tests/performance-request-obt.js');
+  require('./tests/fee-distribution.js');
 
   //require('./tests/expired-address-domain.js'); // Requires manual updates to contracts to shorten expiration timing
   //require('./tests/expired-address-domain-modexpire.js'); // Requires modexpire action which allows expiring of domains
