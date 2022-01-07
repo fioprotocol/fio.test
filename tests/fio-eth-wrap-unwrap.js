@@ -12,14 +12,6 @@ const {newUser, fetchJson, timeout, callFioApi, createKeypair, getAccountFromKey
 const INIT_SUPPLY = 0;
 let faucet;
 
-function wait (ms){
-  let start = new Date().getTime();
-  let end = start;
-  while(end < start + ms) {
-      end = new Date().getTime();
-  }
-}
-
 const eosio = {
   account: 'eosio',
   publicKey: 'FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS',
@@ -352,6 +344,6 @@ describe(`************************** fio-eth-wrap-unwrap.js ********************
   it(`oracle3 executes - unwrap 100 FIO tokens, expect token transferred to designated addresses, RAM of signer increased`);
 });
 
-describe(`B. Unhappy token wrapping`, function () {
-
-});
+// describe(`B. Unhappy token wrapping`, function () {
+//
+// });

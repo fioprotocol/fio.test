@@ -16,7 +16,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
 });
 
-describe(`************************** fio-eth.js ************************** \n   WFIO AND FIONFT QUICK TESTS`, () => {
+describe.only(`************************** fio-eth.js ************************** \n   WFIO AND FIONFT QUICK TESTS`, () => {
 
   let owner;
   let accounts;
