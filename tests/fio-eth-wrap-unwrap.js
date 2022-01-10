@@ -12,13 +12,13 @@ const {newUser, fetchJson, timeout, callFioApi, createKeypair, getAccountFromKey
 const INIT_SUPPLY = 0;
 let faucet;
 
-function wait (ms){
-    let start = new Date().getTime();
-    let end = start;
-    while(end < start + ms) {
-        end = new Date().getTime();
-    }
-}
+// function wait (ms){
+//     let start = new Date().getTime();
+//     let end = start;
+//     while(end < start + ms) {
+//         end = new Date().getTime();
+//     }
+// }
 
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
@@ -178,29 +178,139 @@ describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
         actor: 'eosio',
         data: {
           oracle_actor: bp1.account,
-          actor: fioAccount.account
+          actor: oracle1.account
         }
       });
       console.log(result1);
+
+      const result2 = await fioAccount.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: bp2.account,
+          actor: oracle1.account
+        }
+      });
+      console.log(result2);
+
+      const result3 = await fioAccount.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: bp3.account,
+          actor: oracle1.account
+        }
+      });
+      console.log(result3);
+
+
     } catch (err) {
-      expect(err).to.equal(null);
+      console.log('failed on oracle 1')
+      expect(err.json.error.what).to.equal('could not insert object, most likely a uniqueness constraint was violated');
+      // throw err;
     }
-    await fioAccount.sdk.genericAction('pushTransaction', {
-      action: 'regoracle',
-      account: 'fio.oracle',
-      data :{
-        oracle_actor: "oracle2",
-        actor: oracle2.account
-      }
-    });
-    await fioAccount.sdk.genericAction('pushTransaction', {
-      action: 'regoracle',
-      account: 'fio.oracle',
-      data :{
-        oracle_actor: "oracle3",
-        actor: oracle3.account
-      }
-    });
+
+
+    try {
+      let oracleRecords = await callFioApi("get_table_rows", {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'oracles',
+        reverse: true
+      });
+      console.log(oracleRecords);
+    } catch (err) {
+      throw err;
+    }
+
+
+
+    try {
+      const result1 = await fioAccount.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: bp1.account,
+          actor: oracle2.account
+        }
+      });
+      console.log(result1);
+
+      const result2 = await fioAccount.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: bp2.account,
+          actor: oracle2.account
+        }
+      });
+      console.log(result2);
+
+      const result3 = await fioAccount.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: bp3.account,
+          actor: oracle2.account
+        }
+      });
+      console.log(result3);
+
+
+    } catch (err) {
+      console.log('failed on oracle 2')
+      expect(err.json.error.what).to.equal('could not insert object, most likely a uniqueness constraint was violated');
+      // throw err;
+    }
+
+
+
+
+
+    try {
+      const result1 = await fioAccount.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: bp1.account,
+          actor: oracle3.account
+        }
+      });
+      console.log(result1);
+
+      const result2 = await fioAccount.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: bp2.account,
+          actor: oracle3.account
+        }
+      });
+      console.log(result2);
+
+      const result3 = await fioAccount.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: bp3.account,
+          actor: oracle3.account
+        }
+      });
+      console.log(result3);
+    } catch (err) {
+      console.log('failed on oracle 3')
+      expect(err.json.error.what).to.equal('could not insert object, most likely a uniqueness constraint was violated');
+      // throw err;
+    }
 
 
 
@@ -256,7 +366,7 @@ describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
     expect(toStartingWfioBal.lt(toEndingWfioBal)).to.be.true;
     expect(toEndingWfioBal.sub(toStartingWfioBal).toNumber()).to.equal(100);
     // } catch (err) {
-    //   expect(err).to.equal(null);
+    //   throw err;
     // }
   });
 
@@ -323,7 +433,7 @@ describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
   //     expect(toStartingWfioBal.lt(toEndingWfioBal)).to.be.true;
   //     expect(toEndingWfioBal.sub(toStartingWfioBal).toNumber()).to.equal(100)
   //   } catch (err) {
-  //     expect(err).to.equal(null);
+  //     throw err;
   //   }
   // });
 
@@ -430,7 +540,7 @@ describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
   //     expect(toStartingWfioBal.lt(toEndingWfioBal)).to.be.true;
   //     expect(toEndingWfioBal.sub(toStartingWfioBal).toNumber()).to.equal(100)
   //   } catch (err) {
-  //     expect(err).to.equal(null);
+  //     throw err;
   //   }
   // });
 
