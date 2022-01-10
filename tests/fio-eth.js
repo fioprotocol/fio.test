@@ -783,13 +783,11 @@ describe(`C1. wFIO wrapping`, () => {
     try {
       let result = await wfio.connect(accounts[14]).wrap("donkey", 100, transactionId);
     } catch (err) {
-      expect(err).to.have.property('reason').which.is.a('string');
-      expect(err).to.have.property('code').which.is.a('string');
-      expect(err).to.have.property('argument').which.is.a('string');
-      expect(err).to.have.property('value').which.is.a('string');
+      expect(err).to.have.property('reason').which.is.a('string').and.equal('network does not support ENS');
+      expect(err).to.have.property('code').which.is.a('string').and.equal('UNSUPPORTED_OPERATION');
+      expect(err).to.have.property('operation').which.is.a('string').and.equal('ENS');
       expect(err).to.have.property('stack').which.is.a('string');
       expect(err).to.have.property('message').which.is.a('string');
-      expect(err.reason).to.equal('resolver or addr is not configured for ENS name');
     }
   });
 
@@ -799,28 +797,27 @@ describe(`C1. wFIO wrapping`, () => {
     try {
       let result = await wfio.connect(accounts[14]).wrap(100, transactionId);
     } catch (err) {
-      expect(err).to.have.property('reason').which.is.a('string');
-      expect(err).to.have.property('code').which.is.a('string');
-      expect(err).to.have.property('count').which.is.a('number');
-      expect(err).to.have.property('expectedCount').which.is.a('number');
+      expect(err).to.have.property('reason').which.is.a('string').and.equal('missing argument: passed to contract');
+      expect(err).to.have.property('code').which.is.a('string').and.equal('MISSING_ARGUMENT');
+      expect(err).to.have.property('count').which.is.a('number').and.equal(2);
+      expect(err).to.have.property('expectedCount').which.is.a('number').and.equal(3);
       expect(err).to.have.property('stack').which.is.a('string');
       expect(err).to.have.property('message').which.is.a('string');
-      expect(err.reason).to.equal('missing argument: passed to contract');
     }
   });
 
   it(`invalid tx amount, expect Error 400`, async () => {
+    let invalidTxAmt = "invalid-tx-amt";
     try {
-      let result = await wfio.wrap(custodians[0], "donkey", transactionId);
+      let result = await wfio.wrap(custodians[0], invalidTxAmt, transactionId);
       expect(result.status).to.equal('OK');
     } catch (err) {
-      expect(err).to.have.property('reason').which.is.a('string');
-      expect(err).to.have.property('code').which.is.a('string');
-      expect(err).to.have.property('argument').which.is.a('string');
-      expect(err).to.have.property('value').which.is.a('string');
+      expect(err).to.have.property('reason').which.is.a('string').and.equal('invalid BigNumber string');
+      expect(err).to.have.property('code').which.is.a('string').and.equal('INVALID_ARGUMENT');
+      expect(err).to.have.property('argument').which.is.a('string').and.equal('value');
+      expect(err).to.have.property('value').which.is.a('string').and.equal(invalidTxAmt);
       expect(err).to.have.property('stack').which.is.a('string');
       expect(err).to.have.property('message').which.is.a('string');
-      expect(err.reason).to.equal('invalid BigNumber string');
     }
   });
 
@@ -829,13 +826,12 @@ describe(`C1. wFIO wrapping`, () => {
       let result = await wfio.wrap(custodians[0], transactionId);
       expect(result.status).to.equal('OK');
     } catch (err) {
-      expect(err).to.have.property('reason').which.is.a('string');
-      expect(err).to.have.property('code').which.is.a('string');
-      expect(err).to.have.property('count').which.is.a('number');
-      expect(err).to.have.property('expectedCount').which.is.a('number');
+      expect(err).to.have.property('reason').which.is.a('string').and.equal('missing argument: passed to contract');
+      expect(err).to.have.property('code').which.is.a('string').and.equal('MISSING_ARGUMENT');
+      expect(err).to.have.property('count').which.is.a('number').and.equal(2);
+      expect(err).to.have.property('expectedCount').which.is.a('number').and.equal(3);
       expect(err).to.have.property('stack').which.is.a('string');
       expect(err).to.have.property('message').which.is.a('string');
-      expect(err.reason).to.equal('missing argument: passed to contract');
     }
   });
 
@@ -846,7 +842,11 @@ describe(`C1. wFIO wrapping`, () => {
       let result = await wfio.connect(accounts[14]).wrap(accounts[0].address, 100, 1); // TODO: Should this third arg take any arbitrary string
       expect(result.status).to.equal('OK');
     } catch (err) {
-      expect(err.message).to.contain('Invalid obtid');
+      console.log('fucking dickshit ass cock typeL ', typeof err.stackTrace);
+      expect(err).to.have.property('stackTrace').which.is.a('Array');
+      expect(err).to.have.property('message').which.is.a('string').and.contain('Invalid obtid');
+      expect(err).to.have.property('transactionHash').which.is.a('string');
+      expect(err).to.have.property('stack').which.is.a('string');
     }
   });
 
@@ -855,13 +855,12 @@ describe(`C1. wFIO wrapping`, () => {
       let result = await wfio.wrap(custodians[0], 1000);
       expect(result.status).to.equal('OK');
     } catch (err) {
-      expect(err).to.have.property('reason').which.is.a('string');
-      expect(err).to.have.property('code').which.is.a('string');
-      expect(err).to.have.property('count').which.is.a('number');
-      expect(err).to.have.property('expectedCount').which.is.a('number');
+      expect(err).to.have.property('reason').which.is.a('string').and.equal('missing argument: passed to contract');
+      expect(err).to.have.property('code').which.is.a('string').and.equal('MISSING_ARGUMENT');
+      expect(err).to.have.property('count').which.is.a('number').and.equal(2);
+      expect(err).to.have.property('expectedCount').which.is.a('number').and.equal(3);
       expect(err).to.have.property('stack').which.is.a('string');
       expect(err).to.have.property('message').which.is.a('string');
-      expect(err.reason).to.equal('missing argument: passed to contract');
     }
   });
 
@@ -870,10 +869,9 @@ describe(`C1. wFIO wrapping`, () => {
       let result = await wfio.wrap(accounts[13].address, 100, transactionId);
       expect(result.status).to.equal('OK');
     } catch (err) {
-      expect(err).to.have.property('stackTrace').which.is.a('array');
+      expect(err).to.have.property('stackTrace').which.is.a('Array');
       expect(err).to.have.property('stack').which.is.a('string');
-      expect(err).to.have.property('message').which.is.a('string');
-      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Only a wFIO oracle may call this function.\'');
+      expect(err).to.have.property('message').which.is.a('string').and.equal('VM Exception while processing transaction: reverted with reason string \'Only a wFIO oracle may call this function.\'');
     }
   });
 
@@ -900,11 +898,10 @@ describe(`C1. wFIO wrapping`, () => {
     try {
       let result = await wfio.connect(accounts[27]).wrap(accounts[1].address, 100, transactionId);
     } catch (err) {
-      expect(err).to.have.property('stackTrace').which.is.a('array');
+      expect(err).to.have.property('stackTrace').which.is.a('Array');
       expect(err).to.have.property('transactionHash').which.is.a('string');
       expect(err).to.have.property('stack').which.is.a('string');
-      expect(err).to.have.property('message').which.is.a('string');
-      expect(err.message).to.contain('account does not match prior approvals');
+      expect(err).to.have.property('message').which.is.a('string').and.contain('account does not match prior approvals');
       let toEndingWfioBal = await wfio.balanceOf(accounts[0].address);
       expect(toStartingWfioBal.lt(toEndingWfioBal)).to.be.false;
       expect(toEndingWfioBal.sub(toStartingWfioBal).toNumber()).to.equal(0)
@@ -937,8 +934,7 @@ describe(`C1. wFIO wrapping`, () => {
       expect(err).to.have.property('stackTrace').which.is.a('array');
       expect(err).to.have.property('transactionHash').which.is.a('string');
       expect(err).to.have.property('stack').which.is.a('string');
-      expect(err).to.have.property('message').which.is.a('string');
-      expect(err.message).to.contain('amount does not match prior approvals');
+      expect(err).to.have.property('message').which.is.a('string').and.contain('amount does not match prior approvals');
       let fromEndingBal = await accounts[27].getBalance();
       let toEndingWfioBal = await wfio.balanceOf(accounts[0].address);
       expect(toStartingWfioBal.lt(toEndingWfioBal)).to.be.false;
