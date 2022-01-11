@@ -1588,3 +1588,245 @@ describe(`E. Unhappy tests. Try to retire FIO tokens with invalid input`, functi
     }
   });
 });
+
+
+describe(`F. Unlock with various locked and unlocked amounts`, function () {
+  let user1, user1TotalBal, user1LockedBal, user1AvailBal, lockTableRemainingAmount, lockTableGrantAmount
+  let prevUser1TotalBal, prevUser1AvailBal, prevUser1LockedBal;
+
+  const lock1 = 0.5,
+    retire1 = 0.25,
+    retireAmount = 1000;
+
+  before(async function () {
+    user1 = await newUser(faucet);
+  });
+
+  it('Get retire_fio_token_fee', async () => {
+    try {
+      result = await user1.sdk.getFee('add_bundled_transactions', user1.address);
+      add_bundled_transactions_fee = result.fee;
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Transfer 10K tokens`, async function () {
+    await faucet.genericAction('pushTransaction', {
+      action: 'trnsfiopubky',
+      account: 'fio.token',
+      data: {
+        payee_public_key: user1.publicKey,
+        amount: 10000000000000,
+        max_fee: config.maxFee,
+        actor: faucet.account,
+        tpid: ""
+      }
+    });
+  });
+
+  it(`Get user1 balance`, async function () {
+    const result = await user1.sdk.genericAction('getFioBalance', {});
+    //console.log('Result: ', result);
+    user1TotalBal = result.balance;
+    user1AvailBal = result.available;
+    user1LockedBal = user1TotalBal - user1AvailBal;
+  });
+
+  it(`Lock ${lock1} of tokens (locktype = 4)`, async function () {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'addlocked',
+        account: 'eosio',
+        data: {
+          owner: user1.account,
+          amount: user1TotalBal * lock1,
+          locktype: 4,
+        }
+      });
+      // console.log(result);
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  });
+
+  it(`Get user1 balance`, async function () {
+    prevUser1TotalBal = user1TotalBal;
+    prevUser1AvailBal = user1AvailBal;
+    prevUser1LockedBal = user1LockedBal;
+    const result = await user1.sdk.genericAction('getFioBalance', {});
+    //console.log('Result: ', result);
+    user1TotalBal = result.balance;
+    user1AvailBal = result.available;
+    user1LockedBal = user1TotalBal - user1AvailBal;
+
+    expect(user1TotalBal).to.equal(prevUser1TotalBal);
+    expect(user1AvailBal).to.equal(prevUser1AvailBal * lock1);
+    expect(user1LockedBal).to.equal(prevUser1LockedBal + (prevUser1AvailBal * lock1));
+  });
+
+  it(`get user1 locks`, async function () {
+    const json = {
+      json: true,
+      code: 'eosio',
+      scope: 'eosio',
+      table: 'lockedtokens',
+      lower_bound: user1.account,
+      upper_bound: user1.account,
+      reverse: true,
+      show_payer: false
+    }
+    let found = false;
+    let user;
+    let row;
+    const lockedtokens = await callFioApi("get_table_rows", json);
+    for (user in lockedtokens.rows) {
+      if (lockedtokens.rows[user].owner === user1.account) {
+        found = true;
+        row = lockedtokens.rows[user];
+        break
+      }
+    }
+    lockTableRemainingAmount = row.remaining_locked_amount;
+    lockTableGrantAmount = row.total_grant_amount;
+    //console.log(row);
+    expect(found).to.equal(true);
+    expect(row.total_grant_amount).to.equal(user1LockedBal);
+    expect(row.remaining_locked_amount).to.equal(user1LockedBal);
+  });
+
+  it(`Retire ${retire1} of total balance.`, async function () {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'retire',
+        account: 'fio.token',
+        data: {
+          quantity: user1TotalBal * retire1,
+          memo: "",
+          actor: user1.account,
+        }
+      });
+      //console.log('Result: ', result);
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log(err.json);
+      throw err;
+    }
+  });
+
+  it(`Get user1 balance. Expect reduction in total and locked amount only (since locked tokens get retired before unlocked tokens).`, async function () {
+    prevUser1TotalBal = user1TotalBal;
+    prevUser1AvailBal = user1AvailBal;
+    prevUser1LockedBal = user1LockedBal;
+    const result = await user1.sdk.genericAction('getFioBalance', {});
+    //console.log('Result: ', result);
+    user1TotalBal = result.balance;
+    user1AvailBal = result.available;
+    user1LockedBal = user1TotalBal - user1AvailBal;
+    expect(user1TotalBal).to.equal(prevUser1TotalBal - (prevUser1TotalBal * retire1));
+    expect(user1AvailBal).to.equal(prevUser1AvailBal);
+    expect(user1LockedBal).to.equal(prevUser1LockedBal - (prevUser1TotalBal * retire1));
+  });
+
+  it(`get user1 locks`, async function () {
+    prevLockTableRemainingAmount = lockTableRemainingAmount;
+    prevLockTableGrantAmount = lockTableGrantAmount;
+    const json = {
+      json: true,
+      code: 'eosio',
+      scope: 'eosio',
+      table: 'lockedtokens',
+      lower_bound: user1.account,
+      upper_bound: user1.account,
+      reverse: true,
+      show_payer: false
+    }
+    let found = false;
+    let user;
+    let row;
+    const lockedtokens = await callFioApi("get_table_rows", json);
+    for (user in lockedtokens.rows) {
+      if (lockedtokens.rows[user].owner === user1.account) {
+        found = true;
+        row = lockedtokens.rows[user];
+        break
+      }
+    }
+    //console.log(row);
+
+    lockTableRemainingAmount = row.remaining_locked_amount;
+    lockTableGrantAmount = row.total_grant_amount;
+    expect(found).to.equal(true);
+    expect(row.total_grant_amount).to.equal(prevLockTableGrantAmount);
+    expect(row.remaining_locked_amount).to.equal(prevLockTableRemainingAmount - (prevUser1TotalBal * retire1));
+  });
+
+  it(`Retire remaining_lock_amount + ${retireAmount} of total balance.`, async function () {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'retire',
+        account: 'fio.token',
+        data: {
+          quantity: lockTableRemainingAmount + retireAmount,
+          memo: "",
+          actor: user1.account,
+        }
+      });
+      //console.log('Result: ', result);
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log(err.json);
+      throw err;
+    }
+  });
+
+  it.skip(`BUG: Get user1 balance. Expect locked balance = 0 and reduction in total and available balance.`, async function () {
+    prevUser1TotalBal = user1TotalBal;
+    prevUser1AvailBal = user1AvailBal;
+    prevUser1LockedBal = user1LockedBal;
+    const result = await user1.sdk.genericAction('getFioBalance', {});
+    console.log('Result: ', result);
+    user1TotalBal = result.balance;
+    user1AvailBal = result.available;
+    user1LockedBal = user1TotalBal - user1AvailBal;
+    expect(user1TotalBal).to.equal(prevUser1TotalBal - (lockTableRemainingAmount + retireAmount));
+    expect(user1AvailBal).to.equal(prevUser1AvailBal - retireAmount);
+    expect(user1LockedBal).to.equal(0);
+  });
+
+  it.skip(`BUG: get user1 locks. Expect Lock to go away?? or be empty`, async function () {
+    prevLockTableRemainingAmount = lockTableRemainingAmount;
+    prevLockTableGrantAmount = lockTableGrantAmount;
+    const json = {
+      json: true,
+      code: 'eosio',
+      scope: 'eosio',
+      table: 'lockedtokens',
+      lower_bound: user1.account,
+      upper_bound: user1.account,
+      reverse: true,
+      show_payer: false
+    }
+    let found = false;
+    let user;
+    let row;
+    const lockedtokens = await callFioApi("get_table_rows", json);
+    for (user in lockedtokens.rows) {
+      if (lockedtokens.rows[user].owner === user1.account) {
+        found = true;
+        row = lockedtokens.rows[user];
+        break
+      }
+    }
+    console.log(row);
+
+    lockTableRemainingAmount = row.remaining_locked_amount;
+    lockTableGrantAmount = row.total_grant_amount;
+    expect(found).to.equal(true);
+    expect(row.total_grant_amount).to.equal(prevLockTableGrantAmount);
+    expect(row.remaining_locked_amount).to.equal(prevLockTableRemainingAmount - (prevUser1TotalBal * retire1));
+  });
+});
