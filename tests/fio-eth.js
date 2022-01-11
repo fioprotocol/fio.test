@@ -8,15 +8,16 @@ const {FIOSDK } = require('@fioprotocol/fiosdk');
 
 const config = require('../config.js');
 const {newUser, fetchJson, timeout, callFioApi} = require('../utils.js');
+const {existingUser} = require("../utils");
 
 const INIT_SUPPLY = 0;
 let faucet;
 
-before(async () => {
+before(async function () {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
 });
 
-describe.only(`************************** fio-eth.js ************************** \n   WFIO AND FIONFT QUICK TESTS`, () => {
+describe(`************************** fio-eth.js ************************** \n   WFIO AND FIONFT QUICK TESTS`, function () {
 
   let owner;
   let accounts;
@@ -24,7 +25,7 @@ describe.only(`************************** fio-eth.js ************************** 
   let factory;
   let wfio;
 
-  before(async () => {
+  before(async function () {
     [owner, ...accounts] = await ethers.getSigners();
     custodians = [];
     for (let i = 1; i < 11; i++) {
@@ -43,7 +44,7 @@ describe.only(`************************** fio-eth.js ************************** 
   });
 });
 
-describe(`A1. Custodians (get)`, () => {
+describe(`A1. [ETH] Custodians (get)`, function () {
 
   let accounts;
   let custodians;
@@ -51,7 +52,7 @@ describe(`A1. Custodians (get)`, () => {
   let factory;
   let wfio;
 
-  before(async () => {
+  before(async function () {
     [owner, ...accounts] = await ethers.getSigners();
     custodians = [];
     for (let i = 1; i < 11; i++) {
@@ -62,7 +63,7 @@ describe(`A1. Custodians (get)`, () => {
     await wfio.deployTransaction.wait();
   });
 
-  it(`get a custodian by address`, async () => {
+  it(`get a custodian by address`, async function () {
     let result = await wfio.getCustodian(custodians[0]);
     expect(result).to.be.a('array');
     expect(result[0]).to.be.a('boolean').and.equal(true);
@@ -71,7 +72,7 @@ describe(`A1. Custodians (get)`, () => {
   });
 
   // unhappy paths
-  it(`invalid address`, async () => {
+  it(`invalid address`, async function () {
     try {
       let result = await wfio.getCustodian('0x0');
     } catch (err) {
@@ -85,7 +86,7 @@ describe(`A1. Custodians (get)`, () => {
     }
   });
 
-  it(`missing address`, async () => {
+  it(`missing address`, async function () {
     try {
       let result = await wfio.getCustodian();
     } catch (err) {
@@ -99,7 +100,7 @@ describe(`A1. Custodians (get)`, () => {
     }
   });
 
-  it(`non-custodian address`, async () => {
+  it(`non-custodian address`, async function () {
     let result = await wfio.getCustodian(accounts[15].address);
     expect(result).to.be.a('array');
     expect(result[0]).to.be.a('boolean').and.equal(false);
@@ -108,7 +109,7 @@ describe(`A1. Custodians (get)`, () => {
   });
 });
 
-describe(`A2. Custodians (register)`, () => {
+describe(`A2. [ETH] Custodians (register)`, function () {
 
   let accounts;
   let custodians;
@@ -116,7 +117,7 @@ describe(`A2. Custodians (register)`, () => {
   let factory;
   let wfio;
 
-  before(async () => {
+  before(async function () {
     [owner, ...accounts] = await ethers.getSigners();
     custodians = [];
     for (let i = 1; i < 11; i++) {
@@ -127,7 +128,7 @@ describe(`A2. Custodians (register)`, () => {
     await wfio.deployTransaction.wait();
   });
 
-  it(`register a new custodian`, async () => {
+  it(`register a new custodian`, async function () {
     await wfio.connect(accounts[1]).regcust(accounts[18].address);
     await wfio.connect(accounts[2]).regcust(accounts[18].address);
     await wfio.connect(accounts[3]).regcust(accounts[18].address);
@@ -142,7 +143,7 @@ describe(`A2. Custodians (register)`, () => {
   // TODO: Register some more new custodians and make sure they are where they should be
 
   // unhappy paths
-  it(`register custodian with an invalid eth address, expect Error 400 `, async () => {
+  it(`register custodian with an invalid eth address, expect Error 400 `, async function () {
     try {
       let result = await wfio.regcust('0x0')
     } catch (err) {
@@ -156,7 +157,7 @@ describe(`A2. Custodians (register)`, () => {
     }
   });
 
-  it(`register custodian with missing eth address, expect Error 400 `, async () => {
+  it(`register custodian with missing eth address, expect Error 400 `, async function () {
     try {
       await wfio.regcust();
     } catch (err) {
@@ -170,7 +171,7 @@ describe(`A2. Custodians (register)`, () => {
     }
   });
 
-  it(`register custodian with no authority, expect Error 403 `, async () => {
+  it(`register custodian with no authority, expect Error 403 `, async function () {
     try {
       let result = await wfio.regcust(accounts[18].address);
     } catch (err) {
@@ -181,7 +182,7 @@ describe(`A2. Custodians (register)`, () => {
     }
   });
 
-  it(`register custodian with an already-registered eth address, expect Error 400 `, async () => {
+  it(`register custodian with an already-registered eth address, expect Error 400 `, async function () {
     try {
       let result = await wfio.connect(accounts[1]).regcust(accounts[2].address);
     } catch (err) {
@@ -197,7 +198,7 @@ describe(`A2. Custodians (register)`, () => {
   // TODO: Test with incorrect consensus (too few approvers, already approved address)
 });
 
-describe(`A3. Custodians (unregister)`, () => {
+describe(`A3. [ETH] Custodians (unregister)`, function () {
 
   let accounts;
   let custodians;
@@ -205,7 +206,7 @@ describe(`A3. Custodians (unregister)`, () => {
   let factory;
   let wfio;
 
-  before(async () => {
+  before(async function () {
     [owner, ...accounts] = await ethers.getSigners();
     custodians = [];
     for (let i = 1; i < 11; i++) {
@@ -216,7 +217,7 @@ describe(`A3. Custodians (unregister)`, () => {
     await wfio.deployTransaction.wait();
   });
 
-  it(`unregister a custodian`, async () => {
+  it(`unregister a custodian`, async function () {
     await wfio.connect(accounts[1]).unregcust(accounts[9].address);
     await wfio.connect(accounts[2]).unregcust(accounts[9].address);
     await wfio.connect(accounts[3]).unregcust(accounts[9].address);
@@ -229,7 +230,7 @@ describe(`A3. Custodians (unregister)`, () => {
   });
 
   // unhappy paths
-  it(`unregister a missing ETH address, expect error`, async () => {
+  it(`unregister a missing ETH address, expect error`, async function () {
     try {
       let result = await wfio.unregcust()
     } catch (err) {
@@ -243,7 +244,7 @@ describe(`A3. Custodians (unregister)`, () => {
     }
   });
 
-  it(`unregister an invalid address, expect error.`, async () => {
+  it(`unregister an invalid address, expect error.`, async function () {
     try {
       let result = await wfio.unregcust('0x0')
     } catch (err) {
@@ -257,7 +258,7 @@ describe(`A3. Custodians (unregister)`, () => {
     }
   });
 
-  it(`unregister with no authority, expect error.`, async () => {
+  it(`unregister with no authority, expect error.`, async function () {
     try {
       let result = await wfio.unregcust(custodians[0])
     } catch (err) {
@@ -272,7 +273,7 @@ describe(`A3. Custodians (unregister)`, () => {
   // TODO: Test with incorrect consensus (too few approvers, already approved address)
 });
 
-describe(`B1. Oracles (get)`, () => {
+describe(`B1. [ETH] Oracles (get)`, function () {
 
   let accounts;
   let custodians;
@@ -280,7 +281,7 @@ describe(`B1. Oracles (get)`, () => {
   let factory;
   let wfio;
 
-  before(async () => {
+  before(async function () {
     [owner, ...accounts] = await ethers.getSigners();
     custodians = [];
     for (let i = 1; i < 11; i++) {
@@ -313,7 +314,7 @@ describe(`B1. Oracles (get)`, () => {
     await wfio.connect(accounts[7]).regoracle(accounts[14].address);
   });
 
-  it(`get list of oracles`, async () => {
+  it(`get list of oracles`, async function () {
     let result = await wfio.getOracles();
     expect(result).to.be.a('array');
     expect(result.length).to.equal(3);
@@ -322,7 +323,7 @@ describe(`B1. Oracles (get)`, () => {
     expect(result).to.contain(accounts[14].address);
   });
 
-  it(`get an oracle by address`, async () => {
+  it(`get an oracle by address`, async function () {
     let result = await wfio.getOracle(accounts[12].address);
     expect(result).to.be.a('array');
     expect(result[0]).to.be.a('boolean').and.equal(true);
@@ -331,7 +332,7 @@ describe(`B1. Oracles (get)`, () => {
   });
 
   // unhappy paths
-  it(`invalid address`, async () => {
+  it(`invalid address`, async function () {
     try {
       let result = await wfio.getOracle('0x0');
     } catch (err) {
@@ -345,7 +346,7 @@ describe(`B1. Oracles (get)`, () => {
     }
   });
 
-  it(`missing address`, async () => {
+  it(`missing address`, async function () {
     try {
       let result = await wfio.getOracle();
     } catch (err) {
@@ -359,7 +360,7 @@ describe(`B1. Oracles (get)`, () => {
     }
   });
 
-  it(`non-custodian address`, async () => {
+  it(`non-custodian address`, async function () {
     try {
       let result = await wfio.getOracle(accounts[15].address);
       expect(result).to.be.a('array');
@@ -375,7 +376,7 @@ describe(`B1. Oracles (get)`, () => {
   // TODO: Test with incorrect consensus (too few approvers, already approved address)
 });
 
-describe(`B2. Oracles (register)`, () => {
+describe(`B2. [ETH] Oracles (register)`, function () {
 
   let accounts;
   let custodians;
@@ -383,7 +384,7 @@ describe(`B2. Oracles (register)`, () => {
   let factory;
   let wfio;
 
-  before(async () => {
+  before(async function () {
     [owner, ...accounts] = await ethers.getSigners();
     custodians = [];
     for (let i = 1; i < 11; i++) {
@@ -402,7 +403,7 @@ describe(`B2. Oracles (register)`, () => {
     await wfio.connect(accounts[7]).regoracle(accounts[12].address);
   });
 
-  it(`register oracle`, async () => {
+  it(`register oracle`, async function () {
     await wfio.connect(accounts[1]).regoracle(accounts[13].address);
     await wfio.connect(accounts[2]).regoracle(accounts[13].address);
     await wfio.connect(accounts[3]).regoracle(accounts[13].address);
@@ -420,7 +421,7 @@ describe(`B2. Oracles (register)`, () => {
   // TODO: Register some more new custodians and make sure they are where they should be
 
   // unhappy paths
-  it(`register oracle with an invalid eth address, expect Error 400`, async () => {
+  it(`register oracle with an invalid eth address, expect Error 400`, async function () {
     try {
       let result = await wfio.regoracle('0x0');
     } catch (err) {
@@ -434,7 +435,7 @@ describe(`B2. Oracles (register)`, () => {
     }
   });
 
-  it(`register oracle with a missing eth address, expect Error 400`, async () => {
+  it(`register oracle with a missing eth address, expect Error 400`, async function () {
     try {
       let result = await wfio.regoracle();
     } catch (err) {
@@ -448,7 +449,7 @@ describe(`B2. Oracles (register)`, () => {
     }
   });
 
-  it(`register oracle with no authority, expect Error 403 `, async () => {
+  it(`register oracle with no authority, expect Error 403 `, async function () {
     try {
       let result = await wfio.regoracle(accounts[18].address);
     } catch (err) {
@@ -463,14 +464,14 @@ describe(`B2. Oracles (register)`, () => {
   // TODO: Test with incorrect consensus (too few approvers, already approved address)
 });
 
-describe(`B3. Oracles (unregister)`, () => {
+describe(`B3. [ETH] Oracles (unregister)`, function () {
   let accounts;
   let custodians;
   let owner;
   let factory;
   let wfio;
 
-  before(async () => {
+  before(async function () {
     [owner, ...accounts] = await ethers.getSigners();
     custodians = [];
     for (let i = 1; i < 11; i++) {
@@ -489,7 +490,7 @@ describe(`B3. Oracles (unregister)`, () => {
     await wfio.connect(accounts[7]).regoracle(accounts[12].address);
   });
 
-  it(`Unregister oracle`, async () => {
+  it(`Unregister oracle`, async function () {
     await wfio.connect(accounts[1]).unregoracle(accounts[12].address);
     await wfio.connect(accounts[2]).unregoracle(accounts[12].address);
     await wfio.connect(accounts[3]).unregoracle(accounts[12].address);
@@ -503,7 +504,7 @@ describe(`B3. Oracles (unregister)`, () => {
   });
 
   // unhappy paths
-  it(`unregister a missing ETH address, expect error`, async () => {
+  it(`unregister a missing ETH address, expect error`, async function () {
     try {
       let result = await wfio.unregoracle();
     } catch (err) {
@@ -517,7 +518,7 @@ describe(`B3. Oracles (unregister)`, () => {
     }
   });
 
-  it(`unregister an invalid address, expect error.`, async () => {
+  it(`unregister an invalid address, expect error.`, async function () {
     try {
       let result = await wfio.unregoracle('0x0');
     } catch (err) {
@@ -531,7 +532,7 @@ describe(`B3. Oracles (unregister)`, () => {
     }
   });
 
-  it(`unregister with no authority, expect error.`, async () => {
+  it(`unregister with no authority, expect error.`, async function () {
     try {
       let result = await wfio.unregoracle(custodians[0])
     } catch (err) {
@@ -546,7 +547,7 @@ describe(`B3. Oracles (unregister)`, () => {
   // TODO: Test with incorrect consensus (too few approvers, already approved address)
 });
 
-describe(`C1. wFIO wrapping`, () => {
+describe(`C1. [ETH] wFIO wrapping`, function () {
 
   let fioAccount;
   let fioBalance;
@@ -558,7 +559,7 @@ describe(`C1. wFIO wrapping`, () => {
   let wfio;
   let transactionId;
 
-  beforeEach(async () => {
+  beforeEach(async function () {
     fioAccount = await newUser(faucet);
     fioBalance = await fioAccount.sdk.genericAction('getFioBalance', { });
     fioTransaction = await faucet.genericAction('transferTokens', {
@@ -570,7 +571,7 @@ describe(`C1. wFIO wrapping`, () => {
     transactionId = fioTransaction.transaction_id;
   });
 
-  before(async () => {
+  before(async function () {
     [owner, ...accounts] = await ethers.getSigners();
     custodians = [];
     for (let i = 1; i < 11; i++) {
@@ -603,7 +604,7 @@ describe(`C1. wFIO wrapping`, () => {
     await wfio.connect(accounts[7]).regoracle(accounts[14].address);
   });
 
-  it(`Wrap 100 wFIO`, async () => {
+  it(`Wrap 100 wFIO`, async function () {
     let fromStartingBal = await accounts[14].getBalance();
     let toStartingWfioBal = await wfio.balanceOf(accounts[0].address);
 
@@ -623,7 +624,7 @@ describe(`C1. wFIO wrapping`, () => {
     }
   });
 
-  it(`Add 3 new oracles and wrap 100 wFIO`, async () => {
+  it(`Add 3 new oracles and wrap 100 wFIO`, async function () {
     // add 3 new oracles
     await wfio.connect(accounts[1]).regoracle(accounts[15].address);
     await wfio.connect(accounts[2]).regoracle(accounts[15].address);
@@ -669,7 +670,7 @@ describe(`C1. wFIO wrapping`, () => {
     }
   });
 
-  it(`Add 10 new oracles and wrap 100 wFIO`, async () => {
+  it(`Add 10 new oracles and wrap 100 wFIO`, async function () {
 
     // register 10 more new oracles
     await wfio.connect(accounts[1]).regoracle(accounts[18].address);
@@ -777,21 +778,25 @@ describe(`C1. wFIO wrapping`, () => {
   });
 
   // unhappy paths
-  it(`invalid address, expect Error 400`, async () => {
+  it(`invalid address, expect Error 400`, async function () {
     await wfio.connect(accounts[12]).wrap(accounts[0].address, 100, transactionId);
     await wfio.connect(accounts[13]).wrap(accounts[0].address, 100, transactionId);
     try {
       let result = await wfio.connect(accounts[14]).wrap("donkey", 100, transactionId);
     } catch (err) {
-      expect(err).to.have.property('reason').which.is.a('string').and.equal('network does not support ENS');
-      expect(err).to.have.property('code').which.is.a('string').and.equal('UNSUPPORTED_OPERATION');
-      expect(err).to.have.property('operation').which.is.a('string').and.equal('ENS');
+      // expect(err).to.have.property('reason').which.is.a('string').and.equal('network does not support ENS');
+      // expect(err).to.have.property('code').which.is.a('string').and.equal('UNSUPPORTED_OPERATION');
+      // expect(err).to.have.property('operation').which.is.a('string').and.equal('ENS');
+
+      expect(err).to.have.property('reason').which.is.a('string').and.equal('resolver or addr is not configured for ENS name');
+      expect(err).to.have.property('code').which.is.a('string').and.equal('INVALID_ARGUMENT');
+
       expect(err).to.have.property('stack').which.is.a('string');
       expect(err).to.have.property('message').which.is.a('string');
     }
   });
 
-  it(`missing address, expect Error 400`, async () => {
+  it(`missing address, expect Error 400`, async function () {
     await wfio.connect(accounts[12]).wrap(accounts[0].address, 100, transactionId);
     await wfio.connect(accounts[13]).wrap(accounts[0].address, 100, transactionId);
     try {
@@ -806,7 +811,7 @@ describe(`C1. wFIO wrapping`, () => {
     }
   });
 
-  it(`invalid tx amount, expect Error 400`, async () => {
+  it(`invalid tx amount, expect Error 400`, async function () {
     let invalidTxAmt = "invalid-tx-amt";
     try {
       let result = await wfio.wrap(custodians[0], invalidTxAmt, transactionId);
@@ -821,7 +826,7 @@ describe(`C1. wFIO wrapping`, () => {
     }
   });
 
-  it(`missing tx amount, expect Error 400`, async () => {
+  it(`missing tx amount, expect Error 400`, async function () {
     try {
       let result = await wfio.wrap(custodians[0], transactionId);
       expect(result.status).to.equal('OK');
@@ -835,14 +840,13 @@ describe(`C1. wFIO wrapping`, () => {
     }
   });
 
-  it(`invalid obtid, expect Error 400`, async () => {
+  it(`invalid obtid, expect Error 400`, async function () {
     await wfio.connect(accounts[12]).wrap(accounts[0].address, 100, "donkey");
     await wfio.connect(accounts[13]).wrap(accounts[0].address, 100, "donkey");
     try {
       let result = await wfio.connect(accounts[14]).wrap(accounts[0].address, 100, 1); // TODO: Should this third arg take any arbitrary string
       expect(result.status).to.equal('OK');
     } catch (err) {
-      console.log('fucking dickshit ass cock typeL ', typeof err.stackTrace);
       expect(err).to.have.property('stackTrace').which.is.a('Array');
       expect(err).to.have.property('message').which.is.a('string').and.contain('Invalid obtid');
       expect(err).to.have.property('transactionHash').which.is.a('string');
@@ -850,7 +854,7 @@ describe(`C1. wFIO wrapping`, () => {
     }
   });
 
-  it(`missing obtid, expect Error 400`, async () => {
+  it(`missing obtid, expect Error 400`, async function () {
     try {
       let result = await wfio.wrap(custodians[0], 1000);
       expect(result.status).to.equal('OK');
@@ -864,7 +868,7 @@ describe(`C1. wFIO wrapping`, () => {
     }
   });
 
-  it(`no authority, expect Error 403`, async () => {
+  it(`no authority, expect Error 403`, async function () {
     try {
       let result = await wfio.wrap(accounts[13].address, 100, transactionId);
       expect(result.status).to.equal('OK');
@@ -875,7 +879,7 @@ describe(`C1. wFIO wrapping`, () => {
     }
   });
 
-  it(`recipient account does not match prior approvals`, async () => {
+  it(`recipient account does not match prior approvals`, async function () {
 
     let toStartingWfioBal = await wfio.balanceOf(accounts[0].address);
 
@@ -908,7 +912,7 @@ describe(`C1. wFIO wrapping`, () => {
     }
   });
 
-  it(`amount does not match prior approvals`, async () => {
+  it(`amount does not match prior approvals`, async function () {
 
     let toStartingWfioBal = await wfio.balanceOf(accounts[0].address);
 
@@ -943,7 +947,7 @@ describe(`C1. wFIO wrapping`, () => {
   });
 });
 
-describe(`C2. wFIO unwrapping`, () => {
+describe(`C2. [ETH] wFIO unwrapping`, function () {
 
   let fioAccount;
   let fioTransaction;
@@ -954,7 +958,7 @@ describe(`C2. wFIO unwrapping`, () => {
   let wfio;
   let TRANSACTIION_ID;
 
-  beforeEach(async () => {
+  beforeEach(async function () {
     let _bal = await wfio.balanceOf(accounts[0].address);
     if ( _bal.lt(100)) {
       fioTransaction = await faucet.genericAction('transferTokens', {
@@ -972,7 +976,7 @@ describe(`C2. wFIO unwrapping`, () => {
     }
   });
 
-  before(async () => {
+  before(async function () {
     fioAccount = await newUser(faucet);
 
     [owner, ...accounts] = await ethers.getSigners();
@@ -1021,7 +1025,7 @@ describe(`C2. wFIO unwrapping`, () => {
     });   // tests seem to pass either way...
   });
 
-  it(`Unwrap 100 wFIO`, async () => {
+  it(`Unwrap 100 wFIO`, async function () {
     let fromStartingWfioBal = await wfio.balanceOf(accounts[0].address);
     await wfio.connect(accounts[0]).unwrap(fioAccount.address, 100);
     let fromEndingWfioBal = await wfio.balanceOf(accounts[0].address);
@@ -1031,7 +1035,7 @@ describe(`C2. wFIO unwrapping`, () => {
   });
 
   // unwrap
-  it(`invalid address, expect Error 400`, async () => {
+  it(`invalid address, expect Error 400`, async function () {
     let fromStartingWfioBal = await wfio.balanceOf(accounts[0].address);
     try {
       // TODO: what kind of checks are expected? this validation isn't enough for arbitrary strings
@@ -1047,7 +1051,7 @@ describe(`C2. wFIO unwrapping`, () => {
     }
   });
 
-  it(`missing address, expect Error 400`, async () => {
+  it(`missing address, expect Error 400`, async function () {
     let fromStartingWfioBal = await wfio.balanceOf(accounts[0].address);
     try {
       await wfio.connect(accounts[0]).unwrap(100);
@@ -1064,7 +1068,7 @@ describe(`C2. wFIO unwrapping`, () => {
     }
   });
 
-  it(`invalid tx amount, expect Error 400`, async () => {
+  it(`invalid tx amount, expect Error 400`, async function () {
     let fromStartingWfioBal = await wfio.balanceOf(accounts[0].address);
     try {
       let result = await wfio.connect(accounts[0]).unwrap(fioAccount.address, "text");
@@ -1081,7 +1085,7 @@ describe(`C2. wFIO unwrapping`, () => {
     }
   });
 
-  it(`missing tx amount, expect Error 400`, async () => {
+  it(`missing tx amount, expect Error 400`, async function () {
     let fromStartingWfioBal = await wfio.balanceOf(accounts[0].address);
     try {
       let result = await wfio.connect(accounts[0]).unwrap(fioAccount.address);
@@ -1099,7 +1103,7 @@ describe(`C2. wFIO unwrapping`, () => {
   });
 });
 
-describe(`D. Approval`, () => {
+describe(`D. [ETH] Approval`, function () {
 
   let fioAccount;
   let fioTransaction;
@@ -1110,7 +1114,7 @@ describe(`D. Approval`, () => {
   let wfio;
   let TRANSACTIION_ID;
 
-  beforeEach(async () => {
+  beforeEach(async function () {
     let _bal = await wfio.balanceOf(accounts[0].address);
     if ( _bal.lt(100)) {
       fioTransaction = await faucet.genericAction('transferTokens', {
@@ -1128,7 +1132,7 @@ describe(`D. Approval`, () => {
     }
   });
 
-  before(async () => {
+  before(async function () {
     fioAccount = await newUser(faucet);
 
     [owner, ...accounts] = await ethers.getSigners();
@@ -1177,7 +1181,7 @@ describe(`D. Approval`, () => {
     });   // tests seem to pass either way...
   });
 
-  it(`get approval by obtid`, async () => {
+  it(`get approval by obtid`, async function () {
     let result = await wfio.connect(accounts[1]).getApproval(TRANSACTIION_ID);
     expect(result).to.be.a('array');
     expect(result[0]).to.be.a('object');
@@ -1186,7 +1190,7 @@ describe(`D. Approval`, () => {
   });
 
   // unhappy path
-  it(`invalid obtid`, async () => {
+  it(`invalid obtid`, async function () {
     try {
       await wfio.connect(accounts[1]).getApproval('');
     } catch (err) {
@@ -1194,7 +1198,7 @@ describe(`D. Approval`, () => {
     }
   });
 
-  it(`missing obtid`, async () => {
+  it(`missing obtid`, async function () {
     try {
       await wfio.connect(accounts[1]).getApproval();
     } catch (err) {
@@ -1204,7 +1208,7 @@ describe(`D. Approval`, () => {
 
 });
 
-describe(`E. Pausing`, () => {
+describe(`E. [ETH] Pausing`, function () {
 
   let fioAccount;
   let fioTransaction;
@@ -1215,7 +1219,7 @@ describe(`E. Pausing`, () => {
   let wfio;
   let TRANSACTIION_ID;
 
-  before(async () => {
+  before(async function () {
 
     fioAccount = await newUser(faucet);
     fioTransaction = await faucet.genericAction('transferTokens', {
@@ -1257,7 +1261,7 @@ describe(`E. Pausing`, () => {
     await wfio.connect(accounts[7]).regoracle(accounts[14].address);
   });
 
-  it(`pause the wFIO contract`, async () => {
+  it(`pause the wFIO contract`, async function () {
     await wfio.connect(accounts[1]).pause();
     try {
       // wrapping/unwrapping is prohibited when contract is paused
@@ -1269,7 +1273,7 @@ describe(`E. Pausing`, () => {
     }
   });
 
-  it(`non-custodian users should not be able to pause`, async () => {
+  it(`non-custodian users should not be able to pause`, async function () {
     try {
       await wfio.connect(accounts[0]).pause()
     } catch (err) {
@@ -1289,7 +1293,7 @@ describe(`E. Pausing`, () => {
     }
   });
 
-  it(`should not be able to pause when already paused`, async () => {
+  it(`should not be able to pause when already paused`, async function () {
     await wfio.connect(accounts[1]).pause();
     try {
       await wfio.connect(accounts[1]).pause();
@@ -1301,7 +1305,7 @@ describe(`E. Pausing`, () => {
   });
 });
 
-describe(`F. Unpausing`, () => {
+describe(`F. [ETH] Unpausing`, function () {
 
   let fioAccount;
   let fioTransaction;
@@ -1312,7 +1316,7 @@ describe(`F. Unpausing`, () => {
   let wfio;
   let TRANSACTIION_ID;
 
-  before(async () => {
+  before(async function () {
 
     fioAccount = await newUser(faucet);
     fioTransaction = await faucet.genericAction('transferTokens', {
@@ -1355,7 +1359,7 @@ describe(`F. Unpausing`, () => {
     await wfio.connect(accounts[1]).pause();
   });
 
-  it(`unpause the wFIO contract`, async () => {
+  it(`unpause the wFIO contract`, async function () {
     try {
       await wfio.connect(accounts[1]).unpause();
       // wrapping/unwrapping is prohibited when contract is paused
@@ -1365,7 +1369,7 @@ describe(`F. Unpausing`, () => {
     }
   });
 
-  it(`non-custodian users should not be able to unpause`, async () => {
+  it(`non-custodian users should not be able to unpause`, async function () {
     await wfio.connect(accounts[1]).pause();
     try {
       await wfio.connect(accounts[0]).unpause();
@@ -1376,11 +1380,599 @@ describe(`F. Unpausing`, () => {
     }
   });
 
-  it(`should not be able to unpause when already unpaused`, async () => {
+  it(`should not be able to unpause when already unpaused`, async function () {
     try {
       await wfio.connect(accounts[1]).unpause()
     } catch (err) {
       expect(err.message).to.contain('Pausable: not paused');
     }
   });
+});
+
+describe(`G. [FIO] Oracles (get_table_rows)`, function () {
+  let userA, oracle1, oracle2, oracle3;
+
+  before(async function () {
+    oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+    oracle2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+    oracle3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+    userA = await newUser(faucet);
+  });
+
+  it(`userA registers existing oracle1`, async function () {
+    try {
+      const result = await userA.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: oracle1.account,
+          actor: oracle1.account
+        }
+      });
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      expect(err.json.error.what).to.equal('could not insert object, most likely a uniqueness constraint was violated');
+    }
+  });
+  it(`userA registers existing oracle2`, async function () {
+    try {
+      const result = await userA.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: oracle2.account,
+          actor: oracle2.account
+        }
+      });
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      expect(err.json.error.what).to.equal('could not insert object, most likely a uniqueness constraint was violated');
+    }
+  });
+  it(`userA registers existing oracle3`, async function () {
+    try {
+      const result = await userA.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: oracle3.account,
+          actor: oracle3.account
+        }
+      });
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      expect(err.json.error.what).to.equal('could not insert object, most likely a uniqueness constraint was violated');
+    }
+  });
+
+  it(`userA queries the oracless table, expects results to contain oracle1`, async function () {
+    try {
+      const oracleRecords = await callFioApi("get_table_rows", {
+        json: true,
+        code: 'fio.oracle',
+        scope: 'fio.oracle',
+        table: 'oracless',
+        reverse: true,
+        limit: 1000
+      });
+      expect(oracleRecords.rows.length).to.be.greaterThanOrEqual(3);
+      let existingOracles = [];
+      for (let row in oracleRecords.rows) {
+        row = oracleRecords.rows[row]
+        if (row.actor === oracle1.account || row.actor === oracle2.account || row.actor === oracle3.account) {
+          expect(row).to.have.all.keys('actor', 'fees');
+          existingOracles.push(row);
+        }
+      }
+      expect(existingOracles.length).to.equal(3);
+    } catch (err) {
+      throw err;
+    }
+  });
+});
+
+describe.only(`H. [FIO] Oracles (register)`, function () {
+  let user1, user2, user3, oracle1, oracle2, oracle3;
+
+  before(async function () {
+    oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+    oracle2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+    oracle3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+    user1 = await newUser(faucet);
+    user2 = await newUser(faucet);
+    user3 = await newUser(faucet);
+  });
+
+  it.only(`user1 registers as a new block producer`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'regproducer',
+        account: 'eosio',
+        data: {
+          fio_address: user1.address,
+          fio_pub_key: user1.publicKey,
+          url: "https://mywebsite.io/",
+          location: 80,
+          actor: user1.account,
+          max_fee: config.api.register_producer.fee
+        }
+      });
+      expect(result.status).to.equal('OK');
+      expect(result.fee_collected).to.equal(config.api.register_producer.fee);
+    } catch (err) {
+      console.log('Error: ', err.json)
+      throw err;
+    }
+  });
+
+  it.only(`user2 registers user1 as a new oracle, expect OK status`, async function () {
+    try {
+      const result = await user2.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: user1.account,
+          actor: user2.account
+        }
+      });
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`user2 queries the oracless table, expects results to contain user1`, async function () {
+    try {
+      const oracleRecords = await callFioApi("get_table_rows", {
+        json: true,
+        code: 'fio.oracle',
+        scope: 'fio.oracle',
+        table: 'oracless',
+        lower_bound: user1.account,
+        upper_bound: user1.account,
+        reverse: true,
+        limit: 1000
+      });
+      expect(oracleRecords.rows.length).to.equal(1);
+      expect(oracleRecords.rows[0]).to.have.all.keys('actor', 'fees');
+      expect(oracleRecords.rows[0].actor).to.be.a('string').and.equal(user1.account);
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  // TODO: unhappy tests
+  it(`(non-bp user) user2 tries to register user3 as an oracle, expect Error`, async function () {
+    try {
+      const result = await user2.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: user3.account,
+          actor: user2.account
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.json.fields[0].error).to.equal('Oracle not active producer');
+    }
+  });
+
+  it(`(empty oracle_actor) user1 tries to register an oracle, expect Error`, async function () {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: "", //user3.account,
+          actor: user1.account
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.json.fields[0].error).to.equal('Account is not bound on the fio chain');
+    }
+  });
+  it(`(missing oracle_actor) user1 tries to register an oracle, expect Error`, async function () {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          // oracle_actor: user3.account,
+          actor: user2.account
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('missing regoracle.oracle_actor (type=name)');
+    }
+  });
+  it(`(invalid oracle_actor) user1 tries to register an oracle, expect Error`, async function () {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: "!invalid!@$", //user3.account,
+          actor: user2.account
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.json.fields[0].error).to.equal('Account is not bound on the fio chain');
+    }
+  });
+  it(`(int oracle_actor) user1 tries to register an oracle, expect Error`, async function () {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: 1234500000000, //user3.account,
+          actor: user2.account
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('Expected string containing name');
+    }
+  });
+  it(`(negative oracle_actor) user1 tries to register an oracle, expect Error`, async function () {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: -1234500000000, //user3.account,
+          actor: user3.account
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('Expected string containing name');
+    }
+  });
+
+  it.only(`user2 registers as a new block producer`, async () => {
+    try {
+      const result = await user2.sdk.genericAction('pushTransaction', {
+        action: 'regproducer',
+        account: 'eosio',
+        data: {
+          fio_address: user2.address,
+          fio_pub_key: user2.publicKey,
+          url: "https://mywebsite2.io/",
+          location: 80,
+          actor: user2.account,
+          max_fee: config.api.register_producer.fee
+        }
+      });
+      expect(result.status).to.equal('OK');
+      expect(result.fee_collected).to.equal(config.api.register_producer.fee);
+    } catch (err) {
+      console.log('Error: ', err.json)
+      throw err;
+    }
+  });
+
+  //TODO: should this do any actor validation? Because it isn't......
+  it.skip(`(empty actor) user3 tries to register user2 as an oracle, expect Error`, async function () {
+    try {
+      const result = await user3.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: user2.account,
+          actor: "", //user3.account
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.json.fields[0].error).to.equal('Account is not bound on the fio chain');
+    }
+  });
+  it.skip(`(missing actor) user3 tries to register user2 as an oracle, expect Error`, async function () {
+    try {
+      const result = await user3.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: user2.account,
+          //actor: user3.account
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      throw err;
+    }
+  });
+  it(`(invalid actor) user1 tries to register an oracle, expect Error`, async function () {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: user3.account,
+          actor: "!invalid!@$", //user3.account
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      throw err;
+    }
+  });
+  it(`(int actor) user1 tries to register an oracle, expect Error`, async function () {
+    try {
+      const result = await user2.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: user3.account,
+          actor: 1234500000000 //user3.account
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      throw err;
+    }
+  });
+  it(`(negative actor) user1 tries to register an oracle, expect Error`, async function () {
+    try {
+      const result = await user2.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: user3.account,
+          actor: -1234500000000 //user3.account
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      throw err;
+    }
+  });
+});
+
+describe(`I. [FIO] Oracles (unregister)`, function () {
+
+  it(`(empty oracle_actor) try to unregister an oracle, expect Error`);
+  it(`(missing oracle_actor) try to unregister an oracle, expect Error`);
+  it(`(invalid oracle_actor) try to unregister an oracle, expect Error`);
+  it(`(int oracle_actor) try to unregister an oracle, expect Error`);
+  it(`(negative oracle_actor) try to unregister an oracle, expect Error`);
+
+  it(`(empty actor) try to unregister an oracle, expect Error`);
+  it(`(missing actor) try to unregister an oracle, expect Error`);
+  it(`(invalid actor) try to unregister an oracle, expect Error`);
+  it(`(int actor) try to unregister an oracle, expect Error`);
+  it(`(negative actor) try to unregister an oracle, expect Error`);
+});
+
+describe(`J. [FIO] Oracles (setoraclefees)`, function () {
+  //void setoraclefee(
+  //    uint64_t &wrap_fio_domain,
+  //    uint64_t &wrap_fio_tokens,
+  //    name &actor
+  //    )
+
+  it(`(empty wrap_fio_domain) try to set oracle fees, expect Error`);
+  it(`(missing wrap_fio_domain) try to set oracle fees, expect Error`);
+  it(`(invalid wrap_fio_domain) try to set oracle fees, expect Error`);
+  it(`(overflow wrap_fio_domain) try to set oracle fees, expect Error`);
+  it(`(negative wrap_fio_domain) try to set oracle fees, expect Error`);
+
+  it(`(empty wrap_fio_tokens) try to set oracle fees, expect Error`);
+  it(`(missing wrap_fio_tokens) try to set oracle fees, expect Error`);
+  it(`(invalid wrap_fio_tokens) try to set oracle fees, expect Error`);
+  it(`(overflow wrap_fio_tokens) try to set oracle fees, expect Error`);
+  it(`(negative wrap_fio_tokens) try to set oracle fees, expect Error`);
+
+  it(`(empty actor) try to set oracle fees, expect Error`);
+  it(`(missing actor) try to set oracle fees, expect Error`);
+  it(`(invalid actor) try to set oracle fees, expect Error`);
+  it(`(int actor) try to set oracle fees, expect Error`);
+  it(`(negative actor) try to set oracle fees, expect Error`);
+});
+
+describe(`K. [FIO] Wrap FIO tokens`, function () {
+  //void wraptokens(
+  //    uint64_t &amount,
+  //    string &chain_code,
+  //    string &public_address,
+  //    uint64_t &max_oracle_fee,
+  //    uint64_t &max_fee,
+  //    string &tpid,
+  //    name &actor
+  //    )
+  let wrapAmt = 1000000000000;
+
+  // unhappy tests
+  it(`(empty amount) try to wrap 1000 FIO tokens`);
+  it(`(missing amount) try to wrap 1000 FIO tokens`);
+  it(`(invalid amount) try to wrap 1000 FIO tokens`);
+  it(`(negative amount) try to wrap 1000 FIO tokens`);
+
+  it(`(empty chain_code) try to wrap 1000 FIO tokens`);
+  it(`(missing chain_code) try to wrap 1000 FIO tokens`);
+  it(`(invalid chain_code) try to wrap 1000 FIO tokens`);
+  it(`(int chain_code) try to wrap 1000 FIO tokens`);
+  it(`(negative chain_code) try to wrap 1000 FIO tokens`);
+
+  it(`(empty public_address) try to wrap 1000 FIO tokens`);
+  it(`(missing public_address) try to wrap 1000 FIO tokens`);
+  it(`(invalid public_address) try to wrap 1000 FIO tokens`);
+  it(`(int public_address) try to wrap 1000 FIO tokens`);
+  it(`(negative public_address) try to wrap 1000 FIO tokens`);
+
+  it(`(empty max_oracle_fee) try to wrap 1000 FIO tokens`);
+  it(`(missing max_oracle_fee) try to wrap 1000 FIO tokens`);
+  it(`(invalid max_oracle_fee) try to wrap 1000 FIO tokens`);
+  it(`(negative max_oracle_fee) try to wrap 1000 FIO tokens`);
+
+  it(`(empty max_fee) try to wrap 1000 FIO tokens`);
+  it(`(missing max_fee) try to wrap 1000 FIO tokens`);
+  it(`(invalid max_fee) try to wrap 1000 FIO tokens`);
+  it(`(negative max_fee) try to wrap 1000 FIO tokens`);
+
+  it(`(empty tpid) try to wrap 1000 FIO tokens`);
+  it(`(missing tpid) try to wrap 1000 FIO tokens`);
+  it(`(invalid tpid) try to wrap 1000 FIO tokens`);
+  it(`(int tpid) try to wrap 1000 FIO tokens`);
+  it(`(negative tpid) try to wrap 1000 FIO tokens`);
+
+  it(`(empty actor) try to wrap 1000 FIO tokens`);
+  it(`(missing actor) try to wrap 1000 FIO tokens`);
+  it(`(invalid actor) try to wrap 1000 FIO tokens`);
+  it(`(int actor) try to wrap 1000 FIO tokens`);
+  it(`(negative actor) try to wrap 1000 FIO tokens`);
+});
+
+describe(`L. [FIO] Unwrap FIO tokens`, function () {
+  //void unwraptokens(
+  //    uint64_t &amount,
+  //    string &obt_id,
+  //    string &fio_address,
+  //    name &actor
+  //    )
+  let wrapAmt = 1000000000000;
+  let unwrapAmt1 = 500000000000;
+  let unwrapAmt2 = 250000000000;
+
+  // unhappy tests
+  it(`(empty amount) try to unwrap 500 FIO tokens`);
+  it(`(missing amount) try to unwrap 500 FIO tokens`);
+  it(`(invalid amount) try to unwrap 500 FIO tokens`);
+  it(`(negative amount) try to unwrap 500 FIO tokens`);
+  it(`(greater amount than wrapped) try to unwrap 1500 FIO tokens`);
+
+  it(`(empty obt_id) try to unwrap 500 FIO tokens`);
+  it(`(missing obt_id) try to unwrap 500 FIO tokens`);
+  it(`(invalid obt_id) try to unwrap 500 FIO tokens`);
+  it(`(int obt_id) try to unwrap 500 FIO tokens`);
+  it(`(negative obt_id) try to unwrap 500 FIO tokens`);
+
+  it(`(empty fio_address) try to unwrap 500 FIO tokens`);
+  it(`(missing fio_address) try to unwrap 500 FIO tokens`);
+  it(`(invalid fio_address) try to unwrap 500 FIO tokens`);
+  it(`(int fio_address) try to unwrap 500 FIO tokens`);
+  it(`(negative fio_address) try to unwrap 500 FIO tokens`);
+
+  it(`(empty actor) try to unwrap 500 FIO tokens`);
+  it(`(missing actor) try to unwrap 500 FIO tokens`);
+  it(`(invalid actor) try to unwrap 500 FIO tokens`);
+  it(`(int actor) try to unwrap 500 FIO tokens`);
+  it(`(negative actor) try to unwrap 500 FIO tokens`);
+});
+
+describe(`M. [FIO] Wrap FIO domains`, function () {
+  //void wrapdomain(
+  //    string &fio_domain,
+  //    string &chain_code,
+  //    string &public_address,
+  //    uint64_t &max_oracle_fee,
+  //    uint64_t &max_fee,
+  //    string &tpid,
+  //    name &actor
+  //    )
+  // unhappy tests
+  it(`(empty fio_domain) try to wrap a FIO domain`);
+  it(`(missing fio_domain) try to wrap a FIO domain`);
+  it(`(invalid fio_domain) try to wrap a FIO domain`);
+  it(`(int fio_domain) try to wrap a FIO domain`);
+  it(`(negative fio_domain) try to wrap a FIO domain`);
+
+  it(`(empty chain_code) try to wrap a FIO domain`);
+  it(`(missing chain_code) try to wrap a FIO domain`);
+  it(`(invalid chain_code) try to wrap a FIO domain`);
+  it(`(int chain_code) try to wrap a FIO domain`);
+  it(`(negative chain_code) try to wrap a FIO domain`);
+
+  it(`(empty public_address) try to wrap a FIO domain`);
+  it(`(missing public_address) try to wrap a FIO domain`);
+  it(`(invalid public_address) try to wrap a FIO domain`);
+  it(`(int public_address) try to wrap a FIO domain`);
+  it(`(negative public_address) try to wrap a FIO domain`);
+
+  it(`(empty max_oracle_fee) try to wrap a FIO domain`);
+  it(`(missing max_oracle_fee) try to wrap a FIO domain`);
+  it(`(invalid max_oracle_fee) try to wrap a FIO domain`);
+  it(`(negative max_oracle_fee) try to wrap a FIO domain`);
+
+  it(`(empty max_fee) try to wrap a FIO domain`);
+  it(`(missing max_fee) try to wrap a FIO domain`);
+  it(`(invalid max_fee) try to wrap a FIO domain`);
+  it(`(negative max_fee) try to wrap a FIO domain`);
+
+  it(`(empty tpid) try to wrap a FIO domain`);
+  it(`(missing tpid) try to wrap a FIO domain`);
+  it(`(invalid tpid) try to wrap a FIO domain`);
+  it(`(int tpid) try to wrap a FIO domain`);
+  it(`(negative tpid) try to wrap a FIO domain`);
+
+  it(`(empty actor) try to wrap a FIO domain`);
+  it(`(missing actor) try to wrap a FIO domain`);
+  it(`(invalid actor) try to wrap a FIO domain`);
+  it(`(int actor) try to wrap a FIO domain`);
+  it(`(negative actor) try to wrap a FIO domain`);
+});
+
+describe(`N. [FIO] Unwrap FIO domains`, function () {
+  //void unwrapdomain(
+  //    string &fio_domain,
+  //    string &obt_id,
+  //    string &fio_address,
+  //    name &actor
+  //    )
+  // unhappy tests
+  it(`(empty fio_domain) try to unwrap a FIO domain`);
+  it(`(missing fio_domain) try to unwrap a FIO domain`);
+  it(`(invalid fio_domain) try to unwrap a FIO domain`);
+  it(`(int fio_domain) try to unwrap a FIO domain`);
+  it(`(negative fio_domain) try to unwrap a FIO domain`);
+
+  it(`(empty obt_id) try to unwrap a FIO domain`);
+  it(`(missing obt_id) try to unwrap a FIO domain`);
+  it(`(invalid obt_id) try to unwrap a FIO domain`);
+  it(`(int obt_id) try to unwrap a FIO domain`);
+  it(`(negative obt_id) try to unwrap a FIO domain`);
+
+  it(`(empty fio_address) try to unwrap a FIO domain`);
+  it(`(missing fio_address) try to unwrap a FIO domain`);
+  it(`(invalid fio_address) try to unwrap a FIO domain`);
+  it(`(int fio_address) try to unwrap a FIO domain`);
+  it(`(negative fio_address) try to unwrap a FIO domain`);
+
+  it(`(empty actor) try to unwrap a FIO domain`);
+  it(`(missing actor) try to unwrap a FIO domain`);
+  it(`(invalid actor) try to unwrap a FIO domain`);
+  it(`(int actor) try to unwrap a FIO domain`);
+  it(`(negative actor) try to unwrap a FIO domain`);
 });
