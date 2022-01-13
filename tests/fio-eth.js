@@ -1474,7 +1474,8 @@ describe(`G. [FIO] Oracles (get_table_rows)`, function () {
   });
 });
 
-describe.only(`H. [FIO] Oracles (register)`, function () {
+//TODO: should regoracle and unregoracle do any empty or missing actor validation? Because they aren't
+describe(`H. [FIO] Oracles (register)`, function () {
   let user1, user2, user3, oracle1, oracle2, oracle3;
 
   before(async function () {
@@ -1484,9 +1485,19 @@ describe.only(`H. [FIO] Oracles (register)`, function () {
     user1 = await newUser(faucet);
     user2 = await newUser(faucet);
     user3 = await newUser(faucet);
+    //
+    // await oracle1.sdk.genericAction('pushTransaction', {
+    //   action: 'regoracle',
+    //   account: 'fio.oracle',
+    //   actor: 'eosio',
+    //   data: {
+    //     oracle_actor: oracle1.account,
+    //     actor: oracle1.account
+    //   }
+    // });
   });
 
-  it.only(`user1 registers as a new block producer`, async () => {
+  it(`user1 registers as a new block producer`, async () => {
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
         action: 'regproducer',
@@ -1508,7 +1519,7 @@ describe.only(`H. [FIO] Oracles (register)`, function () {
     }
   });
 
-  it.only(`user2 registers user1 as a new oracle, expect OK status`, async function () {
+  it(`user2 registers user1 as a new oracle, expect OK status`, async function () {
     try {
       const result = await user2.sdk.genericAction('pushTransaction', {
         action: 'regoracle',
@@ -1545,7 +1556,7 @@ describe.only(`H. [FIO] Oracles (register)`, function () {
     }
   });
 
-  // TODO: unhappy tests
+  // unhappy tests
   it(`(non-bp user) user2 tries to register user3 as an oracle, expect Error`, async function () {
     try {
       const result = await user2.sdk.genericAction('pushTransaction', {
@@ -1653,7 +1664,7 @@ describe.only(`H. [FIO] Oracles (register)`, function () {
     }
   });
 
-  it.only(`user2 registers as a new block producer`, async () => {
+  it(`user2 registers as a new block producer`, async () => {
     try {
       const result = await user2.sdk.genericAction('pushTransaction', {
         action: 'regproducer',
@@ -1675,7 +1686,6 @@ describe.only(`H. [FIO] Oracles (register)`, function () {
     }
   });
 
-  //TODO: should this do any actor validation? Because it isn't......
   it.skip(`(empty actor) user3 tries to register user2 as an oracle, expect Error`, async function () {
     try {
       const result = await user3.sdk.genericAction('pushTransaction', {
@@ -1711,20 +1721,22 @@ describe.only(`H. [FIO] Oracles (register)`, function () {
       throw err;
     }
   });
-  it(`(invalid actor) user1 tries to register an oracle, expect Error`, async function () {
+  it(`(invalid actor) user3 tries to register user2 as an oracle, expect Error`, async function () {
     try {
-      const result = await user1.sdk.genericAction('pushTransaction', {
+      const result = await user3.sdk.genericAction('pushTransaction', {
         action: 'regoracle',
         account: 'fio.oracle',
         actor: 'eosio',
         data: {
-          oracle_actor: user3.account,
+          oracle_actor: user2.account,
           actor: "!invalid!@$", //user3.account
         }
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      throw err;
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.json).to.have.all.keys('code', 'message', 'error');
+      expect(err.json.error.what).to.equal('unknown key (eosio::chain::name): .invalid');
     }
   });
   it(`(int actor) user1 tries to register an oracle, expect Error`, async function () {
@@ -1740,7 +1752,7 @@ describe.only(`H. [FIO] Oracles (register)`, function () {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      throw err;
+      expect(err.message).to.equal('Expected string containing name');
     }
   });
   it(`(negative actor) user1 tries to register an oracle, expect Error`, async function () {
@@ -1756,24 +1768,238 @@ describe.only(`H. [FIO] Oracles (register)`, function () {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      throw err;
+      expect(err.message).to.equal('Expected string containing name');
     }
   });
 });
 
 describe(`I. [FIO] Oracles (unregister)`, function () {
+  let user1, user2, user3, newOracle, oracle1, oracle2, oracle3;
 
-  it(`(empty oracle_actor) try to unregister an oracle, expect Error`);
-  it(`(missing oracle_actor) try to unregister an oracle, expect Error`);
-  it(`(invalid oracle_actor) try to unregister an oracle, expect Error`);
-  it(`(int oracle_actor) try to unregister an oracle, expect Error`);
-  it(`(negative oracle_actor) try to unregister an oracle, expect Error`);
+  before(async function () {
+    oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+    // oracle2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+    // oracle3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+    // user1 = await newUser(faucet);
+    // user2 = await newUser(faucet);
+    // user3 = await newUser(faucet);
+    newOracle = await newUser(faucet);
 
-  it(`(empty actor) try to unregister an oracle, expect Error`);
-  it(`(missing actor) try to unregister an oracle, expect Error`);
-  it(`(invalid actor) try to unregister an oracle, expect Error`);
-  it(`(int actor) try to unregister an oracle, expect Error`);
-  it(`(negative actor) try to unregister an oracle, expect Error`);
+    // register a new oracle
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'regproducer',
+        account: 'eosio',
+        data: {
+          fio_address: newOracle.address,
+          fio_pub_key: newOracle.publicKey,
+          url: "https://mywebsite.io/",
+          location: 80,
+          actor: newOracle.account,
+          max_fee: config.api.register_producer.fee
+        }
+      });
+      expect(result.status).to.equal('OK');
+      expect(result.fee_collected).to.equal(config.api.register_producer.fee);
+    } catch (err) {
+      console.log('Error: ', err.json)
+      throw err;
+    }
+
+    try {
+      await oracle1.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: newOracle.account,
+          actor: newOracle.account
+        }
+      });
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`(empty oracle_actor) newOracle tries to unregister an oracle, expect Error`, async function () {
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'unregoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: "",
+          actor: newOracle.account
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.json.fields[0].error).to.equal('Oracle is not registered');
+    }
+  });
+  it(`(missing oracle_actor) try to unregister an oracle, expect Error`, async function () {
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'unregoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: "",
+          actor: newOracle.account
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.json.fields[0].error).to.equal('Oracle is not registered');
+    }
+  });
+  it(`(invalid oracle_actor) try to unregister an oracle, expect Error`, async function () {
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'unregoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: "!invalid!@$",
+          actor: newOracle.account
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.json.fields[0].error).to.equal('Oracle is not registered');
+    }
+  });
+  it(`(int oracle_actor) try to unregister an oracle, expect Error`, async function () {
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'unregoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: 1234400000000,
+          actor: newOracle.account
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('Expected string containing name');
+    }
+  });
+  it(`(negative oracle_actor) try to unregister an oracle, expect Error`, async function () {
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'unregoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: -1234400000000,
+          actor: newOracle.account
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('Expected string containing name');
+    }
+  });
+
+  it.skip(`(empty actor) try to unregister an oracle, expect Error`, async function () {
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'unregoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: newOracle.account,
+          actor: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.json.fields[0].error).to.equal('Oracle is not registered');
+    }
+  });
+  it.skip(`(missing actor) try to unregister an oracle, expect Error`, async function () {
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'unregoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: newOracle.account,
+          // actor: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.json.fields[0].error).to.equal('Oracle is not registered');
+    }
+  });
+  it.skip(`(invalid actor) try to unregister an oracle, expect Error`, async function () {
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'unregoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: newOracle.account,
+          actor: "!invalid!@$"
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err.errorCode).to.equal(400);
+      expect(err.json).to.have.all.keys('type', 'message', 'fields');
+      expect(err.json.fields[0].error).to.equal('Oracle is not registered');
+    }
+  });
+  it(`(int actor) try to unregister an oracle, expect Error`, async function () {
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'unregoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: newOracle.account,
+          actor: 1234500000000
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('Expected string containing name');
+    }
+  });
+  it(`(negative actor) try to unregister an oracle, expect Error`, async function () {
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'unregoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: newOracle.account,
+          actor: -1234500000000
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('Expected string containing name');
+    }
+  });
 });
 
 describe(`J. [FIO] Oracles (setoraclefees)`, function () {
@@ -1783,26 +2009,327 @@ describe(`J. [FIO] Oracles (setoraclefees)`, function () {
   //    name &actor
   //    )
 
-  it(`(empty wrap_fio_domain) try to set oracle fees, expect Error`);
-  it(`(missing wrap_fio_domain) try to set oracle fees, expect Error`);
-  it(`(invalid wrap_fio_domain) try to set oracle fees, expect Error`);
-  it(`(overflow wrap_fio_domain) try to set oracle fees, expect Error`);
-  it(`(negative wrap_fio_domain) try to set oracle fees, expect Error`);
+  let oracle1, newOracle;
 
-  it(`(empty wrap_fio_tokens) try to set oracle fees, expect Error`);
-  it(`(missing wrap_fio_tokens) try to set oracle fees, expect Error`);
-  it(`(invalid wrap_fio_tokens) try to set oracle fees, expect Error`);
-  it(`(overflow wrap_fio_tokens) try to set oracle fees, expect Error`);
-  it(`(negative wrap_fio_tokens) try to set oracle fees, expect Error`);
+  before(async function () {
+    oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+    // oracle2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+    // oracle3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+    // user1 = await newUser(faucet);
+    // user2 = await newUser(faucet);
+    // user3 = await newUser(faucet);
+    newOracle = await newUser(faucet);
 
-  it(`(empty actor) try to set oracle fees, expect Error`);
-  it(`(missing actor) try to set oracle fees, expect Error`);
-  it(`(invalid actor) try to set oracle fees, expect Error`);
-  it(`(int actor) try to set oracle fees, expect Error`);
-  it(`(negative actor) try to set oracle fees, expect Error`);
+    // register a new oracle
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'regproducer',
+        account: 'eosio',
+        data: {
+          fio_address: newOracle.address,
+          fio_pub_key: newOracle.publicKey,
+          url: "https://mywebsite.io/",
+          location: 80,
+          actor: newOracle.account,
+          max_fee: config.api.register_producer.fee
+        }
+      });
+      expect(result.status).to.equal('OK');
+      expect(result.fee_collected).to.equal(config.api.register_producer.fee);
+    } catch (err) {
+      console.log('Error: ', err.json)
+      throw err;
+    }
+
+    try {
+      await oracle1.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: newOracle.account,
+          actor: newOracle.account
+        }
+      });
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`newOracle tries to set oracle fee`, async function () {
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'setoraclefee',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          wrap_fio_domain: 1,
+          wrap_fio_tokens: 1
+        }
+      });
+      expect(result).to.have.property('status').which.is.a('string').and.equals('OK');
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  //more missing empty string validation?
+  it.skip(`(empty wrap_fio_domain) try to set oracle fees, expect Error`, async function () {
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'setoraclefee',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          wrap_fio_domain:  "", // 1,
+          wrap_fio_tokens: 1
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      throw err;
+    }
+  });
+  it(`(missing wrap_fio_domain) try to set oracle fees, expect Error`, async function () {
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'setoraclefee',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          wrap_fio_tokens: 1
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('missing setoraclefee.wrap_fio_domain (type=int64)');
+    }
+  });
+  it(`(invalid wrap_fio_domain) try to set oracle fees, expect Error`, async function () {
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'setoraclefee',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          wrap_fio_domain:  "!invalid!@$",
+          wrap_fio_tokens: 1
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('invalid number');
+    }
+  });
+  it(`(overflow wrap_fio_domain) try to set oracle fees, expect Error`, async function () {
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'setoraclefee',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          wrap_fio_domain:  1234500000000000000000,
+          wrap_fio_tokens: 1
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('invalid number');
+    }
+  });
+  // TODO: does a negative not get handled appropriately here either?
+  it.skip(`(negative wrap_fio_domain) try to set oracle fees, expect Error`, async function () {
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'setoraclefee',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          wrap_fio_domain:  -1234500000000,
+          wrap_fio_tokens: 1
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('invalid number');
+    }
+  });
+
+  it.skip(`(empty wrap_fio_tokens) try to set oracle fees, expect Error`, async function () {
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'setoraclefee',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          wrap_fio_domain: 1,
+          wrap_fio_tokens: ""
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      throw err;
+    }
+  });
+  it(`(missing wrap_fio_tokens) try to set oracle fees, expect Error`, async function () {
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'setoraclefee',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          wrap_fio_domain: 1,
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('missing setoraclefee.wrap_fio_tokens (type=int64)');
+    }
+  });
+  it(`(invalid wrap_fio_tokens) try to set oracle fees, expect Error`, async function () {
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'setoraclefee',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          wrap_fio_domain: 1,
+          wrap_fio_tokens: "!invalid!@$"
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('invalid number');
+    }
+  });
+  it(`(overflow wrap_fio_tokens) try to set oracle fees, expect Error`, async function () {
+    try{
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'setoraclefee',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          wrap_fio_domain: 1,
+          wrap_fio_tokens: 1234500000000000000000
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('invalid number');
+    }
+  });
+  it.skip(`(negative wrap_fio_tokens) try to set oracle fees, expect Error`, async function () {
+    try{
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'setoraclefee',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          wrap_fio_domain: 1,
+          wrap_fio_tokens: -1234500000000
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('invalid number');
+    }
+  });
+
+  it(`(empty actor) try to set oracle fees, expect Error`, async function () {
+
+  });
+  it(`(missing actor) try to set oracle fees, expect Error`, async function () {
+
+  });
+  it(`(invalid actor) try to set oracle fees, expect Error`, async function () {
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'setoraclefee',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          wrap_fio_domain: 1,
+          wrap_fio_tokens: 1,
+          actor: "!invalid!@$"
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.json.error.details[0].message).to.equal('missing authority of .invalid');
+    }
+  });
+  it(`(int actor) try to set oracle fees, expect Error`, async function () {
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'setoraclefee',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          wrap_fio_domain: 1,
+          wrap_fio_tokens: 1,
+          actor: 1234500000000000000000
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('Expected string containing name');
+    }
+  });
+  it(`(negative actor) try to set oracle fees, expect Error`, async function () {
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'setoraclefee',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          wrap_fio_domain: 1,
+          wrap_fio_tokens: 1,
+          actor: -1000000000000
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('Expected string containing name');
+    }
+  });
+});
+describe.skip(`K. [FIO] Oracles (getoraclefees)`, function () {
+  //void setoraclefee(
+  //    uint64_t &wrap_fio_domain,
+  //    uint64_t &wrap_fio_tokens,
+  //    name &actor
+  //    )
+
+  it('call get_oracle_fees from the API', async function () {
+    let user = await newUser(faucet);
+    try {
+      const result = await callFioApi('get_oracle_fees', {fioPublicKey: user.publicKey});
+      console.log(result);
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`(empty wrap_fio_domain) try to get oracle fees, expect Error`);
+  it(`(missing wrap_fio_domain) try to get oracle fees, expect Error`);
+  it(`(invalid wrap_fio_domain) try to get oracle fees, expect Error`);
+  it(`(overflow wrap_fio_domain) try to get oracle fees, expect Error`);
+  it(`(negative wrap_fio_domain) try to get oracle fees, expect Error`);
+
+  it(`(empty wrap_fio_tokens) try to get oracle fees, expect Error`);
+  it(`(missing wrap_fio_tokens) try to get oracle fees, expect Error`);
+  it(`(invalid wrap_fio_tokens) try to get oracle fees, expect Error`);
+  it(`(overflow wrap_fio_tokens) try to get oracle fees, expect Error`);
+  it(`(negative wrap_fio_tokens) try to get oracle fees, expect Error`);
+
+  it(`(empty actor) try to get oracle fees, expect Error`);
+  it(`(missing actor) try to get oracle fees, expect Error`);
+  it(`(invalid actor) try to get oracle fees, expect Error`);
+  it(`(int actor) try to get oracle fees, expect Error`);
+  it(`(negative actor) try to get oracle fees, expect Error`);
 });
 
-describe(`K. [FIO] Wrap FIO tokens`, function () {
+describe(`L. [FIO] Wrap FIO tokens`, function () {
   //void wraptokens(
   //    uint64_t &amount,
   //    string &chain_code,
@@ -1855,7 +2382,7 @@ describe(`K. [FIO] Wrap FIO tokens`, function () {
   it(`(negative actor) try to wrap 1000 FIO tokens`);
 });
 
-describe(`L. [FIO] Unwrap FIO tokens`, function () {
+describe(`M. [FIO] Unwrap FIO tokens`, function () {
   //void unwraptokens(
   //    uint64_t &amount,
   //    string &obt_id,
@@ -1892,7 +2419,7 @@ describe(`L. [FIO] Unwrap FIO tokens`, function () {
   it(`(negative actor) try to unwrap 500 FIO tokens`);
 });
 
-describe(`M. [FIO] Wrap FIO domains`, function () {
+describe(`N. [FIO] Wrap FIO domains`, function () {
   //void wrapdomain(
   //    string &fio_domain,
   //    string &chain_code,
@@ -1944,7 +2471,7 @@ describe(`M. [FIO] Wrap FIO domains`, function () {
   it(`(negative actor) try to wrap a FIO domain`);
 });
 
-describe(`N. [FIO] Unwrap FIO domains`, function () {
+describe(`O. [FIO] Unwrap FIO domains`, function () {
   //void unwrapdomain(
   //    string &fio_domain,
   //    string &obt_id,
