@@ -12,21 +12,19 @@ const {newUser, fetchJson, timeout, callFioApi, createKeypair, getAccountFromKey
 const INIT_SUPPLY = 0;
 let faucet;
 
-// function wait (ms){
-//     let start = new Date().getTime();
-//     let end = start;
-//     while(end < start + ms) {
-//         end = new Date().getTime();
-//     }
-// }
+const eosio = {
+  account: 'eosio',
+  publicKey: 'FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS',
+  privateKey: '5KBX1dwHME4VyuUss2sYM25D5ZTDvyYrbEz37UJqwAVAsR4tGuY'
+}
 
-before(async () => {
+before(async function () {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
 });
 
-// describe(`************************** fio-eth-wrap-unwrap.js ************************** \n   WFIO AND FIONFT QUICK TESTS`, () => {});
+// describe(`************************** fio-eth-wrap-unwrap.js ************************** \n   WFIO AND FIONFT QUICK TESTS`, function () {});
 
-describe.skip(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
+describe.skip(`B. (unhappy) Try to wrap FIO tokens, invalid input`, function () {
   let user1, fiosdk, keys, accountnm;
 
   let fioAccount;
@@ -39,7 +37,7 @@ describe.skip(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
   let wfio;
   let transactionId;
 
-  // beforeEach(async () => {
+  // beforeEach(async function () {
   //   fioAccount = await newUser(faucet);
   //   fioBalance = await fioAccount.sdk.genericAction('getFioBalance', { });
   //   fioTransaction = await faucet.genericAction('transferTokens', {
@@ -51,7 +49,7 @@ describe.skip(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
   //   transactionId = fioTransaction.transaction_id;
   // });
 
-  before(async () => {
+  before(async function () {
     fioAccount = await newUser(faucet);
     fioBalance = await fioAccount.sdk.genericAction('getFioBalance', { });
     fioTransaction = await faucet.genericAction('transferTokens', {
@@ -93,7 +91,7 @@ describe.skip(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
     await wfio.connect(accounts[7]).regoracle(accounts[14].address);
   });
 
-  before(async () => {
+  before(async function () {
     user1 = await newUser(faucet);
     keys = await createKeypair();
     accountnm =  await getAccountFromKey(keys.publicKey);
@@ -123,7 +121,7 @@ describe.skip(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
 });
 
 
-describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
+describe.only(`B. (unhappy) Try to wrap FIO tokens, invalid input`, function () {
 
   let fioAccount;
   let fioBalance;
@@ -140,19 +138,7 @@ describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
 
   let publicEthAddress;
 
-  // beforeEach(async () => {
-  //   fioAccount = await newUser(faucet);
-  //   fioBalance = await fioAccount.sdk.genericAction('getFioBalance', { });
-  //   fioTransaction = await faucet.genericAction('transferTokens', {
-  //     payeeFioPublicKey: fioAccount.publicKey,
-  //     amount: 100,
-  //     maxFee: config.api.transfer_tokens_pub_key.fee,
-  //     technologyProviderId: ''
-  //   })
-  //   transactionId = fioTransaction.transaction_id;
-  // });
-
-  before(async () => {
+  before(async function () {
     bp1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
     bp2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
     bp3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
@@ -163,16 +149,22 @@ describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
       amount: 100,
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
-    })
+    });
     transactionId = fioTransaction.transaction_id;
 
     oracle1 = await newUser(faucet);
     oracle2 = await newUser(faucet);
     oracle3 = await newUser(faucet);
 
+
+
+    // TODO: Register / unregister as a BP -- try regproducer for example
+
+
+
     //TODO: For now, comment out the require_auth in fio.oracle.cpp#regoracle so that any BP can be used
     try {
-      const result1 = await fioAccount.sdk.genericAction('pushTransaction', {
+      const result1 = await bp1.sdk.genericAction('pushTransaction', {
         action: 'regoracle',
         account: 'fio.oracle',
         actor: 'eosio',
@@ -183,7 +175,7 @@ describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
       });
       console.log(result1);
 
-      const result2 = await fioAccount.sdk.genericAction('pushTransaction', {
+      const result2 = await bp1.sdk.genericAction('pushTransaction', {
         action: 'regoracle',
         account: 'fio.oracle',
         actor: 'eosio',
@@ -194,7 +186,7 @@ describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
       });
       console.log(result2);
 
-      const result3 = await fioAccount.sdk.genericAction('pushTransaction', {
+      const result3 = await bp3.sdk.genericAction('pushTransaction', {
         action: 'regoracle',
         account: 'fio.oracle',
         actor: 'eosio',
@@ -216,10 +208,11 @@ describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
     try {
       let oracleRecords = await callFioApi("get_table_rows", {
         json: true,
-        code: 'eosio',
-        scope: 'eosio',
-        table: 'oracles',
-        reverse: true
+        code: 'fio.oracle',
+        scope: 'fio.oracle',
+        table: 'oracless',
+        reverse: true,
+        limit: 1000
       });
       console.log(oracleRecords);
     } catch (err) {
@@ -228,89 +221,162 @@ describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
 
 
 
-    try {
-      const result1 = await fioAccount.sdk.genericAction('pushTransaction', {
-        action: 'regoracle',
-        account: 'fio.oracle',
-        actor: 'eosio',
-        data: {
-          oracle_actor: bp1.account,
-          actor: oracle2.account
-        }
-      });
-      console.log(result1);
+    // oracle1 = await newUser(faucet);
+    // oracle2 = await newUser(faucet);
+    // oracle3 = await newUser(faucet);
+    //
+    // //TODO: For now, comment out the require_auth in fio.oracle.cpp#regoracle so that any BP can be used
+    // try {
+    //   const result1 = await bp1.sdk.genericAction('pushTransaction', {
+    //     action: 'regoracle',
+    //     account: 'fio.oracle',
+    //     actor: 'eosio',
+    //     data: {
+    //       actor: oracle1.account,
+    //       oracle_actor: bp1.account
+    //     }
+    //   });
+    //   console.log(result1);
+    //
+    //   const result2 = await bp2.sdk.genericAction('pushTransaction', {
+    //     action: 'regoracle',
+    //     account: 'fio.oracle',
+    //     actor: 'eosio',
+    //     data: {
+    //       actor: oracle1.account,
+    //       oracle_actor: bp2.account
+    //     }
+    //   });
+    //   console.log(result2);
+    //
+    //   const result3 = await bp3.sdk.genericAction('pushTransaction', {
+    //     action: 'regoracle',
+    //     account: 'fio.oracle',
+    //     actor: 'eosio',
+    //     data: {
+    //       actor: oracle1.account,
+    //       oracle_actor: bp3.account
+    //     }
+    //   });
+    //   console.log(result3);
+    //
+    //
+    // } catch (err) {
+    //   console.log('failed on oracle 1')
+    //   expect(err.json.error.what).to.equal('could not insert object, most likely a uniqueness constraint was violated');
+    //   // throw err;
+    // }
 
-      const result2 = await fioAccount.sdk.genericAction('pushTransaction', {
-        action: 'regoracle',
-        account: 'fio.oracle',
-        actor: 'eosio',
-        data: {
-          oracle_actor: bp2.account,
-          actor: oracle2.account
-        }
-      });
-      console.log(result2);
-
-      const result3 = await fioAccount.sdk.genericAction('pushTransaction', {
-        action: 'regoracle',
-        account: 'fio.oracle',
-        actor: 'eosio',
-        data: {
-          oracle_actor: bp3.account,
-          actor: oracle2.account
-        }
-      });
-      console.log(result3);
-
-
-    } catch (err) {
-      console.log('failed on oracle 2')
-      expect(err.json.error.what).to.equal('could not insert object, most likely a uniqueness constraint was violated');
-      // throw err;
-    }
 
 
 
+    // TODO : try the above using the bps themselves to call wrap and unwrap instead...
+    //  the problem I am having is registering an oracle with existing oracle/bp accounts
+
+    // try {
+    //   let oracleRecords = await callFioApi("get_table_rows", {
+    //     json: true,
+    //     code: 'fio.oracle',
+    //     scope: 'fio.oracle',
+    //     table: 'oracless',
+    //     reverse: true,
+    //     limit: 1000
+    //   });
+    //   console.log(oracleRecords);
+    // } catch (err) {
+    //   throw err;
+    // }
+    // await timeout(5000);
 
 
-    try {
-      const result1 = await fioAccount.sdk.genericAction('pushTransaction', {
-        action: 'regoracle',
-        account: 'fio.oracle',
-        actor: 'eosio',
-        data: {
-          oracle_actor: bp1.account,
-          actor: oracle3.account
-        }
-      });
-      console.log(result1);
-
-      const result2 = await fioAccount.sdk.genericAction('pushTransaction', {
-        action: 'regoracle',
-        account: 'fio.oracle',
-        actor: 'eosio',
-        data: {
-          oracle_actor: bp2.account,
-          actor: oracle3.account
-        }
-      });
-      console.log(result2);
-
-      const result3 = await fioAccount.sdk.genericAction('pushTransaction', {
-        action: 'regoracle',
-        account: 'fio.oracle',
-        actor: 'eosio',
-        data: {
-          oracle_actor: bp3.account,
-          actor: oracle3.account
-        }
-      });
-      console.log(result3);
-    } catch (err) {
-      console.log('failed on oracle 3')
-      expect(err.json.error.what).to.equal('could not insert object, most likely a uniqueness constraint was violated');
-      // throw err;
-    }
+    // try {
+    //   const result1 = await bp1.sdk.genericAction('pushTransaction', {
+    //     action: 'regoracle',
+    //     account: 'fio.oracle',
+    //     actor: 'eosio',
+    //     data: {
+    //       actor: oracle2.account,
+    //       oracle_actor: bp1.account
+    //     }
+    //   });
+    //   console.log(result1);
+    //
+    //   const result2 = await bp2.sdk.genericAction('pushTransaction', {
+    //     action: 'regoracle',
+    //     account: 'fio.oracle',
+    //     actor: 'eosio',
+    //     data: {
+    //       actor: oracle2.account,
+    //       oracle_actor: bp2.account
+    //     }
+    //   });
+    //   console.log(result2);
+    //
+    //   const result3 = await bp3.sdk.genericAction('pushTransaction', {
+    //     action: 'regoracle',
+    //     account: 'fio.oracle',
+    //     actor: 'eosio',
+    //     data: {
+    //       actor: oracle2.account,
+    //       oracle_actor: bp3.account
+    //     }
+    //   });
+    //   console.log(result3);
+    //
+    //
+    //
+    //
+    // } catch (err) {
+    //   console.log('failed on oracle 2')
+    //   expect(err.json.error.what).to.equal('could not insert object, most likely a uniqueness constraint was violated');
+    //   // throw err;
+    // }
+    //
+    // await timeout(5000);
+    //
+    //
+    //
+    //
+    // try {
+    //   const result1 = await bp1.sdk.genericAction('pushTransaction', {
+    //     action: 'regoracle',
+    //     account: 'fio.oracle',
+    //     actor: 'eosio',
+    //     data: {
+    //       actor: oracle3.account,
+    //       oracle_actor: bp1.account
+    //     }
+    //   });
+    //   console.log(result1);
+    //
+    //   const result2 = await bp2.sdk.genericAction('pushTransaction', {
+    //     action: 'regoracle',
+    //     account: 'fio.oracle',
+    //     actor: 'eosio',
+    //     data: {
+    //       actor: oracle3.account,
+    //       oracle_actor: bp2.account
+    //     }
+    //   });
+    //   console.log(result2);
+    //
+    //   const result3 = await bp3.sdk.genericAction('pushTransaction', {
+    //     action: 'regoracle',
+    //     account: 'fio.oracle',
+    //     actor: 'eosio',
+    //     data: {
+    //       actor: oracle3.account,
+    //       oracle_actor: bp3.account
+    //     }
+    //   });
+    //   console.log(result3);
+    //
+    //
+    // } catch (err) {
+    //   console.log('failed on oracle 3')
+    //   expect(err.json.error.what).to.equal('could not insert object, most likely a uniqueness constraint was violated');
+    //   // throw err;
+    // }
 
 
 
@@ -351,7 +417,7 @@ describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
     // await fioAccount
   });
 
-  it(`Wrap 100 wFIO`, async () => {
+  it(`Wrap 100 wFIO`, async function () {
     let fromStartingBal = await accounts[14].getBalance();
     let toStartingWfioBal = await wfio.balanceOf(accounts[0].address);
     await wfio.connect(accounts[12]).wrap(accounts[0].address, 100, transactionId);
@@ -370,19 +436,19 @@ describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
     // }
   });
 
-  it(`Wrap 100 FIO tokens`, async () => {
+  it(`Wrap 100 FIO tokens`, async function () {
     try {
       const result = await fioAccount.sdk.genericAction('pushTransaction', {
         action: 'wraptokens',
         account: 'fio.oracle',
         data: {
-          amount: 100000000000,
+          amount: 1000000000000,
           chain_code: "ETH",
           public_address: wfio.address,
           max_fee: config.maxFee,
           max_oracle_fee: config.maxFee,
           tpid: "",
-          actor: fioAccount.account
+          // actor: fioAccount.account
         }
       });
       console.log(result);
@@ -391,7 +457,7 @@ describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
     }
   });
 
-  // it(`Add 3 new oracles and wrap 100 wFIO`, async () => {
+  // it(`Add 3 new oracles and wrap 100 wFIO`, async function () {
   //   // add 3 new oracles
   //   await wfio.connect(accounts[1]).regoracle(accounts[15].address);
   //   await wfio.connect(accounts[2]).regoracle(accounts[15].address);
@@ -437,7 +503,7 @@ describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
   //   }
   // });
 
-  // it(`Add 10 new oracles and wrap 100 wFIO`, async () => {
+  // it(`Add 10 new oracles and wrap 100 wFIO`, async function () {
   //
   //   // register 10 more new oracles
   //   await wfio.connect(accounts[1]).regoracle(accounts[18].address);
@@ -545,7 +611,7 @@ describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
   // });
 
   // unhappy paths
-  // it(`invalid address, expect Error 400`, async () => {
+  // it(`invalid address, expect Error 400`, async function () {
   //   await wfio.connect(accounts[12]).wrap(accounts[0].address, 100, transactionId);
   //   await wfio.connect(accounts[13]).wrap(accounts[0].address, 100, transactionId);
   //   try {
@@ -561,7 +627,7 @@ describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
   //   }
   // });
   //
-  // it(`missing address, expect Error 400`, async () => {
+  // it(`missing address, expect Error 400`, async function () {
   //   await wfio.connect(accounts[12]).wrap(accounts[0].address, 100, transactionId);
   //   await wfio.connect(accounts[13]).wrap(accounts[0].address, 100, transactionId);
   //   try {
@@ -577,7 +643,7 @@ describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
   //   }
   // });
   //
-  // it(`invalid tx amount, expect Error 400`, async () => {
+  // it(`invalid tx amount, expect Error 400`, async function () {
   //   try {
   //     let result = await wfio.wrap(custodians[0], "donkey", transactionId);
   //     expect(result.status).to.equal('OK');
@@ -592,7 +658,7 @@ describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
   //   }
   // });
   //
-  // it(`missing tx amount, expect Error 400`, async () => {
+  // it(`missing tx amount, expect Error 400`, async function () {
   //   try {
   //     let result = await wfio.wrap(custodians[0], transactionId);
   //     expect(result.status).to.equal('OK');
@@ -607,7 +673,7 @@ describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
   //   }
   // });
   //
-  // it(`invalid obtid, expect Error 400`, async () => {
+  // it(`invalid obtid, expect Error 400`, async function () {
   //   await wfio.connect(accounts[12]).wrap(accounts[0].address, 100, "donkey");
   //   await wfio.connect(accounts[13]).wrap(accounts[0].address, 100, "donkey");
   //   try {
@@ -618,7 +684,7 @@ describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
   //   }
   // });
   //
-  // it(`missing obtid, expect Error 400`, async () => {
+  // it(`missing obtid, expect Error 400`, async function () {
   //   try {
   //     let result = await wfio.wrap(custodians[0], 1000);
   //     expect(result.status).to.equal('OK');
@@ -633,7 +699,7 @@ describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
   //   }
   // });
   //
-  // it(`no authority, expect Error 403`, async () => {
+  // it(`no authority, expect Error 403`, async function () {
   //   try {
   //     let result = await wfio.wrap(accounts[13].address, 100, transactionId);
   //     expect(result.status).to.equal('OK');
@@ -645,7 +711,7 @@ describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
   //   }
   // });
   //
-  // it(`recipient account does not match prior approvals`, async () => {
+  // it(`recipient account does not match prior approvals`, async function () {
   //
   //   let toStartingWfioBal = await wfio.balanceOf(accounts[0].address);
   //
@@ -679,7 +745,7 @@ describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, () => {
   //   }
   // });
   //
-  // it(`amount does not match prior approvals`, async () => {
+  // it(`amount does not match prior approvals`, async function () {
   //
   //   let toStartingWfioBal = await wfio.balanceOf(accounts[0].address);
   //
