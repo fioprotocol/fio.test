@@ -469,7 +469,7 @@ describe(`B. (BD-3153) accounts with remaining locked FIP-6 periods should not b
   });
 });
 
-describe(`C. Retire locked FIO Tokens`, function () {
+describe.only(`C. Retire locked FIO Tokens`, function () {
   let userA, userA1, userA2, userA3, userA4, userA5, userA6;
   let userALocks,userA1Locks, userA2Locks, userA3Locks, userA4Locks, userA5Locks, userA6Locks;
   let userABal, userA1Bal, userA2Bal, userA3Bal, userA4Bal, userA5Bal, userA6Bal;
@@ -1287,7 +1287,7 @@ describe(`C. Retire locked FIO Tokens`, function () {
   });
 });
 
-describe(`D. Try to retire from accounts with staked tokens`, function () {
+describe.only(`D. Try to retire from accounts with staked tokens`, function () {
   let bp1, bp2, bp3, userA, userA1, userP, userAKeys, userA1Keys;
   let userABal, userA1Bal;
 
