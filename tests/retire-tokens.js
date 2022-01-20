@@ -6,7 +6,7 @@ const config = require('../config.js');
 let faucet;
 
 /*
- MANUAL CONFIGURATION REQUIRED TO RUN TEST
+ MANUAL CONFIGURATION REQUIRED TO RUN TESTS
 
  The following changes must be made to run these tests:
 
@@ -94,6 +94,10 @@ let faucet;
 
      #define SECONDSBETWEENBPCLAIM (5)
 */
+
+function triggerLockTableUpdate(userObj) {
+
+}
 
 before(async function () {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
@@ -853,7 +857,6 @@ describe(`C. Retire locked FIO Tokens`, function () {
           locktype: 1,
         }
       });
-      console.log(result);
       expect(result.status).to.equal('OK');
     } catch (err) {
       throw err;
@@ -1025,7 +1028,6 @@ describe(`C. Retire locked FIO Tokens`, function () {
           locktype: 2,
         }
       });
-      console.log(result);
       expect(result.status).to.equal('OK');
     } catch (err) {
       throw err;
@@ -1223,7 +1225,6 @@ describe(`C. Retire locked FIO Tokens`, function () {
           locktype: 1,
         }
       });
-      console.log(result);
       expect(result.status).to.equal('OK');
     } catch (err) {
       throw err;
