@@ -254,22 +254,61 @@ describe(`************************** retire-tokens.js **************************
       throw err;
     }
   });
+
+  it(`transfer 100 tokens to userA to trigger a locktokensv2 table update`, async function () {
+    try {
+      const result = await userA1.sdk.transferTokens(userA.publicKey, 100000000000, config.api.transfer_tokens_pub_key.fee);
+      expect(result.status).to.equal('OK');
+      expect(result.fee_collected).to.equal(config.api.transfer_tokens_pub_key.fee)
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`confirm that locktokensv2 remaining_lock_amount is 0`, async function () {
+    // shows that lock table has been updated
+    const json = {
+      json: true,
+      code: 'eosio',
+      scope: 'eosio',
+      table: 'locktokensv2',
+      lower_bound: userA1.account,
+      upper_bound: userA1.account,
+      reverse: true,
+      key_type: 'i64',
+      index_position: '2'
+    }
+    let found = false;
+    let user;
+    try {
+      const lockedtokens = await callFioApi("get_table_rows", json);
+      expect(lockedtokens.rows[0].remaining_lock_amount).to.equal(0);
+    } catch (err) {
+      throw err;
+    }
+  });
+
   it(`Happy Test, Retire ${fundsAmount} SUFs from UserA1 (type 4 lock)`, async function () {
     let newUserBal;
     userA1Bal = await userA1.sdk.genericAction('getFioBalance', {});
-    const result = await userA1.sdk.genericAction('pushTransaction', {
-      action: 'retire',
-      account: 'fio.token',
-      data: {
-        quantity: fundsAmount,
-        memo: "test string",
-        actor: userA1.account,
-      }
-    });
-    expect(result.status).to.equal('OK');
-    newUserBal = await userA1.sdk.genericAction('getFioBalance', {});
-    expect(newUserBal.available).to.equal(userA1Bal.available - fundsAmount);
-    expect(newUserBal.balance).to.equal(userA1Bal.balance - fundsAmount);
+
+    try {
+      const result = await userA1.sdk.genericAction('pushTransaction', {
+        action: 'retire',
+        account: 'fio.token',
+        data: {
+          quantity: fundsAmount,
+          memo: "test string",
+          actor: userA1.account,
+        }
+      });
+      expect(result.status).to.equal('OK');
+      newUserBal = await userA1.sdk.genericAction('getFioBalance', {});
+      expect(newUserBal.available).to.equal(userA1Bal.available - fundsAmount);
+      expect(newUserBal.balance).to.equal(userA1Bal.balance - fundsAmount);
+    } catch (err) {
+      throw err;
+    }
   });
 
   /*
@@ -304,6 +343,41 @@ describe(`************************** retire-tokens.js **************************
       throw err;
     }
   });
+
+  it(`transfer 100 tokens to userA to trigger a locktokensv2 table update`, async function () {
+    try {
+      const result = await userA2.sdk.transferTokens(userA.publicKey, 100000000000, config.api.transfer_tokens_pub_key.fee);
+      expect(result.status).to.equal('OK');
+      expect(result.fee_collected).to.equal(config.api.transfer_tokens_pub_key.fee)
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`confirm that userA2 has no lock records in locktokensv2`, async function () {
+    // shows that lock table has been updated
+    const json = {
+      json: true,
+      code: 'eosio',
+      scope: 'eosio',
+      table: 'locktokensv2',
+      lower_bound: userA2.account,
+      upper_bound: userA2.account,
+      reverse: true,
+      key_type: 'i64',
+      index_position: '2'
+    }
+    let found = false;
+    let user;
+    try {
+      const lockedtokens = await callFioApi("get_table_rows", json);
+      // expect(lockedtokens.rows[0].remaining_lock_amount).to.equal(0);
+      expect(lockedtokens.rows.length).to.equal(0);
+    } catch (err) {
+      throw err;
+    }
+  });
+
   it(`Happy Test, Retire ${fundsAmount} SUFs from UserA2 (type 1 lock)`, async function () {
     let newUserBal;
     userA2Bal = await userA2.sdk.genericAction('getFioBalance', { });
@@ -319,8 +393,8 @@ describe(`************************** retire-tokens.js **************************
     });
     expect(result.status).to.equal('OK');
     newUserBal = await userA2.sdk.genericAction('getFioBalance', { });
-    expect(newUserBal.balance).to.equal(14000000000000);
-    expect(newUserBal.available).to.equal(13000000000000);
+    expect(newUserBal.balance).to.equal(userA2Bal.balance - fundsAmount);
+    expect(newUserBal.available).to.equal(userA2Bal.available - fundsAmount);
   });
 });
 
