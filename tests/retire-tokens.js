@@ -897,8 +897,49 @@ describe(`C. Retire locked FIO Tokens`, function () {
     userA4Locks = row;
   });
 
+
+  it(`transfer some tokens to userA1 to trigger a locktokensv2 table update`, async function () {
+    try {
+      const result = await userA4.sdk.transferTokens(userA1.publicKey, 100000000000, config.api.transfer_tokens_pub_key.fee);
+      expect(result.status).to.equal('OK');
+      expect(result.fee_collected).to.equal(config.api.transfer_tokens_pub_key.fee)
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`confirm that locktokensv2 remaining_lock_amount is 0`, async function () {
+    // shows that lock table has been updated
+    const json = {
+      json: true,
+      code: 'eosio',
+      scope: 'eosio',
+      table: 'locktokensv2',
+      lower_bound: userA4.account,
+      upper_bound: userA4.account,
+      reverse: true,
+      key_type: 'i64',
+      index_position: '2'
+    }
+    let found = false;
+    let user;
+    try {
+      const lockedtokens = await callFioApi("get_table_rows", json);
+      console.log(lockedtokens);
+      expect(lockedtokens.rows[0].lock_amount).to.equal(5000000000000);
+      expect(lockedtokens.rows[0].remaining_lock_amount).to.equal(1000000000000);
+      expect(lockedtokens.rows[0].payouts_performed).to.equal(4);
+      expect(lockedtokens.rows[0].periods.length).to.equal(5);
+    } catch (err) {
+      throw err;
+    }
+  });
+
+
   it(`(BD-3132) try to retire more tokens than are unlocked, expect Error`, async function () {
     let newUserBal;
+    userA4Bal = await userA4.sdk.genericAction('getFioBalance', { });
+
     try {
       const result = await userA4.sdk.genericAction('pushTransaction', {
         action: 'retire',
@@ -911,18 +952,12 @@ describe(`C. Retire locked FIO Tokens`, function () {
           actor: userA4.account,
         }
       });
-      newUserBal = await userA4.sdk.genericAction('getFioBalance', { });
-      // console.log(newUserBal)
-      expect(result.status).to.equal('OK');
-      expect(newUserBal.available).to.equal(0);
-      expect(newUserBal.balance).to.equal(userA4Bal.balance - 2900000000000);
+      expect(result.status).to.not.equal('OK');
     } catch (err) {
       newUserBal = await userA4.sdk.genericAction('getFioBalance', { });
-      // console.log(err, newUserBal)
       expect(newUserBal.balance).to.equal(userA4Bal.balance);
       expect(newUserBal.available).to.equal(userA4Bal.available);
       expect(err.json.fields[0].error).to.equal('Account with partially locked balance cannot retire');
-      //throw err;
     }
   });
 
@@ -1116,18 +1151,13 @@ describe(`C. Retire locked FIO Tokens`, function () {
         }
       });
       newUserBal = await userA5.sdk.genericAction('getFioBalance', { });
-      // console.log(newUserBal);
-      // expect(newUserBal.available).to.equal(userA5Bal.available - 1000000000000);
-      // expect(newUserBal.balance).to.equal(userA5Bal.balance - 2500000000000);
       expect(result.status).to.not.equal('OK');
       userA5Bal = newUserBal;
     } catch (err) {
       newUserBal = await userA5.sdk.genericAction('getFioBalance', { });
-      // console.log(err, newUserBal);
       expect(newUserBal.balance).to.equal(userA5Bal.balance);
       expect(newUserBal.available).to.equal(userA5Bal.available);
       expect(err.json.fields[0].error).to.equal('Account with partially locked balance cannot retire');
-      //throw err;
     }
   });
 
@@ -1710,7 +1740,7 @@ describe(`D. Try to retire from accounts with staked tokens`, function () {
   });
 });
 
-describe(`E. Unhappy tests. Try to retire FIO tokens with invalid input`, function () {
+describe.only(`E. Unhappy tests. Try to retire FIO tokens with invalid input`, function () {
   let userA, userA1, userA2, userAKeys, userA1Keys, userA2Keys;
 
   let userABal, userA1Bal, userA2Bal;
@@ -1836,6 +1866,39 @@ describe(`E. Unhappy tests. Try to retire FIO tokens with invalid input`, functi
     }
   });
 
+  it(`transfer 100 tokens to userA to trigger a locktokensv2 table update`, async function () {
+    try {
+      const result = await userA1.sdk.transferTokens(userA.publicKey, 100000000000, config.api.transfer_tokens_pub_key.fee);
+      expect(result.status).to.equal('OK');
+      expect(result.fee_collected).to.equal(config.api.transfer_tokens_pub_key.fee)
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`confirm that locktokensv2 remaining_lock_amount is 0`, async function () {
+    // shows that lock table has been updated
+    const json = {
+      json: true,
+      code: 'eosio',
+      scope: 'eosio',
+      table: 'locktokensv2',
+      lower_bound: userA1.account,
+      upper_bound: userA1.account,
+      reverse: true,
+      key_type: 'i64',
+      index_position: '2'
+    }
+    let found = false;
+    let user;
+    try {
+      const lockedtokens = await callFioApi("get_table_rows", json);
+      expect(lockedtokens.rows[0].remaining_lock_amount).to.equal(0);
+    } catch (err) {
+      throw err;
+    }
+  });
+
   it(`(insufficient funds) Retire ${fundsAmount} SUFs from userA1`, async function () {
     try {
       const result = await userA1.sdk.genericAction('pushTransaction', {
@@ -1847,7 +1910,7 @@ describe(`E. Unhappy tests. Try to retire FIO tokens with invalid input`, functi
           actor: userA1.account,
         }
       });
-      expect(result).to.equal(null);
+      expect(result.status).to.not.equal('OK');
     } catch (err) {
       expect(err.json.fields[0].error).to.equal("Insufficient balance");
 
