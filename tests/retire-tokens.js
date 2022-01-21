@@ -2093,7 +2093,7 @@ describe(`E. Unhappy tests. Try to retire FIO tokens with invalid input`, functi
   });
 });
 
-describe.only(`F. Unlock with various locked and unlocked amounts`, function () {
+describe(`F. Unlock with various locked and unlocked amounts`, function () {
   let user1, user1TotalBal, user1LockedBal, user1AvailBal, lockTableRemainingAmount, lockTableGrantAmount
   let prevUser1TotalBal, prevUser1AvailBal, prevUser1LockedBal, prevLockTableRemainingAmount, prevLockTableGrantAmount;
 
