@@ -2065,7 +2065,7 @@ describe(`E. Unhappy tests. Try to retire FIO tokens with invalid input`, functi
   });
 });
 
-describe(`F. Unlock with various locked and unlocked amounts`, function () {
+describe.only(`F. Unlock with various locked and unlocked amounts`, function () {
   let user1, user1TotalBal, user1LockedBal, user1AvailBal, lockTableRemainingAmount, lockTableGrantAmount
   let prevUser1TotalBal, prevUser1AvailBal, prevUser1LockedBal, prevLockTableRemainingAmount, prevLockTableGrantAmount;
 
@@ -2174,7 +2174,7 @@ describe(`F. Unlock with various locked and unlocked amounts`, function () {
 
   //TODO: not sure what is going on here, but I didn't write these tests, so will look into it later.
   // I would expect this to fail given that both balance AND available are being reduced
-  it(`Retire ${retire1} of total balance.`, async function () {
+  it(`(BD-3227) Retire ${retire1} of total balance.`, async function () {
     let bal = await user1.sdk.genericAction('getFioBalance', {});
     prevUser1TotalBal = bal.balance;
     prevUser1AvailBal = bal.available;
@@ -2194,8 +2194,12 @@ describe(`F. Unlock with various locked and unlocked amounts`, function () {
       });
       expect(result.status).to.equal('OK');
       newUserBal = await user1.sdk.genericAction('getFioBalance', {});
+
+      // the new available balance should be the same as the old
+      expect(newUserBal.available).to.equal(prevUser1AvailBal)
+
+      // only the total should update
       expect(newUserBal.balance).to.equal(prevUser1TotalBal - retireAmt)
-      expect(newUserBal.available).to.equal(prevUser1AvailBal - retireAmt)
     } catch (err) {
       console.log(err.json);
       newUserBal = await user1.sdk.genericAction('getFioBalance', {});
