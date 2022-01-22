@@ -603,6 +603,10 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
      *    if (feeMultiplier > 1) {
      *        newFundsFee = RECORDOBTRAM + ((RECORDOBTRAM * feeMultiplier) / 2);
      *    }
+     * 
+     * NOTE: This tests calculates content size using getCipherContent. This is different from how the Contracts calculate size.
+     * So, if you get to close to the 1000 byte number, you may get a false failure. So, the test adds some buffer above and below
+     * the 1000 byte cutoffs.
      */
 
     let user1, bundleCount, userBalance, user1Ram, user2, user2Ram, user3, requestId, contentSize, feeMultiplier, new_funds_request_fee
@@ -611,12 +615,12 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
     const BASECONTENTAMOUNT = 1000;
     const bundleBase = 2;
 
-    const requestMemoBase = randStr(600);  // A memo field of 659 chars (bytes) makes the total Content Field 999 bytes
-    const requestMemoBasePlus1 = randStr(680);            // Content = 1000, multiplier = 2
-    const requestMemoBasePlus1000 = randStr(1656);        // Content = 1999, multiplier = 2
-    const requestMemoBasePlus1001 = randStr(1660);        // Content = 2000, multiplier = 3
-    const requestMemoBasePlus100000 = randStr(5905);    // Content = 100999, multiplier = 100
-    const requestMemoBasePlus100001 = randStr(5910);    // Content = 101000, multiplier = 101
+    const requestMemoBase = randStr(620);  // A memo field of 620 chars (bytes) makes the total Content Field of approx 940 bytes
+    const requestMemoBaseOver = randStr(680);            // Content = 1004, multiplier = 2
+    const requestMemoBaseMid = randStr(1350);        // Content = 1920, multiplier = 2
+    const requestMemoBaseMidOver = randStr(1600);        // Content = 2240, multiplier = 3
+    const requestMemoBaseLarge = randStr(5700);    // Content = 7724, multiplier = 8
+    const requestMemoBaseLargeOver = randStr(5900);    // Content = 7980, multiplier = 8  = Transaction too large
 
     payeeTokenPublicAddressMin = '1';
 
@@ -683,8 +687,9 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
                 offLineUrl: ''
             })
             //console.log('result: ', result)
-            requestId = result.fio_request_id
-            expect(result.status).to.equal('sent_to_blockchain')
+            requestId = result.fio_request_id;
+            expect(result.status).to.equal('sent_to_blockchain');
+            expect(feeMultiplier).to.equal(1);
         } catch (err) {
             console.log('Error: ', err)
             expect(err).to.equal(null)
@@ -714,39 +719,46 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
         }
     })
 
-    it(`user1 requests funds from user2 with memo of length ${requestMemoBasePlus1.length}`, async () => {
+    it(`user1 sends recordObtData to user2 with memo of length ${requestMemoBaseOver.length}`, async () => {
         try {
             const content = {
+                payer_public_address: payeeTokenPublicAddressMin,
                 payee_public_address: payeeTokenPublicAddressMin,
                 amount: payment,
                 chain_code: 'FIO',
                 token_code: 'FIO',
-                memo: requestMemoBasePlus1,
+                status: '',
+                obt_id: '',
+                memo: requestMemoBaseOver,
                 hash: '',
                 offline_url: ''
             }
 
             const cipherContent = faucet.transactions.getCipherContent('new_funds_content', content, user1.privateKey, user1.publicKey);
             feeMultiplier = Math.trunc(cipherContent.length / BASECONTENTAMOUNT) + 1;
-            //console.log('           Content length: ', cipherContent.length);
+            console.log('           Content length: ', cipherContent.length);
 
-            const result = await user1.sdk.genericAction('requestFunds', {
-                payerFioAddress: user2.address,
-                payeeFioAddress: user1.address,
+            const result = await user1.sdk.genericAction('recordObtData', {
+                payerFioAddress: user1.address,
+                payeeFioAddress: user2.address,
+                payerTokenPublicAddress: content.payer_public_address,
                 payeeTokenPublicAddress: content.payee_public_address,
                 amount: content.amount,
                 chainCode: content.chain_code,
                 tokenCode: content.token_code,
-                memo: content.memo,
+                status: content.status,
+                obtId: content.obt_id,
                 maxFee: config.maxFee,
-                payerFioPublicKey: user2.publicKey,
                 technologyProviderId: '',
+                payeeFioPublicKey: user2.publicKey,
+                memo: content.memo,
                 hash: '',
-                offlineUrl: ''
+                offLineUrl: ''
             })
             //console.log('result: ', result)
-            requestId = result.fio_request_id
-            expect(result.status).to.equal('requested')
+            requestId = result.fio_request_id;
+            expect(result.status).to.equal('sent_to_blockchain');
+            expect(feeMultiplier).to.equal(2);
         } catch (err) {
             console.log('Error: ', err)
             expect(err).to.equal(null)
@@ -761,7 +773,7 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
         expect(bundleCount).to.equal(bundleCountPrev - (bundleBase * 2))
     })
 
-    it.skip(`Confirm RAM quota for user1 was incremented by multiplier`, async () => {
+    it(`Confirm RAM quota for user1 was incremented by multiplier`, async () => {
         try {
             let prevRam = user1Ram;
             const json = {
@@ -777,39 +789,46 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
         }
     })
 
-    it(`user1 requests funds from user2 with memo of length ${requestMemoBasePlus1000.length}`, async () => {
+    it(`user1 sends recordObtData to user2 with memo of length ${requestMemoBaseMid.length}`, async () => {
         try {
             const content = {
+                payer_public_address: payeeTokenPublicAddressMin,
                 payee_public_address: payeeTokenPublicAddressMin,
                 amount: payment,
                 chain_code: 'FIO',
                 token_code: 'FIO',
-                memo: requestMemoBasePlus1000,
+                status: '',
+                obt_id: '',
+                memo: requestMemoBaseMid,
                 hash: '',
                 offline_url: ''
             }
 
             const cipherContent = faucet.transactions.getCipherContent('new_funds_content', content, user1.privateKey, user1.publicKey);
             feeMultiplier = Math.trunc(cipherContent.length / BASECONTENTAMOUNT) + 1;
-            //console.log('           Content length: ', cipherContent.length);
+            console.log('           Content length: ', cipherContent.length);
 
-            const result = await user1.sdk.genericAction('requestFunds', {
-                payerFioAddress: user2.address,
-                payeeFioAddress: user1.address,
+            const result = await user1.sdk.genericAction('recordObtData', {
+                payerFioAddress: user1.address,
+                payeeFioAddress: user2.address,
+                payerTokenPublicAddress: content.payer_public_address,
                 payeeTokenPublicAddress: content.payee_public_address,
                 amount: content.amount,
                 chainCode: content.chain_code,
                 tokenCode: content.token_code,
-                memo: content.memo,
+                status: content.status,
+                obtId: content.obt_id,
                 maxFee: config.maxFee,
-                payerFioPublicKey: user2.publicKey,
                 technologyProviderId: '',
+                payeeFioPublicKey: user2.publicKey,
+                memo: content.memo,
                 hash: '',
-                offlineUrl: ''
+                offLineUrl: ''
             })
             //console.log('result: ', result)
-            requestId = result.fio_request_id
-            expect(result.status).to.equal('requested')
+            requestId = result.fio_request_id;
+            expect(result.status).to.equal('sent_to_blockchain');
+            expect(feeMultiplier).to.equal(2);
         } catch (err) {
             console.log('Error: ', err)
             expect(err).to.equal(null)
@@ -824,7 +843,7 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
         expect(bundleCount).to.equal(bundleCountPrev - (bundleBase * feeMultiplier))
     })
 
-    it.skip(`Confirm RAM quota for user1 was incremented by multiplier`, async () => {
+    it(`Confirm RAM quota for user1 was incremented by multiplier`, async () => {
         try {
             let prevRam = user1Ram;
             const json = {
@@ -840,40 +859,46 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
         }
     })
 
-    it(`user1 requests funds from user2 with memo of length ${requestMemoBasePlus1001.length}`, async () => {
+    it(`user1 sends recordObtData to user2 with memo of length ${requestMemoBaseMidOver.length}`, async () => {
         try {
             const content = {
+                payer_public_address: payeeTokenPublicAddressMin,
                 payee_public_address: payeeTokenPublicAddressMin,
                 amount: payment,
                 chain_code: 'FIO',
                 token_code: 'FIO',
-                memo: requestMemoBasePlus1001,
+                status: '',
+                obt_id: '',
+                memo: requestMemoBaseMidOver,
                 hash: '',
                 offline_url: ''
             }
 
             const cipherContent = faucet.transactions.getCipherContent('new_funds_content', content, user1.privateKey, user1.publicKey);
             feeMultiplier = Math.trunc(cipherContent.length / BASECONTENTAMOUNT) + 1;
-            //console.log('           Content length: ', cipherContent.length);
-            //console.log('           Bundle Payment: ', bundleBase * feeMultiplier);
+            console.log('           Content length: ', cipherContent.length);
 
-            const result = await user1.sdk.genericAction('requestFunds', {
-                payerFioAddress: user2.address,
-                payeeFioAddress: user1.address,
+            const result = await user1.sdk.genericAction('recordObtData', {
+                payerFioAddress: user1.address,
+                payeeFioAddress: user2.address,
+                payerTokenPublicAddress: content.payer_public_address,
                 payeeTokenPublicAddress: content.payee_public_address,
                 amount: content.amount,
                 chainCode: content.chain_code,
                 tokenCode: content.token_code,
-                memo: content.memo,
+                status: content.status,
+                obtId: content.obt_id,
                 maxFee: config.maxFee,
-                payerFioPublicKey: user2.publicKey,
                 technologyProviderId: '',
+                payeeFioPublicKey: user2.publicKey,
+                memo: content.memo,
                 hash: '',
-                offlineUrl: ''
+                offLineUrl: ''
             })
             //console.log('result: ', result)
-            requestId = result.fio_request_id
-            expect(result.status).to.equal('requested')
+            requestId = result.fio_request_id;
+            expect(result.status).to.equal('sent_to_blockchain');
+            expect(feeMultiplier).to.equal(3);
         } catch (err) {
             console.log('Error: ', err)
             expect(err).to.equal(null)
@@ -888,7 +913,7 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
         expect(bundleCount).to.equal(bundleCountPrev - (bundleBase * feeMultiplier))
     })
 
-    it.skip(`Confirm RAM quota for user1 was incremented by multiplier`, async () => {
+    it(`Confirm RAM quota for user1 was incremented by multiplier`, async () => {
         try {
             let prevRam = user1Ram;
             const json = {
@@ -925,42 +950,48 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
         }
     })
 
-    it(`user1 requests funds from user2 with memo of length ${requestMemoBasePlus100000.length}`, async () => {
+    it(`user1 sends recordObtData to user2 with memo of length ${requestMemoBaseLarge.length}`, async () => {
         try {
             const content = {
+                payer_public_address: payeeTokenPublicAddressMin,
                 payee_public_address: payeeTokenPublicAddressMin,
                 amount: payment,
                 chain_code: 'FIO',
                 token_code: 'FIO',
-                memo: requestMemoBasePlus100000,
+                status: '',
+                obt_id: '',
+                memo: requestMemoBaseLarge,
                 hash: '',
                 offline_url: ''
             }
 
             const cipherContent = faucet.transactions.getCipherContent('new_funds_content', content, user1.privateKey, user1.publicKey);
             feeMultiplier = Math.trunc(cipherContent.length / BASECONTENTAMOUNT) + 1;
-            //console.log('           Content length: ', cipherContent.length);
-            //console.log('           Bundle Payment: ', bundleBase * feeMultiplier);
+            console.log('           Content length: ', cipherContent.length);
 
-            const result = await user1.sdk.genericAction('requestFunds', {
-                payerFioAddress: user2.address,
-                payeeFioAddress: user1.address,
+            const result = await user1.sdk.genericAction('recordObtData', {
+                payerFioAddress: user1.address,
+                payeeFioAddress: user2.address,
+                payerTokenPublicAddress: content.payer_public_address,
                 payeeTokenPublicAddress: content.payee_public_address,
                 amount: content.amount,
                 chainCode: content.chain_code,
                 tokenCode: content.token_code,
-                memo: content.memo,
+                status: content.status,
+                obtId: content.obt_id,
                 maxFee: config.maxFee,
-                payerFioPublicKey: user2.publicKey,
                 technologyProviderId: '',
+                payeeFioPublicKey: user2.publicKey,
+                memo: content.memo,
                 hash: '',
-                offlineUrl: ''
+                offLineUrl: ''
             })
             //console.log('result: ', result)
-            requestId = result.fio_request_id
-            expect(result.status).to.equal('requested')
+            requestId = result.fio_request_id;
+            expect(result.status).to.equal('sent_to_blockchain');
+            expect(feeMultiplier).to.equal(8);
         } catch (err) {
-            console.log('Error: ', err.json)
+            console.log('Error: ', err)
             expect(err).to.equal(null)
         }
     })
@@ -973,7 +1004,7 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
         expect(bundleCount).to.equal(bundleCountPrev - (bundleBase * feeMultiplier))
     })
 
-    it.skip(`Confirm RAM quota for user1 was incremented by multiplier`, async () => {
+    it(`Confirm RAM quota for user1 was incremented by multiplier`, async () => {
         try {
             let prevRam = user1Ram;
             const json = {
@@ -989,39 +1020,44 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
         }
     })
 
-    it(`user1 requests funds from user2 with memo of length ${requestMemoBasePlus100001.length}. Expect 'Transaction is too large'`, async () => {
+    it(`user1 sends recordObtData to user2 with memo of length ${requestMemoBaseLargeOver.length}. Expect 'Transaction is too large`, async () => {
         try {
             const content = {
+                payer_public_address: payeeTokenPublicAddressMin,
                 payee_public_address: payeeTokenPublicAddressMin,
                 amount: payment,
                 chain_code: 'FIO',
                 token_code: 'FIO',
-                memo: requestMemoBasePlus100001,
+                status: '',
+                obt_id: '',
+                memo: requestMemoBaseLargeOver,
                 hash: '',
                 offline_url: ''
             }
 
             const cipherContent = faucet.transactions.getCipherContent('new_funds_content', content, user1.privateKey, user1.publicKey);
             feeMultiplier = Math.trunc(cipherContent.length / BASECONTENTAMOUNT) + 1;
-            //console.log('           Content length: ', cipherContent.length);
-            //console.log('           Bundle Payment: ', bundleBase * feeMultiplier);
+            console.log('           Content length: ', cipherContent.length);
 
-            const result = await user1.sdk.genericAction('requestFunds', {
-                payerFioAddress: user2.address,
-                payeeFioAddress: user1.address,
+            const result = await user1.sdk.genericAction('recordObtData', {
+                payerFioAddress: user1.address,
+                payeeFioAddress: user2.address,
+                payerTokenPublicAddress: content.payer_public_address,
                 payeeTokenPublicAddress: content.payee_public_address,
                 amount: content.amount,
                 chainCode: content.chain_code,
                 tokenCode: content.token_code,
-                memo: content.memo,
+                status: content.status,
+                obtId: content.obt_id,
                 maxFee: config.maxFee,
-                payerFioPublicKey: user2.publicKey,
                 technologyProviderId: '',
+                payeeFioPublicKey: user2.publicKey,
+                memo: content.memo,
                 hash: '',
-                offlineUrl: ''
+                offLineUrl: ''
             })
             //console.log('result: ', result)
-            requestId = result.fio_request_id
+            requestId = result.fio_request_id;
             expect(result.status).to.equal(null)
         } catch (err) {
             //console.log('Error: ', err)
@@ -1078,13 +1114,16 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
         }
     })
 
-    it(`user2 requests funds from user3 with memo of length ${requestMemoBase.length}`, async () => {
+    it(`user2 sends recordObtData to user3 with memo of length ${requestMemoBase.length}`, async () => {
         try {
             const content = {
+                payer_public_address: payeeTokenPublicAddressMin,
                 payee_public_address: payeeTokenPublicAddressMin,
                 amount: payment,
                 chain_code: 'FIO',
                 token_code: 'FIO',
+                status: '',
+                obt_id: '',
                 memo: requestMemoBase,
                 hash: '',
                 offline_url: ''
@@ -1094,23 +1133,27 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
             feeMultiplier = Math.trunc(cipherContent.length / BASECONTENTAMOUNT) + 1;
             //console.log('           Content length: ', cipherContent.length);
 
-            const result = await user2.sdk.genericAction('requestFunds', {
-                payerFioAddress: user3.address,
-                payeeFioAddress: user2.address,
+            const result = await user2.sdk.genericAction('recordObtData', {
+                payerFioAddress: user2.address,
+                payeeFioAddress: user3.address,
+                payerTokenPublicAddress: content.payer_public_address,
                 payeeTokenPublicAddress: content.payee_public_address,
                 amount: content.amount,
                 chainCode: content.chain_code,
                 tokenCode: content.token_code,
-                memo: content.memo,
+                status: content.status,
+                obtId: content.obt_id,
                 maxFee: config.maxFee,
-                payerFioPublicKey: user3.publicKey,
                 technologyProviderId: '',
+                payeeFioPublicKey: user3.publicKey,
+                memo: content.memo,
                 hash: '',
-                offlineUrl: ''
+                offLineUrl: ''
             })
             //console.log('result: ', result)
-            requestId = result.fio_request_id
-            expect(result.status).to.equal('requested')
+            requestId = result.fio_request_id;
+            expect(result.status).to.equal('sent_to_blockchain');
+            expect(feeMultiplier).to.equal(1);
         } catch (err) {
             console.log('Error: ', err)
             expect(err).to.equal(null)
@@ -1132,7 +1175,7 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
         }
     })
 
-    it.skip(`Confirm RAM quota for user2 was incremented by multiplier`, async () => {
+    it(`Confirm RAM quota for user2 was incremented by multiplier`, async () => {
         try {
             let prevRam = user2Ram;
             const json = {
@@ -1148,14 +1191,17 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
         }
     })
 
-    it(`user2 requests funds from user3 with memo of length ${requestMemoBasePlus1.length}`, async () => {
+    it(`user2 sends recordObtData to user3 with memo of length ${requestMemoBaseOver.length}`, async () => {
         try {
             const content = {
+                payer_public_address: payeeTokenPublicAddressMin,
                 payee_public_address: payeeTokenPublicAddressMin,
                 amount: payment,
                 chain_code: 'FIO',
                 token_code: 'FIO',
-                memo: requestMemoBasePlus1,
+                status: '',
+                obt_id: '',
+                memo: requestMemoBaseOver,
                 hash: '',
                 offline_url: ''
             }
@@ -1164,23 +1210,27 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
             feeMultiplier = Math.trunc(cipherContent.length / BASECONTENTAMOUNT) + 1;
             //console.log('           Content length: ', cipherContent.length);
 
-            const result = await user2.sdk.genericAction('requestFunds', {
-                payerFioAddress: user3.address,
-                payeeFioAddress: user2.address,
+            const result = await user2.sdk.genericAction('recordObtData', {
+                payerFioAddress: user2.address,
+                payeeFioAddress: user3.address,
+                payerTokenPublicAddress: content.payer_public_address,
                 payeeTokenPublicAddress: content.payee_public_address,
                 amount: content.amount,
                 chainCode: content.chain_code,
                 tokenCode: content.token_code,
-                memo: content.memo,
+                status: content.status,
+                obtId: content.obt_id,
                 maxFee: config.maxFee,
-                payerFioPublicKey: user3.publicKey,
                 technologyProviderId: '',
+                payeeFioPublicKey: user3.publicKey,
+                memo: content.memo,
                 hash: '',
-                offlineUrl: ''
+                offLineUrl: ''
             })
             //console.log('result: ', result)
-            requestId = result.fio_request_id
-            expect(result.status).to.equal('requested')
+            requestId = result.fio_request_id;
+            expect(result.status).to.equal('sent_to_blockchain');
+            expect(feeMultiplier).to.equal(2);
         } catch (err) {
             console.log('Error: ', err)
             expect(err).to.equal(null)
@@ -1202,7 +1252,7 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
         }
     })
 
-    it.skip(`Confirm RAM quota for user2 was incremented by multiplier`, async () => {
+    it(`Confirm RAM quota for user2 was incremented by multiplier`, async () => {
         try {
             let prevRam = user2Ram;
             const json = {
@@ -1218,14 +1268,17 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
         }
     })
 
-    it(`user2 requests funds from user3 with memo of length ${requestMemoBasePlus1000.length}`, async () => {
+    it(`user2 sends recordObtData to user3 with memo of length ${requestMemoBaseMid.length}`, async () => {
         try {
             const content = {
+                payer_public_address: payeeTokenPublicAddressMin,
                 payee_public_address: payeeTokenPublicAddressMin,
                 amount: payment,
                 chain_code: 'FIO',
                 token_code: 'FIO',
-                memo: requestMemoBasePlus1000,
+                status: '',
+                obt_id: '',
+                memo: requestMemoBaseMid,
                 hash: '',
                 offline_url: ''
             }
@@ -1234,23 +1287,27 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
             feeMultiplier = Math.trunc(cipherContent.length / BASECONTENTAMOUNT) + 1;
             //console.log('           Content length: ', cipherContent.length);
 
-            const result = await user2.sdk.genericAction('requestFunds', {
-                payerFioAddress: user3.address,
-                payeeFioAddress: user2.address,
+            const result = await user2.sdk.genericAction('recordObtData', {
+                payerFioAddress: user2.address,
+                payeeFioAddress: user3.address,
+                payerTokenPublicAddress: content.payer_public_address,
                 payeeTokenPublicAddress: content.payee_public_address,
                 amount: content.amount,
                 chainCode: content.chain_code,
                 tokenCode: content.token_code,
-                memo: content.memo,
+                status: content.status,
+                obtId: content.obt_id,
                 maxFee: config.maxFee,
-                payerFioPublicKey: user3.publicKey,
                 technologyProviderId: '',
+                payeeFioPublicKey: user3.publicKey,
+                memo: content.memo,
                 hash: '',
-                offlineUrl: ''
+                offLineUrl: ''
             })
             //console.log('result: ', result)
-            requestId = result.fio_request_id
-            expect(result.status).to.equal('requested')
+            requestId = result.fio_request_id;
+            expect(result.status).to.equal('sent_to_blockchain');
+            expect(feeMultiplier).to.equal(2);
         } catch (err) {
             console.log('Error: ', err)
             expect(err).to.equal(null)
@@ -1272,7 +1329,7 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
         }
     })
 
-    it.skip(`Confirm RAM quota for user2 was incremented by multiplier`, async () => {
+    it(`Confirm RAM quota for user2 was incremented by multiplier`, async () => {
         try {
             let prevRam = user2Ram;
             const json = {
@@ -1288,14 +1345,17 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
         }
     })
 
-    it(`user2 requests funds from user3 with memo of length ${requestMemoBasePlus1001.length}`, async () => {
+    it(`user2 sends recordObtData to user3 with memo of length ${requestMemoBaseMidOver.length}`, async () => {
         try {
             const content = {
+                payer_public_address: payeeTokenPublicAddressMin,
                 payee_public_address: payeeTokenPublicAddressMin,
                 amount: payment,
                 chain_code: 'FIO',
                 token_code: 'FIO',
-                memo: requestMemoBasePlus1001,
+                status: '',
+                obt_id: '',
+                memo: requestMemoBaseMidOver,
                 hash: '',
                 offline_url: ''
             }
@@ -1304,23 +1364,27 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
             feeMultiplier = Math.trunc(cipherContent.length / BASECONTENTAMOUNT) + 1;
             //console.log('           Content length: ', cipherContent.length);
 
-            const result = await user2.sdk.genericAction('requestFunds', {
-                payerFioAddress: user3.address,
-                payeeFioAddress: user2.address,
+            const result = await user2.sdk.genericAction('recordObtData', {
+                payerFioAddress: user2.address,
+                payeeFioAddress: user3.address,
+                payerTokenPublicAddress: content.payer_public_address,
                 payeeTokenPublicAddress: content.payee_public_address,
                 amount: content.amount,
                 chainCode: content.chain_code,
                 tokenCode: content.token_code,
-                memo: content.memo,
+                status: content.status,
+                obtId: content.obt_id,
                 maxFee: config.maxFee,
-                payerFioPublicKey: user3.publicKey,
                 technologyProviderId: '',
+                payeeFioPublicKey: user3.publicKey,
+                memo: content.memo,
                 hash: '',
-                offlineUrl: ''
+                offLineUrl: ''
             })
             //console.log('result: ', result)
-            requestId = result.fio_request_id
-            expect(result.status).to.equal('requested')
+            requestId = result.fio_request_id;
+            expect(result.status).to.equal('sent_to_blockchain');
+            expect(feeMultiplier).to.equal(3);
         } catch (err) {
             console.log('Error: ', err)
             expect(err).to.equal(null)
@@ -1342,7 +1406,7 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
         }
     })
 
-    it.skip(`Confirm RAM quota for user2 was incremented by multiplier`, async () => {
+    it(`Confirm RAM quota for user2 was incremented by multiplier`, async () => {
         try {
             let prevRam = user2Ram;
             const json = {
@@ -1358,14 +1422,17 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
         }
     })
 
-    it(`user2 requests funds from user3 with memo of length ${requestMemoBasePlus100000.length}`, async () => {
+    it(`user2 sends recordObtData to user3 with memo of length ${requestMemoBaseLarge.length}`, async () => {
         try {
             const content = {
+                payer_public_address: payeeTokenPublicAddressMin,
                 payee_public_address: payeeTokenPublicAddressMin,
                 amount: payment,
                 chain_code: 'FIO',
                 token_code: 'FIO',
-                memo: requestMemoBasePlus100000,
+                status: '',
+                obt_id: '',
+                memo: requestMemoBaseLarge,
                 hash: '',
                 offline_url: ''
             }
@@ -1374,25 +1441,29 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
             feeMultiplier = Math.trunc(cipherContent.length / BASECONTENTAMOUNT) + 1;
             //console.log('           Content length: ', cipherContent.length);
 
-            const result = await user2.sdk.genericAction('requestFunds', {
-                payerFioAddress: user3.address,
-                payeeFioAddress: user2.address,
+            const result = await user2.sdk.genericAction('recordObtData', {
+                payerFioAddress: user2.address,
+                payeeFioAddress: user3.address,
+                payerTokenPublicAddress: content.payer_public_address,
                 payeeTokenPublicAddress: content.payee_public_address,
                 amount: content.amount,
                 chainCode: content.chain_code,
                 tokenCode: content.token_code,
-                memo: content.memo,
+                status: content.status,
+                obtId: content.obt_id,
                 maxFee: config.maxFee,
-                payerFioPublicKey: user3.publicKey,
                 technologyProviderId: '',
+                payeeFioPublicKey: user3.publicKey,
+                memo: content.memo,
                 hash: '',
-                offlineUrl: ''
+                offLineUrl: ''
             })
             //console.log('result: ', result)
             requestId = result.fio_request_id
-            expect(result.status).to.equal('requested')
+            expect(result.status).to.equal('sent_to_blockchain');
+            expect(feeMultiplier).to.equal(8);
         } catch (err) {
-            console.log('Error: ', err.json)
+            console.log('Error: ', err)
             expect(err).to.equal(null)
         }
     })
@@ -1412,7 +1483,7 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
         }
     })
 
-    it.skip(`Confirm RAM quota for user2 was incremented by multiplier`, async () => {
+    it(`Confirm RAM quota for user2 was incremented by multiplier`, async () => {
         try {
             let prevRam = user2Ram;
             const json = {
@@ -1428,14 +1499,17 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
         }
     })
 
-    it(`user2 requests funds from user3 with memo of length ${requestMemoBasePlus100001.length}. Expect 'Transaction is too large'`, async () => {
+    it(`user2 sends recordObtData to user3 with memo of length ${requestMemoBaseLargeOver.length}. Expect 'Transaction is too large`, async () => {
         try {
             const content = {
+                payer_public_address: payeeTokenPublicAddressMin,
                 payee_public_address: payeeTokenPublicAddressMin,
                 amount: payment,
                 chain_code: 'FIO',
                 token_code: 'FIO',
-                memo: requestMemoBasePlus100001,
+                status: '',
+                obt_id: '',
+                memo: requestMemoBaseLargeOver,
                 hash: '',
                 offline_url: ''
             }
@@ -1444,23 +1518,27 @@ describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
             feeMultiplier = Math.trunc(cipherContent.length / BASECONTENTAMOUNT) + 1;
             //console.log('           Content length: ', cipherContent.length);
 
-            const result = await user2.sdk.genericAction('requestFunds', {
-                payerFioAddress: user3.address,
-                payeeFioAddress: user2.address,
+            const result = await user2.sdk.genericAction('recordObtData', {
+                payerFioAddress: user2.address,
+                payeeFioAddress: user3.address,
+                payerTokenPublicAddress: content.payer_public_address,
                 payeeTokenPublicAddress: content.payee_public_address,
                 amount: content.amount,
                 chainCode: content.chain_code,
                 tokenCode: content.token_code,
-                memo: content.memo,
+                status: content.status,
+                obtId: content.obt_id,
                 maxFee: config.maxFee,
-                payerFioPublicKey: user3.publicKey,
                 technologyProviderId: '',
+                payeeFioPublicKey: user3.publicKey,
+                memo: content.memo,
                 hash: '',
-                offlineUrl: ''
+                offLineUrl: ''
             })
             //console.log('result: ', result)
-            requestId = result.fio_request_id
-            expect(result.status).to.equal(null)
+            requestId = result.fio_request_id;
+            expect(result.status).to.equal(null);
+            expect(feeMultiplier).to.equal(8);
         } catch (err) {
             //console.log('Error: ', err)
             expect(err.json.fields[0].error).to.equal('Transaction is too large')
