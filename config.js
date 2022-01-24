@@ -321,6 +321,22 @@ const config = {
         unstake_fio_tokens: {
             bundledEligible: true,
             fee: 3000000000
+        },
+        list_domain: {
+            bundledEligible: false,
+            fee: 2000000000
+        },
+        cancel_list_domain: {
+            bundledEligible: false,
+            fee: 1000000000
+        },
+        buy_domain: {
+            bundledEligible: false,
+            fee: 2000000000
+        },
+        set_marketplace_config: {
+            bundledEligible: false,
+            fee: 500000000
         }
     },
 
