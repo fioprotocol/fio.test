@@ -1,7 +1,7 @@
 const TESTURL = 'http://localhost:8889'           // Localhost
-//const TESTURL = 'http://dev1.fio.dev:8888'          // DEV1
+//const TESTURL = 'http://35.85.153.248:8889'          // DEV1
 //const TESTURL = 'http://44.238.153.162:8889'      // Devnet
-//const TESTURL = 'http://testnet.fioprotocol.io'   // Testnet
+//const TESTURL = 'http://fiotestnet.greymass.com'   // Testnet
 //const TESTURL = 'https://fio.greymass.com'        // Mainnet
 //const TESTURL = 'http://34.222.201.72:8080'        // History
 
@@ -286,22 +286,22 @@ const config = {
             bundledEligible: true,
             fee: 600000000
         } ,
-        list_domain: {
-            bundledEligible: false,
-            fee: 2000000000
-        } ,
-        cancel_list_domain: {
-            bundledEligible: false,
-            fee: 1000000000
-        } ,
-        buy_domain: {
-            bundledEligible: false,
-            fee: 2000000000
-        } ,
-        set_marketplace_config: {
-            bundledEligible: false,
-            fee: 500000000
-        },
+        //list_domain: {
+        //    bundledEligible: false,
+        //    fee: 2000000000
+        //} ,
+        //cancel_list_domain: {
+        //    bundledEligible: false,
+        //    fee: 1000000000
+        //} ,
+        //buy_domain: {
+        //    bundledEligible: false,
+        //    fee: 2000000000
+        //} ,
+        //set_marketplace_config: {
+        //    bundledEligible: false,
+        //    fee: 500000000
+        //},
         add_nft: {
             bundledEligible: true,
             fee: 600000000
@@ -367,7 +367,7 @@ const config = {
         ADDADDRESSRAM: 512,
         SETDOMAINPUBRAM: 256,
         BURNEXPIREDRAM: 0,
-        NEWFUNDSREQUESTRAM: 4098,
+        NEWFUNDSREQUESTRAM: 3120,
         RECORDOBTRAM: 4098,
         RENEWADDRESSRAM: 1024,
         RENEWDOMAINRAM: 1024,
@@ -393,7 +393,10 @@ const config = {
         CANCELFUNDSRAM: 512,
         BUNDLEVOTERAM: 0,
         FIOESCROWRAM: 512,
-        ADDNFTRAM: 3584
+        ADDNFTRAMBASE: 512,
+        ADDNFTRAM: 2048,
+        STAKEFIOTOKENSRAM: 512,
+        UNSTAKEFIOTOKENSRAM: 512
     },
 
     public_addresses: [

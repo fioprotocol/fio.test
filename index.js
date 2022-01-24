@@ -26,6 +26,7 @@ describe('TEST SUITE', () => {
   require('./tests/record-obt-data.js'); //FIP-1.b testing
   require('./tests/transfer-address.js'); // FIP-1.b
   require('./tests/addbundles.js');  // FIP-11.a
+  require('./tests/retire-tokens.js');  // FIP-22 Retire tokens
   require('./tests/tpid.js');
   require('./tests/nft-add-remove.js'); //FIP-27
   require('./tests/nft-sdk-tests.js');
@@ -34,6 +35,7 @@ describe('TEST SUITE', () => {
   //require('./tests/nft-remove-burn.js'); //FIP-27
   //require('./tests/clio.js');  // FIP-16  //Only works with local testing
   //require('./tests/performance-request-obt.js');
+  require('./tests/fee-distribution.js');
 
   //require('./tests/expired-address-domain.js'); // Requires manual updates to contracts to shorten expiration timing
   //require('./tests/expired-address-domain-modexpire.js'); // Requires modexpire action which allows expiring of domains
@@ -63,8 +65,8 @@ describe('TEST SUITE', () => {
    */
   //###These Staking tests do NOT require additional configuration.
   require('./tests/stake-general-locked-tokens.js'); //FIP-21 tests for general lock accounts performing staking
-  require('./tests/stake-tokens.js');
   //###These Staking tests require additional configuration.
+  //require('./tests/stake-tokens.js');
   //require('./tests/stake-mainnet-locked-tokens-with-staking.js'); //FIP-21 tests for genesis lock accounts performing staking
   //require('./tests/stake-rapid-unstake-with-mainnet-locks.js'); //FIP-21 tests for rapid fire unstaking in succession
   //require('./tests/stake-regression.js'); //FIP-21 tests for new account calling staking using auto proxy, and full pull through to spend after unstaking unlock
@@ -101,5 +103,5 @@ describe('TEST SUITE', () => {
    */
   //require('./tests/bravo-migr-test.js'); //This is required when testing 2.3.0 (bravo) with fio bahamas (need to do the full table migration).
 
-	require('./tests/fio-escrow') // FIP-26 (marketplace)
+  require('./tests/fio-escrow'); // FIP-26 (marketplace)
 });

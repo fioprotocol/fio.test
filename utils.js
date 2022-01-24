@@ -1,7 +1,8 @@
 const rp = require('request-promise');
 const exec = require('child_process').exec;
 var fs = require('fs');
-config = require ('./config');
+config = require('./config');
+var http = require('http');
 
 const fiourl = config.URL + "/v1/chain/";
 const historyUrl = config.URL + "/v1/history/"
@@ -356,6 +357,111 @@ function callFioHistoryApi(apiCall, JSONObject) {
     }));
 };
 
+function httpRequest(apiCall, JSONObject) {
+    return (new Promise(function (resolve, reject) {
+        try {
+            let url, port;
+            const data = JSON.stringify(JSONObject);
+            const urlSplit1 = config.URL.split('//');
+            const urlSplit2 = urlSplit1[1].split(':');
+            url = urlSplit2[0];
+            if (urlSplit2[1] != '') {
+                port = urlSplit2[1];
+            } else {
+                port = '';
+            }
+            //console.log('url: ', url)
+            //console.log('port: ', port)
+            var options = {
+                host: url,
+                path: '/v1/chain/' + apiCall,
+                port: port,
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Length': data.length
+                }
+            };
+
+            callback = function (response) {
+                var str = ''
+                response.on('data', function (chunk) {
+                    str += chunk;
+                });
+
+                response.on('end', function () {
+                    //console.log('json table: ', JSON.parse(str));
+                    //console.log('lossless json table: ', LosslessJSON.parse(str));
+                    //console.log('Raw table: ', str);
+                    resolve(JSON.parse(str));
+                    //resolve(str);
+                });
+            }
+
+            var req = http.request(options, callback);
+            //This is the data we are posting, it needs to be a string or a buffer
+            req.write(data);
+            req.end();
+        } catch (err) {
+            console.log('Error', err);
+            reject(err);
+        }
+    }));
+};
+
+function httpRequestBig(apiCall, JSONObject) {
+    return (new Promise(function (resolve, reject) {
+        try {
+            let url, port;
+            const data = JSON.stringify(JSONObject);
+            const urlSplit1 = config.URL.split('//');
+            const urlSplit2 = urlSplit1[1].split(':');
+            url = urlSplit2[0];
+            if (urlSplit2[1] != '') {
+                port = urlSplit2[1];
+            } else {
+                port = '';
+            }
+            //console.log('url: ', url)
+            //console.log('port: ', port)
+            var options = {
+                host: url,
+                path: '/v1/chain/' + apiCall,
+                port: port,
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Length': data.length
+                }
+            };
+
+            callback = function (response) {
+                var str = ''
+                response.on('data', function (chunk) {
+                    str += chunk;
+                });
+
+                response.on('end', function () {
+                    //console.log('json table: ', JSON.parse(str));
+                    //console.log('lossless json table: ', LosslessJSON.parse(str));
+                    //console.log('Raw table: ', str);
+                    //resolve(JSON.parse(str));
+                    resolve(str);
+                });
+            }
+
+            var req = http.request(options, callback);
+            //This is the data we are posting, it needs to be a string or a buffer
+            req.write(data);
+            req.end();
+        } catch (err) {
+            console.log('Error', err);
+            reject(err);
+        }
+    }));
+};
+
+
 /**
  * Returns an array of fees from the fiofees table.
  * @returns {Array} array[end_point] = suf_amount
@@ -633,6 +739,71 @@ async function readProdFile(prodFile) {
             reject(err);
         }
     });
+}
+
+async function getBundleCount(user) {
+    const result = await user.genericAction('getFioNames', { fioPublicKey: user.publicKey });
+    return result.fio_addresses[0].remaining_bundled_tx;
+}
+
+async function consumeRemainingBundles(user, user2) {
+    let bundles;
+    bundles = await getBundleCount(user.sdk);
+    process.stdout.write('\tconsuming remaining bundled transactions\n\tthis may take a while');
+    if (bundles % 2 !== 0) {
+        try {
+            const result = await user.sdk.genericAction('addPublicAddresses', {
+                fioAddress: user.address,
+                publicAddresses: [
+                    {
+                        chain_code: 'ETH',
+                        token_code: 'ETH',
+                        public_address: 'ethaddress',
+                    }
+                ],
+                maxFee: config.api.add_pub_address.fee,
+                walletFioAddress: ''
+            })
+            //console.log('Result:', result)
+            expect(result.status).to.equal('OK')
+        } catch (err) {
+            console.log(`Error consuming bundle, retrying (${err.message})`);
+            wait(1000);
+        } finally {
+            bundles = await getBundleCount(user.sdk);
+            expect(bundles % 2).to.equal(0);
+        }
+    }
+
+    while (bundles > 0) {
+        try {
+            await user.sdk.genericAction('recordObtData', {
+                payerFioAddress: user.address,
+                payeeFioAddress: user2.address,
+                payerTokenPublicAddress: user.publicKey,
+                payeeTokenPublicAddress: user2.publicKey,
+                amount: 5000000000,
+                chainCode: "BTC",
+                tokenCode: "BTC",
+                status: '',
+                obtId: '',
+                maxFee: config.api.record_obt_data.fee,
+                technologyProviderId: '',
+                payeeFioPublicKey: user2.publicKey,
+                memo: 'this is a test',
+                hash: '',
+                offLineUrl: ''
+            })
+            process.stdout.write('.');
+            // wait(500);  //1000);
+        } catch (err) {
+            console.log(`Error consuming bundle, retrying (${err.message})`);
+            //wait(1000);
+        } finally {
+            bundles = await getBundleCount(user.sdk);
+        }
+    }
+    console.log('\n');
 }
 
 
@@ -1030,5 +1201,4 @@ class Ram {
 } //Ram class
 */
 
-module.exports = {newUser, existingUser, getTestType, getTopprods, callFioApi, callFioApiSigned, callFioHistoryApi, convertToK1, unlockWallet, getFees, getAccountFromKey, getProdVoteTotal, addLock, getTotalVotedFio, getAccountVoteWeight, setRam, printUserRam, user, getMnemonic, fetchJson, randStr, timeout, generateFioDomain, generateFioAddress, createKeypair, readProdFile};
-
+module.exports = { newUser, existingUser, getTestType, getTopprods, callFioApi, callFioApiSigned, httpRequest, httpRequestBig, callFioHistoryApi, convertToK1, unlockWallet, getFees, getAccountFromKey, getProdVoteTotal, addLock, getTotalVotedFio, getAccountVoteWeight, setRam, printUserRam, user, getMnemonic, fetchJson, randStr, timeout, generateFioDomain, generateFioAddress, createKeypair, readProdFile, consumeRemainingBundles, getBundleCount};
