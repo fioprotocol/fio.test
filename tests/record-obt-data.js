@@ -589,7 +589,7 @@ describe(`C. Test get_obt_data`, () => {
 
 })
 
-describe(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
+describe.skip(`D. Test bundles, fees, and RAM for dynamic content size`, () => {
 
     /**
      * FIO Requests now have the following logic:
