@@ -1,3 +1,65 @@
+/**
+ * This test requires the "modexpire" action
+ * 
+ * In fio.address.abi:
+ * 
+ *   Add modexpire struct:
+ 
+     {
+        "name": "modexpire",
+        "base": "",
+        "fields": [
+          {
+            "name": "fio_address",
+            "type": "string"
+          },
+          {
+            "name": "expire",
+            "type": "int64"
+          }
+        ]
+      },
+ 
+ *
+ *  Add modexpire action:
+ * 
+ 
+    {
+      "name": "modexpire",
+      "type": "modexpire",
+      "ricardian_contract": ""
+    },
+ *
+ * 
+ * In fio.address.cpp
+ * 
+ *   Add modexpire action: (beware of autoformattig of the "byname"_n>)
+ * 
+ 
+        [[eosio::action]]
+        void modexpire(const string &fio_address, const int64_t &expire) {
+            FioAddress fa;
+            getFioAddressStruct(fio_address, fa);
+            name actor = name{"eosio"};
+            const uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
+            auto namesbyname = domains.get_index<"byname"_n>();
+            auto fioname_iter = namesbyname.find(nameHash);
+
+            namesbyname.modify(fioname_iter, actor, [&](struct domain &a) {
+                a.expiration = expire;
+            });
+        }
+ *
+ *
+ *   Add modexpire to EOSIO_DISPATCH, e.g.: 
+ * 
+ *      EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(remaddress)(remalladdr)(regdomain)(renewdomain)(renewaddress)(
+ *          setdomainpub)(burnexpired)(modexpire)(decrcounter)
+ * 
+ * 
+ *  Rebuild contracts
+ */
+
 require('mocha')
 const {createHash} = require('crypto');
 const {expect}     = require('chai');
@@ -35,7 +97,7 @@ before(async () => {
 	await setup();
 })
 
-describe.only(`************************** fio-escrow.js **************************`, async () => {
+describe(`************************** fio-escrow.js **************************`, async () => {
 	before(async () => {
 		await setup();
 	})
@@ -47,36 +109,49 @@ describe.only(`************************** fio-escrow.js ************************
 		})
 
 		describe(`Golden Path`, async () => {
+			// set parameters for marketplace
 			it(`set marketplace listing_fee to 50 FIO`, async () => {
 				try {
-					await callFioApiSigned('push_transaction', {
-						action : 'setmrkplcfg',
+					const result = await callFioApiSigned('push_transaction', {
+						action: 'setmrkplcfg',
 						account: 'fio.escrow',
-						actor  : marketplaceUser.account,
+						actor: marketplaceUser.account,
 						privKey: marketplaceUser.privateKey,
-						data   : {
-							"actor"         : "5ufabtv13hv4",
-							"listing_fee"   : "5000000000",
+						data: {
+							"actor": "5ufabtv13hv4",
+							"listing_fee": "5000000000",
 							"commission_fee": 10,
-							"max_fee"       : "5000000000",
-							"e_break"       : 0
+							"max_fee": "5000000000",
+							"e_break": 0
 						}
 					})
 
+					//console.log('Result: ', result);
+				} catch (err) {
+					console.log(err.error);
+					expect(err).to.equal(null)
+				}
+			});
+
+			it(`Confirm configs are set in table`, async () => {
+				try {
 					const json = {
-						json      : true,
-						code      : 'fio.escrow',
-						scope     : 'fio.escrow',
-						table     : 'mrkplconfigs',
-						limit     : 1,
-						reverse   : false,
+						json: true,
+						code: 'fio.escrow',
+						scope: 'fio.escrow',
+						table: 'mrkplconfigs',
+						limit: 1,
+						reverse: false,
 						show_payer: false
 					}
 					let result = await callFioApi("get_table_rows", json);
-					expect(result.rows[0].listing_fee).to.equal(5000000000);
+					//console.log('Result: ', result);
+
+					expect(result.rows[0].listing_fee).to.equal(5000000000)
+
 				} catch (err) {
-					expect(err).to.equal(null)
 					console.log(err);
+					expect(err).to.equal(null)
 				}
 			});
 
@@ -1786,29 +1861,67 @@ describe.only(`************************** fio-escrow.js ************************
 
 async function setup() {
 	if (!isSetup) {
-		try {
-			faucet          = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
-			marketplaceUser = await existingUser(
-				`5ufabtv13hv4`,
-				config.MARKETPLACE_PRIV_KEY,
-				config.MARKETPLACE_PUB_KEY,
-				'marketplace',
-				'user@marketplace');
+		faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 
-			const result = await faucet.genericAction('transferTokens', {
-				payeeFioPublicKey: config.MARKETPLACE_PUB_KEY,
-				amount           : 1000000000,
-				maxFee           : config.api.transfer_tokens_pub_key.fee,
+		marketplaceUser = await existingUser(
+			`5ufabtv13hv4`,
+			config.MARKETPLACE_PRIV_KEY,
+			config.MARKETPLACE_PUB_KEY,
+			'marketplace',
+			'user@marketplace');
+
+		// Need to create the marketplaceUser if the account does not exist:
+		const result = await faucet.genericAction('isAvailable', {
+			fioName: 'marketplace',
+		})
+
+		isRegistered = result.is_registered;
+
+		if (!isRegistered) {
+			// Create and fund the account
+			await faucet.genericAction('pushTransaction', {
+				action: 'trnsfiopubky',
+				account: 'fio.token',
+				data: {
+					payee_public_key: config.MARKETPLACE_PUB_KEY,
+					amount: 1000000000000,
+					max_fee: 1000000000000,
+					actor: faucet.account,
+					tpid: ""
+				}
 			});
 
-			userA1   = await newUser(faucet);
-			userA2   = await newUser(faucet);
-			domain   = generateFioDomain(10);
-			domainA2 = generateFioDomain(10);
-			isSetup  = true;
-		} catch (ex) {
-			console.error(ex);
+			// Register the domain
+			await marketplaceUser.sdk.genericAction('pushTransaction', {
+				action: 'regdomain',
+				account: 'fio.address',
+				data: {
+					fio_domain: 'marketplace',
+					owner_fio_public_key: config.MARKETPLACE_PUB_KEY,
+					max_fee: config.maxFee,
+					tpid: ''
+				}
+			})
+
+			// Register the Crypto Handle
+			await marketplaceUser.sdk.genericAction('pushTransaction', {
+				action: 'regaddress',
+				account: 'fio.address',
+				data: {
+					fio_address: 'user@marketplace',
+					owner_fio_public_key: config.MARKETPLACE_PUB_KEY,
+					actor: faucet.account,
+					max_fee: config.maxFee,
+					tpid: ''
+				}
+			})
 		}
+
+		userA1 = await newUser(faucet);
+		userA2 = await newUser(faucet);
+		domain = generateFioDomain(10);
+		domainA2 = generateFioDomain(10);
+		isSetup = true;
 	}
 }
 
