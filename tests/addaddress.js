@@ -745,7 +745,7 @@ describe(`Remap FIO Address`, () => {
   })
 })
 
-describe(`FIP-33 - Test allowable characters ($) in chain and token code`, () => {
+describe.skip(`FIP-33 - Test allowable characters ($) in chain and token code`, () => {
 
   let user1
 

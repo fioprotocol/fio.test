@@ -2866,7 +2866,7 @@ describe(`J. get_received_fio_requests error conditions`, () => {
 
 })
 
-describe(`K. Test bundles, fees, and RAM for dynamic content size (FIP-32)`, () => {
+describe.skip(`K. Test bundles, fees, and RAM for dynamic content size (FIP-32)`, () => {
 
   /**
    * FIO Requests now have the following logic:
@@ -3743,7 +3743,7 @@ describe(`K. Test bundles, fees, and RAM for dynamic content size (FIP-32)`, () 
 
 })
 
-describe.only(`L. Test getters with large content (FIP-32)`, () => {
+describe.skip(`L. Test getters with large content (FIP-32)`, () => {
   let user1, user2
   const payment = 5000000000 // 5 FIO
 

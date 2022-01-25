@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "license": "MIT",
     "dependencies": {
-        "@fioprotocol/fiosdk": "github:fioprotocol/fiosdk_typescript#develop",
+        "@fioprotocol/fiosdk": "1.5.0",
         "child_process": "",
         "mathjs": "^9.4.4",
         "lossless-json": "",
