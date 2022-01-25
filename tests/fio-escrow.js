@@ -35,7 +35,7 @@ before(async () => {
 	await setup();
 })
 
-describe(`************************** fio-escrow.js **************************`, async () => {
+describe.only(`************************** fio-escrow.js **************************`, async () => {
 	before(async () => {
 		await setup();
 	})
@@ -43,12 +43,10 @@ describe(`************************** fio-escrow.js **************************`, 
 	describe(`Set up Marketplace Config table`, async () => {
 
 		afterEach(async () => {
-			// console.log(`${timeoutDuration / 1000} second Timeout`);
 			await timeout(timeoutDuration);
 		})
 
 		describe(`Golden Path`, async () => {
-			// set parameters for marketplace
 			it(`set marketplace listing_fee to 50 FIO`, async () => {
 				try {
 					await callFioApiSigned('push_transaction', {
@@ -75,9 +73,7 @@ describe(`************************** fio-escrow.js **************************`, 
 						show_payer: false
 					}
 					let result = await callFioApi("get_table_rows", json);
-
-					expect(result.rows[0].listing_fee).to.equal(5000000000)
-
+					expect(result.rows[0].listing_fee).to.equal(5000000000);
 				} catch (err) {
 					expect(err).to.equal(null)
 					console.log(err);
@@ -156,7 +152,6 @@ describe(`************************** fio-escrow.js **************************`, 
 		})
 
 		describe(`Error Handling Path`, async () => {
-			// invalid listing_fee value
 			it(`setmrkplcfg: Invalid listing_fee value`, async () => {
 				try {
 					let data = {
@@ -173,8 +168,6 @@ describe(`************************** fio-escrow.js **************************`, 
 						data
 					})
 				} catch (err) {
-					// console.log(err.errorCode);
-					// console.log(err.json.fields[0]);
 					expect(err.errorCode).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('listing_fee')
 					expect(err.json.fields[0].value).to.equal('50000000000000000')
@@ -185,24 +178,22 @@ describe(`************************** fio-escrow.js **************************`, 
 			it(`setmrkplcfg: actor unauthorized`, async () => {
 				try {
 					let data = {
-						"actor"         : "2rvrh54kfro5",
+						"actor"         : userA1.account,
 						"listing_fee"   : "5000000000",
 						"commission_fee": 10,
 						"max_fee"       : "5000000000",
 						"e_break"       : 0
 					}
 
-					await userA1.sdk.genericAction('pushTransaction', {
+					let result = await userA1.sdk.genericAction('pushTransaction', {
 						action : 'setmrkplcfg',
 						account: 'fio.escrow',
 						data
 					})
 
-					// console.log(result);
+					console.log(result);
 
 				} catch (err) {
-					// console.log(err.errorCode);
-					// console.log(err.json.fields[0]);
 					expect(err.errorCode).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('actor')
 					expect(err.json.fields[0].value).to.equal(userA1.account)
@@ -226,8 +217,6 @@ describe(`************************** fio-escrow.js **************************`, 
 						data
 					})
 				} catch (err) {
-					// console.log(err.errorCode);
-					// console.log(err.json.fields[0]);
 					expect(err.errorCode).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('commission_fee')
 					expect(err.json.fields[0].value).to.equal('26.000000')
@@ -251,8 +240,6 @@ describe(`************************** fio-escrow.js **************************`, 
 						data
 					})
 				} catch (err) {
-					// console.log(err);
-					// console.log(err.json.fields[0]);
 					expect(err.errorCode).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('e_break')
 					expect(err.json.fields[0].value).to.equal('2')
@@ -383,15 +370,11 @@ describe(`************************** fio-escrow.js **************************`, 
 
 				try {
 					let domain = generateFioDomain(10);
-
 					let offset = await getLastDomainId();
-
 					// register domain
 					await registerDomain(userA1, domain);
-
 					// list for sale
 					await listDomain(userA1, domain);
-
 					// expire domain
 					const result = await callFioApiSigned('push_transaction', {
 						action : 'modexpire',
@@ -403,14 +386,8 @@ describe(`************************** fio-escrow.js **************************`, 
 							"expire"     : expireDate,
 							"actor"      : userA1.account
 						}
-					})
-
-					// console.log('Result: ', result);
-
-					// console.log(`${domain} has expired date set to ${expireDate}`)
-
+					});
 					expect(result.processed.receipt.status).to.equal('executed');
-
 					// burn expired
 					await userA1.sdk.genericAction('pushTransaction', {
 						action : 'burnexpired',
@@ -439,24 +416,15 @@ describe(`************************** fio-escrow.js **************************`, 
 					});
 					// Listing for burned domain set to cancelled
 					expect(domainSaleRow.rows[0].status).to.equal(3);
-
 				} catch (err) {
 					if (err.errorCode == 400 && err.json.fields[0].error == 'No work.') {
 						retryCount = 0;
 						console.log('Offset = ' + offset + ', Limit = ' + limit + ', Result: ' + err.json.fields[0].error);
 						expect(err.errorCode).to.equal(400);
 						expect(err.json.fields[0].error).to.equal('No work.');
-						// } else if (err.errorCode == 500 && err.json.fields[0].error == 'Transaction exceeded the current CPU usage limit imposed on the transaction') {
-						// 	console.log('Offset = ' + offset + ', Limit = ' + limit + ', Result: Transaction exceeded the current CPU usage limit imposed on the transaction');
-						// 	retryCount++;
 					} else {
 						console.log('UNEXPECTED ERROR: ', err);
 					}
-					// if (err) {
-					// 	console.log(err);
-					// 	console.log(err.json);
-					// }
-					// expect(err).to.equal(null)
 				}
 			})
 
@@ -532,8 +500,6 @@ describe(`************************** fio-escrow.js **************************`, 
 						reverse       : true,
 						show_payer    : false
 					});
-					// `domain` should retain status of 2, sold
-					// console.log(domainSaleRow.rows[0]);
 					expect(domainSaleRow.rows[0].status).to.equal(2);
 
 					const domainSaleRow2 = await callFioApi("get_table_rows", {
@@ -548,8 +514,6 @@ describe(`************************** fio-escrow.js **************************`, 
 						reverse       : true,
 						show_payer    : false
 					});
-					// `domain2` should be set to 3, cancelled
-					// console.log(domainSaleRow2.rows[0]);
 					expect(domainSaleRow2.rows[0].status).to.equal(3);
 				} catch (err) {
 					console.log(err)
@@ -794,17 +758,11 @@ describe(`************************** fio-escrow.js **************************`, 
 						data   : dataA1
 					})
 				} catch (err) {
-					expect(err.errorCode).to.equal(403)
-					expect(err.json.fields[0].name).to.equal('fio_domain')
-					expect(err.json.fields[0].value).to.equal(domainSadPath2)
-					expect(err.json.fields[0].error).to.equal('FIO domain not owned by actor')
+					expect(err.errorCode).to.equal(500)
 				}
 			})
 
-			it(`listdomain: actor doesnt match the signer`, async () => {
-				// TODO: I am not sure how to check this either.
-				// I do not have an explicit error message for this error path either
-				// unless the `require_auth(actor)` covers this path
+			it(`listdomain: actor doesn't match the signer`, async () => {
 				try {
 					domainSadPath1 = generateFioDomain(10);
 					domainSadPath2 = generateFioDomain(10);
@@ -821,13 +779,13 @@ describe(`************************** fio-escrow.js **************************`, 
 
 					let dataA1 = {
 						"actor"     : userA1.account,
-						"fio_domain": domainSadPath1,
+						"fio_domain": domainSadPath2,
 						"sale_price": 50000000000,
 						"max_fee"   : config.api.list_domain.fee,
 						"tpid"      : ""
 					};
 
-					await userA2.sdk.genericAction('pushTransaction', {
+					await userA1.sdk.genericAction('pushTransaction', {
 						action : 'listdomain',
 						account: 'fio.escrow',
 						data   : dataA1
@@ -835,7 +793,7 @@ describe(`************************** fio-escrow.js **************************`, 
 				} catch (err) {
 					expect(err.errorCode).to.equal(403)
 					expect(err.json.fields[0].name).to.equal('fio_domain')
-					expect(err.json.fields[0].value).to.equal(domainSadPath1)
+					expect(err.json.fields[0].value).to.equal(domainSadPath2)
 					expect(err.json.fields[0].error).to.equal('FIO domain not owned by actor')
 				}
 
@@ -845,10 +803,8 @@ describe(`************************** fio-escrow.js **************************`, 
 				let domain;
 				try {
 					domain = generateFioDomain(10);
-
 					await transferTokens(userA1);
 					const registerDomainResult = await registerDomain(userA1, domain);
-
 					expect(registerDomainResult.status).to.equal('OK')
 
 					// set e_break to 1
@@ -944,10 +900,6 @@ describe(`************************** fio-escrow.js **************************`, 
 					// list domain
 					await listDomain(errorUser2, errorUser2.domain)
 				} catch (err) {
-					// if(err.json)
-					// 	console.log(err.json)
-					// else
-					// 	console.log(err);
 					expect(err.errorCode).to.equal(400);
 					expect(err.json.fields[0].name).to.equal('max_fee');
 					expect(err.json.fields[0].value).to.equal('5000000000');
@@ -1096,14 +1048,16 @@ describe(`************************** fio-escrow.js **************************`, 
 						"tpid"         : ""
 					};
 
-					const result = await userA1.sdk.genericAction('pushTransaction', {
+					const result = await userA2.sdk.genericAction('pushTransaction', {
 						action : 'buydomain',
 						account: 'fio.escrow',
 						data   : data
 					})
 				} catch (err) {
 					// console.log(err.errorCode)
-					// console.log(err.json.fields[0])
+					// if(err.json.error) {
+					// 	console.log(err.json.error.details)
+					// }
 					expect(err.errorCode).to.equal(403)
 					expect(err.json.fields[0].name).to.equal('domainsale')
 					expect(err.json.fields[0].value).to.equal(domain + '123')
@@ -1161,9 +1115,8 @@ describe(`************************** fio-escrow.js **************************`, 
 					// userA1 lists domain for sale
 					let listDomainResult = await listDomain(userA1, domain);
 
-					// userA2 tries to buy domain not listed for sale
 					let data = {
-						"actor"        : userA2.account,
+						"actor"        : userA1.account,
 						"fio_domain"   : domain,
 						"sale_id"      : listDomainResult.domainsale_id,
 						"max_buy_price": 300000000000,
@@ -1341,7 +1294,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					expect(getTableRowsResult.rows[0].e_break).to.equal(1)
 
 					let data = {
-						"actor"        : userA2.account,
+						"actor"        : userA1.account,
 						"fio_domain"   : domain,
 						"sale_id"      : listResult.domainsale_id,
 						"max_buy_price": 300000000000,
@@ -1356,7 +1309,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					})
 				} catch (err) {
 					// console.log(err);
-					// console.log(err.json.fields[0]);
+					// console.log(err.json.error.details);
 					expect(err.errorCode).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('marketplace_iter->e_break')
 					expect(err.json.fields[0].value).to.equal('1')
@@ -1416,7 +1369,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					})
 
 					let data = {
-						"actor"        : userA2.account,
+						"actor"        : userA1.account,
 						"fio_domain"   : domain,
 						"sale_id"      : listResult.domainsale_id,
 						"max_buy_price": 300000000000,
@@ -1712,27 +1665,151 @@ describe(`************************** fio-escrow.js **************************`, 
 			})
 		})
 	});
+
+	describe.skip(`Stress Tests`, async () => {
+		let listingUser, buyingUser, domain;
+
+		let count = 15;
+
+		before(async () => {
+			await setup();
+
+			listingUser = await existingUser(
+				`wjeo4abnk4c2`,
+				'5J1oyBREGZS4sqRgzofxXP9t7UL2yQgKBZ6MaHF2XzBEfAH3NH4',
+				'FIO5MDWkM3GRdk4WWdxbNPcGyJev56S5X4cgY3KQNH6EbxQXrcS6Q',
+				'listingUser',
+				'listing@listingUser'
+			);
+
+			buyingUser = await existingUser(
+				`g4oc1qkysew2`,
+				'5HwawJrUijKnypZfXrVPqBDTx7nmVCFk5qDG9MRxW7tdPp6bGcM',
+				'FIO8PR2TcJAJ1UASYmkmVa8Fi2J2dNvwLJ4qkeAcE3ebgDbPDMx6F',
+				'buyingUser',
+				'buying@buyingUser'
+			);
+		});
+
+		describe(`Create, register and list several domains`, async () => {
+			it(`StressTest: create, register and list ${count * 3} domains`, async () => {
+				try {
+					let localCount = count * 3;
+					for (let i = 0; i < localCount; i++) {
+						domain = generateFioDomain(getRandomInt(4, 15));
+
+						await transferTokens(listingUser, 900000000000);
+
+						await registerDomain(listingUser, domain);
+						let price = getRandomInt(10000000000, 200000000000);
+						await listDomain(listingUser, domain, price);
+						console.log(`domain: ${domain} listed for ${price / 1000000000}`)
+						if (i + 1 % 5 === 0)
+							console.log(`${i + 1}/${listings.listings.length} ${(i + 1 / listings.listings.length) * 100}%`);
+						expect(1).to.equal(1);
+					}
+				} catch (err) {
+					console.log(err.json);
+				}
+			})
+
+			it(`StressTest: Cancel ${count} random listings`, async () => {
+				try {
+					// let domains  = getDomainsByAccount(listingUser);
+					// console.log(domains)
+					let listings = await getListedDomains(count);
+					for (let i = 0; i < listings.listings.length; i++) {
+						// cancel domain listing and get saleID
+
+						await transferTokens(listingUser, 2000000000);
+
+						if (listings.listings[i].owner === listingUser.account) {
+							let cancelData = {
+								"actor"     : listingUser.account,
+								"fio_domain": listings.listings[i].domain,
+								"max_fee"   : config.api.cancel_list_domain.fee,
+								"tpid"      : ""
+							};
+
+							await listingUser.sdk.genericAction('pushTransaction', {
+								action : 'cxlistdomain',
+								account: 'fio.escrow',
+								data   : cancelData
+							})
+						}
+						if (i + 1 % 5 === 0)
+							console.log(`${i + 1}/${listings.listings.length} ${(i + 1 / listings.listings.length) * 100}%`);
+					}
+					expect(1).to.equal(1);
+				} catch (err) {
+					console.error(err);
+				}
+			})
+
+			it(`StressTest: Buy ${count} random listings`, async () => {
+				try {
+					let listings = await getListedDomains(count);
+					for (let i = 0; i < listings.listings.length; i++) {
+						if (listings.listings[i].owner !== userA2.account) {
+							let listing = listings.listings[i];
+
+							await transferTokens(userA2, listing.sale_price);
+
+							let data = {
+								"actor"        : userA2.account,
+								"fio_domain"   : listing.domain,
+								"sale_id"      : listing.id,
+								"max_buy_price": listing.sale_price,
+								"max_fee"      : config.api.buy_domain.fee,
+								"tpid"         : ""
+							};
+
+							const result = await userA2.sdk.genericAction('pushTransaction', {
+								action : 'buydomain',
+								account: 'fio.escrow',
+								data   : data
+							});
+						}
+						if (i + 1 % 5 === 0)
+							console.log(`${i + 1}/${listings.listings.length} ${(i + 1 / listings.listings.length) * 100}%`);
+					}
+				} catch (err) {
+					if (err)
+						console.error(err.json);
+					else
+						console.log(`no error`);
+				}
+			})
+		})
+	})
 });
 
 async function setup() {
 	if (!isSetup) {
-		faucet          = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
-		marketplaceUser = await existingUser(`5ufabtv13hv4`, config.MARKETPLACE_PRIV_KEY, config.MARKETPLACE_PUB_KEY,
-			'marketplace', 'user@marketplace');
-		userA1          = await newUser(faucet);
-		userA2          = await newUser(faucet);
-		domain          = generateFioDomain(10);
-		domainA2        = generateFioDomain(10);
-		isSetup         = true;
-	}
-}
+		try {
+			faucet          = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
+			marketplaceUser = await existingUser(
+				`5ufabtv13hv4`,
+				config.MARKETPLACE_PRIV_KEY,
+				config.MARKETPLACE_PUB_KEY,
+				'marketplace',
+				'user@marketplace');
 
-async function registerDomain(user, domain) {
-	return await user.sdk.genericAction('registerFioDomain', {
-		fioDomain           : domain,
-		maxFee              : config.api.register_fio_domain.fee,
-		technologyProviderId: ''
-	})
+			const result = await faucet.genericAction('transferTokens', {
+				payeeFioPublicKey: config.MARKETPLACE_PUB_KEY,
+				amount           : 1000000000,
+				maxFee           : config.api.transfer_tokens_pub_key.fee,
+			});
+
+			userA1   = await newUser(faucet);
+			userA2   = await newUser(faucet);
+			domain   = generateFioDomain(10);
+			domainA2 = generateFioDomain(10);
+			isSetup  = true;
+		} catch (ex) {
+			console.error(ex);
+		}
+	}
 }
 
 async function listDomain(user, domain, salePrice = 2000000000000) {
@@ -1743,15 +1820,25 @@ async function listDomain(user, domain, salePrice = 2000000000000) {
 		"max_fee"   : config.api.list_domain.fee,
 		"tpid"      : ""
 	};
-	return await user.sdk.genericAction('pushTransaction', {
+	return user.sdk.genericAction('pushTransaction', {
 		action : 'listdomain',
 		account: 'fio.escrow',
 		data
 	})
 }
 
+async function registerDomain(user, domain) {
+	// console.log(`registering domain (${domain}) for ${user.account}`)
+	return user.sdk.genericAction('registerFioDomain', {
+		fioDomain           : domain,
+		maxFee              : config.api.register_fio_domain.fee,
+		technologyProviderId: ''
+	})
+}
+
 async function buyDomain(user, domain, saleId, salePrice = 2000000000000) {
-	return await user.sdk.genericAction('pushTransaction', {
+	// console.log(`buying domain (${domain}) for ${user.account} with saleId(${saleId}) for ${salePrice/1000000000}FIO`)
+	return user.sdk.genericAction('pushTransaction', {
 		action : 'buydomain',
 		account: 'fio.escrow',
 		data   : {
@@ -1767,12 +1854,15 @@ async function buyDomain(user, domain, saleId, salePrice = 2000000000000) {
 
 async function transferTokens(user, amount = 10000000000000) {
 	try {
+		await timeout(1500)
 		await faucet.genericAction('transferTokens', {
 			payeeFioPublicKey: user.publicKey,
 			amount           : amount,
 			maxFee           : config.api.transfer_tokens_pub_key.fee,
 		})
+		await timeout(1500)
 	} catch (err) {
+		console.log(err.json.error)
 		expect(err).to.equal(null)
 	}
 }
@@ -1842,8 +1932,6 @@ async function newUserWithFIO() {
 				maxFee          : config.api.register_fio_address.fee,
 				walletFioAddress: ''
 			})
-			//console.log('Result: ', result)
-			//expect(result.status).to.equal('OK')
 		}
 	} catch (err) {
 		console.log('registerFioAddress error: ', err.json)
@@ -1855,8 +1943,6 @@ async function newUserWithFIO() {
 			fioPublicKey: this.publicKey
 		})
 		this.fioBalance = result.balance;
-		//console.log('foundationA1 fio balance', result)
-		//expect(result.balance).to.equal(proxyA1.last_vote_weight)
 	} catch (err) {
 		console.log('getFioBalance Error', err);
 		console.log(err.json.error)
@@ -1874,4 +1960,27 @@ async function newUserWithFIO() {
 		lockAmount: this.lockAmount,
 		lockType  : this.lockType
 	};
+}
+
+function getRandomInt(min, max) {
+	min = Math.ceil(min);
+	max = Math.floor(max);
+	return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
+}
+
+async function getDomainsByAccount(account) {
+	const result = await account.sdk.genericAction('getFioDomains', {
+		fioPublicKey: account.publicKey,
+		limit       : 0,
+		offset      : 0
+	})
+	console.log('Result: ', result);
+}
+
+async function getListedDomains(limit = 30) {
+	return callFioApi("get_escrow_listings", {
+		status: 1,
+		offset: 0,
+		limit : limit
+	});
 }
