@@ -35,7 +35,7 @@ before(async () => {
 	await setup();
 })
 
-describe.only(`************************** fio-escrow.js **************************`, async () => {
+describe(`************************** fio-escrow.js **************************`, async () => {
 	before(async () => {
 		await setup();
 	})

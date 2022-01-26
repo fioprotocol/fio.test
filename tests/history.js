@@ -119,7 +119,89 @@ describe('B. get_transfers to non-existent account', () => {
 
 })
 
-describe.skip('Need to complete. C. updateauth using key with no associated account', () => {
+describe('C. trnsloctoks - confirm transactions available from history', () => {
+
+  let user1, actionCount
+
+  it(`Create users`, async () => {
+    let keys = await createKeypair();
+    user1 = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson)
+    user1.account = FIOSDK.accountHash(user1.publicKey).accountnm;
+
+    //console.log('user1 Account: ', user1.account)
+    //console.log('user1 Public: ', user1.publicKey)
+    //console.log('user1 Private: ', user1.privateKey)
+  })
+
+  it(`get_actions for user1. Expect empty array.`, async () => {
+    try {
+      const json = {
+        "account_name": user1.account
+      }
+      result = await callFioHistoryApi("get_actions", json);
+      console.log('Result: ', result);
+      actionCount = result.actions.length;
+      expect(actionCount).to.equal(0);
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`trnsloctoks from faucet to non-existant account user1`, async () => {
+    try {
+      const result = await faucet.genericAction('pushTransaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        data: {
+          payee_public_key: user1.publicKey,
+          can_vote: 0,
+          periods: [
+            {
+              duration: 60,
+              amount: 1000000000
+            },
+            {
+              duration: 6000,
+              amount: 2000000000
+            },
+            {
+              duration: 60000,
+              amount: 3000000000
+            }
+          ],
+          amount: 6000000000,
+          max_fee: max_fee,
+          tpid: ''
+        }
+      })
+      //console.log('Result: ', result);
+      expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected');
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`get_actions for user1. Expect 3 additional actions`, async () => {
+    try {
+      let prevActionCount = actionCount;
+      const json = {
+        "account_name": user1.account
+      }
+      result = await callFioHistoryApi("get_actions", json);
+      console.log('Result: ', result)
+      actionCount = result.actions.length
+      expect(actionCount).to.equal(prevActionCount + 3) // Transfer to user1, fee, and foundation
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+})
+
+describe.skip('Need to complete. updateauth using key with no associated account', () => {
   let userMain, userAuth1, userAuth2
 
   it(`Create users and import private keys`, async () => {
