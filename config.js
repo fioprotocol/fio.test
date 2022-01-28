@@ -3,13 +3,15 @@ const TESTURL = 'http://localhost:8889'           // Localhost
 //const TESTURL = 'http://44.238.153.162:8889'      // Devnet
 //const TESTURL = 'http://fiotestnet.greymass.com'   // Testnet
 //const TESTURL = 'https://fio.greymass.com'        // Mainnet
-//const TESTURL = 'http://34.222.201.72:8080'        // History
+
+const HISTORYURL = 'http://35.85.153.248:8080'        // History
 
 const DEVTOOLSDIR = '../fio.devtools'
 
 const config = {
     DEFAULT_DOMAIN: 'smoketest',
     URL: TESTURL,
+    HISTORYURL: HISTORYURL,
     BASE_URL: TESTURL + '/v1/',
     CLIO: DEVTOOLSDIR + '/bin/clio -u ' + TESTURL,
     WALLETKEYFILE: DEVTOOLSDIR + '/walletkey.ini',
