@@ -5,7 +5,7 @@ config = require('./config');
 var http = require('http');
 
 const fiourl = config.URL + "/v1/chain/";
-const historyUrl = config.URL + "/v1/history/"
+const historyUrl = config.HISTORYURL + "/v1/history/"
 
 const { Fio } = require('@fioprotocol/fiojs');
 fetch = require('node-fetch');
