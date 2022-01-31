@@ -311,6 +311,7 @@ describe(`************************** retire-tokens.js **************************
       expect(newUserBal.available).to.equal(userA1Bal.available - fundsAmount);
       expect(newUserBal.balance).to.equal(userA1Bal.balance - fundsAmount);
     } catch (err) {
+      console.log('err: ', err)
       throw err;
     }
   });
@@ -2185,9 +2186,9 @@ describe(`F. Unlock with various locked and unlocked amounts`, function () {
     user1TotalBal = result.balance;
     user1AvailBal = result.available;
     user1LockedBal = user1TotalBal - user1AvailBal;
-    console.log('user1TotalBal: ', user1TotalBal);
-    console.log('user1AvailBal: ', user1AvailBal);
-    console.log('user1LockedBal: ', user1LockedBal);
+    //console.log('user1TotalBal: ', user1TotalBal);
+    //console.log('user1AvailBal: ', user1AvailBal);
+    //console.log('user1LockedBal: ', user1LockedBal);
 
     expect(user1TotalBal).to.equal(prevUser1TotalBal);
     expect(user1AvailBal).to.equal(prevUser1AvailBal * lock1);
@@ -2248,7 +2249,7 @@ describe(`F. Unlock with various locked and unlocked amounts`, function () {
   });
 
   // Number of locked tokens should be reduced by half
-  it(`(BD-3227) Get user1 balance. Expect reduction in total and locked amount only (since locked tokens get retired before unlocked tokens).`, async function () {
+  it(`Get user1 balance. Expect reduction in total and locked amount only (since locked tokens get retired before unlocked tokens). (BD-3227)`, async function () {
     prevUser1TotalBal = user1TotalBal;
     prevUser1AvailBal = user1AvailBal;
     prevUser1LockedBal = user1LockedBal;
@@ -2260,22 +2261,22 @@ describe(`F. Unlock with various locked and unlocked amounts`, function () {
       user1TotalBal = result.balance;
       user1AvailBal = result.available;
       user1LockedBal = user1TotalBal - user1AvailBal;
-      console.log('user1TotalBal: ', user1TotalBal);
-      console.log('user1AvailBal: ', user1AvailBal);
-      console.log('user1LockedBal: ', user1LockedBal);
+      //console.log('user1TotalBal: ', user1TotalBal);
+      //console.log('user1AvailBal: ', user1AvailBal);
+      //console.log('user1LockedBal: ', user1LockedBal);
       // Total balance should be reduced
       expect(user1TotalBal).to.equal(prevUser1TotalBal - retireAmount1);
       // The available balance should not change (since only locked tokens were retired)
       expect(user1AvailBal).to.equal(prevUser1AvailBal);
       // Locked balance should be reduced
-      //expect(user1LockedBal).to.equal(prevUser1LockedBal - retireAmount1);
+      expect(user1LockedBal).to.equal(prevUser1LockedBal - retireAmount1);
     } catch (err) {
       console.log(err);
       throw err;
     }
   });
 
-  it.skip(`get user1 locks`, async function () {
+  it(`get user1 locks`, async function () {
     prevLockTableRemainingAmount = lockTableRemainingAmount;
     prevLockTableGrantAmount = lockTableGrantAmount;
     const json = {
@@ -2327,12 +2328,12 @@ describe(`F. Unlock with various locked and unlocked amounts`, function () {
     }
   });
 
-  it.skip(`BUG: Get user1 balance. Expect locked balance = 0 and reduction in total and available balance.`, async function () {
+  it(`Get user1 balance. Expect locked balance = 0 and reduction in total and available balance. (BD-3227)`, async function () {
     prevUser1TotalBal = user1TotalBal;
     prevUser1AvailBal = user1AvailBal;
     prevUser1LockedBal = user1LockedBal;
     const result = await user1.sdk.genericAction('getFioBalance', {});
-    console.log('Result: ', result);
+    //console.log('Result: ', result);
     user1TotalBal = result.balance;
     user1AvailBal = result.available;
     user1LockedBal = user1TotalBal - user1AvailBal;
@@ -2341,7 +2342,7 @@ describe(`F. Unlock with various locked and unlocked amounts`, function () {
     expect(user1LockedBal).to.equal(0);
   });
 
-  it.skip(`BUG: get user1 locks. Expect Lock to go away?? or be empty`, async function () {
+  it(`get user1 locks. Expect Lock to go away?? or be empty`, async function () {
     prevLockTableRemainingAmount = lockTableRemainingAmount;
     prevLockTableGrantAmount = lockTableGrantAmount;
     const json = {
@@ -2365,12 +2366,12 @@ describe(`F. Unlock with various locked and unlocked amounts`, function () {
         break
       }
     }
-    console.log(row);
+    //console.log(row);
 
     lockTableRemainingAmount = row.remaining_locked_amount;
     lockTableGrantAmount = row.total_grant_amount;
     expect(found).to.equal(true);
     expect(row.total_grant_amount).to.equal(prevLockTableGrantAmount);
-    expect(row.remaining_locked_amount).to.equal(prevLockTableRemainingAmount - (prevUser1TotalBal * retire1));
+    expect(row.remaining_locked_amount).to.equal(0);
   });
 });
