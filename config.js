@@ -288,22 +288,6 @@ const config = {
             bundledEligible: true,
             fee: 600000000
         } ,
-        //list_domain: {
-        //    bundledEligible: false,
-        //    fee: 2000000000
-        //} ,
-        //cancel_list_domain: {
-        //    bundledEligible: false,
-        //    fee: 1000000000
-        //} ,
-        //buy_domain: {
-        //    bundledEligible: false,
-        //    fee: 2000000000
-        //} ,
-        //set_marketplace_config: {
-        //    bundledEligible: false,
-        //    fee: 500000000
-        //},
         add_nft: {
             bundledEligible: true,
             fee: 600000000
@@ -334,7 +318,7 @@ const config = {
         },
         buy_domain: {
             bundledEligible: false,
-            fee: 2000000000
+            fee: 1000000000
         },
         set_marketplace_config: {
             bundledEligible: false,

@@ -146,7 +146,7 @@ describe('************************** fee-voting-fee-setting.js *****************
   })
 
 
-  it(` wait 30 `, async () => {
+  it(` Wait 30 `, async () => {
     await timeout(30000)
   })
 
@@ -406,7 +406,7 @@ describe('************************** fee-voting-fee-setting.js *****************
   })
   */
 
-  //wait ...then vote
+  //Wait ...then vote
   /*
 
 

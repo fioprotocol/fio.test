@@ -3557,16 +3557,19 @@ describe(`I. (api) Confirm that get_nfts_contract returns NFTs at a specific con
     }
   });
 
-  it(`(limit = 2) user1 calls get_nfts_contract, expect 2 NFTs`, async () => {
+  it.skip(`BD-3265 (limit = 2) user1 calls get_nfts_contract, expect 2 NFTs`, async () => {
     try {
       const result = await callFioApi('get_nfts_contract', {
         chain_code: "ETH",
         contract_address: "0x123456789ABCDEF",
+        offset: 0,
         limit: 2
       });
+      console.log('Result: ', result);
       expect(result.nfts.length).to.equal(2);
     } catch (err) {
-      expect(err.message).to.contain('Invalid limit');
+      console.log('err: ', err);
+      expect(err).to.equal(null);
     }
   });
 
