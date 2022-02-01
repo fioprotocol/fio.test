@@ -1452,7 +1452,7 @@ describe(`F. Sad - result in error`, () => {
 })
 
 
-describe(`(FIP-33) Test $ is allowed in chain and token code for removePublicAddresses`, () => {
+describe.skip(`(FIP-33) Test $ is allowed in chain and token code for removePublicAddresses`, () => {
 
   let user1
 
