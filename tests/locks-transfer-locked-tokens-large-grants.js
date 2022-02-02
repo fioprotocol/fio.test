@@ -1,20 +1,12 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, getProdVoteTotal, fetchJson, existingUser, generateFioDomain, getAccountFromKey, callFioApi,  generateFioAddress, createKeypair} = require('../utils.js');
+const {newUser, getProdVoteTotal, fetchJson, existingUser, generateFioDomain, getAccountFromKey, callFioApi,  generateFioAddress, timeout, createKeypair} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
-
-function wait(ms){
-  var start = new Date().getTime();
-  var end = start;
-  while(end < start + ms) {
-    end = new Date().getTime();
-  }
-}
 
 let userA1, userA2, userA3, userA4, keys, keys1, keys2, keys3, locksdk,
     locksdk1, locksdk2, locksdk3, newFioAddress, newFioDomain, newFioDomain2, newFioAddress2,
@@ -81,17 +73,7 @@ describe(`A. Large grant tests`, () => {
     }
   })
 
-  it(`Waiting 25 seconds`, async () => {
-    console.log("            waiting 25 seconds ")
-  })
-
-  it(` wait 25 seconds`, async () => {
-    try {
-      wait(25000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
+  it(`Wait 25 seconds`, async () => { await timeout(25000) });
 
   //one half should get unlocked
   it(`Transfer 4900000 FIO to another account`, async () => {

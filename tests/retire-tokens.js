@@ -104,7 +104,6 @@ before(async function () {
 });
 
 
-//TODO: See what adam and/or eric say about my Discord questions
 describe(`************************** retire-tokens.js ************************** \n    A. Retire FIO Tokens`, function () {
   let userA, userA1, userA2, userAKeys, userA1Keys, userA2Keys;
 
@@ -292,6 +291,32 @@ describe(`************************** retire-tokens.js **************************
       throw err;
     }
   });
+
+  // Confirm that there is a mainnet lock for userA1
+  it(`Call get_table_rows from lockedtokens. Expect: remaining_locked_amount = ${fundsAmount}`, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'lockedtokens',
+        lower_bound: userA1.account,
+        upper_bound: userA1.account,
+        key_type: 'i64',
+        index_position: '1'
+      }
+      const result = await callFioApi("get_table_rows", json);
+      //console.log('Result: ', result);
+
+      expect(result.rows[0].unlocked_period_count).to.equal(0);
+      expect(result.rows[0].remaining_locked_amount).to.equal(fundsAmount);
+
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
   it(`Happy Test, Retire ${fundsAmount} SUFs from UserA1 (type 4 lock)`, async function () {
     let newUserBal;
     userA1Bal = await userA1.sdk.genericAction('getFioBalance', {});
@@ -308,12 +333,39 @@ describe(`************************** retire-tokens.js **************************
       });
       expect(result.status).to.equal('OK');
       newUserBal = await userA1.sdk.genericAction('getFioBalance', {});
-      expect(newUserBal.available).to.equal(userA1Bal.available - fundsAmount);
+      // userA1 has 3000 unlocked and 1000 locked, so available should not decrease
+      expect(newUserBal.available).to.equal(userA1Bal.available);
       expect(newUserBal.balance).to.equal(userA1Bal.balance - fundsAmount);
     } catch (err) {
+      console.log('err: ', err)
       throw err;
     }
   });
+
+  // Confirm that userA1 mainnet locks decreased by 1000 FIO (so it is zero)
+  it(`Call get_table_rows from lockedtokens. Expect: remaining_locked_amount = 0`, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'lockedtokens',
+        lower_bound: userA1.account,
+        upper_bound: userA1.account,
+        key_type: 'i64',
+        index_position: '1'
+      }
+      const result = await callFioApi("get_table_rows", json);
+      //console.log('Result: ', result);
+
+      expect(result.rows[0].unlocked_period_count).to.equal(0);
+      expect(result.rows[0].remaining_locked_amount).to.equal(0);
+
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
 
   /*
   Retire 1000 FIO tokens from a Type 1 locked account with “test string” memo,
@@ -378,6 +430,31 @@ describe(`************************** retire-tokens.js **************************
       throw err;
     }
   });
+  // Confirm mainnet lock for userA2
+  it(`Call get_table_rows from lockedtokens. Expect: remaining_locked_amount = ${grantAmount}`, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'lockedtokens',
+        lower_bound: userA2.account,
+        upper_bound: userA2.account,
+        key_type: 'i64',
+        index_position: '1'
+      }
+      const result = await callFioApi("get_table_rows", json);
+      //console.log('Result: ', result);
+
+      expect(result.rows[0].unlocked_period_count).to.equal(0);
+      expect(result.rows[0].remaining_locked_amount).to.equal(grantAmount);
+
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
   it(`Happy Test, Retire ${fundsAmount} SUFs from UserA2 (type 1 lock)`, async function () {
     let newUserBal;
     userA2Bal = await userA2.sdk.genericAction('getFioBalance', { });
@@ -394,15 +471,40 @@ describe(`************************** retire-tokens.js **************************
       });
       expect(result.status).to.equal('OK');
       newUserBal = await userA2.sdk.genericAction('getFioBalance', {});
+      // grantAmount is greater than fundsAmount, so only locked tokens should be reduced. Available stays the same.
       expect(newUserBal.balance).to.equal(userA2Bal.balance - fundsAmount);
-      expect(newUserBal.available).to.equal(userA2Bal.available - fundsAmount);
+      expect(newUserBal.available).to.equal(userA2Bal.available);
     } catch (err) {
       throw err;
     }
   });
+
+  // Confirm mainnet lock for userA2 was reduced
+  it(`Call get_table_rows from lockedtokens. Expect: remaining_locked_amount = ${grantAmount}`, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'lockedtokens',
+        lower_bound: userA2.account,
+        upper_bound: userA2.account,
+        key_type: 'i64',
+        index_position: '1'
+      }
+      const result = await callFioApi("get_table_rows", json);
+      //console.log('Result: ', result);
+
+      expect(result.rows[0].unlocked_period_count).to.equal(0);
+      expect(result.rows[0].remaining_locked_amount).to.equal(grantAmount - fundsAmount);
+
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
 });
 
-//TODO: See what adam and/or eric say about my Discord questions
 describe(`B. (BD-3153) accounts with remaining locked FIP-6 periods should not be able to retire any tokens`, function () {
   let userA, userA1, userA3;
   let userA1Locks;
@@ -654,9 +756,6 @@ describe(`C. Retire locked FIO Tokens`, function () {
     }
   });
 
-
-
-
   it(`add locked tokens to userA3 (locktype = 4)`, async function () {
     try {
       const result = await faucet.genericAction('pushTransaction', {
@@ -704,10 +803,10 @@ describe(`C. Retire locked FIO Tokens`, function () {
     expect(row.total_grant_amount).to.equal(1100000000000);
     expect(row.remaining_locked_amount).to.equal(1100000000000);
 
-
     userA3Locks = row;
   });
-  it(`try to retire < 1100000000000, expect OK`, async function () {
+
+  it(`retire < 1100000000000, expect OK`, async function () {
     let newUserBal;
     try {
       const result = await userA3.sdk.genericAction('pushTransaction', {
@@ -720,9 +819,10 @@ describe(`C. Retire locked FIO Tokens`, function () {
         }
       });
       expect(result.status).to.equal('OK');
-      newUserBal = await userA3.sdk.genericAction('getFioBalance', { });
+      newUserBal = await userA3.sdk.genericAction('getFioBalance', {});
+      // Since quantity is less than the lock, only locks will be reduced. Available stays the same.
       expect(newUserBal.balance).to.equal(userA3Bal.balance - 1000500000000);
-      expect(newUserBal.balance - newUserBal.available).to.equal(1100000000000);
+      expect(newUserBal.available).to.equal(userA3Bal.available);
       userA3Bal = newUserBal;
     } catch (err) {
       newUserBal = await userA3.sdk.genericAction('getFioBalance', { });
@@ -731,37 +831,31 @@ describe(`C. Retire locked FIO Tokens`, function () {
       throw err;
     }
   });
-  it(`get userA3 locks`, async function () {
-    const json = {
-      json: true,
-      code: 'eosio',
-      scope: 'eosio',
-      table: 'lockedtokens',
-      lower_bound: userA3.account,
-      upper_bound: userA3.account,
-      // limit: 99999,
-      reverse: true,
-      show_payer: false
-    }
-    let found = false;
-    let user;
-    let row;
-    const lockedtokens = await callFioApi("get_table_rows", json);
-    for (user in lockedtokens.rows) {
-      if (lockedtokens.rows[user].owner === userA3.account) {
-        found = true;
-        row = lockedtokens.rows[user];
-        break
+
+  it(`Call get_table_rows from lockedtokens. Expect: remaining_locked_amount to be reduced by retire amount`, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'lockedtokens',
+        lower_bound: userA3.account,
+        upper_bound: userA3.account,
+        key_type: 'i64',
+        index_position: '1'
       }
+      const result = await callFioApi("get_table_rows", json);
+      //console.log('Result: ', result);
+
+      expect(result.rows[0].unlocked_period_count).to.equal(0);
+      expect(result.rows[0].total_grant_amount).to.equal(1100000000000);
+      expect(result.rows[0].remaining_locked_amount).to.equal(1100000000000 - 1000500000000);
+
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
-    expect(found).to.equal(true);
-    expect(row.total_grant_amount).to.equal(1100000000000);
-    expect(row.remaining_locked_amount).to.equal(1100000000000);
-
-    userA3Locks = row;
-  });
-
-
+  })
 
 
   it(`Set five FIP-6 lock periods for userA4 and unlock all of them, expect status: OK`, async function () {
@@ -1293,21 +1387,10 @@ describe(`C. Retire locked FIO Tokens`, function () {
         }
       });
       expect(result.status).to.equal('OK');
-      newUserBal = await userA6.sdk.genericAction('getFioBalance', {fioPublicKey: userA6.publicKey});
-      expect(newUserBal.balance).to.equal(userA6Bal.balance - fundsAmount);
-
-
-      // let diff = userA6Bal.available - (fundsAmount * .2)
-      // expect(newUserBal.available).to.equal(userA6Bal.available - (fundsAmount * .2));
-
-      expect(userA6Bal.available - newUserBal.available).to.equal(fundsAmount);
+      newUserBal = await userA6.sdk.genericAction('getFioBalance', { fioPublicKey: userA6.publicKey });
+      // 1200 locked, retiring 1000, expect only balance to change, not available since locks are retired first
+      expect(userA6Bal.available).to.equal(newUserBal.available);
       expect(userA6Bal.balance - newUserBal.balance).to.equal(fundsAmount);
-
-      // let row = lockedtokens.rows[user];
-      // expect(row.remaining_locked_amount).to.equal(userA6Bal.balance - userA6Bal.available);
-      // expect(row.remaining_locked_amount).to.equal(newUserBal.balance - newUserBal.available);
-      // expect(row.grant_type).to.equal(3);
-      // expect(row.remaining_locked_amount).to.equal(userA6Bal.balance - newUserBal.balance);
       } catch (err) {
       throw err;
     }
@@ -2185,9 +2268,9 @@ describe(`F. Unlock with various locked and unlocked amounts`, function () {
     user1TotalBal = result.balance;
     user1AvailBal = result.available;
     user1LockedBal = user1TotalBal - user1AvailBal;
-    console.log('user1TotalBal: ', user1TotalBal);
-    console.log('user1AvailBal: ', user1AvailBal);
-    console.log('user1LockedBal: ', user1LockedBal);
+    //console.log('user1TotalBal: ', user1TotalBal);
+    //console.log('user1AvailBal: ', user1AvailBal);
+    //console.log('user1LockedBal: ', user1LockedBal);
 
     expect(user1TotalBal).to.equal(prevUser1TotalBal);
     expect(user1AvailBal).to.equal(prevUser1AvailBal * lock1);
@@ -2248,7 +2331,7 @@ describe(`F. Unlock with various locked and unlocked amounts`, function () {
   });
 
   // Number of locked tokens should be reduced by half
-  it(`(BD-3227) Get user1 balance. Expect reduction in total and locked amount only (since locked tokens get retired before unlocked tokens).`, async function () {
+  it(`Get user1 balance. Expect reduction in total and locked amount only (since locked tokens get retired before unlocked tokens). (BD-3227)`, async function () {
     prevUser1TotalBal = user1TotalBal;
     prevUser1AvailBal = user1AvailBal;
     prevUser1LockedBal = user1LockedBal;
@@ -2260,22 +2343,22 @@ describe(`F. Unlock with various locked and unlocked amounts`, function () {
       user1TotalBal = result.balance;
       user1AvailBal = result.available;
       user1LockedBal = user1TotalBal - user1AvailBal;
-      console.log('user1TotalBal: ', user1TotalBal);
-      console.log('user1AvailBal: ', user1AvailBal);
-      console.log('user1LockedBal: ', user1LockedBal);
+      //console.log('user1TotalBal: ', user1TotalBal);
+      //console.log('user1AvailBal: ', user1AvailBal);
+      //console.log('user1LockedBal: ', user1LockedBal);
       // Total balance should be reduced
       expect(user1TotalBal).to.equal(prevUser1TotalBal - retireAmount1);
       // The available balance should not change (since only locked tokens were retired)
       expect(user1AvailBal).to.equal(prevUser1AvailBal);
       // Locked balance should be reduced
-      //expect(user1LockedBal).to.equal(prevUser1LockedBal - retireAmount1);
+      expect(user1LockedBal).to.equal(prevUser1LockedBal - retireAmount1);
     } catch (err) {
       console.log(err);
       throw err;
     }
   });
 
-  it.skip(`get user1 locks`, async function () {
+  it(`get user1 locks`, async function () {
     prevLockTableRemainingAmount = lockTableRemainingAmount;
     prevLockTableGrantAmount = lockTableGrantAmount;
     const json = {
@@ -2327,12 +2410,12 @@ describe(`F. Unlock with various locked and unlocked amounts`, function () {
     }
   });
 
-  it.skip(`BUG: Get user1 balance. Expect locked balance = 0 and reduction in total and available balance.`, async function () {
+  it(`Get user1 balance. Expect locked balance = 0 and reduction in total and available balance. (BD-3227)`, async function () {
     prevUser1TotalBal = user1TotalBal;
     prevUser1AvailBal = user1AvailBal;
     prevUser1LockedBal = user1LockedBal;
     const result = await user1.sdk.genericAction('getFioBalance', {});
-    console.log('Result: ', result);
+    //console.log('Result: ', result);
     user1TotalBal = result.balance;
     user1AvailBal = result.available;
     user1LockedBal = user1TotalBal - user1AvailBal;
@@ -2341,7 +2424,7 @@ describe(`F. Unlock with various locked and unlocked amounts`, function () {
     expect(user1LockedBal).to.equal(0);
   });
 
-  it.skip(`BUG: get user1 locks. Expect Lock to go away?? or be empty`, async function () {
+  it(`get user1 locks. Expect Lock to go away?? or be empty`, async function () {
     prevLockTableRemainingAmount = lockTableRemainingAmount;
     prevLockTableGrantAmount = lockTableGrantAmount;
     const json = {
@@ -2365,12 +2448,12 @@ describe(`F. Unlock with various locked and unlocked amounts`, function () {
         break
       }
     }
-    console.log(row);
+    //console.log(row);
 
     lockTableRemainingAmount = row.remaining_locked_amount;
     lockTableGrantAmount = row.total_grant_amount;
     expect(found).to.equal(true);
     expect(row.total_grant_amount).to.equal(prevLockTableGrantAmount);
-    expect(row.remaining_locked_amount).to.equal(prevLockTableRemainingAmount - (prevUser1TotalBal * retire1));
+    expect(row.remaining_locked_amount).to.equal(0);
   });
 });
