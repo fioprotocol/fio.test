@@ -3,9 +3,6 @@ const {expect} = require('chai')
 
 describe('TEST SUITE', () => {
 
-
-  //require('./tests/retire-tokens.js');
-  
   /**
    * General Tests. Should work against all builds. Do not require additional configuration.
    */
@@ -29,7 +26,7 @@ describe('TEST SUITE', () => {
   require('./tests/record-obt-data.js'); //FIP-1.b testing
   require('./tests/transfer-address.js'); // FIP-1.b
   require('./tests/addbundles.js');  // FIP-11.a
-  //require('./tests/retire-tokens.js');  // FIP-22 Retire tokens
+  //require('./tests/retire-tokens.js');  // FIP-22 Retire tokens. Requires setup to run.
   require('./tests/tpid.js');
   require('./tests/nft-add-remove.js'); //FIP-27
   require('./tests/nft-sdk-tests.js');
