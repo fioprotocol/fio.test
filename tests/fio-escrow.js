@@ -60,6 +60,10 @@
  *  Rebuild contracts
  */
 
+// These need to be set to the keys of the Marketplace management account
+let MARKETPLACE_PRIV_KEY = '5KePj5qMF7xvXZwY4Tnxy7KbDCdUe7cyZtYv2rsTgaZ7LBuVpUc',
+	MARKETPLACE_PUB_KEY = 'FIO77rFFByyLycsrbC5tH1CXqddZdgkDuTYDbCc2BoGp5hdnU59f7'
+
 require('mocha')
 const {createHash} = require('crypto');
 const {expect}     = require('chai');
@@ -1865,8 +1869,8 @@ async function setup() {
 
 		marketplaceUser = await existingUser(
 			`5ufabtv13hv4`,
-			config.MARKETPLACE_PRIV_KEY,
-			config.MARKETPLACE_PUB_KEY,
+			MARKETPLACE_PRIV_KEY,
+			MARKETPLACE_PUB_KEY,
 			'marketplace',
 			'user@marketplace');
 
@@ -1883,7 +1887,7 @@ async function setup() {
 				action: 'trnsfiopubky',
 				account: 'fio.token',
 				data: {
-					payee_public_key: config.MARKETPLACE_PUB_KEY,
+					payee_public_key: MARKETPLACE_PUB_KEY,
 					amount: 1000000000000,
 					max_fee: 1000000000000,
 					actor: faucet.account,
@@ -1897,7 +1901,7 @@ async function setup() {
 				account: 'fio.address',
 				data: {
 					fio_domain: 'marketplace',
-					owner_fio_public_key: config.MARKETPLACE_PUB_KEY,
+					owner_fio_public_key: MARKETPLACE_PUB_KEY,
 					max_fee: config.maxFee,
 					tpid: ''
 				}
@@ -1909,7 +1913,7 @@ async function setup() {
 				account: 'fio.address',
 				data: {
 					fio_address: 'user@marketplace',
-					owner_fio_public_key: config.MARKETPLACE_PUB_KEY,
+					owner_fio_public_key: MARKETPLACE_PUB_KEY,
 					actor: faucet.account,
 					max_fee: config.maxFee,
 					tpid: ''

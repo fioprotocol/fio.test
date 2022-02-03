@@ -3,6 +3,7 @@ const exec = require('child_process').exec;
 var fs = require('fs');
 config = require('./config');
 var http = require('http');
+const { createHash } = require('crypto');
 
 const fiourl = config.URL + "/v1/chain/";
 const historyUrl = config.HISTORYURL + "/v1/history/"
@@ -25,6 +26,11 @@ function randStr(len) {
 function convertToK1(pubkey) {
     return pubkey.replace("FIO", "PUB_K1_");
 }
+
+function stringToHash (term){
+    const hash = createHash('sha1');
+    return '0x' + hash.update(term).digest().slice(0, 16).reverse().toString('hex');
+};
 
 function user(account, privateKey, publicKey) {
     this.account = account;
@@ -1201,4 +1207,4 @@ class Ram {
 } //Ram class
 */
 
-module.exports = { newUser, existingUser, getTestType, getTopprods, callFioApi, callFioApiSigned, httpRequest, httpRequestBig, callFioHistoryApi, convertToK1, unlockWallet, getFees, getAccountFromKey, getProdVoteTotal, addLock, getTotalVotedFio, getAccountVoteWeight, setRam, printUserRam, user, getMnemonic, fetchJson, randStr, timeout, generateFioDomain, generateFioAddress, createKeypair, readProdFile, consumeRemainingBundles, getBundleCount};
+module.exports = { newUser, existingUser, stringToHash, getTestType, getTopprods, callFioApi, callFioApiSigned, httpRequest, httpRequestBig, callFioHistoryApi, convertToK1, unlockWallet, getFees, getAccountFromKey, getProdVoteTotal, addLock, getTotalVotedFio, getAccountVoteWeight, setRam, printUserRam, user, getMnemonic, fetchJson, randStr, timeout, generateFioDomain, generateFioAddress, createKeypair, readProdFile, consumeRemainingBundles, getBundleCount};

@@ -9,9 +9,9 @@
 require('mocha')
 const {expect} = require('chai')
 const {FIOSDK} = require('@fioprotocol/fiosdk')
-const { newUser, existingUser, callFioApi, fetchJson} = require('../utils.js');
-config = require('../config.js');
-const { EndPoint } = require('@fioprotocol/fiosdk/lib/entities/EndPoint')
+const { newUser, existingUser, callFioApi, stringToHash, fetchJson } = require('../utils.js');
+const config = require('../config.js');
+const { EndPoint } = require('@fioprotocol/fiosdk/lib/entities/EndPoint');
 
 let privateKey, publicKey, testFioAddressName, privateKey2, publicKey2, testFioAddressName2
 
@@ -1474,5 +1474,133 @@ describe('J. Test transfer_tokens_pub_key fee distribution', () => {
       expect(err).to.equal(null);
     }
   })
+
+})
+
+
+describe(`Domain Marketplace: List domain and cancel domain listing`, async () => {
+  let domain1, list_domain_fee, cancel_list_domain_fee, fioSdk2Balance, domainID;
+  const salePrice = 20000000000;
+
+  it(`Get user balance`, async () => {
+    const userBalanceResult = await fioSdk2.sdk.genericAction('getFioBalance', {
+      fioPublicKey: fioSdk2.publicKey
+    })
+    fioSdk2Balance = userBalanceResult.balance;
+    //console.log('userBalanceResult: ', userBalanceResult);
+  });
+
+  it(`getFee for listdomain`, async () => {
+    const result = await fioSdk2.sdk.getFee('list_domain');
+    list_domain_fee = result.fee;
+
+    expect(result).to.have.all.keys('fee')
+    expect(result.fee).to.be.a('number')
+  });
+
+  it(`List domain1`, async () => {
+    domain1 = fioSdk2.domain;
+    let data = {
+      "actor": fioSdk2.account,
+      "fio_domain": domain1,
+      "sale_price": salePrice,
+      "max_fee": config.maxFee,
+      "tpid": ""
+    };
+
+    const result = await fioSdk2.sdk.genericAction('pushTransaction', {
+      action: 'listdomain',
+      account: 'fio.escrow',
+      data
+    });
+    //console.log('Result: ', result);
+    domainID = result.domainsale_id;
+    expect(result.status).to.equal('OK');
+  });
+
+  it(`Get listing from domainsales table for domain1. Expect status = 1 (listed).`, async () => {
+    await timeout(500)
+
+    const domainHash = stringToHash(domain1);
+    const domainSaleRow = await callFioApi("get_table_rows", {
+      json: true,
+      code: 'fio.escrow',
+      scope: 'fio.escrow',
+      table: 'domainsales',
+      upper_bound: domainHash.toString(),
+      lower_bound: domainHash.toString(),
+      key_type: 'i128',
+      index_position: 2,
+      reverse: true,
+      show_payer: false
+    });
+
+    //console.log('domainSaleRow: ', domainSaleRow);
+    expect(domainSaleRow.rows[0].status).to.equal(1); // cancelled listing
+  });
+
+  it(`Get user balance`, async () => {
+    await timeout(500);
+    const userBalanceResult = await fioSdk2.sdk.genericAction('getFioBalance', {
+      fioPublicKey: fioSdk2.publicKey
+    })
+    fioSdk2Balance = userBalanceResult.balance;
+  });
+
+  it(`getFee for cxlistdomain`, async () => {
+    const result = await fioSdk2.sdk.getFee('cancel_list_domain');
+    cancel_list_domain_fee = result.fee;
+
+    expect(result).to.have.all.keys('fee')
+    expect(result.fee).to.be.a('number')
+  });
+
+  it(`Cancel domain1 listing`, async () => {
+    try {
+    let data = {
+      "actor": fioSdk2.account,
+      "fio_domain": domain1,
+      "max_fee": cancel_list_domain_fee,
+      "tpid": ""
+    };
+      const result = await fioSdk2.sdk.genericAction('pushTransaction', {
+      action: 'cxlistdomain',
+      account: 'fio.escrow',
+      data: data
+    });
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log('Error', err.json);
+      expect(err).to.equal(null);
+    };
+  });
+
+  it(`Get listing from domainsales table. Expect status = 3 (cancelled).`, async () => {
+    await timeout(500)
+
+    const domainHash = stringToHash(domain1);
+    const domainSaleRow = await callFioApi("get_table_rows", {
+      json: true,
+      code: 'fio.escrow',
+      scope: 'fio.escrow',
+      table: 'domainsales',
+      upper_bound: domainHash.toString(),
+      lower_bound: domainHash.toString(),
+      key_type: 'i128',
+      index_position: 2,
+      reverse: true,
+      show_payer: false
+    });
+
+    //console.log('domainSaleRow: ', domainSaleRow);
+    expect(domainSaleRow.rows[0].status).to.equal(3); // cancelled listing
+    expect(domainSaleRow.rows[0].date_listed).to.not.equal(domainSaleRow.rows[0].date_updated);
+
+    const userBalanceResultAfter = await fioSdk2.sdk.genericAction('getFioBalance', {
+      fioPublicKey: fioSdk2.publicKey
+    });
+
+    expect(userBalanceResultAfter.balance).to.equal(fioSdk2Balance - cancel_list_domain_fee)
+  });
 
 })
