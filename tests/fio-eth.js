@@ -382,8 +382,6 @@ describe(`B1. [ETH] Oracles (get)`, function () {
     }
   });
 
-  // TODO: Test with varying consensus among other custodians (different addresses, different amounts, etc)
-  // TODO: Test with incorrect consensus (too few approvers, already approved address)
 });
 
 describe(`B2. [ETH] Oracles (register)`, function () {
@@ -1111,6 +1109,8 @@ describe(`C2. [ETH] wFIO unwrapping`, function () {
       expect(err.reason).to.equal('missing argument: passed to contract');
     }
   });
+
+  //todo: more unhappy paths
 });
 
 describe(`D. [ETH] Approval`, function () {
