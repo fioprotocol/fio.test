@@ -378,7 +378,7 @@ describe(`B1. [ETH] Oracles (get)`, function () {
       expect(result[1]).to.be.a('object').with.property('_hex');
       expect(result[1]).to.be.a('object').with.property('_isBigNumber');
     } catch (err) {
-      expect(err).to.equal(null);
+      throw err;
     }
   });
 
@@ -628,7 +628,7 @@ describe(`C1. [ETH] wFIO wrapping`, function () {
       expect(toStartingWfioBal.lt(toEndingWfioBal)).to.be.true;
       expect(toEndingWfioBal.sub(toStartingWfioBal).toNumber()).to.equal(100)
     } catch (err) {
-      expect(err).to.equal(null);
+      throw err;
     }
   });
 
@@ -674,7 +674,7 @@ describe(`C1. [ETH] wFIO wrapping`, function () {
       expect(toStartingWfioBal.lt(toEndingWfioBal)).to.be.true;
       expect(toEndingWfioBal.sub(toStartingWfioBal).toNumber()).to.equal(100)
     } catch (err) {
-      expect(err).to.equal(null);
+      throw err;
     }
   });
 
@@ -781,7 +781,7 @@ describe(`C1. [ETH] wFIO wrapping`, function () {
       expect(toStartingWfioBal.lt(toEndingWfioBal)).to.be.true;
       expect(toEndingWfioBal.sub(toStartingWfioBal).toNumber()).to.equal(100)
     } catch (err) {
-      expect(err).to.equal(null);
+      throw err;
     }
   });
 
@@ -852,7 +852,7 @@ describe(`C1. [ETH] wFIO wrapping`, function () {
     await wfio.connect(accounts[12]).wrap(accounts[0].address, 100, "donkey");
     await wfio.connect(accounts[13]).wrap(accounts[0].address, 100, "donkey");
     try {
-      let result = await wfio.connect(accounts[14]).wrap(accounts[0].address, 100, 1); // TODO: Should this third arg take any arbitrary string
+      let result = await wfio.connect(accounts[14]).wrap(accounts[0].address, 100, 1);
       expect(result.status).to.equal('OK');
     } catch (err) {
       expect(err).to.have.property('stackTrace').which.is.a('Array');
@@ -1375,7 +1375,7 @@ describe(`F. [ETH] Unpausing`, function () {
       // wrapping/unwrapping is prohibited when contract is paused
       await wfio.connect(accounts[12]).wrap(accounts[0].address, 100, TRANSACTIION_ID);
     } catch (err) {
-      expect(err).to.equal(null);
+      throw err;
     }
   });
 
