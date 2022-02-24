@@ -117,10 +117,6 @@ describe(`************************** retire-tokens.js **************************
     userA1Keys = await createKeypair();
     userA2Keys = await createKeypair();
 
-    console.log('userAKeys: ', userAKeys);
-    console.log('userA1Keys: ', userA1Keys);
-    console.log('userA2Keys: ', userA2Keys);
-
     await faucet.genericAction('pushTransaction', {
       action: 'trnsfiopubky',
       account: 'fio.token',
