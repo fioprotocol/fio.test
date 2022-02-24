@@ -1,6 +1,6 @@
 require('mocha');
 const {expect} = require('chai');
-const {newUser, existingUser, fetchJson, createKeypair, callFioApi, timeout} = require('../utils.js');
+const {newUser, existingUser, fetchJson, createKeypair, callFioApi, getTotalVotedFio, timeout} = require('../utils.js');
 const {FIOSDK} = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
 let faucet;
@@ -116,6 +116,10 @@ describe(`************************** retire-tokens.js **************************
     userAKeys = await createKeypair();
     userA1Keys = await createKeypair();
     userA2Keys = await createKeypair();
+
+    console.log('userAKeys: ', userAKeys);
+    console.log('userA1Keys: ', userA1Keys);
+    console.log('userA2Keys: ', userA2Keys);
 
     await faucet.genericAction('pushTransaction', {
       action: 'trnsfiopubky',
@@ -2456,4 +2460,157 @@ describe(`F. Unlock with various locked and unlocked amounts`, function () {
     expect(row.total_grant_amount).to.equal(prevLockTableGrantAmount);
     expect(row.remaining_locked_amount).to.equal(0);
   });
+});
+
+describe(`G. Test voting power with retire`, function () {
+
+  let user1, user1Balance, user1LastVoteWeight, totalVotedFio;
+  //const fundsAmount = 1000000000000;
+  const lock1Amount = 400000000000;
+  const lock2Amount = 600000000000;
+  const fundsAmount = lock1Amount + lock2Amount;
+
+  it(`Create users`, async () => {
+    user1 = await newUser(faucet);
+  });
+
+  it(`transferLockedTokens to user1`, async function () {
+    try {
+      const result = await faucet.genericAction('transferLockedTokens', {
+        payeePublicKey: user1.publicKey,
+        canVote: 0,
+        periods: [
+          {
+            duration: 120,
+            amount: lock1Amount,
+          },
+          {
+            duration: 240,
+            amount: lock2Amount,
+          }
+        ],
+        amount: lock1Amount + lock2Amount,
+        maxFee: config.maxFee,
+        tpid: ''
+      });
+      expect(result.status).to.not.equal('OK')
+    } catch (err) {
+      //console.log('error: ', err)
+      var expected = `Error 400`
+      expect(err.message).to.include(expected)
+    };
+  });
+
+  it(`user1 votes for bp1@dapixdev`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'voteproducer',
+        account: 'eosio',
+        data: {
+          "producers": [
+            'bp1@dapixdev'
+          ],
+          fio_address: user1.address,
+          actor: user1.account,
+          max_fee: config.api.vote_producer.fee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err)
+    }
+  });
+
+  it(`getFioBalance before retire `, async () => {
+    const result = await user1.sdk.genericAction('getFioBalance', { });
+    user1Balance = result.balance;
+    //console.log('Balance: ', user1Balance)
+  });
+
+  it(`Get totalVotedFio before retire`, async () => {
+    totalVotedFio = await getTotalVotedFio();
+    //console.log('totalVotedFio:', totalVotedFio);
+  });
+
+  it(`Get user1 last_vote_weight before retire.`, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        lower_bound: user1.account,
+        upper_bound: user1.account,
+        key_type: "name",
+        index_position: "3",
+        show_payer: false
+      }
+      const voter = await callFioApi("get_table_rows", json);
+      user1LastVoteWeight = Math.trunc(voter.rows[0].last_vote_weight);
+
+      //console.log('user1LastVoteWeight:', user1LastVoteWeight);
+    } catch (err) {
+      console.log('Error: ', err.json)
+      expect(err).to.equal('null')
+    }
+  });
+
+  it(`Retire ${fundsAmount} SUFs from user1`, async function () {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'retire',
+        account: 'fio.token',
+        data: {
+          quantity: fundsAmount,
+          memo: "test string",
+          actor: user1.account,
+        }
+      });
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log('Error: ', err);
+      throw err;
+    }
+  });
+
+  it(`getFioBalance after retire `, async () => {
+    const prevBalance = user1Balance;
+    const result = await user1.sdk.genericAction('getFioBalance', { });
+    user1Balance = result.balance;
+    //console.log('Balance: ', user1Balance)
+    expect(user1Balance).to.equal(prevBalance - fundsAmount);
+  });
+
+  it(`Get totalVotedFio after retire. `, async () => {
+    const prevTotalVoteFIO = totalVotedFio;
+    totalVotedFio = await getTotalVotedFio();
+    //console.log('totalVotedFio:', totalVotedFio);
+    expect(totalVotedFio).to.equal(prevTotalVoteFIO - fundsAmount);
+  })
+
+  it(`Get user1 last_vote_weight after retire.`, async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        lower_bound: user1.account,
+        upper_bound: user1.account,
+        key_type: "name",
+        index_position: "3",
+        show_payer: false
+      }
+      const prevUser1VoteWeight = user1LastVoteWeight;
+      const voter = await callFioApi("get_table_rows", json);
+      user1LastVoteWeight = Math.trunc(voter.rows[0].last_vote_weight);
+      //console.log('user1LastVoteWeight:', user1LastVoteWeight);
+      expect(user1LastVoteWeight).to.equal(prevUser1VoteWeight - fundsAmount);
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal('null');
+    }
+  });
+
 });
