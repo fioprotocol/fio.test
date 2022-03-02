@@ -3959,7 +3959,7 @@ describe(`H. [FIO] Unwrap FIO domains`, function () {
           actor: newOracle4.account
         }
       });
-      expect(result.status).to.notequal('OK');
+      expect(result.status).to.not.equal('OK');
     } catch (err) {
       expect(err.json.fields[0].name).to.equal('obt_id');
       expect(err.json.fields[0].value).to.equal('');
