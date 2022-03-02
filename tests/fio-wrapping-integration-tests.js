@@ -22,7 +22,32 @@ before(async function () {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
 });
 
+
+/*
+TODO: test case
+  it(`register 3 oracles on FIO and ERC20 contracts, expect success`);
+  it(`oracle1 set its oracle fees`);
+  it(`oracle2 set its oracle fees`);
+  it(`oracle3 set its oracle fees`);
+  it(`verify RAM of signer has increased`);
+  it(`call get_oracle_fees`);
+  it(`wrap 100 FIO tokens`);
+  it(`oracle1 executes - unwrap 100 FIO tokens, expect token not transferred, RAM of signer increased`);
+  it(`oracle2 executes - unwrap 100 FIO tokens, expect token not transferred, RAM of signer increased`);
+  it(`oracle3 executes - unwrap 100 FIO tokens, expect token transferred to designated addresses, RAM of signer increased`);
+ */
+
+
+
 // describe(`************************** fio-eth-wrap-unwrap.js ************************** \n   WFIO AND FIONFT QUICK TESTS`, function () {});
+
+
+
+
+
+
+
+
 
 describe.skip(`B. (unhappy) Try to wrap FIO tokens, invalid input`, function () {
   let user1, fiosdk, keys, accountnm;
@@ -121,7 +146,7 @@ describe.skip(`B. (unhappy) Try to wrap FIO tokens, invalid input`, function () 
 });
 
 
-describe.only(`B. (unhappy) Try to wrap FIO tokens, invalid input`, function () {
+describe(`B. (unhappy) Try to wrap FIO tokens, invalid input`, function () {
 
   let fioAccount;
   let fioBalance;
