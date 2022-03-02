@@ -13,8 +13,8 @@ describe('TEST SUITE', () => {
   require('./tests/producer.js'); // v1.0.x
   require('./tests/pushtransaction.js'); // v1.0.x
   require('./tests/ram.js');  // v1.0.x //Eric to update to remove clio
-  require('./tests/register-fio-address.js');
-  require('./tests/register-fio-domain.js'); // v1.0.x
+  require('./tests/register-renew-fio-address.js');
+  require('./tests/register-renew-fio-domain.js'); // v1.0.x
   require('./tests/transfer-tokens.js'); // v1.0.x
   require('./tests/vote.js');  // v1.0.x
   require('./tests/action-whitelisting.js'); // FIP-12, fio v2.0.0, fio.contracts v2.0.0 // Causes future tests to fail. Only run alone.

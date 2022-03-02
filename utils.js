@@ -324,9 +324,9 @@ const callFioApiSigned = async (endPoint, txn) => {
         body: JSON.stringify(tx),
         method: 'POST',
     });
-
-    const json = await pushResult.json()
-    return json;
+    
+    const json = await pushResult.json();
+    return json; 
   };
 
 /**
