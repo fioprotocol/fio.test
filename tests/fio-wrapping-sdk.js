@@ -197,7 +197,7 @@ after(async function () {
   }
 });
 
-describe(`************************** fio-wrapping.js ************************** \n   A. [FIO] Oracles (get_table_rows)`, function () {
+describe(`************************** fio-wrapping-sdk.js ************************** \n   A. [FIO] Oracles (get_table_rows)`, function () {
   let userA, oracle1, oracle2, oracle3;
 
   before(async function () {

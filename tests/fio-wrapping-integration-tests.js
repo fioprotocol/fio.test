@@ -39,7 +39,7 @@ TODO: test case
 
 
 
-// describe(`************************** fio-eth-wrap-unwrap.js ************************** \n   WFIO AND FIONFT QUICK TESTS`, function () {});
+// describe(`************************** fio-wrapping-integration-tests.js ************************** \n   WFIO AND FIONFT QUICK TESTS`, function () {});
 
 
 

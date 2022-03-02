@@ -74,7 +74,9 @@ describe('TEST SUITE', () => {
    * FIP-17 FIO Token Wrapping
    */
   require('./tests/fio-eth.js');
-  require('./tests/fio-eth-wrap-unwrap.js');
+  require('./tests/fio-wrapping-sdk.js');
+  require('./tests/fio-wrapping-api.js');
+  //require('./tests/fio-wrapping-integration-tests.js');
 
   /**
    * FIP-27 FIO NFT
