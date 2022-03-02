@@ -424,7 +424,7 @@ describe('E. Test set_fio_domain_public', () => {
 
 })
 
-describe.only('F. Test renewdomain on account with permissions', () => {
+describe('F. Test renewdomain on account with permissions', () => {
   let user1, user2;
 
   const permissionName = 'regmyadd';   // Must be < 12 chars
@@ -432,9 +432,6 @@ describe.only('F. Test renewdomain on account with permissions', () => {
   it('Create users', async () => {
       user1 = await newUser(faucet);
       user2 = await newUser(faucet);
-
-      console.log('user1: ', user1.account);
-      console.log('user2: ', user2.account);
   });
 
   it(`user1 creates regmyadd permission and assigns to user2`, async () => {
