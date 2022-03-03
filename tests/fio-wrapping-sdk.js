@@ -4,11 +4,10 @@ require("@nomiclabs/hardhat-ethers");
 require("mocha");
 const {expect} = require("chai");
 const {FIOSDK} = require('@fioprotocol/fiosdk');
-
 const config = require('../config.js');
-const {newUser, fetchJson, callFioApi} = require('../utils.js');
-const {existingUser, callFioApiSigned, getAccountFromKey} = require("../utils");
-
+const {newUser, fetchJson} = require('../utils.js');
+const {existingUser, callFioApiSigned, getAccountFromKey} = require("../utils.js");
+const {getOracleRecords, registerNewBp, registerNewOracle, setTestOracleFees, setupWFIOontracts, registerWfioOracles, cleanUpOraclessTable} = require("./Helpers/wrapping.js");
 const INIT_SUPPLY = 0;
 let faucet;
 
@@ -27,145 +26,6 @@ let faucet;
  * // require_auth(SYSTEMACCOUNT);
  *
  */
-
-async function getOracleRecords (account = null) {
-  let json = {
-    json: true,
-    code: 'fio.oracle',
-    scope: 'fio.oracle',
-    table: 'oracless',
-    reverse: true,
-    limit: 1000
-  };
-  try {
-    if (account !== null) {
-      json['lower_bound'] = account;
-      json['upper_bound'] = account;
-    }
-    return callFioApi("get_table_rows", json);
-  } catch (err) {
-    throw err;
-  }
-}
-
-async function registerNewBp (account) {
-  try {
-    return  account.sdk.genericAction('pushTransaction', {
-      action: 'regproducer',
-      account: 'eosio',
-      data: {
-        fio_address: account.address,
-        fio_pub_key: account.publicKey,
-        url: "https://mywebsite.io/",
-        location: 80,
-        actor: account.account,
-        max_fee: config.api.register_producer.fee
-      }
-    });
-  } catch (err) {
-    console.log('Error: ', err.json);
-    throw err;
-  }
-}
-
-async function registerNewOracle (account) {
-  try {
-    return account.sdk.genericAction('pushTransaction', {
-      action: 'regoracle',
-      account: 'fio.oracle',
-      actor: 'eosio',
-      data: {
-        oracle_actor: account.account,
-        actor: account.account
-      }
-    });
-  } catch (err) {
-    console.log('Error: ', err.json);
-    throw err;
-  }
-}
-
-async function setTestOracleFees (account, domainFeeAmt, tokenFeeAmt) {
-  try {
-    return account.sdk.genericAction('pushTransaction', {
-      action: 'setoraclefee',
-      account: 'fio.oracle',
-      actor: 'eosio',
-      data: {
-        wrap_fio_domain: domainFeeAmt,
-        wrap_fio_tokens: tokenFeeAmt
-      }
-    });
-  } catch (err) {
-    console.log('Error: ', err.json);
-    throw err;
-  }
-}
-
-async function setupWFIOontracts () {
-  let [owner, ...accounts] = await ethers.getSigners();
-  let custodians = [];
-  for (let i = 1; i < 11; i++) {
-    custodians.push(accounts[i].address);
-  }
-  let factory = await ethers.getContractFactory('WFIO', owner);
-  let wfio = await factory.deploy(INIT_SUPPLY, custodians);
-  await wfio.deployTransaction.wait();
-  return [accounts, wfio];
-}
-
-async function registerWfioOracles (wfio, accounts) {
-  // register 3 oracles for testing
-  await wfio.connect(accounts[1]).regoracle(accounts[12].address);
-  await wfio.connect(accounts[2]).regoracle(accounts[12].address);
-  await wfio.connect(accounts[3]).regoracle(accounts[12].address);
-  await wfio.connect(accounts[4]).regoracle(accounts[12].address);
-  await wfio.connect(accounts[5]).regoracle(accounts[12].address);
-  await wfio.connect(accounts[6]).regoracle(accounts[12].address);
-  await wfio.connect(accounts[7]).regoracle(accounts[12].address);
-  await wfio.connect(accounts[1]).regoracle(accounts[13].address);
-  await wfio.connect(accounts[2]).regoracle(accounts[13].address);
-  await wfio.connect(accounts[3]).regoracle(accounts[13].address);
-  await wfio.connect(accounts[4]).regoracle(accounts[13].address);
-  await wfio.connect(accounts[5]).regoracle(accounts[13].address);
-  await wfio.connect(accounts[6]).regoracle(accounts[13].address);
-  await wfio.connect(accounts[7]).regoracle(accounts[13].address);
-  await wfio.connect(accounts[1]).regoracle(accounts[14].address);
-  await wfio.connect(accounts[2]).regoracle(accounts[14].address);
-  await wfio.connect(accounts[3]).regoracle(accounts[14].address);
-  await wfio.connect(accounts[4]).regoracle(accounts[14].address);
-  await wfio.connect(accounts[5]).regoracle(accounts[14].address);
-  await wfio.connect(accounts[6]).regoracle(accounts[14].address);
-  await wfio.connect(accounts[7]).regoracle(accounts[14].address);
-}
-
-async function cleanUpOraclessTable (originals = false) {
-  try {
-    const fAcct = await getAccountFromKey(faucet.publicKey);
-    const oracleRecords = await getOracleRecords();
-    for (let row in oracleRecords.rows) {
-      row = oracleRecords.rows[row]
-      // hardcode the exclusion of default bp accounts
-      if (!originals) {
-        if (row.actor === 'qbxn5zhw2ypw' || row.actor === 'hfdg2qumuvlc' || row.actor === 'wttywsmdmfew')
-          continue
-      }
-      let result = await callFioApiSigned('push_transaction', {
-        action: 'unregoracle',
-        account: 'fio.oracle',
-        actor: fAcct,
-        privKey: faucet.privateKey,
-        data: {
-          oracle_actor: row.actor,
-          actor: fAcct
-        }
-      });
-      console.log("deleted: ", row, result);
-    }
-  } catch (err) {
-    throw err;
-  }
-}
 
 before(async function () {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
@@ -1077,10 +937,12 @@ describe(`D. [FIO] Oracles (setoraclefees)`, function () {
   });
 });
 
+// TODO: test total fee charged is an AVERAGE of all oracle fees
+
 describe(`** ORACLE TABLE CLEANUP **`, async function () {
   it(`clean out oracless record with helper function`, async function () {
     try {
-      await cleanUpOraclessTable(true);
+      await cleanUpOraclessTable(faucet, true);
       let records = await getOracleRecords();
       expect(records.rows.length).to.be.oneOf([3, 0]);
     } catch (err) {
@@ -1173,14 +1035,7 @@ describe(`E. [FIO] Wrap FIO tokens`, function () {
       technologyProviderId: ''
     });
 
-    [owner, ...accounts] = await ethers.getSigners();
-    custodians = [];
-    for (let i = 1; i < 11; i++) {
-      custodians.push(accounts[i].address);
-    }
-    factory = await ethers.getContractFactory('WFIO', owner);
-    wfio = await factory.deploy(INIT_SUPPLY, custodians);
-    await wfio.deployTransaction.wait();
+    [wfioAccts, wfio] = await setupWFIOontracts(ethers, INIT_SUPPLY);
   });
 
   it(`query the oracless table, expects the three original new records`, async function () {
@@ -2025,7 +1880,7 @@ describe(`F. [FIO] Unwrap FIO tokens`, function () {
 
   let wrapAmt = 1000000000000;
   let unwrapAmt = 500000000000;
-  let oracle1, oracle2, oracle3, user1, newOracle, newOracle1, newOracle2, custodians, factory, wfio;
+  let oracle1, oracle2, oracle3, user1, newOracle, newOracle1, newOracle2, custodians, factory, wfio, wfioAccts;
 
   let OBT_ID;
 
@@ -2190,36 +2045,8 @@ describe(`F. [FIO] Unwrap FIO tokens`, function () {
       technologyProviderId: ''
     });
 
-    [owner, ...accounts] = await ethers.getSigners();
-    custodians = [];
-    for (let i = 1; i < 11; i++) {
-      custodians.push(accounts[i].address);
-    }
-    factory = await ethers.getContractFactory('WFIO', owner);
-    wfio = await factory.deploy(INIT_SUPPLY, custodians);
-    await wfio.deployTransaction.wait();
-    // register 3 oracles for testing
-    await wfio.connect(accounts[1]).regoracle(accounts[12].address);
-    await wfio.connect(accounts[2]).regoracle(accounts[12].address);
-    await wfio.connect(accounts[3]).regoracle(accounts[12].address);
-    await wfio.connect(accounts[4]).regoracle(accounts[12].address);
-    await wfio.connect(accounts[5]).regoracle(accounts[12].address);
-    await wfio.connect(accounts[6]).regoracle(accounts[12].address);
-    await wfio.connect(accounts[7]).regoracle(accounts[12].address);
-    await wfio.connect(accounts[1]).regoracle(accounts[13].address);
-    await wfio.connect(accounts[2]).regoracle(accounts[13].address);
-    await wfio.connect(accounts[3]).regoracle(accounts[13].address);
-    await wfio.connect(accounts[4]).regoracle(accounts[13].address);
-    await wfio.connect(accounts[5]).regoracle(accounts[13].address);
-    await wfio.connect(accounts[6]).regoracle(accounts[13].address);
-    await wfio.connect(accounts[7]).regoracle(accounts[13].address);
-    await wfio.connect(accounts[1]).regoracle(accounts[14].address);
-    await wfio.connect(accounts[2]).regoracle(accounts[14].address);
-    await wfio.connect(accounts[3]).regoracle(accounts[14].address);
-    await wfio.connect(accounts[4]).regoracle(accounts[14].address);
-    await wfio.connect(accounts[5]).regoracle(accounts[14].address);
-    await wfio.connect(accounts[6]).regoracle(accounts[14].address);
-    await wfio.connect(accounts[7]).regoracle(accounts[14].address);
+    [wfioAccts, wfio] = await setupWFIOontracts(ethers, INIT_SUPPLY);
+    await registerWfioOracles(wfio, wfioAccts);
 
     try {
       //const result = await user1.sdk.genericAction('pushTransaction', {
@@ -2258,16 +2085,16 @@ describe(`F. [FIO] Unwrap FIO tokens`, function () {
     }
 
     // call wfio.wrap
-    let fromStartingBal = await accounts[14].getBalance();
-    let toStartingWfioBal = await wfio.balanceOf(accounts[0].address);
+    let fromStartingBal = await wfioAccts[14].getBalance();
+    let toStartingWfioBal = await wfio.balanceOf(wfioAccts[0].address);
 
-    await wfio.connect(accounts[12]).wrap(accounts[0].address, 100, OBT_ID);
-    await wfio.connect(accounts[13]).wrap(accounts[0].address, 100, OBT_ID);
+    await wfio.connect(wfioAccts[12]).wrap(wfioAccts[0].address, 100, OBT_ID);
+    await wfio.connect(wfioAccts[13]).wrap(wfioAccts[0].address, 100, OBT_ID);
     try {
-      let result = await wfio.connect(accounts[14]).wrap(accounts[0].address, 100, OBT_ID);
-      let fromEndingBal = await accounts[14].getBalance();
-      let toEndingWfioBal = await wfio.balanceOf(accounts[0].address);
-      expect(result.from).to.equal(accounts[14].address);
+      let result = await wfio.connect(wfioAccts[14]).wrap(wfioAccts[0].address, 100, OBT_ID);
+      let fromEndingBal = await wfioAccts[14].getBalance();
+      let toEndingWfioBal = await wfio.balanceOf(wfioAccts[0].address);
+      expect(result.from).to.equal(wfioAccts[14].address);
       expect(result.to).to.equal(wfio.address);
       expect(fromStartingBal.gt(fromEndingBal)).to.be.true;
       expect(toStartingWfioBal.lt(toEndingWfioBal)).to.be.true;
@@ -2839,7 +2666,7 @@ describe(`G. [FIO] Wrap FIO domains`, function () {
       technologyProviderId: ''
     });
 
-    [wfioAccts, wfio] = await setupWFIOontracts();
+    [wfioAccts, wfio] = await setupWFIOontracts(ethers, INIT_SUPPLY);
     await registerWfioOracles(wfio, wfioAccts);
 
     try {
@@ -2865,16 +2692,16 @@ describe(`G. [FIO] Wrap FIO domains`, function () {
     }
 
     // call wfio.wrap
-    let fromStartingBal = await accounts[14].getBalance();
-    let toStartingWfioBal = await wfio.balanceOf(accounts[0].address);
+    let fromStartingBal = await wfioAccts[14].getBalance();
+    let toStartingWfioBal = await wfio.balanceOf(wfioAccts[0].address);
 
-    await wfio.connect(accounts[12]).wrap(accounts[0].address, 100, OBT_ID);
-    await wfio.connect(accounts[13]).wrap(accounts[0].address, 100, OBT_ID);
+    await wfio.connect(wfioAccts[12]).wrap(wfioAccts[0].address, 100, OBT_ID);
+    await wfio.connect(wfioAccts[13]).wrap(wfioAccts[0].address, 100, OBT_ID);
     try {
-      let result = await wfio.connect(accounts[14]).wrap(accounts[0].address, 100, OBT_ID);
-      let fromEndingBal = await accounts[14].getBalance();
-      let toEndingWfioBal = await wfio.balanceOf(accounts[0].address);
-      expect(result.from).to.equal(accounts[14].address);
+      let result = await wfio.connect(wfioAccts[14]).wrap(wfioAccts[0].address, 100, OBT_ID);
+      let fromEndingBal = await wfioAccts[14].getBalance();
+      let toEndingWfioBal = await wfio.balanceOf(wfioAccts[0].address);
+      expect(result.from).to.equal(wfioAccts[14].address);
       expect(result.to).to.equal(wfio.address);
       expect(fromStartingBal.gt(fromEndingBal)).to.be.true;
       expect(toStartingWfioBal.lt(toEndingWfioBal)).to.be.true;
@@ -3724,7 +3551,7 @@ describe(`H. [FIO] Unwrap FIO domains`, function () {
       technologyProviderId: ''
     });
 
-    [wfioAccts, wfio] = await setupWFIOontracts();
+    [wfioAccts, wfio] = await setupWFIOontracts(ethers, INIT_SUPPLY);
     await registerWfioOracles(wfio, wfioAccts);
 
     try {
