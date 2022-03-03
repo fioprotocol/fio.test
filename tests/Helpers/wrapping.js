@@ -75,14 +75,14 @@ async function setTestOracleFees (account, domainFeeAmt, tokenFeeAmt) {
   }
 }
 
-async function setupWFIOontracts () {
-  let [owner, ...accounts] = await ethers.getSigners();
+async function setupWFIOontracts (ethersObj, supply) {
+  let [owner, ...accounts] = await ethersObj.getSigners();
   let custodians = [];
   for (let i = 1; i < 11; i++) {
     custodians.push(accounts[i].address);
   }
-  let factory = await ethers.getContractFactory('WFIO', owner);
-  let wfio = await factory.deploy(INIT_SUPPLY, custodians);
+  let factory = await ethersObj.getContractFactory('WFIO', owner);
+  let wfio = await factory.deploy(supply, custodians);
   await wfio.deployTransaction.wait();
   return [accounts, wfio];
 }
@@ -112,9 +112,9 @@ async function registerWfioOracles (wfio, accounts) {
   await wfio.connect(accounts[7]).regoracle(accounts[14].address);
 }
 
-async function cleanUpOraclessTable (originals = false) {
+async function cleanUpOraclessTable (faucetAcct, originals = false) {
   try {
-    const fAcct = await getAccountFromKey(faucet.publicKey);
+    const fAcct = await getAccountFromKey(faucetAcct.publicKey);
     const oracleRecords = await getOracleRecords();
     for (let row in oracleRecords.rows) {
       row = oracleRecords.rows[row]
@@ -127,7 +127,7 @@ async function cleanUpOraclessTable (originals = false) {
         action: 'unregoracle',
         account: 'fio.oracle',
         actor: fAcct,
-        privKey: faucet.privateKey,
+        privKey: faucetAcct.privateKey,
         data: {
           oracle_actor: row.actor,
           actor: fAcct
