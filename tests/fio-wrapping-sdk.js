@@ -7,8 +7,8 @@ const {FIOSDK} = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
 const {newUser, fetchJson} = require('../utils.js');
 const {existingUser, callFioApiSigned, getAccountFromKey} = require("../utils.js");
-const {getOracleRecords, registerNewBp, registerNewOracle, setTestOracleFees, setupWFIOontracts, registerWfioOracles, cleanUpOraclessTable} = require("./Helpers/wrapping.js");
-const INIT_SUPPLY = 0;
+const {getOracleRecords, registerNewBp, registerNewOracle, setTestOracleFees, setupWFIOontract, registerWfioOracles, cleanUpOraclessTable} = require("./Helpers/wrapping.js");
+let INIT_SUPPLY = 0;
 let faucet;
 
 /**
@@ -426,40 +426,13 @@ describe(`C. [FIO] Oracles (unregister)`, function () {
     // user2 = await newUser(faucet);
     // user3 = await newUser(faucet);
     newOracle = await newUser(faucet);
-
-    // register a new oracle
-    try {
-      const result = await newOracle.sdk.genericAction('pushTransaction', {
-        action: 'regproducer',
-        account: 'eosio',
-        data: {
-          fio_address: newOracle.address,
-          fio_pub_key: newOracle.publicKey,
-          url: "https://mywebsite.io/",
-          location: 80,
-          actor: newOracle.account,
-          max_fee: config.api.register_producer.fee
-        }
-      });
-      expect(result.status).to.equal('OK');
-      expect(result.fee_collected).to.equal(config.api.register_producer.fee);
-    } catch (err) {
-      console.log('Error: ', err.json)
-      throw err;
-    }
+    await registerNewBp(newOracle);
+    await registerNewOracle(newOracle);
 
     try {
-      await oracle1.sdk.genericAction('pushTransaction', {
-        action: 'regoracle',
-        account: 'fio.oracle',
-        actor: 'eosio',
-        data: {
-          oracle_actor: newOracle.account,
-          actor: newOracle.account
-        }
-      });
+      await registerNewOracle(oracle1);
     } catch (err) {
-      throw err;
+      expect(err.json.error.what).to.equal('could not insert object, most likely a uniqueness constraint was violated');
     }
   });
 
@@ -585,6 +558,12 @@ describe(`C. [FIO] Oracles (unregister)`, function () {
     }
   });
 
+  let prevRecordIdx, currentRecordIdx;
+
+  it(`get pre-unwrap oracle records`, async function () {
+    prevRecordIdx = await getOracleRecords();
+  });
+
   it(`(happy path) oracle1 tries to unregister newOracle, expect OK`, async function () {
     try {
       const result = await oracle1.sdk.genericAction('pushTransaction', {
@@ -596,8 +575,11 @@ describe(`C. [FIO] Oracles (unregister)`, function () {
           actor: oracle1.account
         }
       });
+      currentRecordIdx = await getOracleRecords();
       expect(result.status).to.equal('OK');
+      expect(currentRecordIdx.rows.length).to.equal(prevRecordIdx.rows.length - 1);
     } catch (err) {
+      let oracleRecs = await getOracleRecords();
       throw err;
     }
   });
@@ -615,40 +597,14 @@ describe(`D. [FIO] Oracles (setoraclefees)`, function () {
     // user2 = await newUser(faucet);
     // user3 = await newUser(faucet);
     newOracle = await newUser(faucet);
+    await registerNewBp(newOracle);
+    await registerNewOracle(newOracle);
 
-    // register a new oracle
+    // make sure old oracle is registered
     try {
-      const result = await newOracle.sdk.genericAction('pushTransaction', {
-        action: 'regproducer',
-        account: 'eosio',
-        data: {
-          fio_address: newOracle.address,
-          fio_pub_key: newOracle.publicKey,
-          url: "https://mywebsite.io/",
-          location: 80,
-          actor: newOracle.account,
-          max_fee: config.api.register_producer.fee
-        }
-      });
-      expect(result.status).to.equal('OK');
-      expect(result.fee_collected).to.equal(config.api.register_producer.fee);
+      await registerNewOracle(oracle1);
     } catch (err) {
-      console.log('Error: ', err.json)
-      throw err;
-    }
-
-    try {
-      await oracle1.sdk.genericAction('pushTransaction', {
-        action: 'regoracle',
-        account: 'fio.oracle',
-        actor: 'eosio',
-        data: {
-          oracle_actor: newOracle.account,
-          actor: newOracle.account
-        }
-      });
-    } catch (err) {
-      throw err;
+      expect(err.json.error.what).to.equal('could not insert object, most likely a uniqueness constraint was violated');
     }
   });
 
@@ -967,66 +923,9 @@ describe(`E. [FIO] Wrap FIO tokens`, function () {
     newOracle1 = await newUser(faucet);
     newOracle2 = await newUser(faucet);
 
-    // register new oracles as bps
-    try {
-      const result = await newOracle.sdk.genericAction('pushTransaction', {
-        action: 'regproducer',
-        account: 'eosio',
-        data: {
-          fio_address: newOracle.address,
-          fio_pub_key: newOracle.publicKey,
-          url: "https://mywebsite.io/",
-          location: 80,
-          actor: newOracle.account,
-          max_fee: config.api.register_producer.fee
-        }
-      });
-      expect(result.status).to.equal('OK');
-      expect(result.fee_collected).to.equal(config.api.register_producer.fee);
-    } catch (err) {
-      console.log('Error: ', err.json)
-      throw err;
-    }
-
-    try {
-      const result = await newOracle1.sdk.genericAction('pushTransaction', {
-        action: 'regproducer',
-        account: 'eosio',
-        data: {
-          fio_address: newOracle1.address,
-          fio_pub_key: newOracle1.publicKey,
-          url: "https://mywebsite1.io/",
-          location: 80,
-          actor: newOracle1.account,
-          max_fee: config.api.register_producer.fee
-        }
-      });
-      expect(result.status).to.equal('OK');
-      expect(result.fee_collected).to.equal(config.api.register_producer.fee);
-    } catch (err) {
-      console.log('Error: ', err.json)
-      throw err;
-    }
-
-    try {
-      const result = await newOracle2.sdk.genericAction('pushTransaction', {
-        action: 'regproducer',
-        account: 'eosio',
-        data: {
-          fio_address: newOracle2.address,
-          fio_pub_key: newOracle2.publicKey,
-          url: "https://mywebsite2.io/",
-          location: 80,
-          actor: newOracle2.account,
-          max_fee: config.api.register_producer.fee
-        }
-      });
-      expect(result.status).to.equal('OK');
-      expect(result.fee_collected).to.equal(config.api.register_producer.fee);
-    } catch (err) {
-      console.log('Error: ', err.json)
-      throw err;
-    }
+    await registerNewBp(newOracle);
+    await registerNewBp(newOracle1);
+    await registerNewBp(newOracle2);
 
     await faucet.genericAction('transferTokens', {
       payeeFioPublicKey: user1.publicKey,
@@ -1034,8 +933,7 @@ describe(`E. [FIO] Wrap FIO tokens`, function () {
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     });
-
-    [wfioAccts, wfio] = await setupWFIOontracts(ethers, INIT_SUPPLY);
+    [wfioAccts, wfio] = await setupWFIOontract(ethers, INIT_SUPPLY);
   });
 
   it(`query the oracless table, expects the three original new records`, async function () {
@@ -1877,7 +1775,6 @@ describe(`E. [FIO] Wrap FIO tokens`, function () {
 });
 
 describe(`F. [FIO] Unwrap FIO tokens`, function () {
-
   let wrapAmt = 1000000000000;
   let unwrapAmt = 500000000000;
   let oracle1, oracle2, oracle3, user1, newOracle, newOracle1, newOracle2, custodians, factory, wfio, wfioAccts;
@@ -1896,147 +1793,19 @@ describe(`F. [FIO] Unwrap FIO tokens`, function () {
     newOracle2 = await newUser(faucet);
 
     // register new oracles as bps
-    try {
-      const result = await newOracle.sdk.genericAction('pushTransaction', {
-        action: 'regproducer',
-        account: 'eosio',
-        data: {
-          fio_address: newOracle.address,
-          fio_pub_key: newOracle.publicKey,
-          url: "https://mywebsite.io/",
-          location: 80,
-          actor: newOracle.account,
-          max_fee: config.api.register_producer.fee
-        }
-      });
-      expect(result.status).to.equal('OK');
-      expect(result.fee_collected).to.equal(config.api.register_producer.fee);
-    } catch (err) {
-      console.log('Error: ', err.json)
-      throw err;
-    }
+    await registerNewBp(newOracle);
+    await registerNewBp(newOracle1);
+    await registerNewBp(newOracle2);
 
-    try {
-      const result = await newOracle1.sdk.genericAction('pushTransaction', {
-        action: 'regproducer',
-        account: 'eosio',
-        data: {
-          fio_address: newOracle1.address,
-          fio_pub_key: newOracle1.publicKey,
-          url: "https://mywebsite1.io/",
-          location: 80,
-          actor: newOracle1.account,
-          max_fee: config.api.register_producer.fee
-        }
-      });
-      expect(result.status).to.equal('OK');
-      expect(result.fee_collected).to.equal(config.api.register_producer.fee);
-    } catch (err) {
-      console.log('Error: ', err.json)
-      throw err;
-    }
-
-    try {
-      const result = await newOracle2.sdk.genericAction('pushTransaction', {
-        action: 'regproducer',
-        account: 'eosio',
-        data: {
-          fio_address: newOracle2.address,
-          fio_pub_key: newOracle2.publicKey,
-          url: "https://mywebsite2.io/",
-          location: 80,
-          actor: newOracle2.account,
-          max_fee: config.api.register_producer.fee
-        }
-      });
-      expect(result.status).to.equal('OK');
-      expect(result.fee_collected).to.equal(config.api.register_producer.fee);
-    } catch (err) {
-      console.log('Error: ', err.json)
-      throw err;
-    }
-
-    // await newOracle
-    try {
-      const result1 = await newOracle.sdk.genericAction('pushTransaction', {
-        action: 'regoracle',
-        account: 'fio.oracle',
-        actor: 'eosio',
-        data: {
-          oracle_actor: newOracle.account,
-          actor: newOracle.account
-        }
-      });
-      expect(result1).to.have.property('status').which.is.a('string').and.equals('OK');
-    } catch (err) {
-      throw err;
-    }
-
-    // await newOracle1
-    try {
-      const result2 = await newOracle1.sdk.genericAction('pushTransaction', {
-        action: 'regoracle',
-        account: 'fio.oracle',
-        actor: 'eosio',
-        data: {
-          oracle_actor: newOracle1.account,
-          actor: newOracle1.account
-        }
-      });
-      expect(result2).to.have.property('status').which.is.a('string').and.equals('OK');
-    } catch (err) {
-      throw err;
-    }
-
-    // await newOracle2
-    try {
-      const result3 = await newOracle2.sdk.genericAction('pushTransaction', {
-        action: 'regoracle',
-        account: 'fio.oracle',
-        actor: 'eosio',
-        data: {
-          oracle_actor: newOracle2.account,
-          actor: newOracle2.account
-        }
-      });
-      expect(result3).to.have.property('status').which.is.a('string').and.equals('OK');
-    } catch (err) {
-      throw err;
-    }
+    // await newOracles
+    await registerNewOracle(newOracle);
+    await registerNewOracle(newOracle1);
+    await registerNewOracle(newOracle2);
 
     // set oracle fees
-    try {
-      await newOracle.sdk.genericAction('pushTransaction', {
-        action: 'setoraclefee',
-        account: 'fio.oracle',
-        actor: 'eosio',
-        data: {
-          wrap_fio_domain: 10000000000,
-          wrap_fio_tokens: 11000000000
-        }
-      });
-      await newOracle1.sdk.genericAction('pushTransaction', {
-        action: 'setoraclefee',
-        account: 'fio.oracle',
-        actor: 'eosio',
-        data: {
-          wrap_fio_domain: 11000000000,
-          wrap_fio_tokens: 20000000000
-        }
-      });
-      await newOracle2.sdk.genericAction('pushTransaction', {
-        action: 'setoraclefee',
-        account: 'fio.oracle',
-        actor: 'eosio',
-        data: {
-          wrap_fio_domain: 20000000000,
-          wrap_fio_tokens: 21000000000
-        }
-      });
-    } catch (err) {
-      console.log('error setting fees for new oracles: ', err);
-      throw err;
-    }
+    await setTestOracleFees(newOracle, 10000000000, 11000000000);
+    await setTestOracleFees(newOracle1, 11000000000, 20000000000);
+    await setTestOracleFees(newOracle2, 20000000000, 21000000000);
 
     await faucet.genericAction('transferTokens', {
       payeeFioPublicKey: user1.publicKey,
@@ -2045,11 +1814,10 @@ describe(`F. [FIO] Unwrap FIO tokens`, function () {
       technologyProviderId: ''
     });
 
-    [wfioAccts, wfio] = await setupWFIOontracts(ethers, INIT_SUPPLY);
+    [wfioAccts, wfio] = await setupWFIOontract(ethers, INIT_SUPPLY);
     await registerWfioOracles(wfio, wfioAccts);
 
     try {
-      //const result = await user1.sdk.genericAction('pushTransaction', {
       const result = await callFioApiSigned('push_transaction', {
         action: 'wraptokens',
         account: 'fio.oracle',
@@ -2066,19 +1834,6 @@ describe(`F. [FIO] Unwrap FIO tokens`, function () {
         }
       });
       OBT_ID = result.transaction_id;
-      // wrappingFee = result.fee_collected;
-      // wrappingOracleFee = parseInt(result.oracle_fee_collected);
-      // expect(result.status).to.equal('OK');
-
-      //400000000
-      //60000000000
-
-      // postWrapBal = await user1.sdk.genericAction('getFioBalance', {});
-      // postWrapBalDiff = preWrapBal.balance - postWrapBal.balance;
-      // postWrapAvailDiff = preWrapBal.available - postWrapBal.available;
-      // let expValue = wrapAmt + wrappingFee + wrappingOracleFee;
-      // expect(postWrapBalDiff).to.equal(expValue); //(preWrapBal.balance - wrappingFee - parseInt(wrappingOracleFee));
-      // expect(postWrapAvailDiff).to.equal(expValue); //(preWrapBal.balance - wrappingFee - parseInt(wrappingOracleFee));
     } catch (err) {
       console.log('error wrapping test tokens: ', err);
       throw err;
@@ -2666,7 +2421,7 @@ describe(`G. [FIO] Wrap FIO domains`, function () {
       technologyProviderId: ''
     });
 
-    [wfioAccts, wfio] = await setupWFIOontracts(ethers, INIT_SUPPLY);
+    [wfioAccts, wfio] = await setupWFIOontract(ethers, INIT_SUPPLY);
     await registerWfioOracles(wfio, wfioAccts);
 
     try {
@@ -3551,7 +3306,7 @@ describe(`H. [FIO] Unwrap FIO domains`, function () {
       technologyProviderId: ''
     });
 
-    [wfioAccts, wfio] = await setupWFIOontracts(ethers, INIT_SUPPLY);
+    [wfioAccts, wfio] = await setupWFIOontract(ethers, INIT_SUPPLY);
     await registerWfioOracles(wfio, wfioAccts);
 
     try {
@@ -3776,14 +3531,14 @@ describe(`H. [FIO] Unwrap FIO domains`, function () {
   it(`(empty obt_id) try to unwrap a FIO domain`, async function () {
     // TODO: Bug - improper obt_id validation
     try {
-      const result = await newOracle4.sdk.genericAction('pushTransaction', {
+      const result = await newOracle1.sdk.genericAction('pushTransaction', {
         action: 'unwrapdomain',
         account: 'fio.oracle',
         data: {
           fio_domain: user1.domain,
           obt_id: "",
           fio_address: user1.address,
-          actor: newOracle4.account
+          actor: newOracle1.account
         }
       });
       expect(result.status).to.not.equal('OK');

@@ -75,7 +75,7 @@ async function setTestOracleFees (account, domainFeeAmt, tokenFeeAmt) {
   }
 }
 
-async function setupWFIOontracts (ethersObj, supply) {
+async function setupWFIOontract (ethersObj, supply) {
   let [owner, ...accounts] = await ethersObj.getSigners();
   let custodians = [];
   for (let i = 1; i < 11; i++) {
@@ -85,6 +85,10 @@ async function setupWFIOontracts (ethersObj, supply) {
   let wfio = await factory.deploy(supply, custodians);
   await wfio.deployTransaction.wait();
   return [accounts, wfio];
+}
+
+async function setupFIONFTcontract (ethersObj, supply) {
+
 }
 
 async function registerWfioOracles (wfio, accounts) {
@@ -146,6 +150,6 @@ module.exports = {
   registerWfioOracles,
   registerNewOracle,
   setTestOracleFees,
-  setupWFIOontracts,
+  setupWFIOontract,
   cleanUpOraclessTable
 }
