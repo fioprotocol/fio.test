@@ -74,8 +74,8 @@ describe('TEST SUITE', () => {
    * FIP-17 FIO Token Wrapping
    */
   require('./tests/fio-eth.js');
-  require('./tests/fio-wrapping-sdk.js');
-  require('./tests/fio-wrapping-api.js');
+  require('./tests/fio-token-wrapping-sdk.js');
+  require('./tests/fio-token-wrapping-api.js');
   //require('./tests/fio-wrapping-integration-tests.js');
 
   /**
