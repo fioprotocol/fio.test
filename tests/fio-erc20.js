@@ -1,15 +1,11 @@
 const hre = require("hardhat");
 const ethers = hre.ethers;
 require("@nomiclabs/hardhat-ethers");
-// require("@nomiclabs/hardhat-ganache");
 require("mocha");
-const { expect } = require("chai");
-const {FIOSDK } = require('@fioprotocol/fiosdk');
-
+const {expect} = require("chai");
+const {FIOSDK} = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
-const {newUser, fetchJson, timeout, callFioApi} = require('../utils.js');
-const {existingUser} = require("../utils");
-
+const {newUser, fetchJson, timeout} = require('../utils.js');
 const INIT_SUPPLY = 0;
 let faucet;
 
