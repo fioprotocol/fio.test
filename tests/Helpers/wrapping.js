@@ -87,8 +87,16 @@ async function setupWFIOontract (ethersObj, supply) {
   return [accounts, wfio];
 }
 
-async function setupFIONFTcontract (ethersObj, supply) {
-
+async function setupFIONFTcontract (ethersObj) {
+  let [owner, ...accounts] = await ethersObj.getSigners();
+  let custodians = [];
+  for (let i = 1; i < 11; i++) {
+    custodians.push(accounts[i].address);
+  }
+  let factory = await ethersObj.getContractFactory('FIONFT', owner);
+  let fioNft = await factory.deploy(custodians);
+  await fioNft.deployed();
+  return [accounts, fioNft];
 }
 
 async function registerWfioOracles (wfio, accounts) {
@@ -114,6 +122,10 @@ async function registerWfioOracles (wfio, accounts) {
   await wfio.connect(accounts[5]).regoracle(accounts[14].address);
   await wfio.connect(accounts[6]).regoracle(accounts[14].address);
   await wfio.connect(accounts[7]).regoracle(accounts[14].address);
+}
+
+async function registerFioNftOracles (fioNft, accounts) {
+
 }
 
 async function cleanUpOraclessTable (faucetAcct, originals = false) {
@@ -151,5 +163,6 @@ module.exports = {
   registerNewOracle,
   setTestOracleFees,
   setupWFIOontract,
+  setupFIONFTcontract,
   cleanUpOraclessTable
 }
