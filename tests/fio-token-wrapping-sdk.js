@@ -1108,7 +1108,6 @@ describe(`E. [FIO] Wrap FIO tokens`, function () {
   it(`set oracle fees for all new oracles`, async function () {
     console.log('[dbg] starting fee setting...')
     //now set oracle fees
-    // TODO: Should they all be the same or different amts?
     try {
       await newOracle.sdk.genericAction('pushTransaction', {
         action: 'setoraclefee',
@@ -1172,7 +1171,7 @@ describe(`E. [FIO] Wrap FIO tokens`, function () {
    *
    * TODO: How much validation for public_address?
    *    validate negative values or conversion to unsigned int?
-   *
+   *    more tests in fio-token-wrapping-api
    */
   it.skip(`(invalid public_address) try to wrap 1000 FIO tokens`, async function () {
     try {
@@ -1213,7 +1212,6 @@ describe(`E. [FIO] Wrap FIO tokens`, function () {
     }
   });
   it.skip(`(negative public_address) try to wrap 1000 FIO tokens`, async function () {
-    //TODO: Bug - inadequate public_address validation
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
         action: 'wraptokens',
@@ -1233,7 +1231,6 @@ describe(`E. [FIO] Wrap FIO tokens`, function () {
     }
   });
   it.skip(`(negative max_fee) try to wrap 1000 FIO tokens`, async function () {
-    //TODO: Bug - negative value validation or conversion to unsigned int?
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
         action: 'wraptokens',
@@ -1256,7 +1253,6 @@ describe(`E. [FIO] Wrap FIO tokens`, function () {
     }
   });
   it.skip(`(negative max_oracle_fee) try to wrap 1000 FIO tokens`, async function () {
-    //TODO: Bug - negative value validation or conversion to unsigned int?
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
         action: 'wraptokens',
@@ -1278,7 +1274,6 @@ describe(`E. [FIO] Wrap FIO tokens`, function () {
     }
   });
   it.skip(`(int tpid) try to wrap 1000 FIO tokens`, async function () {
-    //TODO: Bug - inadequate tpid validation -- not a valid FIO address
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
         action: 'wraptokens',
@@ -1939,7 +1934,6 @@ describe(`F. [FIO] Unwrap FIO tokens`, function () {
     }
   });
   it(`(negative amount) try to unwrap -${wrapAmt} FIO tokens`, async function () {
-    // TODO: Bug - improper negative validation
     try {
       const result = await newOracle.sdk.genericAction('pushTransaction', {
         action: 'unwraptokens',
@@ -1957,7 +1951,6 @@ describe(`F. [FIO] Unwrap FIO tokens`, function () {
     }
   });
   it.skip(`(empty obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
-    //TODO: Bug - Should obt_id be allowed to be empty?
     try {
       const result = await newOracle.sdk.genericAction('pushTransaction', {
         action: 'unwraptokens',
@@ -1975,7 +1968,6 @@ describe(`F. [FIO] Unwrap FIO tokens`, function () {
     }
   });
   it.skip(`(invalid obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
-    //TODO: Bug - Invalid obt_id returning OK
     try {
       const result = await newOracle.sdk.genericAction('pushTransaction', {
         action: 'unwraptokens',
@@ -1993,7 +1985,6 @@ describe(`F. [FIO] Unwrap FIO tokens`, function () {
     }
   });
   it.skip(`(int obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
-    //TODO: Bug - integer obt_id returning OK
     try {
       const result = await newOracle.sdk.genericAction('pushTransaction', {
         action: 'unwraptokens',
@@ -2011,7 +2002,6 @@ describe(`F. [FIO] Unwrap FIO tokens`, function () {
     }
   });
   it.skip(`(negative obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
-    //TODO: Bug - negative obt_id returning OK
     try {
       const result = await newOracle.sdk.genericAction('pushTransaction', {
         action: 'unwraptokens',
@@ -2312,7 +2302,6 @@ describe(`F. [FIO] Unwrap FIO tokens`, function () {
   it(`query the oracless table, expect 6 records`, async function () {
     try {
       const oracleRecords = await getOracleRecords();
-      // todo: check for our known records specifically
       expect(oracleRecords.rows.length).to.equal(6);
     } catch (err) {
       throw err;
