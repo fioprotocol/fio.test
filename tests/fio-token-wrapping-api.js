@@ -748,7 +748,7 @@ describe(`C. [FIO][api] Oracles (unregister)`, function () {
   });
 });
 
-describe(`D. [FIO][api] Oracles (setoraclefees)`, function () {
+describe(`D. [FIO][api] Oracles (setoraclefee)`, function () {
 
   let oracle1, newOracle, newOracle1, newOracle2, newOracle3, newOracle4, newOracle5, user1;
 
