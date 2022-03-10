@@ -23,7 +23,7 @@ before(async function () {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
 });
 
-describe(`************************** fio-eth.js ************************** \n   A. [ETH] WFIO quick tests`, function () {
+describe(`************************** fio-erc20.js ************************** \n   A. [ETH] WFIO quick tests`, function () {
 
   let owner;
   let accounts;
