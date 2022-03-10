@@ -1187,7 +1187,7 @@ describe(`** ORACLE TABLE CLEANUP **`, async function () {
 describe(`F. [FIO][api] Wrap FIO tokens`, function () {
 
   let wrapAmt = 1000000000000;
-  let oracle1, oracle2, oracle3, user1, newOracle, newOracle1, newOracle2, custodians, factory, wfio, wfioAccts;
+  let oracle1, oracle2, oracle3, user1, newOracle, newOracle1, newOracle2, custodians, factory, owner, wfio, wfioAccts;
 
   before(async function () {
     oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
@@ -1212,7 +1212,7 @@ describe(`F. [FIO][api] Wrap FIO tokens`, function () {
       technologyProviderId: ''
     });
 
-    [wfioAccts, wfio] = await setupWFIOontract(ethers, INIT_SUPPLY);
+    [owner, wfioAccts, wfio] = await setupWFIOontract(ethers, INIT_SUPPLY);
   });
 
   it(`query the oracless table, expects zero records`, async function () {
@@ -2118,7 +2118,7 @@ describe(`F. [FIO][api] Wrap FIO tokens`, function () {
 describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
   let wrapAmt = 1000000000000;
   let unwrapAmt = 500000000000;
-  let oracle1, oracle2, oracle3, user1, newOracle, newOracle1, newOracle2, custodians, factory, wfio, wfioAccts;
+  let oracle1, oracle2, oracle3, user1, newOracle, newOracle1, newOracle2, custodians, factory, owner, wfio, wfioAccts;
 
   let OBT_ID;
 
@@ -2155,7 +2155,7 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       technologyProviderId: ''
     });
 
-    [wfioAccts, wfio] = await setupWFIOontract(ethers, INIT_SUPPLY);
+    [owner, wfioAccts, wfio] = await setupWFIOontract(ethers, INIT_SUPPLY);
     await registerWfioOracles(wfio, wfioAccts);
 
     try {

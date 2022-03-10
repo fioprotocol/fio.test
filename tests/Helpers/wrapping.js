@@ -84,7 +84,7 @@ async function setupWFIOontract (ethersObj, supply) {
   let factory = await ethersObj.getContractFactory('WFIO', owner);
   let wfio = await factory.deploy(supply, custodians);
   await wfio.deployTransaction.wait();
-  return [accounts, wfio];
+  return [owner, accounts, wfio];
 }
 
 async function setupFIONFTcontract (ethersObj) {
@@ -96,7 +96,7 @@ async function setupFIONFTcontract (ethersObj) {
   let factory = await ethersObj.getContractFactory('FIONFT', owner);
   let fioNft = await factory.deploy(custodians);
   await fioNft.deployed();
-  return [accounts, fioNft];
+  return [owner, accounts, fioNft];
 }
 
 async function registerWfioOracles (wfio, accounts) {
@@ -125,7 +125,28 @@ async function registerWfioOracles (wfio, accounts) {
 }
 
 async function registerFioNftOracles (fioNft, accounts) {
-
+  // register 3 oracles for testing
+  await fioNft.connect(accounts[1]).regoracle(accounts[12].address);
+  await fioNft.connect(accounts[2]).regoracle(accounts[12].address);
+  await fioNft.connect(accounts[3]).regoracle(accounts[12].address);
+  await fioNft.connect(accounts[4]).regoracle(accounts[12].address);
+  await fioNft.connect(accounts[5]).regoracle(accounts[12].address);
+  await fioNft.connect(accounts[6]).regoracle(accounts[12].address);
+  await fioNft.connect(accounts[7]).regoracle(accounts[12].address);
+  await fioNft.connect(accounts[1]).regoracle(accounts[13].address);
+  await fioNft.connect(accounts[2]).regoracle(accounts[13].address);
+  await fioNft.connect(accounts[3]).regoracle(accounts[13].address);
+  await fioNft.connect(accounts[4]).regoracle(accounts[13].address);
+  await fioNft.connect(accounts[5]).regoracle(accounts[13].address);
+  await fioNft.connect(accounts[6]).regoracle(accounts[13].address);
+  await fioNft.connect(accounts[7]).regoracle(accounts[13].address);
+  await fioNft.connect(accounts[1]).regoracle(accounts[14].address);
+  await fioNft.connect(accounts[2]).regoracle(accounts[14].address);
+  await fioNft.connect(accounts[3]).regoracle(accounts[14].address);
+  await fioNft.connect(accounts[4]).regoracle(accounts[14].address);
+  await fioNft.connect(accounts[5]).regoracle(accounts[14].address);
+  await fioNft.connect(accounts[6]).regoracle(accounts[14].address);
+  await fioNft.connect(accounts[7]).regoracle(accounts[14].address);
 }
 
 async function cleanUpOraclessTable (faucetAcct, originals = false) {
@@ -164,5 +185,6 @@ module.exports = {
   setTestOracleFees,
   setupWFIOontract,
   setupFIONFTcontract,
+  registerFioNftOracles,
   cleanUpOraclessTable
 }
