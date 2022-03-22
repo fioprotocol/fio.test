@@ -177,6 +177,58 @@ async function cleanUpOraclessTable (faucetAcct, originals = false) {
   }
 }
 
+async function calculateOracleFee(feeType = 'token') {
+  if (feeType !== 'token' && feeType !== 'domain') throw new Error('unknown feeType');
+  const oracleRecords = await getOracleRecords();
+  let totalFee = 0, medianFee = 0;
+  let fees = [];
+  for (let row in oracleRecords.rows) {
+    let _fee;
+    if (feeType === 'domain') {
+      _fee = oracleRecords.rows[row].fees[0].fee_amount;
+      totalFee += _fee;
+      fees.push(_fee);
+    }
+    else if (feeType === 'token') {
+      _fee = oracleRecords.rows[row].fees[1].fee_amount;
+      totalFee += _fee;
+      fees.push(_fee);
+    }
+  }
+  // medianFee = median(fees);
+  // const rezzz = medianFee * oracleRecords.rows.length;
+  let rezzz;
+  fees.sort((a, b) => {
+    return a - b;
+  });
+  let half = Math.floor(fees.length / 2);
+  if (fees.length % 2)
+    rezzz = fees[half];
+  else
+    rezzz = (fees[half -1] + fees[half]) / 2.0;
+  return rezzz * oracleRecords.rows.length;
+}
+
+async function getOracleVotes(account = null) {
+  let json = {
+    json: true,
+    code: 'fio.oracle',
+    scope: 'fio.oracle',
+    table: 'oravotes',
+    reverse: true,
+    limit: 1000
+  };
+  try {
+    if (account !== null) {
+      json['lower_bound'] = account;
+      json['upper_bound'] = account;
+    }
+    return callFioApi("get_table_rows", json);
+  } catch (err) {
+    throw err;
+  }
+}
+
 module.exports = {
   getOracleRecords,
   registerNewBp,
@@ -186,5 +238,7 @@ module.exports = {
   setupWFIOontract,
   setupFIONFTcontract,
   registerFioNftOracles,
-  cleanUpOraclessTable
+  cleanUpOraclessTable,
+  calculateOracleFee,
+  getOracleVotes
 }
