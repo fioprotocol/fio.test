@@ -50,9 +50,9 @@ describe('TEST SUITE', () => {
    * Locked token tests (FIP-6,21). Tests may require additional configuration.
    */
   //require('./tests/locks-transfer-locked-tokens-max-load.js');  // OPTIONAL PERFORMANCE TEST. Loads the chain with lots of general locks. Run this before other general locks tests when its desirable to test a loaded chain.
+  //require('./tests/locks-transfer-locked-tokens-large-grants.js'); //FIP-21 tests for FIO genesis locks functionality. Allocates large grants from faucet.
   //### These Lock tests do NOT require additional configuration.
   require('./tests/locks-transfer-locked-tokens-account-tests.js');  // FIP-6 tests of generic account functionality
-  require('./tests/locks-transfer-locked-tokens-large-grants.js'); //FIP-21 tests for FIO genesis locks functionality.
   require('./tests/locks-transfer-locked-tokens.js');  //FIP-21 locking tests for general locks
   //### These Lock tests require additional configuration.
   //require('./tests/locks-mainnet-locked-tokens-lock1hotfix.js'); //Release 2.4.1 Hotfix for Type 1 locks (was not calculating voting power correctly)

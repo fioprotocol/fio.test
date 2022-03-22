@@ -909,7 +909,8 @@ describe('E. Confirm active producers and proxy cannot transfer address', () => 
           //console.log('Result: ', result)
           expect(result.status).to.equal('OK') 
         } catch (err) {
-          console.log('Error: ', err.json)
+          console.log('Error: ', err.json);
+          expect(err).to.equal(null);
         } 
     })
 
@@ -1786,7 +1787,7 @@ describe('E. transfer FIO Address with existing FIO Requests, test getters ', ()
               "fio_public_key": user1.publicKey
             }
             result = await callFioApi("get_sent_fio_requests", json);
-            console.log('result: ', result);
+            //console.log('result: ', result);
             //console.log('content: ', result.requests[0].content);
             expect(result.requests[0].fio_request_id).to.equal(requestId);
             expect(result.requests[0].payer_fio_address).to.equal(user2.address);
@@ -1806,7 +1807,7 @@ describe('E. transfer FIO Address with existing FIO Requests, test getters ', ()
               "fio_public_key": user2.publicKey
             }
             result = await callFioApi("get_pending_fio_requests", json);
-          console.log('result: ', result)
+          //console.log('result: ', result)
           //console.log('content: ', result.requests[0].content)
           expect(result.requests[0].fio_request_id).to.equal(requestId);
           expect(result.requests[0].payer_fio_address).to.equal(user2.address);
@@ -1832,7 +1833,7 @@ describe('E. transfer FIO Address with existing FIO Requests, test getters ', ()
             "actor": user2.account
           }
         })
-        console.log('result: ', result);
+        //console.log('result: ', result);
         expect(result.status).to.equal('OK');
       } catch (err) {
         console.log('Error: ', err)
@@ -1861,7 +1862,7 @@ describe('E. transfer FIO Address with existing FIO Requests, test getters ', ()
               "fio_public_key": user1.publicKey
             }
             result = await callFioApi("get_sent_fio_requests", json);
-            console.log('result: ', result);
+            //console.log('result: ', result);
             //console.log('content: ', result.requests[0].content);
             expect(result.requests[0].fio_request_id).to.equal(requestId);
             expect(result.requests[0].payer_fio_address).to.equal(user2.address);
@@ -1875,15 +1876,15 @@ describe('E. transfer FIO Address with existing FIO Requests, test getters ', ()
         };
     });
   
-    it(`get_pending_fio_requests for user2 (payer)`, async () => {
+    it.skip(`Need to complete: get_pending_fio_requests for user2 (payer)`, async () => {
       try {
         const json = {
             "fio_public_key": user2.publicKey
           }
           result = await callFioApi("get_pending_fio_requests", json);
-        console.log('result: ', result)
+        //console.log('result: ', result)
         //console.log('content: ', result.requests[0].content)
-        expect(result).to.equal.apply(null);
+        expect(result).to.equal(null);
 
       } catch (err) {
         console.log('Error: ', err)
