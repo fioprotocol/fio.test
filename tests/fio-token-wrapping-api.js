@@ -490,7 +490,7 @@ describe(`B. [FIO][api] Oracles (register)`, function () {
 });
 
 describe(`C. [FIO][api] Oracles (unregister)`, function () {
-  let user1, user2, user3, newOracle, newOracle1, newOracle2, oracle1, oracle2, oracle3;
+  let user1, user2, user3, newOracle1, newOracle2, newOracle3, newOracle4, oracle1, oracle2, oracle3;
 
   before(async function () {
     // oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
@@ -499,30 +499,34 @@ describe(`C. [FIO][api] Oracles (unregister)`, function () {
     // user1 = await newUser(faucet);
     // user2 = await newUser(faucet);
     // user3 = await newUser(faucet);
-    newOracle = await newUser(faucet);
     newOracle1 = await newUser(faucet);
     newOracle2 = await newUser(faucet);
+    newOracle3 = await newUser(faucet);
+    newOracle4 = await newUser(faucet);
 
     // register a new oracle
-    await registerNewBp(newOracle);
     await registerNewBp(newOracle1);
     await registerNewBp(newOracle2);
+    await registerNewBp(newOracle3);
+    await registerNewBp(newOracle4);
 
-    await registerNewOracle(newOracle);
     await registerNewOracle(newOracle1);
     await registerNewOracle(newOracle2);
+    await registerNewOracle(newOracle3);
+    await registerNewOracle(newOracle4);
 
-    await setTestOracleFees(newOracle, 10000000000, 11000000000);
-    await setTestOracleFees(newOracle1, 11000000000, 11500000000);
-    await setTestOracleFees(newOracle2, 12000000000, 12500000000);
+    await setTestOracleFees(newOracle1, 10000000000, 11000000000);
+    await setTestOracleFees(newOracle2, 11000000000, 11500000000);
+    await setTestOracleFees(newOracle3, 12000000000, 12500000000);
+    await setTestOracleFees(newOracle4, 13000000000, 13500000000);
   });
 
   it(`query the oracless table, expects results to contain newOracle`, async function () {
     try {
-      const oracleRecords = await getOracleRecords(newOracle.account);
+      const oracleRecords = await getOracleRecords(newOracle1.account);
       expect(oracleRecords.rows.length).to.equal(1);
       expect(oracleRecords.rows[0]).to.have.all.keys('actor', 'fees');
-      expect(oracleRecords.rows[0].actor).to.be.a('string').and.equal(newOracle.account);
+      expect(oracleRecords.rows[0].actor).to.be.a('string').and.equal(newOracle1.account);
     } catch (err) {
       throw err;
     }
@@ -534,7 +538,24 @@ describe(`C. [FIO][api] Oracles (unregister)`, function () {
    * TODO: Bug - unregister successful when actor is empty or invalid
    *    - actor is not used at all by unregoracle
    */
-  it(`(empty actor) try to unregister an oracle, expect Error`, async function () {
+  it.skip(`(empty actor) try to unregister an oracle, expect OK`, async function () {
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'unregoracle',
+        account: 'fio.oracle',
+        actor: newOracle2.account,
+        privKey: newOracle2.privateKey,
+        data: {
+          oracle_actor: newOracle2.account,
+          actor: ""
+        }
+      });
+      expect(result).to.have.all.keys('transaction_id', 'processed');
+    } catch (err) {
+      throw err;
+    }
+  });
+  it.skip(`(invalid actor) try to unregister an oracle, expect Error`, async function () {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unregoracle',
@@ -543,23 +564,6 @@ describe(`C. [FIO][api] Oracles (unregister)`, function () {
         privKey: newOracle1.privateKey,
         data: {
           oracle_actor: newOracle1.account,
-          actor: ""
-        }
-      });
-      expect(result).to.not.have.all.keys('transaction_id', 'processed');
-    } catch (err) {
-      throw err;
-    }
-  });
-  it(`(invalid actor) try to unregister an oracle, expect Error`, async function () {
-    try {
-      const result = await callFioApiSigned('push_transaction', {
-        action: 'unregoracle',
-        account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
-        data: {
-          oracle_actor: newOracle.account,
           actor: "!invalid@$%"
         }
       });
@@ -574,11 +578,11 @@ describe(`C. [FIO][api] Oracles (unregister)`, function () {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unregoracle',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           oracle_actor: "",
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result.fields[0].name).to.equal('oracle_actor');
@@ -597,11 +601,11 @@ describe(`C. [FIO][api] Oracles (unregister)`, function () {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unregoracle',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           oracle_actor: "",
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result).to.not.have.all.keys('transaction_id', 'processed');
@@ -618,11 +622,11 @@ describe(`C. [FIO][api] Oracles (unregister)`, function () {
       const result = await callFioApiSigned('pushTransaction', {
         action: 'unregoracle',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           oracle_actor: "!invalid!@$",
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result).to.not.have.all.keys('transaction_id', 'processed');
@@ -639,11 +643,11 @@ describe(`C. [FIO][api] Oracles (unregister)`, function () {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unregoracle',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey, 
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           oracle_actor: 1234400000000,
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result).to.not.have.all.keys('transaction_id', 'processed');
@@ -657,11 +661,11 @@ describe(`C. [FIO][api] Oracles (unregister)`, function () {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unregoracle',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           oracle_actor: -1234400000000,
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result).to.not.have.all.keys('transaction_id', 'processed');
@@ -670,15 +674,15 @@ describe(`C. [FIO][api] Oracles (unregister)`, function () {
     }
   });
 
-  it(`(missing actor) try to unregister an oracle, expect Error`, async function () {
+  it.skip(`(missing actor) try to unregister an oracle, expect Error`, async function () {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unregoracle',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
-          oracle_actor: newOracle.account,
+          oracle_actor: newOracle1.account,
         }
       });
       expect(result).to.not.have.all.keys('transaction_id', 'processed');
@@ -687,15 +691,15 @@ describe(`C. [FIO][api] Oracles (unregister)`, function () {
     }
   });
 
-  it(`(int actor) try to unregister an oracle, expect Error`, async function () {
+  it.skip(`(int actor) try to unregister an oracle, expect Error`, async function () {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unregoracle',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
-          oracle_actor: newOracle.account,
+          oracle_actor: newOracle1.account,
           actor: 1234500000000
         }
       });
@@ -705,15 +709,15 @@ describe(`C. [FIO][api] Oracles (unregister)`, function () {
     }
   });
 
-  it(`(negative actor) try to unregister an oracle, expect Error`, async function () {
+  it.skip(`(negative actor) try to unregister an oracle, expect Error`, async function () {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unregoracle',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
-          oracle_actor: newOracle.account,
+          oracle_actor: newOracle1.account,
           actor: -1234500000000
         }
       });
@@ -731,8 +735,7 @@ describe(`C. [FIO][api] Oracles (unregister)`, function () {
         actor: oracle1.account,
         privKey: oracle1.privateKey,
         data: {
-          oracle_actor: newOracle2.account,
-          actor: oracle1.account
+          oracle_actor: newOracle3.account,
         }
       });
       expect(result).to.have.all.keys('transaction_id', 'processed');
@@ -740,8 +743,7 @@ describe(`C. [FIO][api] Oracles (unregister)`, function () {
       expect(result.processed.receipt.status).to.equal('executed');
       expect(result.processed.action_traces.length).to.equal(1);
       expect(result.processed.action_traces[0].receipt.response).to.equal(`{"status": "OK"}`);
-      expect(result.processed.action_traces[0].act.data.oracle_actor).to.equal(newOracle2.account);
-      expect(result.processed.action_traces[0].act.data.actor).to.equal(oracle1.account);
+      expect(result.processed.action_traces[0].act.data.oracle_actor).to.equal(newOracle3.account);
     } catch (err) {
       throw err;
     }
@@ -1335,7 +1337,7 @@ describe(`F. [FIO][api] Wrap FIO tokens`, function () {
    *    validate negative values or conversion to unsigned int?
    *
    * TODO: Bug - improper validation for multiple fields
-   *  - public_address (string / ETH address)
+   *  - public_address (string / ETH address) - is it not possible / reasonable to do more validation?
    *  - max_oracle_fee (int)
    *  - max_fee (int)
    *
@@ -1430,8 +1432,6 @@ describe(`F. [FIO][api] Wrap FIO tokens`, function () {
     }
   });
   it(`(negative max_oracle_fee) try to wrap 1000 FIO tokens`, async function () {
-    let newBal;
-    let bal = await user1.sdk.genericAction('getFioBalance', {});
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'wraptokens',
@@ -1448,16 +1448,12 @@ describe(`F. [FIO][api] Wrap FIO tokens`, function () {
           actor: user1.account
         }
       });
-
-      let oracleRecords = await getOracleRecords(user1.account)
-      newBal = await user1.sdk.genericAction('getFioBalance', {});
-
       expect(result).to.not.have.all.keys('transaction_id', 'processed');
-      expect(result.fee_collected).to.equal(400000000);
-      expect(parseInt(result.oracle_fee_collected)).to.equal(60000000000);
+      expect(result.fields[0].name).to.equal('max_oracle_fee');
+      expect(result.fields[0].value).to.equal(`${-config.maxFee}`);
+      expect(result.fields[0].error).to.equal('Invalid oracle fee value');
     } catch (err) {
-      newBal = await user1.sdk.genericAction('getFioBalance', {});
-      expect(err.json.error.details[0].message).to.equal('assertion failure with message: must transfer positive quantity');
+      throw err;
     }
   });
   /**
@@ -1578,7 +1574,9 @@ describe(`F. [FIO][api] Wrap FIO tokens`, function () {
           actor: user1.account
         }
       });
-      expect(result.error.details[0].message).to.equal('assertion failure with message: must transfer positive quantity');
+      expect(result.fields[0].name).to.equal('amount');
+      expect(result.fields[0].value).to.equal(`${-wrapAmt}`);
+      expect(result.fields[0].error).to.equal('Invalid amount');
     } catch (err) {
       throw err;
     }
@@ -2118,35 +2116,36 @@ describe(`F. [FIO][api] Wrap FIO tokens`, function () {
 describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
   let wrapAmt = 1000000000000;
   let unwrapAmt = 500000000000;
-  let oracle1, oracle2, oracle3, user1, newOracle, newOracle1, newOracle2, custodians, factory, owner, wfio, wfioAccts;
+  let oracle1, oracle2, oracle3, newOracle1, newOracle2, newOracle3,
+      user1, user2, custodians, factory, owner, wfio, wfioAccts;
 
-  let OBT_ID;
+  let OBT_ID_1, OBT_ID_2;
 
   before(async function () {
     oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
     // oracle2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
     // oracle3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
     user1 = await newUser(faucet);
-    // user2 = await newUser(faucet);
+    user2 = await newUser(faucet);
     // user3 = await newUser(faucet);
-    newOracle = await newUser(faucet);
     newOracle1 = await newUser(faucet);
     newOracle2 = await newUser(faucet);
+    newOracle3 = await newUser(faucet);
 
     // register new oracles as bps
-    await registerNewBp(newOracle);
     await registerNewBp(newOracle1);
     await registerNewBp(newOracle2);
+    await registerNewBp(newOracle3);
 
     // await newOracles
-    await registerNewOracle(newOracle);
     await registerNewOracle(newOracle1);
     await registerNewOracle(newOracle2);
+    await registerNewOracle(newOracle3);
 
     // set oracle fees
-    await setTestOracleFees(newOracle, 10000000000, 11000000000);
-    await setTestOracleFees(newOracle1, 11000000000, 20000000000);
-    await setTestOracleFees(newOracle2, 20000000000, 21000000000);
+    await setTestOracleFees(newOracle1, 10000000000, 11000000000);
+    await setTestOracleFees(newOracle2, 11000000000, 20000000000);
+    await setTestOracleFees(newOracle3, 20000000000, 21000000000);
 
     await faucet.genericAction('transferTokens', {
       payeeFioPublicKey: user1.publicKey,
@@ -2174,7 +2173,29 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
           actor: user1.account
         }
       });
-      OBT_ID = result.transaction_id;
+      OBT_ID_1 = result.transaction_id;
+    } catch (err) {
+      console.log('error wrapping test tokens: ', err);
+      throw err;
+    }
+
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'wraptokens',
+        account: 'fio.oracle',
+        actor: user2.account,
+        privKey: user2.privateKey,
+        data: {
+          amount: wrapAmt,
+          chain_code: "ETH",
+          public_address: wfio.address,
+          max_oracle_fee: config.maxFee,
+          max_fee: config.maxFee,
+          tpid: "",
+          actor: user2.account
+        }
+      });
+      OBT_ID_2 = result.transaction_id;
     } catch (err) {
       console.log('error wrapping test tokens: ', err);
       throw err;
@@ -2184,12 +2205,28 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
     let fromStartingBal = await wfioAccts[14].getBalance();
     let toStartingWfioBal = await wfio.balanceOf(wfioAccts[0].address);
 
-    await wfio.connect(wfioAccts[12]).wrap(wfioAccts[0].address, 100, OBT_ID);
-    await wfio.connect(wfioAccts[13]).wrap(wfioAccts[0].address, 100, OBT_ID);
+    await wfio.connect(wfioAccts[12]).wrap(wfioAccts[0].address, 100, OBT_ID_1);
+    await wfio.connect(wfioAccts[13]).wrap(wfioAccts[0].address, 100, OBT_ID_1);
     try {
-      let result = await wfio.connect(wfioAccts[14]).wrap(wfioAccts[0].address, 100, OBT_ID);
+      let result = await wfio.connect(wfioAccts[14]).wrap(wfioAccts[0].address, 100, OBT_ID_1);
       let fromEndingBal = await wfioAccts[14].getBalance();
       let toEndingWfioBal = await wfio.balanceOf(wfioAccts[0].address);
+      expect(result.from).to.equal(wfioAccts[14].address);
+      expect(result.to).to.equal(wfio.address);
+      expect(fromStartingBal.gt(fromEndingBal)).to.be.true;
+      expect(toStartingWfioBal.lt(toEndingWfioBal)).to.be.true;
+      expect(toEndingWfioBal.sub(toStartingWfioBal).toNumber()).to.equal(100)
+    } catch (err) {
+      throw err;
+    }
+
+
+    await wfio.connect(wfioAccts[12]).wrap(wfioAccts[1].address, 100, OBT_ID_2);
+    await wfio.connect(wfioAccts[13]).wrap(wfioAccts[1].address, 100, OBT_ID_2);
+    try {
+      let result = await wfio.connect(wfioAccts[14]).wrap(wfioAccts[1].address, 100, OBT_ID_2);
+      let fromEndingBal = await wfioAccts[14].getBalance();
+      let toEndingWfioBal = await wfio.balanceOf(wfioAccts[1].address);
       expect(result.from).to.equal(wfioAccts[14].address);
       expect(result.to).to.equal(wfio.address);
       expect(fromStartingBal.gt(fromEndingBal)).to.be.true;
@@ -2209,13 +2246,14 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           amount: -wrapAmt,
-          obt_id: wfio.address,
+          // obt_id: wfio.address,
+          obt_id: OBT_ID_1,
           fio_address: user1.address,
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result).to.not.have.all.keys('transaction_id', 'processed');
@@ -2234,13 +2272,13 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           amount: wrapAmt,
           obt_id: "",
           fio_address: user1.address,
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result).to.not.have.all.keys('transaction_id', 'processed');
@@ -2253,13 +2291,13 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           amount: wrapAmt,
           obt_id: "!invalid@#$",
           fio_address: user1.address,
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result).to.not.have.all.keys('transaction_id', 'processed');
@@ -2272,13 +2310,13 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           amount: wrapAmt,
           obt_id: 1000000000000,
           fio_address: user1.address,
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result).to.not.have.all.keys('transaction_id', 'processed');
@@ -2291,13 +2329,13 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           amount: wrapAmt,
           obt_id: -12345,
           fio_address: user1.address,
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result).to.not.have.all.keys('transaction_id', 'processed');
@@ -2312,11 +2350,12 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           amount: wrapAmt,
-          obt_id: wfio.address,
+          // obt_id: wfio.address,
+          obt_id: OBT_ID_1,
           fio_address: user1.address,
           actor: ""
         }
@@ -2333,11 +2372,13 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           amount: wrapAmt,
-          obt_id: wfio.address,
+          // obt_id: wfio.address,
+          obt_id: OBT_ID_1,
+
           fio_address: user1.address,
         }
       });
@@ -2348,18 +2389,20 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
   });
 
   it(`(greater amount than wrapped) try to unwrap 1500 FIO tokens`, async function () {
-    let amt = wrapAmt * 3;
+    let amt = wrapAmt * 10;
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           amount: amt,
-          obt_id: wfio.address,
+          // obt_id: wfio.address,
+          obt_id: OBT_ID_1,
+
           fio_address: user1.address,
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result).to.not.have.all.keys('transaction_id', 'processed');
@@ -2373,13 +2416,15 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           amount: "",
-          obt_id: wfio.address,
+          // obt_id: wfio.address,
+          obt_id: OBT_ID_1,
+
           fio_address: user1.address,
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result.fields[0].name).to.equal('amount');
@@ -2395,12 +2440,14 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
-          obt_id: wfio.address,
+          // obt_id: wfio.address,
+          obt_id: OBT_ID_1,
+
           fio_address: user1.address,
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result).to.not.have.all.keys('transaction_id', 'processed');
@@ -2414,13 +2461,15 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           amount: "!invalid@#$",
-          obt_id: wfio.address,
+          // obt_id: wfio.address,
+          obt_id: OBT_ID_1,
+
           fio_address: user1.address,
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result).to.not.have.all.keys('transaction_id', 'processed');
@@ -2434,12 +2483,12 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           amount: wrapAmt,
           fio_address: user1.address,
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result).to.not.have.all.keys('transaction_id', 'processed');
@@ -2453,13 +2502,15 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           amount: wrapAmt,
-          obt_id: wfio.address,
+          // obt_id: wfio.address,
+          obt_id: OBT_ID_1,
+
           fio_address: "",
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result.fields[0].name).to.equal('fio_address');
@@ -2475,12 +2526,14 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           amount: wrapAmt,
-          obt_id: wfio.address,
-          actor: newOracle.account
+          // obt_id: wfio.address,
+          obt_id: OBT_ID_1,
+
+          actor: newOracle1.account
         }
       });
       expect(result).to.not.have.all.keys('transaction_id', 'processed');
@@ -2494,13 +2547,15 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           amount: wrapAmt,
-          obt_id: wfio.address,
+          // obt_id: wfio.address,
+          obt_id: OBT_ID_1,
+
           fio_address: "!invalid@$",
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result.fields[0].name).to.equal('fio_address');
@@ -2516,13 +2571,15 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           amount: wrapAmt,
-          obt_id: wfio.address,
+          // obt_id: wfio.address,
+          obt_id: OBT_ID_1,
+
           fio_address: 1234500000000,
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result.message).to.equal('FIO Address not found');
@@ -2536,13 +2593,15 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           amount: wrapAmt,
-          obt_id: wfio.address,
+          // obt_id: wfio.address,
+          obt_id: OBT_ID_1,
+
           fio_address: -12345,
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result.fields[0].name).to.equal('fio_address');
@@ -2558,11 +2617,13 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           amount: wrapAmt,
-          obt_id: wfio.address,
+          // obt_id: wfio.address,
+          obt_id: OBT_ID_1,
+
           fio_address: user1.address,
           actor: "!invalid@$"
         }
@@ -2578,11 +2639,13 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           amount: wrapAmt,
-          obt_id: wfio.address,
+          // obt_id: wfio.address,
+          obt_id: OBT_ID_1,
+
           fio_address: user1.address,
           actor: 1234500000000
         }
@@ -2598,11 +2661,13 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           amount: wrapAmt,
-          obt_id: wfio.address,
+          // obt_id: wfio.address,
+          obt_id: OBT_ID_1,
+
           fio_address: user1.address,
           actor: -12345
         }
@@ -2618,13 +2683,15 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
         account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
         data: {
           amount: unwrapAmt,
-          obt_id: wfio.address,
+          // obt_id: wfio.address,
+          obt_id: OBT_ID_1,
+
           fio_address: user1.address,
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result).to.not.have.all.keys('transaction_id', 'processed');
@@ -2646,40 +2713,8 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
   });
 
   it(`(happy path) first oracle tries to unwrap ${wrapAmt} FIO tokens`, async function () {
-    // let preWrapBal = await newOracle.sdk.genericAction('getFioBalance', {});
+    // let preWrapBal = await newOracle1.sdk.genericAction('getFioBalance', {});
     // let wrappingFee, wrappingOracleFee, postWrapBal, postWrapBalDiff, postWrapAvailDiff;
-    try {
-      const result = await callFioApiSigned('push_transaction', {
-        action: 'unwraptokens',
-        account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
-        data: {
-          amount: wrapAmt,
-          // obt_id: wfio.address,
-          obt_id: OBT_ID,
-          fio_address: user1.address,
-          actor: newOracle.account
-        }
-      });
-      expect(result).to.have.all.keys('transaction_id', 'processed');
-      // wrappingFee = result.fee_collected;
-      // wrappingOracleFee = parseInt(result.oracle_fee_collected);
-      // postWrapBal = await newOracle.sdk.genericAction('getFioBalance', {});
-      // postWrapBalDiff = preWrapBal.balance - postWrapBal.balance;
-      // postWrapAvailDiff = preWrapBal.available - postWrapBal.available;
-      // let expValue = wrapAmt + wrappingFee + wrappingOracleFee;
-      // expect(postWrapBalDiff).to.equal(expValue); //(preWrapBal.balance - wrappingFee - parseInt(wrappingOracleFee));
-      // expect(postWrapAvailDiff).to.equal(expValue); //(preWrapBal.balance - wrappingFee - parseInt(wrappingOracleFee));
-
-    } catch (err) {
-      throw err;
-    }
-  });
-
-  it(`(happy path) second oracle tries to unwrap ${wrapAmt} FIO tokens`, async function () {
-    let preWrapBal = await newOracle1.sdk.genericAction('getFioBalance', {});
-    let wrappingFee, wrappingOracleFee, postWrapBal, postWrapBalDiff, postWrapAvailDiff;
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
@@ -2689,17 +2724,14 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
         data: {
           amount: wrapAmt,
           // obt_id: wfio.address,
-          obt_id: OBT_ID,
-          fio_address: user1.address,
+          obt_id: OBT_ID_2,
+          fio_address: user2.address,
           actor: newOracle1.account
         }
       });
-
-
       expect(result).to.have.all.keys('transaction_id', 'processed');
       // wrappingFee = result.fee_collected;
       // wrappingOracleFee = parseInt(result.oracle_fee_collected);
-      //
       // postWrapBal = await newOracle1.sdk.genericAction('getFioBalance', {});
       // postWrapBalDiff = preWrapBal.balance - postWrapBal.balance;
       // postWrapAvailDiff = preWrapBal.available - postWrapBal.available;
@@ -2712,7 +2744,7 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
     }
   });
 
-  it(`(happy path) third oracle tries to unwrap ${wrapAmt} FIO tokens`, async function () {
+  it(`(happy path) second oracle tries to unwrap ${wrapAmt} FIO tokens`, async function () {
     let preWrapBal = await newOracle2.sdk.genericAction('getFioBalance', {});
     let wrappingFee, wrappingOracleFee, postWrapBal, postWrapBalDiff, postWrapAvailDiff;
     try {
@@ -2729,11 +2761,46 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
           actor: newOracle2.account
         }
       });
+
+
       expect(result).to.have.all.keys('transaction_id', 'processed');
       // wrappingFee = result.fee_collected;
       // wrappingOracleFee = parseInt(result.oracle_fee_collected);
       //
       // postWrapBal = await newOracle2.sdk.genericAction('getFioBalance', {});
+      // postWrapBalDiff = preWrapBal.balance - postWrapBal.balance;
+      // postWrapAvailDiff = preWrapBal.available - postWrapBal.available;
+      // let expValue = wrapAmt + wrappingFee + wrappingOracleFee;
+      // expect(postWrapBalDiff).to.equal(expValue); //(preWrapBal.balance - wrappingFee - parseInt(wrappingOracleFee));
+      // expect(postWrapAvailDiff).to.equal(expValue); //(preWrapBal.balance - wrappingFee - parseInt(wrappingOracleFee));
+
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`(happy path) third oracle tries to unwrap ${wrapAmt} FIO tokens`, async function () {
+    let preWrapBal = await newOracle3.sdk.genericAction('getFioBalance', {});
+    let wrappingFee, wrappingOracleFee, postWrapBal, postWrapBalDiff, postWrapAvailDiff;
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'unwraptokens',
+        account: 'fio.oracle',
+        actor: newOracle3.account,
+        privKey: newOracle3.privateKey,
+        data: {
+          amount: wrapAmt,
+          // obt_id: wfio.address,
+          obt_id: OBT_ID,
+          fio_address: user1.address,
+          actor: newOracle3.account
+        }
+      });
+      expect(result).to.have.all.keys('transaction_id', 'processed');
+      // wrappingFee = result.fee_collected;
+      // wrappingOracleFee = parseInt(result.oracle_fee_collected);
+      //
+      // postWrapBal = await newOracle3.sdk.genericAction('getFioBalance', {});
       // postWrapBalDiff = preWrapBal.balance - postWrapBal.balance;
       // postWrapAvailDiff = preWrapBal.available - postWrapBal.available;
       // let expValue = wrapAmt + wrappingFee + wrappingOracleFee;

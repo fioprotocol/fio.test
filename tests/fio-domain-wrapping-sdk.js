@@ -5,10 +5,8 @@ require("mocha");
 const {expect} = require("chai");
 const {FIOSDK} = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
-const {newUser, fetchJson} = require('../utils.js');
-const {existingUser, callFioApiSigned, getAccountFromKey} = require("../utils.js");
-const {getOracleRecords, registerNewBp, registerNewOracle, setTestOracleFees, setupWFIOontract, registerWfioOracles, cleanUpOraclessTable} = require("./Helpers/wrapping.js");
-let INIT_SUPPLY = 0;
+const {newUser, fetchJson, existingUser, callFioApiSigned, getAccountFromKey} = require("../utils.js");
+const {getOracleRecords, registerNewBp, registerNewOracle, setTestOracleFees, setupWFIOontract, registerWfioOracles, cleanUpOraclessTable, setupFIONFTcontract, registerFioNftOracles, calculateOracleFee} = require("./Helpers/wrapping");
 let faucet;
 
 /**
@@ -135,26 +133,24 @@ describe(`************************** fio-domain-wrapping-sdk.js ****************
   });
 });
 
+describe(`** ORACLE TABLE CLEANUP **`, async function () {
+  it(`clean out oracless record with helper function`, async function () {
+    try {
+      await cleanUpOraclessTable(faucet, true);
+      let records = await getOracleRecords();
+      expect(records.rows.length).to.be.oneOf([3, 0]);
+    } catch (err) {
+      throw err;
+    }
+  });
+});
+
 describe(`B. [FIO] Wrap FIO domains`, function () {
 
-  let wrapAmt = 1000000000000;
-  let oracle1, oracle2, oracle3, user1, newOracle1, newOracle2, newOracle3, newOracle4,
-      user2,
-      user3,
-      user4,
-      user5,
-      user6,
-      user7,
-      user8,
-      user9,
-      user10,
-      user11,
-      user12,
-      user13,
-      user14;
-
-  let wfioOwner, wfioAccts, custodians, factory, wfio;
-  let OBT_ID;
+  let oracle1, oracle2, oracle3, newOracle1, newOracle2, newOracle3, newOracle4,
+      user1, user2, user3, user4, user5, user6, user7, user8, user9, user10, user11, user12, user13, user14,
+      custodians, factory, owner, fioNft, fioNftAccts,
+      OBT_ID, ORACLE_FEE;
 
   before(async function () {
     // oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
@@ -202,49 +198,54 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
       technologyProviderId: ''
     });
 
-    [wfioAccts, wfio] = await setupWFIOontract(ethers, INIT_SUPPLY);
-    await registerWfioOracles(wfio, wfioAccts);
+    [owner, fioNftAccts, fioNft] = await setupFIONFTcontract(ethers);
+    await registerFioNftOracles(fioNft, fioNftAccts);
 
-    try {
-      const result = await callFioApiSigned('push_transaction', {
-        action: 'wraptokens',
-        account: 'fio.oracle',
-        actor: user1.account,
-        privKey: user1.privateKey,
-        data: {
-          amount: wrapAmt,
-          chain_code: "ETH",
-          public_address: wfio.address,
-          max_oracle_fee: config.maxFee,
-          max_fee: config.maxFee,
-          tpid: "",
-          actor: user1.account
-        }
-      });
-      OBT_ID = result.transaction_id;
-    } catch (err) {
-      console.log('error wrapping test tokens: ', err);
-      throw err;
-    }
+    // try {
+    //   const result = await callFioApiSigned('push_transaction', {
+    //     action: 'wraptokens',
+    //     account: 'fio.oracle',
+    //     actor: user1.account,
+    //     privKey: user1.privateKey,
+    //     data: {
+    //       amount: wrapAmt,
+    //       chain_code: "ETH",
+    //       public_address: fioNft.address,
+    //       max_oracle_fee: config.maxFee,
+    //       max_fee: config.maxFee,
+    //       tpid: "",
+    //       actor: user1.account
+    //     }
+    //   });
+    //   OBT_ID = result.transaction_id;
+    // } catch (err) {
+    //   console.log('error wrapping test tokens: ', err);
+    //   throw err;
+    // }
+    //
+    // // call fioNft.wrap
+    // let fromStartingBal = await fioNftAccts[14].getBalance();
+    // let toStartingWfioBal = await fioNft.balanceOf(fioNftAccts[0].address);
+    //
+    // await fioNft.connect(fioNftAccts[12]).wrap(fioNftAccts[0].address, 100, OBT_ID);
+    // await fioNft.connect(fioNftAccts[13]).wrap(fioNftAccts[0].address, 100, OBT_ID);
+    // try {
+    //   let result = await fioNft.connect(fioNftAccts[14]).wrap(fioNftAccts[0].address, 100, OBT_ID);
+    //   let fromEndingBal = await fioNftAccts[14].getBalance();
+    //   let toEndingWfioBal = await fioNft.balanceOf(fioNftAccts[0].address);
+    //   expect(result.from).to.equal(fioNftAccts[14].address);
+    //   expect(result.to).to.equal(fioNft.address);
+    //   expect(fromStartingBal.gt(fromEndingBal)).to.be.true;
+    //   expect(toStartingWfioBal.lt(toEndingWfioBal)).to.be.true;
+    //   expect(toEndingWfioBal.sub(toStartingWfioBal).toNumber()).to.equal(100)
+    // } catch (err) {
+    //   throw err;
+    // }
+  });
 
-    // call wfio.wrap
-    let fromStartingBal = await wfioAccts[14].getBalance();
-    let toStartingWfioBal = await wfio.balanceOf(wfioAccts[0].address);
-
-    await wfio.connect(wfioAccts[12]).wrap(wfioAccts[0].address, 100, OBT_ID);
-    await wfio.connect(wfioAccts[13]).wrap(wfioAccts[0].address, 100, OBT_ID);
-    try {
-      let result = await wfio.connect(wfioAccts[14]).wrap(wfioAccts[0].address, 100, OBT_ID);
-      let fromEndingBal = await wfioAccts[14].getBalance();
-      let toEndingWfioBal = await wfio.balanceOf(wfioAccts[0].address);
-      expect(result.from).to.equal(wfioAccts[14].address);
-      expect(result.to).to.equal(wfio.address);
-      expect(fromStartingBal.gt(fromEndingBal)).to.be.true;
-      expect(toStartingWfioBal.lt(toEndingWfioBal)).to.be.true;
-      expect(toEndingWfioBal.sub(toStartingWfioBal).toNumber()).to.equal(100)
-    } catch (err) {
-      throw err;
-    }
+  it(`get average fees`, async function () {
+    ORACLE_FEE = await calculateOracleFee('domain')
+    console.log(`fee: ${ORACLE_FEE}`);
   });
 
   it(`try to wrap a FIO domain, expect OK`, async function () {
@@ -256,7 +257,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: oracle1.address,
@@ -266,7 +267,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
       expect(result.status).to.equal('OK');
       //TODO: should oracle_fee_collected be a string?
       expect(result.fee_collected).to.equal(400000000);
-      expect(result.oracle_fee_collected).to.equal('99000000000');
+      expect(result.oracle_fee_collected).to.equal('33000000000');
     } catch (err) {
       // expect(err.json.fields[0].error).to.equal('FIO Domain not registered');
       throw err;
@@ -282,7 +283,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "",
@@ -292,7 +293,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
       expect(result.status).to.equal('OK');
       //TODO: should oracle_fee_collected be a string?
       expect(result.fee_collected).to.equal(400000000);
-      expect(result.oracle_fee_collected).to.equal('99000000000');
+      expect(result.oracle_fee_collected).to.equal('33000000000');
     } catch (err) {
       throw err;
     }
@@ -306,7 +307,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           actor: user11.account
@@ -319,9 +320,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
   });
 
   // issues
-  it(`(int chain_code) try to wrap a FIO domain`, async function () {
-    //todo: bug - chain_code validation
-    //  test with the API, verify whether SDK is using default values
+  it.skip(`(int chain_code) try to wrap a FIO domain`, async function () {
     let domain = user2.domain;
     try {
       const result = await user2.sdk.genericAction('pushTransaction', {
@@ -330,7 +329,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: 12345,
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "",
@@ -423,7 +422,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: -config.maxFee,
           max_fee: config.maxFee,
           tpid: "",
@@ -446,7 +445,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: -config.maxFee,
           tpid: "",
@@ -469,7 +468,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: 12345,
@@ -491,7 +490,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: "",
           max_fee: config.maxFee,
           tpid: "",
@@ -513,7 +512,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: "",
           tpid: "",
@@ -536,7 +535,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "",
@@ -559,7 +558,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "",
@@ -580,7 +579,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: "",
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "",
@@ -599,7 +598,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         account: 'fio.oracle',
         data: {
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "",
@@ -619,7 +618,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: "!invalid@$",
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "",
@@ -639,7 +638,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: 1234500000000,
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "",
@@ -659,7 +658,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: -12345,
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "",
@@ -681,7 +680,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: "",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "",
@@ -701,7 +700,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         account: 'fio.oracle',
         data: {
           fio_domain: domain,
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "",
@@ -722,7 +721,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: "!invalid@$",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "",
@@ -743,7 +742,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: -12345,
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "",
@@ -808,7 +807,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_fee: config.maxFee,
           tpid: "",
           actor: user1.account
@@ -828,7 +827,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: "!invalid@$%",
           max_fee: config.maxFee,
           tpid: "",
@@ -850,7 +849,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           tpid: "",
           actor: user1.account
@@ -870,7 +869,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: "!invalid@$%",
           tpid: "",
@@ -892,7 +891,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "!invalid@$%",
@@ -913,7 +912,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: -12345,
@@ -939,7 +938,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "",
@@ -960,7 +959,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "",
@@ -981,7 +980,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "",
@@ -1002,7 +1001,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "",
@@ -1016,7 +1015,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
   });
 });
 
-describe(`C. [FIO] Unwrap FIO domains`, function () {
+describe.skip(`C. [FIO] Unwrap FIO domains`, function () {
 
   let wrapAmt = 1000000000000;
   let oracle1, oracle2, oracle3, user1, newOracle1, newOracle2, newOracle3, newOracle4,
@@ -1034,8 +1033,8 @@ describe(`C. [FIO] Unwrap FIO domains`, function () {
       user13,
       user14;
 
-  let wfioOwner, wfioAccts, custodians, factory, wfio;
-  let OBT_ID;
+  let fioNftOwner, fioNftAccts, custodians, factory, fioNft;
+  let OBT_ID, FEE_AMT;
 
   before(async function () {
     // oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
@@ -1087,8 +1086,8 @@ describe(`C. [FIO] Unwrap FIO domains`, function () {
       technologyProviderId: ''
     });
 
-    [wfioAccts, wfio] = await setupWFIOontract(ethers, INIT_SUPPLY);
-    await registerWfioOracles(wfio, wfioAccts);
+    [fioNftAccts, fioNft] = await setupWFIOontract(ethers, INIT_SUPPLY);
+    await registerWfioOracles(fioNft, fioNftAccts);
 
     try {
       const result = await callFioApiSigned('push_transaction', {
@@ -1099,7 +1098,7 @@ describe(`C. [FIO] Unwrap FIO domains`, function () {
         data: {
           amount: wrapAmt,
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "",
@@ -1112,19 +1111,19 @@ describe(`C. [FIO] Unwrap FIO domains`, function () {
       throw err;
     }
 
-    // call wfio.wrap
-    // let fromStartingBal = await wfioAccts[14].getBalance();
-    // let toStartingWfioBal = await wfio.balanceOf(wfioAccts[0].address);
+    // call fioNft.wrap
+    // let fromStartingBal = await fioNftAccts[14].getBalance();
+    // let toStartingWfioBal = await fioNft.balanceOf(fioNftAccts[0].address);
 
-    await wfio.connect(wfioAccts[12]).wrap(wfioAccts[0].address, 100, OBT_ID);
-    await wfio.connect(wfioAccts[13]).wrap(wfioAccts[0].address, 100, OBT_ID);
+    await fioNft.connect(fioNftAccts[12]).wrap(fioNftAccts[0].address, 100, OBT_ID);
+    await fioNft.connect(fioNftAccts[13]).wrap(fioNftAccts[0].address, 100, OBT_ID);
     try {
       // let result =
-      await wfio.connect(wfioAccts[14]).wrap(wfioAccts[0].address, 100, OBT_ID);
-      // let fromEndingBal = await wfioAccts[14].getBalance();
-      // let toEndingWfioBal = await wfio.balanceOf(wfioAccts[0].address);
-      // expect(result.from).to.equal(wfioAccts[14].address);
-      // expect(result.to).to.equal(wfio.address);
+      await fioNft.connect(fioNftAccts[14]).wrap(fioNftAccts[0].address, 100, OBT_ID);
+      // let fromEndingBal = await fioNftAccts[14].getBalance();
+      // let toEndingWfioBal = await fioNft.balanceOf(fioNftAccts[0].address);
+      // expect(result.from).to.equal(fioNftAccts[14].address);
+      // expect(result.to).to.equal(fioNft.address);
       // expect(fromStartingBal.gt(fromEndingBal)).to.be.true;
       // expect(toStartingWfioBal.lt(toEndingWfioBal)).to.be.true;
       // expect(toEndingWfioBal.sub(toStartingWfioBal).toNumber()).to.equal(100)
@@ -1141,7 +1140,7 @@ describe(`C. [FIO] Unwrap FIO domains`, function () {
         data: {
           fio_domain: domain,
           chain_code: "ETH",
-          public_address: wfio.address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "",
