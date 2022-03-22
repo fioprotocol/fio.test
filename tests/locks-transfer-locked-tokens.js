@@ -239,66 +239,6 @@ describe(`B. Parameter tests`, () => {
     }
   })
 
-  it(`(${testType}) Failure test, Transfer locked tokens to an account that already exists. Expect Error 400`, async () => {
-    if (testType == 'sdk') {
-      try {
-        const result = await userA1.sdk.genericAction('transferLockedTokens', {
-          payeePublicKey: userA1.publicKey,
-          canVote: 0,
-          periods: [
-            {
-              duration: 120,
-              amount: 220000000000,
-            },
-            {
-              duration: 240,
-              amount: 280000000000,
-            }
-          ],
-          amount: fundsAmount,
-          maxFee: 400000000000,
-          tpid: '',
-
-        })
-        expect(result.status).to.not.equal('OK')
-      } catch (err) {
-        //console.log('error: ', err)
-        var expected = `Error 400`
-        expect(err.message).to.include(expected)
-      }
-    } else {
-      try {
-        const result = await userA1.sdk.genericAction('pushTransaction', {
-          action: 'trnsloctoks',
-          account: 'fio.token',
-          data: {
-            payee_public_key: userA1.publicKey,
-            can_vote: 0,
-            periods: [
-              {
-                duration: 120,
-                amount: 220000000000,
-              },
-              {
-                duration: 240,
-                amount: 280000000000,
-              }
-            ],
-            amount: fundsAmount,
-            max_fee: 400000000000,
-            tpid: '',
-            actor: userA1.account
-          }
-
-        })
-        expect(result.status).to.not.equal('OK')
-      } catch (err) {
-        var expected = `Error 400`
-        expect(err.message).to.include(expected)
-      }
-    }
-  })
-
   it(`(${testType}) success test,  50 lock periods`, async () => {
     if (testType == 'sdk') {
       try {
@@ -1832,7 +1772,8 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
       expect(result.status).to.equal('OK')
       expect(result).to.have.all.keys( 'status', 'fee_collected')
     } catch (err) {
-      console.log('Error', err)
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 
@@ -1848,7 +1789,8 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
       expect(result.unlock_periods[0].amount).to.equal(250000000000)
       expect(result.unlock_periods[1].amount).to.equal(250000000000)
     } catch (err) {
-      console.log('Error', err)
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 
@@ -1861,7 +1803,8 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
         tpid: '',
       })
     } catch (err) {
-      console.log('Error', err)
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 
@@ -1874,7 +1817,8 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
         tpid: '',
       })
     } catch (err) {
-      console.log('Error', err)
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 
@@ -1887,7 +1831,8 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
         tpid: '',
       })
     } catch (err) {
-      console.log('Error', err)
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 
@@ -1897,7 +1842,7 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
       //console.log('bp1@dapixdev total_votes:', total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
-      expect(err).to.equal('null')
+      expect(err).to.equal(null);
     }
   })
 
@@ -1919,7 +1864,7 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
-      expect(err).to.equal('null')
+      expect(err).to.equal(null);
     }
   })
 
@@ -1929,7 +1874,8 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
       let diff = total_bp_votes_after - total_bp_votes_before
       expect(diff).to.equal(660000000000)
     } catch (err) {
-      console.log('Error: ', err)
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
     }
   })
 })
