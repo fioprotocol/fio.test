@@ -455,7 +455,7 @@ describe(`B. Parameter tests`, () => {
         expect(result.status).to.equal('OK')
       } catch (err) {
         //console.log('error: ', err)
-        expect(err).to.equal(null)
+        expect(err).to.equal(null);
       }
     } else {
         const result = await userA4.sdk.genericAction('pushTransaction', {
@@ -724,9 +724,10 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
 
         })
         expect(result.status).to.equal('OK')
-        expect(result).to.have.all.keys('status', 'fee_collected')
+        expect(result).to.have.all.keys('status', 'fee_collected', 'block_num', 'transaction_id')
       } catch (err) {
-        console.log(' Error', err)
+        console.log(' Error', err);
+        expect(err).to.equal(null);
       }
     } else {
       try {
@@ -754,9 +755,10 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
 
         })
         expect(result.status).to.equal('OK')
-        expect(result).to.have.all.keys('status', 'fee_collected')
+        expect(result).to.have.all.keys('status', 'fee_collected', 'block_num', 'transaction_id')
       } catch (err) {
-        console.log(' Error', err)
+        console.log(' Error', err);
+        expect(err).to.equal(null);
       }
     }
   })
@@ -789,7 +791,8 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
     expect(result.unlock_periods[0].amount).to.equal(200000000000)
     expect(result.unlock_periods[1].amount).to.equal(300000000000)
     } catch (err) {
-      console.log('Error', err)
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 
@@ -942,7 +945,7 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
 
       })
       expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys( 'status', 'fee_collected')
+      expect(result).to.have.all.keys( 'status', 'fee_collected', 'block_num', 'transaction_id')
     } catch (err) {
       console.log('Error', err)
     }
@@ -984,7 +987,7 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
       technologyProviderId: ''
     })
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected', 'block_num', 'transaction_id')
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
@@ -1770,7 +1773,7 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
 
       })
       expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys( 'status', 'fee_collected')
+      expect(result).to.have.all.keys( 'status', 'fee_collected', 'block_num', 'transaction_id')
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -2100,7 +2103,7 @@ describe(`E. Token unlocking tests`, () => {
 
       })
       expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys( 'status', 'fee_collected')
+      expect(result).to.have.all.keys( 'status', 'fee_collected', 'block_num', 'transaction_id')
   })
 
 
@@ -2219,10 +2222,10 @@ describe(`F. Test 50 (max number) lock periods`, () => {
         }
       })
       expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys('status', 'fee_collected')
+      expect(result).to.have.all.keys('status', 'fee_collected', 'block_num', 'transaction_id')
     } catch (err) {
-      console.log('Error', err.json)
-      expect(err).to.equal(null)
+      console.log('Error', err)
+      expect(err).to.equal(null);
     }
   })
 

@@ -1220,7 +1220,7 @@ describe(`C. cancel_funds_request with bundles remaining`, () => {
         technologyProviderId: ''
       })
       //console.log('Result: ', result);
-      expect(result).to.have.all.keys('status', 'fee_collected')
+      expect(result).to.have.all.keys('status', 'fee_collected', 'block_num', 'transaction_id');
       expect(result.status).to.equal('cancelled');
       expect(result.fee_collected).to.equal(0);
     } catch (err) {
@@ -1586,7 +1586,7 @@ describe('D. cancel_funds_request with NO bundles remaining', () => {
         technologyProviderId: ''
       })
       //console.log('Result: ', result);
-      expect(result).to.have.all.keys('status', 'fee_collected')
+      expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
       expect(result.status).to.equal('cancelled');
       expect(result.fee_collected).to.equal(cancel_funds_request_fee);
     } catch (err) {

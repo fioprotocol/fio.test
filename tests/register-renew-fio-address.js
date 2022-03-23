@@ -70,7 +70,7 @@ describe(`************************** register-fio-address.js *******************
         })
         //console.log('Result: ', result)
         expect(parseInt(result.expiration.split('-',1))).to.equal(expirationYear)
-        expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+        expect(result).to.have.all.keys('status', 'expiration', 'fee_collected', 'block_num', 'transaction_id')
         expect(result.status).to.be.a('string')
         expect(result.expiration).to.be.a('string')
         expect(result.fee_collected).to.be.a('number')
@@ -96,7 +96,7 @@ describe(`B. Renew address`, () => {
                 })
             //console.log('Result: ', result)
             expect(result.status).to.equal('OK');
-            expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+            expect(result).to.have.all.keys('status', 'expiration', 'fee_collected', 'block_num', 'transaction_id')
             expect(result.status).to.be.a('string')
             expect(result.expiration).to.be.a('string')
             expect(result.fee_collected).to.be.a('number')
@@ -208,7 +208,7 @@ describe(`C. Register Address for other user and confirm get_fio_balance returns
                 "fio_public_key": user1Keys.publicKey
             }
             result = await callFioApi("get_fio_balance", json);
-            console.log('user1 balance', result);
+            //console.log('user1 balance', result);
         } catch (err) {
             //console.log('Error', err);
             expect(err).to.equal(null);
