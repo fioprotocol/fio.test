@@ -730,7 +730,8 @@ describe('E. Confirm active producers and proxy cannot burn address', () => {
           //console.log('Result: ', result)
           expect(result.status).to.equal('OK') 
         } catch (err) {
-          console.log('Error: ', err.json)
+          console.log('Error: ', err.json);
+          expect(err).to.equal(null);
         } 
     })
 
