@@ -9,7 +9,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-describe(`************************** register-fio-domain.js ************************** \n    A. Check valid and invalid domain and address formats`, () => {
+describe(`************************** register-renew-fio-domain.js ************************** \n    A. Check valid and invalid domain and address formats`, () => {
     let userA1
     const fiftyfiveChars = "0123456789012345678901234567890123456789012345678901234"
     domain0Bad = ""
@@ -294,7 +294,7 @@ describe('D. Try to re-register the same domain using different case', () => {
       technologyProviderId: ''
     })
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+    expect(result).to.have.all.keys('block_num', 'status', 'expiration', 'fee_collected', 'transaction_id')
   })
 
 
@@ -373,7 +373,7 @@ describe('E. Test set_fio_domain_public', () => {
       technologyProviderId: ''
     })
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+    expect(result).to.have.all.keys('block_num', 'status', 'expiration', 'fee_collected','transaction_id')
   })
 
   it(`Verify balance for user1 = prev_balance - reg_domain_fee`, async () => {

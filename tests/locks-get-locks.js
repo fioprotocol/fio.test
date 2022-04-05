@@ -191,7 +191,7 @@ describe(`B. Get locks success tests. `, () => {
 
         });
         expect(result.status).to.equal('OK');
-        expect(result).to.have.all.keys('status', 'fee_collected');
+        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
       } catch (err) {
         console.log(' Error', err)
       }
@@ -221,7 +221,7 @@ describe(`B. Get locks success tests. `, () => {
 
         });
         expect(result.status).to.equal('OK');
-        expect(result).to.have.all.keys('status', 'fee_collected');
+        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
       } catch (err) {
         console.log(' Error', err)
       }
@@ -267,7 +267,7 @@ describe(`B. Get locks success tests. `, () => {
 
         });
         expect(result.status).to.equal('OK');
-        expect(result).to.have.all.keys('status', 'fee_collected');
+        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
     } else {
         const result = await userA1.sdk.genericAction('pushTransaction', {
           action: 'trnsloctoks',
@@ -293,7 +293,7 @@ describe(`B. Get locks success tests. `, () => {
 
         });
         expect(result.status).to.equal('OK');
-        expect(result).to.have.all.keys('status', 'fee_collected');
+        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
     }
   });
   it(`Verify locks were set with get_locks`, async () => {
