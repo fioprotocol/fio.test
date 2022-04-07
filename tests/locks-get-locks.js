@@ -1,6 +1,6 @@
 require('mocha');
 const {expect} = require('chai');
-const {newUser, getProdVoteTotal, fetchJson, generateFioDomain, callFioApi, getAccountFromKey, generateFioAddress, createKeypair, getTestType} = require('../utils.js');
+const {newUser, getProdVoteTotal, fetchJson, generateFioDomain, callFioApi, getAccountFromKey, generateFioAddress, createKeypair, getTestType, timeout} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
 const testType = getTestType();
@@ -74,14 +74,6 @@ let faucet;
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 });
-
-function wait(ms){
-  var start = new Date().getTime();
-  var end = start;
-  while(end < start + ms) {
-    end = new Date().getTime();
-  }
-}
 
 describe(`************************** locks-get-locks.js ************************** \n    A. Get Locks Parameter error tests`, () => {
   let userA1, userA2, userA3, userA4, keys, keys1, keys2, keys3,keys4, locksdk,
@@ -486,13 +478,7 @@ describe(`C. Insert stake period in middle of locktokensv2 general locks, then u
     console.log("            waiting 65 seconds ");
   });
 
-  it(` wait 65 seconds`, async () => {
-    try {
-      wait(65000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  });
+  it(`Wait 65 seconds`, async () => { await timeout(65000) })
 
   it(`Transfer 1 FIO from locksdk to trigger update of locktokensv2`, async () => {
     try {
@@ -760,14 +746,7 @@ describe(`D. Make new lock skip 2 periods, then call get_locks, verify past peri
     console.log("            waiting 40 seconds ");
   });
 
-  it(` wait 40 seconds`, async () => {
-    try {
-      wait(40000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  });
-
+  it(`Wait 40 seconds`, async () => { await timeout(40000) })
 
   it(`Verify locks were set with get_locks`, async () => {
 

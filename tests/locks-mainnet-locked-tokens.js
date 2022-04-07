@@ -42,8 +42,426 @@ before(async () => {
 */
 
 const lockdurationseconds = 10;   // What was set in the contract above in place of SECONDSPERDAY
+const lockType = 1;  // Default
 
-describe(`************************** locks-mainnet-locked-tokens.js ************************** \n    A. Create large 7075065.123456789 grant. Verify unlocking using voting, can't transfer more than unlocked amount, and multiple calls to voting do not have effect.`, () => {
+describe(`************************** locks-mainnet-locked-tokens.js ************************** \n    A. Smoke test for Lock Type 2 grant.`, () => {
+
+  let userA1, locksdk, keys, accountnm, transfer_tokens_pub_key_fee
+  const lockAmount = 7075065123456789
+
+  const lockType = 2;
+
+
+  it(`Create users: locksdk`, async () => {
+    userA1 = await newUser(faucet);
+
+    keys = await createKeypair();
+
+    accountnm = await getAccountFromKey(keys.publicKey);
+    //console.log("priv key ", keys.privateKey);
+    //console.log("pub key ", keys.publicKey);
+    //console.log("account ",accountnm);
+
+    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+  });
+
+  it(`Transfer ${lockAmount} tokens to locksdk`, async () => {
+    const result = await faucet.genericAction('transferTokens', {
+      payeeFioPublicKey: keys.publicKey,
+      amount: lockAmount,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    })
+    expect(result.status).to.equal('OK')
+  });
+
+  it(`Lock ${lockAmount} tokens for locksdk`, async () => {
+    const result1 = await userA1.sdk.genericAction('pushTransaction', {
+      action: 'addlocked',
+      account: 'eosio',
+      data: {
+        owner: accountnm,
+        amount: lockAmount,
+        locktype: lockType
+      }
+    })
+    expect(result1.status).to.equal('OK')
+  });
+
+  it(`getFioBalance for genesis locksdk (lock token holder). Expect: available balance 0 `, async () => {
+    const result = await locksdk.genericAction('getFioBalance', {});
+    //console.log('Result: ', result);
+    expect(result.available).to.equal(0);
+  });
+
+  it(`Failure test. Transfer 700 FIO from locksdk to userA1. Expect error: ${config.error.insufficientBalance}`, async () => {
+    try {
+      const result = await locksdk.genericAction('transferTokens', {
+        payeeFioPublicKey: userA1.publicKey,
+        amount: 700000000000,
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      expect(result.status).to.not.equal('OK')
+    } catch (err) {
+      // console.log('Error: ', err)
+      expect(err.json.fields[0].error).to.contain(config.error.insufficientBalance)
+    }
+  });
+
+  it(`Set userA1 domain public to test regaddress from locked token account`, async () => {
+    const result = await userA1.sdk.genericAction('setFioDomainVisibility', {
+      fioDomain: userA1.domain,
+      isPublic: true,
+      maxFee: config.maxFee,
+      technologyProviderId: ''
+    });
+    expect(result.status).to.be.a('string').and.equal('OK');
+  });
+
+  it(`Confirm that fees in locked account are still usable for regaddress`, async () => {
+    try {
+      userA1.address2 = generateFioAddress(userA1.domain, 5)
+      const result = await locksdk.genericAction('registerFioAddress', {
+        fioAddress: userA1.address2,
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      //console.log('Result: ', result)
+      expirationYear = parseInt(result.expiration.split('-', 1));
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Transfer 10 FIO to locksdk`, async () => {
+    const result = await faucet.genericAction('transferTokens', {
+      payeeFioPublicKey: keys.publicKey,
+      amount: 10000000000,
+      maxFee: config.maxFee,
+      technologyProviderId: ''
+    })
+    expect(result.status).to.equal('OK')
+  });
+
+  it(`getFioBalance for genesis locksdk (lock token holder). Expect: available balance 10 `, async () => {
+    const result = await locksdk.genericAction('getFioBalance', {})
+    expect(result.available).to.equal(10000000000)
+  });
+
+  it('Get /transfer_tokens_pub_key fee', async () => {
+    try {
+      const result = await userA1.sdk.getFee('transfer_tokens_pub_key');
+      transfer_tokens_pub_key_fee = result.fee;
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`Transfer 10 FIO - transfer_tokens_pub_key_fee from locksdk to userA1`, async () => {
+    try {
+      const result = await locksdk.genericAction('transferTokens', {
+        payeeFioPublicKey: userA1.publicKey,
+        amount: 10000000000 - transfer_tokens_pub_key_fee,
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      //console.log("Result: ", result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err.json)
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`getFioBalance for genesis locksdk (lock token holder). Expect: available balance 0 `, async () => {
+    const result = await locksdk.genericAction('getFioBalance', {})
+    expect(result.available).to.equal(0)
+  });
+});
+
+describe(`B. Smoke test for Lock Type 3 grant.`, () => {
+
+  let userA1, locksdk, keys, accountnm, transfer_tokens_pub_key_fee
+  const lockAmount = 7075065123456789
+
+  const lockType = 3;
+
+
+  it(`Create users: locksdk`, async () => {
+    userA1 = await newUser(faucet);
+
+    keys = await createKeypair();
+
+    accountnm = await getAccountFromKey(keys.publicKey);
+    //console.log("priv key ", keys.privateKey);
+    //console.log("pub key ", keys.publicKey);
+    //console.log("account ",accountnm);
+
+    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+  });
+
+  it(`Transfer ${lockAmount} tokens to locksdk`, async () => {
+    const result = await faucet.genericAction('transferTokens', {
+      payeeFioPublicKey: keys.publicKey,
+      amount: lockAmount,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    })
+    expect(result.status).to.equal('OK')
+  });
+
+  it(`Lock ${lockAmount} tokens for locksdk`, async () => {
+    const result1 = await userA1.sdk.genericAction('pushTransaction', {
+      action: 'addlocked',
+      account: 'eosio',
+      data: {
+        owner: accountnm,
+        amount: lockAmount,
+        locktype: lockType
+      }
+    })
+    expect(result1.status).to.equal('OK')
+  });
+
+  it(`getFioBalance for genesis locksdk (lock token holder). Expect: available balance 0 `, async () => {
+    const result = await locksdk.genericAction('getFioBalance', {});
+    //console.log('Result: ', result);
+    expect(result.available).to.equal(0);
+  });
+
+  it(`Failure test. Transfer 700 FIO from locksdk to userA1. Expect error: ${config.error.insufficientBalance}`, async () => {
+    try {
+      const result = await locksdk.genericAction('transferTokens', {
+        payeeFioPublicKey: userA1.publicKey,
+        amount: 700000000000,
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      expect(result.status).to.not.equal('OK')
+    } catch (err) {
+      // console.log('Error: ', err)
+      expect(err.json.fields[0].error).to.contain(config.error.insufficientBalance)
+    }
+  });
+
+  it(`Set userA1 domain public to test regaddress from locked token account`, async () => {
+    const result = await userA1.sdk.genericAction('setFioDomainVisibility', {
+      fioDomain: userA1.domain,
+      isPublic: true,
+      maxFee: config.maxFee,
+      technologyProviderId: ''
+    });
+    expect(result.status).to.be.a('string').and.equal('OK');
+  });
+
+  it(`Confirm that fees in locked account are still usable for regaddress`, async () => {
+    try {
+      userA1.address2 = generateFioAddress(userA1.domain, 5)
+      const result = await locksdk.genericAction('registerFioAddress', {
+        fioAddress: userA1.address2,
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      //console.log('Result: ', result)
+      expirationYear = parseInt(result.expiration.split('-', 1));
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Transfer 10 FIO to locksdk`, async () => {
+    const result = await faucet.genericAction('transferTokens', {
+      payeeFioPublicKey: keys.publicKey,
+      amount: 10000000000,
+      maxFee: config.maxFee,
+      technologyProviderId: ''
+    })
+    expect(result.status).to.equal('OK')
+  });
+
+  it(`getFioBalance for genesis locksdk (lock token holder). Expect: available balance 10 `, async () => {
+    const result = await locksdk.genericAction('getFioBalance', {})
+    expect(result.available).to.equal(10000000000)
+  });
+
+  it('Get /transfer_tokens_pub_key fee', async () => {
+    try {
+      const result = await userA1.sdk.getFee('transfer_tokens_pub_key');
+      transfer_tokens_pub_key_fee = result.fee;
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`Transfer 10 FIO - transfer_tokens_pub_key_fee from locksdk to userA1`, async () => {
+    try {
+      const result = await locksdk.genericAction('transferTokens', {
+        payeeFioPublicKey: userA1.publicKey,
+        amount: 10000000000 - transfer_tokens_pub_key_fee,
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      //console.log("Result: ", result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err.json)
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`getFioBalance for genesis locksdk (lock token holder). Expect: available balance 0 `, async () => {
+    const result = await locksdk.genericAction('getFioBalance', {})
+    expect(result.available).to.equal(0)
+  });
+});
+
+describe(`C. Smoke test for Lock Type 4 grant.`, () => {
+
+  let userA1, locksdk, keys, accountnm, transfer_tokens_pub_key_fee
+  const lockAmount = 7075065123456789
+
+  const lockType = 4;
+
+
+  it(`Create users: locksdk`, async () => {
+    userA1 = await newUser(faucet);
+
+    keys = await createKeypair();
+
+    accountnm = await getAccountFromKey(keys.publicKey);
+    //console.log("priv key ", keys.privateKey);
+    //console.log("pub key ", keys.publicKey);
+    //console.log("account ",accountnm);
+
+    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+  });
+
+  it(`Transfer ${lockAmount} tokens to locksdk`, async () => {
+    const result = await faucet.genericAction('transferTokens', {
+      payeeFioPublicKey: keys.publicKey,
+      amount: lockAmount,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    })
+    expect(result.status).to.equal('OK')
+  });
+
+  it(`Lock ${lockAmount} tokens for locksdk`, async () => {
+    const result1 = await userA1.sdk.genericAction('pushTransaction', {
+      action: 'addlocked',
+      account: 'eosio',
+      data: {
+        owner: accountnm,
+        amount: lockAmount,
+        locktype: lockType
+      }
+    })
+    expect(result1.status).to.equal('OK')
+  });
+
+  it(`getFioBalance for genesis locksdk (lock token holder). Expect: available balance 0 `, async () => {
+    const result = await locksdk.genericAction('getFioBalance', {});
+    //console.log('Result: ', result);
+    expect(result.available).to.equal(0);
+  });
+
+  it(`Failure test. Transfer 700 FIO from locksdk to userA1. Expect error: ${config.error.insufficientBalance}`, async () => {
+    try {
+      const result = await locksdk.genericAction('transferTokens', {
+        payeeFioPublicKey: userA1.publicKey,
+        amount: 700000000000,
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      expect(result.status).to.not.equal('OK')
+    } catch (err) {
+      // console.log('Error: ', err)
+      expect(err.json.fields[0].error).to.contain(config.error.insufficientBalance)
+    }
+  });
+
+  it(`Set userA1 domain public to test regaddress from locked token account`, async () => {
+    const result = await userA1.sdk.genericAction('setFioDomainVisibility', {
+      fioDomain: userA1.domain,
+      isPublic: true,
+      maxFee: config.maxFee,
+      technologyProviderId: ''
+    });
+    expect(result.status).to.be.a('string').and.equal('OK');
+  });
+
+  it(`Confirm that fees in locked account are still usable for regaddress`, async () => {
+    try {
+      userA1.address2 = generateFioAddress(userA1.domain, 5)
+      const result = await locksdk.genericAction('registerFioAddress', {
+        fioAddress: userA1.address2,
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      //console.log('Result: ', result)
+      expirationYear = parseInt(result.expiration.split('-', 1));
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Transfer 10 FIO to locksdk`, async () => {
+    const result = await faucet.genericAction('transferTokens', {
+      payeeFioPublicKey: keys.publicKey,
+      amount: 10000000000,
+      maxFee: config.maxFee,
+      technologyProviderId: ''
+    })
+    expect(result.status).to.equal('OK')
+  });
+
+  it(`getFioBalance for genesis locksdk (lock token holder). Expect: available balance 10 `, async () => {
+    const result = await locksdk.genericAction('getFioBalance', {})
+    expect(result.available).to.equal(10000000000)
+  });
+
+  it('Get /transfer_tokens_pub_key fee', async () => {
+    try {
+      const result = await userA1.sdk.getFee('transfer_tokens_pub_key');
+      transfer_tokens_pub_key_fee = result.fee;
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`Transfer 10 FIO - transfer_tokens_pub_key_fee from locksdk to userA1`, async () => {
+    try {
+      const result = await locksdk.genericAction('transferTokens', {
+        payeeFioPublicKey: userA1.publicKey,
+        amount: 10000000000 - transfer_tokens_pub_key_fee,
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      //console.log("Result: ", result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err.json)
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`getFioBalance for genesis locksdk (lock token holder). Expect: available balance 0 `, async () => {
+    const result = await locksdk.genericAction('getFioBalance', {})
+    expect(result.available).to.equal(0)
+  });
+});
+
+describe(`D. Create large 7075065.123456789 grant. Verify unlocking using voting, can't transfer more than unlocked amount, and multiple calls to voting do not have effect.`, () => {
 
   let userA1, locksdk, keys, accountnm, transfer_tokens_pub_key_fee
   
@@ -81,7 +499,7 @@ describe(`************************** locks-mainnet-locked-tokens.js ************
       data: {
         owner: accountnm,
         amount: lockAmount,
-        locktype: 1
+        locktype: lockType
       }
     })
     expect(result1.status).to.equal('OK')
@@ -106,6 +524,33 @@ describe(`************************** locks-mainnet-locked-tokens.js ************
       expect(err.json.fields[0].error).to.contain(config.error.insufficientBalance)
     }
   });
+
+  it(`Set userA1 domain public to test regaddress from locked token account`, async () => {
+    const result = await userA1.sdk.genericAction('setFioDomainVisibility', {
+      fioDomain: userA1.domain,
+      isPublic: true,
+      maxFee: config.maxFee,
+      technologyProviderId: ''
+    });
+    expect(result.status).to.be.a('string').and.equal('OK');
+  });
+
+  it(`Confirm that fees in locked account are still usable for regaddress`, async () => {
+    try {
+      userA1.address2 = generateFioAddress(userA1.domain, 5)
+      const result = await locksdk.genericAction('registerFioAddress', {
+        fioAddress: userA1.address2,
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      //console.log('Result: ', result)
+      expirationYear = parseInt(result.expiration.split('-', 1));
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json);
+      expect(err).to.equal(null);
+    }
+  })
 
   it(`Transfer 10 FIO to locksdk`, async () => {
     const result = await faucet.genericAction('transferTokens', {
@@ -585,7 +1030,7 @@ describe(`************************** locks-mainnet-locked-tokens.js ************
   });
 });
 
-describe(`B. Create large 7075065.123456789 grant verify unlocking using transferTokens`, () => {
+describe(`E. Create large 7075065.123456789 grant verify unlocking using transferTokens`, () => {
 
   let userA1, locksdk, keys, accountnm
   const lockAmount = 7075065123456789
@@ -620,7 +1065,7 @@ describe(`B. Create large 7075065.123456789 grant verify unlocking using transfe
       data: {
         owner: accountnm,
         amount: lockAmount,
-        locktype: 1
+        locktype: lockType
       }
     })
     expect(result1.status).to.equal('OK')
@@ -931,7 +1376,7 @@ describe(`B. Create large 7075065.123456789 grant verify unlocking using transfe
 
 });
 
-describe(`C. Create large grant verify unlocking with skipped periods using voting`, () => {
+describe(`F. Create large grant verify unlocking with skipped periods using voting`, () => {
 
   let userA1, locksdk, keys, accountnm
   const lockAmount = 7075065123456789
@@ -966,7 +1411,7 @@ describe(`C. Create large grant verify unlocking with skipped periods using voti
       data: {
         owner: accountnm,
         amount: lockAmount,
-        locktype: 1
+        locktype: lockType
       }
     })
     expect(result1.status).to.equal('OK')
@@ -1098,7 +1543,7 @@ describe(`C. Create large grant verify unlocking with skipped periods using voti
 
 });
 
-describe(`D. Create large grant verify unlocking with skipped periods using transfer`, () => {
+describe(`G. Create large grant verify unlocking with skipped periods using transfer`, () => {
 
   let userA1, locksdk, keys, accountnm
   const lockAmount = 7075065123456789
@@ -1133,7 +1578,7 @@ describe(`D. Create large grant verify unlocking with skipped periods using tran
       data: {
         owner: accountnm,
         amount: lockAmount,
-        locktype: 1
+        locktype: lockType
       }
     })
     expect(result1.status).to.equal('OK')
@@ -1255,7 +1700,7 @@ describe(`D. Create large grant verify unlocking with skipped periods using tran
   });
 });
 
-describe(`E. (BD-2632, BD-2759) Verify get_fio_balance returns accurate balance when an expired mainnet lock is in the table`, () => {
+describe(`H. (BD-2632, BD-2759) Verify get_fio_balance returns accurate balance when an expired mainnet lock is in the table`, () => {
   // create two mainnet (genesis) locks
   let user1, locksdk1, locksdk2, keys1, keys2, accountnm1, accountnm2, transfer_tokens_pub_key_fee
   const lockAmount1 = 7000000000000;
@@ -1300,7 +1745,7 @@ describe(`E. (BD-2632, BD-2759) Verify get_fio_balance returns accurate balance 
     //   data: {
     //     owner: accountnm1,
     //     amount: lockAmount1 - 1000000000,
-    //     locktype: 1
+    //     locktype: lockType
     //   }
     // });
     const lock1 = await locksdk1.genericAction('pushTransaction', {
@@ -1309,7 +1754,7 @@ describe(`E. (BD-2632, BD-2759) Verify get_fio_balance returns accurate balance 
       data: {
         owner: accountnm1,
         amount: lockAmount1 - 1000000000,
-        locktype: 1
+        locktype: lockType
       }
     });
     expect(lock1.status).to.equal('OK');
@@ -1320,7 +1765,7 @@ describe(`E. (BD-2632, BD-2759) Verify get_fio_balance returns accurate balance 
       data: {
         owner: accountnm2,
         amount: lockAmount2,
-        locktype: 1
+        locktype: lockType
       }
     })
     expect(lock2.status).to.equal('OK');
@@ -1374,7 +1819,7 @@ describe(`E. (BD-2632, BD-2759) Verify get_fio_balance returns accurate balance 
         data: {
           owner: accountnm1,
           amount: 1000000000,
-          locktype: 1
+          locktype: lockType
         }
       })
       expect(lock2.status).to.equal('OK');

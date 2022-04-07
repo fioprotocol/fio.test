@@ -9,16 +9,6 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-function wait(ms){
-  var start = new Date().getTime();
-  var end = start;
-  while(end < start + ms) {
-    end = new Date().getTime();
-  }
-}
-
-
-
 describe(`************************** locks-transfer-locked-tokens-max-load.js ************************** \n    A. Create 2400 General Locked Token grant accounts`, () => {
 
   //to perform max tests, run this test to load the system with the desired amount of locks.

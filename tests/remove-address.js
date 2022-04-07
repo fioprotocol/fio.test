@@ -1452,3 +1452,105 @@ describe(`F. Sad - result in error`, () => {
 })
 
 
+describe(`(FIP-33) Test $ is allowed in chain and token code for removePublicAddresses`, () => {
+
+  let user1
+
+  it(`Create users`, async () => {
+    user1 = await newUser(faucet);
+  })
+
+  it(`(SDK) Add $BCH in chain_code - Expect success`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('addPublicAddresses', {
+        fioAddress: user1.address,
+        publicAddresses: [
+          {
+            chain_code: '$BCH',
+            token_code: 'BCH',
+            public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+          },
+          {
+            chain_code: '$TEST',
+            token_code: '$TEST',
+            public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+          }
+        ],
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      //console.log('Result:', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`(SDK) removePublicAddress with chain_code = $BCH - expect success`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('removePublicAddresses', {
+        fioAddress: user1.address,
+        publicAddresses: [
+          {
+            chain_code: '$BCH',
+            token_code: 'BCH',
+            public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+          }
+        ],
+        maxFee: config.maxFee,
+        tpid: ''
+      })
+      //console.log('Result:', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`(SDK) Add $BCH in token_code - Expect success`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('addPublicAddresses', {
+        fioAddress: user1.address,
+        publicAddresses: [
+          {
+            chain_code: 'BCH',
+            token_code: '$BCH',
+            public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+          }
+        ],
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      //console.log('Result:', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`(SDK) removePublicAddress with token_code = $BCH - expect success`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('removePublicAddresses', {
+        fioAddress: user1.address,
+        publicAddresses: [
+          {
+            chain_code: 'BCH',
+            token_code: '$BCH',
+            public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+          }
+        ],
+        maxFee: config.maxFee,
+        tpid: ''
+      })
+      //console.log('Result:', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+})

@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, getProdVoteTotal, fetchJson, generateFioDomain, callFioApi,  generateFioAddress, createKeypair, getTestType} = require('../utils.js');
+const {newUser, getProdVoteTotal, fetchJson, generateFioDomain, callFioApi,  generateFioAddress, createKeypair, getTestType, timeout} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
 const testType = getTestType();
@@ -8,14 +8,6 @@ const testType = getTestType();
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
-
-function wait(ms){
-  var start = new Date().getTime();
-  var end = start;
-  while(end < start + ms) {
-    end = new Date().getTime();
-  }
-}
 
 let userA1, userA2, userA3, userA4, keys, keys1, keys2, keys3,keys4, locksdk,
     locksdk1, locksdk2, locksdk3,locksdk4, newFioAddress, newFioDomain, newFioDomain2, newFioAddress2,
@@ -2170,13 +2162,7 @@ describe(`E. Token unlocking tests`, () => {
     console.log("            waiting 20 seconds ")
   })
 
-  it(` wait 20 seconds`, async () => {
-    try {
-     wait(20000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
+  it(`Wait 20 seconds.`, async () => { await timeout(20000) });
 
   //try to transfer whole amount, fail.
   it(`Transfer ${fundsAmount} Fail, fail to transfer entire amount`, async () => {
@@ -2195,49 +2181,38 @@ describe(`E. Token unlocking tests`, () => {
   })
 
 
-it(`Transfer 1 FIO to another account`, async () => {
-  const result = await locksdk4.genericAction('transferTokens', {
-    payeeFioPublicKey: userA1.publicKey,
-    amount: 1000000000,
-    maxFee: config.maxFee,
-    technologyProviderId: ''
-  })
-  expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
-})
+  it(`Transfer 1 FIO to another account`, async () => {
+    const result = await locksdk4.genericAction('transferTokens', {
+      payeeFioPublicKey: userA1.publicKey,
+      amount: 1000000000,
+      maxFee: config.maxFee,
+      technologyProviderId: ''
+    })
+    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  });
 
   it(`Waiting 20 seconds`, async () => {
     console.log("            waiting 20 seconds ")
   })
 
-it(` wait 20 seconds`, async () => {
-  try {
-    wait(20000)
-  } catch (err) {
-    console.log('Error', err)
-  }
-})
+  it(`Wait 20 seconds.`, async () => { await timeout(20000) });
 
 
-it(`Transfer 30 FIO to another account`, async () => {
-  const result = await locksdk4.genericAction('transferTokens', {
-    payeeFioPublicKey: userA1.publicKey,
-    amount: 30000000000,
-    maxFee: config.maxFee,
-    technologyProviderId: ''
-  })
-  expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
-})
+  it(`Transfer 30 FIO to another account`, async () => {
+    const result = await locksdk4.genericAction('transferTokens', {
+      payeeFioPublicKey: userA1.publicKey,
+      amount: 30000000000,
+      maxFee: config.maxFee,
+      technologyProviderId: ''
+    })
+    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  });
 
   it(`Waiting 20 seconds`, async () => {
     console.log("            waiting 20 seconds ")
   })
-  it(` wait 20 seconds`, async () => {
-    try {
-      wait(20000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
+
+  it(`Wait 20 seconds.`, async () => { await timeout(20000) });
 
   it(`Transfer 13 FIO to another account`, async () => {
     const result = await locksdk4.genericAction('transferTokens', {
@@ -2248,7 +2223,7 @@ it(`Transfer 30 FIO to another account`, async () => {
     })
 
     expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
-  })
+  });
 
 })
 

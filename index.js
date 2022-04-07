@@ -26,17 +26,21 @@ describe('TEST SUITE', () => {
   require('./tests/record-obt-data.js'); //FIP-1.b testing
   require('./tests/transfer-address.js'); // FIP-1.b
   require('./tests/addbundles.js');  // FIP-11.a
+  //require('./tests/retire-tokens.js');  // FIP-22 Retire tokens. Requires setup to run.
   require('./tests/tpid.js');
   require('./tests/nft-add-remove.js'); //FIP-27
   require('./tests/nft-sdk-tests.js');
   //require('./tests/nft-performance-tests.js'); //FIP-27
   require('./tests/nft-uniqueness.js'); //FIP-27
   //require('./tests/nft-remove-burn.js'); //FIP-27
-  //require('./tests/clio.js');  // FIP-16  //Only works with local testing
+  //require('./tests/clio.js');  // FIP-16  Only works with local testing
   //require('./tests/performance-request-obt.js');
+  require('./tests/fee-distribution.js');
 
   //require('./tests/expired-address-domain.js'); // Requires manual updates to contracts to shorten expiration timing
   //require('./tests/expired-address-domain-modexpire.js'); // Requires modexpire action which allows expiring of domains
+
+  //require('./tests/fio-escrow'); // FIP-26 (marketplace). Requires additional configuration to add the modexpire action
 
   //require('./tests/history.js'); // Only run against history node.
 
@@ -101,5 +105,4 @@ describe('TEST SUITE', () => {
    */
   //require('./tests/bravo-migr-test.js'); //This is required when testing 2.3.0 (bravo) with fio bahamas (need to do the full table migration).
 
-	//require('./tests/fio-escrow') // FIP-26 (marketplace)
 });
