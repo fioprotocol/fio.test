@@ -1,22 +1,29 @@
 const hre = require("hardhat");
 const ethers = hre.ethers;
 require("@nomiclabs/hardhat-ethers");
-// require("@nomiclabs/hardhat-ganache");
 require("mocha");
-const { expect } = require("chai");
-const {FIOSDK } = require('@fioprotocol/fiosdk');
-
+const {expect} = require("chai");
+const {FIOSDK} = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
-const {newUser, fetchJson, timeout, callFioApi} = require('../utils.js');
-
+const {newUser, fetchJson, timeout} = require('../utils.js');
 const INIT_SUPPLY = 0;
 let faucet;
 
-before(async () => {
+/**
+ * INSTRUCTIONS TO SET UP THESE TESTS
+ *
+ * 1) In fio.oracle.cpp, comment out the SYSTEMACCOUNT authentication in the regoracle and unregoracle methods
+ *
+ * e.g.
+ * // require_auth(SYSTEMACCOUNT);
+ *
+ */
+
+before(async function () {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
 });
 
-describe(`************************** fio-eth.js ************************** \n   WFIO AND FIONFT QUICK TESTS`, () => {
+describe(`************************** fio-erc20.js ************************** \n   A. [ETH] WFIO quick tests`, function () {
 
   let owner;
   let accounts;
@@ -24,7 +31,7 @@ describe(`************************** fio-eth.js ************************** \n   
   let factory;
   let wfio;
 
-  before(async () => {
+  before(async function () {
     [owner, ...accounts] = await ethers.getSigners();
     custodians = [];
     for (let i = 1; i < 11; i++) {
@@ -43,7 +50,7 @@ describe(`************************** fio-eth.js ************************** \n   
   });
 });
 
-describe(`A1. Custodians (get)`, () => {
+describe(`A1. [ETH] Custodians (get)`, function () {
 
   let accounts;
   let custodians;
@@ -51,7 +58,7 @@ describe(`A1. Custodians (get)`, () => {
   let factory;
   let wfio;
 
-  before(async () => {
+  before(async function () {
     [owner, ...accounts] = await ethers.getSigners();
     custodians = [];
     for (let i = 1; i < 11; i++) {
@@ -62,7 +69,7 @@ describe(`A1. Custodians (get)`, () => {
     await wfio.deployTransaction.wait();
   });
 
-  it(`get a custodian by address`, async () => {
+  it(`get a custodian by address`, async function () {
     let result = await wfio.getCustodian(custodians[0]);
     expect(result).to.be.a('array');
     expect(result[0]).to.be.a('boolean').and.equal(true);
@@ -71,7 +78,7 @@ describe(`A1. Custodians (get)`, () => {
   });
 
   // unhappy paths
-  it(`invalid address`, async () => {
+  it(`invalid address`, async function () {
     try {
       let result = await wfio.getCustodian('0x0');
     } catch (err) {
@@ -85,7 +92,7 @@ describe(`A1. Custodians (get)`, () => {
     }
   });
 
-  it(`missing address`, async () => {
+  it(`missing address`, async function () {
     try {
       let result = await wfio.getCustodian();
     } catch (err) {
@@ -99,7 +106,7 @@ describe(`A1. Custodians (get)`, () => {
     }
   });
 
-  it(`non-custodian address`, async () => {
+  it(`non-custodian address`, async function () {
     let result = await wfio.getCustodian(accounts[15].address);
     expect(result).to.be.a('array');
     expect(result[0]).to.be.a('boolean').and.equal(false);
@@ -108,7 +115,7 @@ describe(`A1. Custodians (get)`, () => {
   });
 });
 
-describe(`A2. Custodians (register)`, () => {
+describe(`A2. [ETH] Custodians (register)`, function () {
 
   let accounts;
   let custodians;
@@ -116,7 +123,7 @@ describe(`A2. Custodians (register)`, () => {
   let factory;
   let wfio;
 
-  before(async () => {
+  before(async function () {
     [owner, ...accounts] = await ethers.getSigners();
     custodians = [];
     for (let i = 1; i < 11; i++) {
@@ -127,7 +134,7 @@ describe(`A2. Custodians (register)`, () => {
     await wfio.deployTransaction.wait();
   });
 
-  it(`register a new custodian`, async () => {
+  it(`register a new custodian`, async function () {
     await wfio.connect(accounts[1]).regcust(accounts[18].address);
     await wfio.connect(accounts[2]).regcust(accounts[18].address);
     await wfio.connect(accounts[3]).regcust(accounts[18].address);
@@ -142,7 +149,7 @@ describe(`A2. Custodians (register)`, () => {
   // TODO: Register some more new custodians and make sure they are where they should be
 
   // unhappy paths
-  it(`register custodian with an invalid eth address, expect Error 400 `, async () => {
+  it(`register custodian with an invalid eth address, expect Error 400 `, async function () {
     try {
       let result = await wfio.regcust('0x0')
     } catch (err) {
@@ -156,7 +163,7 @@ describe(`A2. Custodians (register)`, () => {
     }
   });
 
-  it(`register custodian with missing eth address, expect Error 400 `, async () => {
+  it(`register custodian with missing eth address, expect Error 400 `, async function () {
     try {
       await wfio.regcust();
     } catch (err) {
@@ -170,7 +177,7 @@ describe(`A2. Custodians (register)`, () => {
     }
   });
 
-  it(`register custodian with no authority, expect Error 403 `, async () => {
+  it(`register custodian with no authority, expect Error 403 `, async function () {
     try {
       let result = await wfio.regcust(accounts[18].address);
     } catch (err) {
@@ -181,7 +188,7 @@ describe(`A2. Custodians (register)`, () => {
     }
   });
 
-  it(`register custodian with an already-registered eth address, expect Error 400 `, async () => {
+  it(`register custodian with an already-registered eth address, expect Error 400 `, async function () {
     try {
       let result = await wfio.connect(accounts[1]).regcust(accounts[2].address);
     } catch (err) {
@@ -197,7 +204,7 @@ describe(`A2. Custodians (register)`, () => {
   // TODO: Test with incorrect consensus (too few approvers, already approved address)
 });
 
-describe(`A3. Custodians (unregister)`, () => {
+describe(`A3. [ETH] Custodians (unregister)`, function () {
 
   let accounts;
   let custodians;
@@ -205,7 +212,7 @@ describe(`A3. Custodians (unregister)`, () => {
   let factory;
   let wfio;
 
-  before(async () => {
+  before(async function () {
     [owner, ...accounts] = await ethers.getSigners();
     custodians = [];
     for (let i = 1; i < 11; i++) {
@@ -216,7 +223,7 @@ describe(`A3. Custodians (unregister)`, () => {
     await wfio.deployTransaction.wait();
   });
 
-  it(`unregister a custodian`, async () => {
+  it(`unregister a custodian`, async function () {
     await wfio.connect(accounts[1]).unregcust(accounts[9].address);
     await wfio.connect(accounts[2]).unregcust(accounts[9].address);
     await wfio.connect(accounts[3]).unregcust(accounts[9].address);
@@ -229,7 +236,7 @@ describe(`A3. Custodians (unregister)`, () => {
   });
 
   // unhappy paths
-  it(`unregister a missing ETH address, expect error`, async () => {
+  it(`unregister a missing ETH address, expect error`, async function () {
     try {
       let result = await wfio.unregcust()
     } catch (err) {
@@ -243,7 +250,7 @@ describe(`A3. Custodians (unregister)`, () => {
     }
   });
 
-  it(`unregister an invalid address, expect error.`, async () => {
+  it(`unregister an invalid address, expect error.`, async function () {
     try {
       let result = await wfio.unregcust('0x0')
     } catch (err) {
@@ -257,7 +264,7 @@ describe(`A3. Custodians (unregister)`, () => {
     }
   });
 
-  it(`unregister with no authority, expect error.`, async () => {
+  it(`unregister with no authority, expect error.`, async function () {
     try {
       let result = await wfio.unregcust(custodians[0])
     } catch (err) {
@@ -272,7 +279,7 @@ describe(`A3. Custodians (unregister)`, () => {
   // TODO: Test with incorrect consensus (too few approvers, already approved address)
 });
 
-describe(`B1. Oracles (get)`, () => {
+describe(`B1. [ETH] Oracles (get)`, function () {
 
   let accounts;
   let custodians;
@@ -280,7 +287,7 @@ describe(`B1. Oracles (get)`, () => {
   let factory;
   let wfio;
 
-  before(async () => {
+  before(async function () {
     [owner, ...accounts] = await ethers.getSigners();
     custodians = [];
     for (let i = 1; i < 11; i++) {
@@ -313,7 +320,7 @@ describe(`B1. Oracles (get)`, () => {
     await wfio.connect(accounts[7]).regoracle(accounts[14].address);
   });
 
-  it(`get list of oracles`, async () => {
+  it(`get list of oracles`, async function () {
     let result = await wfio.getOracles();
     expect(result).to.be.a('array');
     expect(result.length).to.equal(3);
@@ -322,7 +329,7 @@ describe(`B1. Oracles (get)`, () => {
     expect(result).to.contain(accounts[14].address);
   });
 
-  it(`get an oracle by address`, async () => {
+  it(`get an oracle by address`, async function () {
     let result = await wfio.getOracle(accounts[12].address);
     expect(result).to.be.a('array');
     expect(result[0]).to.be.a('boolean').and.equal(true);
@@ -331,7 +338,7 @@ describe(`B1. Oracles (get)`, () => {
   });
 
   // unhappy paths
-  it(`invalid address`, async () => {
+  it(`invalid address`, async function () {
     try {
       let result = await wfio.getOracle('0x0');
     } catch (err) {
@@ -345,7 +352,7 @@ describe(`B1. Oracles (get)`, () => {
     }
   });
 
-  it(`missing address`, async () => {
+  it(`missing address`, async function () {
     try {
       let result = await wfio.getOracle();
     } catch (err) {
@@ -359,7 +366,7 @@ describe(`B1. Oracles (get)`, () => {
     }
   });
 
-  it(`non-custodian address`, async () => {
+  it(`non-custodian address`, async function () {
     try {
       let result = await wfio.getOracle(accounts[15].address);
       expect(result).to.be.a('array');
@@ -367,15 +374,13 @@ describe(`B1. Oracles (get)`, () => {
       expect(result[1]).to.be.a('object').with.property('_hex');
       expect(result[1]).to.be.a('object').with.property('_isBigNumber');
     } catch (err) {
-      expect(err).to.equal(null);
+      throw err;
     }
   });
 
-  // TODO: Test with varying consensus among other custodians (different addresses, different amounts, etc)
-  // TODO: Test with incorrect consensus (too few approvers, already approved address)
 });
 
-describe(`B2. Oracles (register)`, () => {
+describe(`B2. [ETH] Oracles (register)`, function () {
 
   let accounts;
   let custodians;
@@ -383,7 +388,7 @@ describe(`B2. Oracles (register)`, () => {
   let factory;
   let wfio;
 
-  before(async () => {
+  before(async function () {
     [owner, ...accounts] = await ethers.getSigners();
     custodians = [];
     for (let i = 1; i < 11; i++) {
@@ -402,7 +407,7 @@ describe(`B2. Oracles (register)`, () => {
     await wfio.connect(accounts[7]).regoracle(accounts[12].address);
   });
 
-  it(`register oracle`, async () => {
+  it(`register oracle`, async function () {
     await wfio.connect(accounts[1]).regoracle(accounts[13].address);
     await wfio.connect(accounts[2]).regoracle(accounts[13].address);
     await wfio.connect(accounts[3]).regoracle(accounts[13].address);
@@ -420,7 +425,7 @@ describe(`B2. Oracles (register)`, () => {
   // TODO: Register some more new custodians and make sure they are where they should be
 
   // unhappy paths
-  it(`register oracle with an invalid eth address, expect Error 400`, async () => {
+  it(`register oracle with an invalid eth address, expect Error 400`, async function () {
     try {
       let result = await wfio.regoracle('0x0');
     } catch (err) {
@@ -434,7 +439,7 @@ describe(`B2. Oracles (register)`, () => {
     }
   });
 
-  it(`register oracle with a missing eth address, expect Error 400`, async () => {
+  it(`register oracle with a missing eth address, expect Error 400`, async function () {
     try {
       let result = await wfio.regoracle();
     } catch (err) {
@@ -448,7 +453,7 @@ describe(`B2. Oracles (register)`, () => {
     }
   });
 
-  it(`register oracle with no authority, expect Error 403 `, async () => {
+  it(`register oracle with no authority, expect Error 403 `, async function () {
     try {
       let result = await wfio.regoracle(accounts[18].address);
     } catch (err) {
@@ -463,14 +468,14 @@ describe(`B2. Oracles (register)`, () => {
   // TODO: Test with incorrect consensus (too few approvers, already approved address)
 });
 
-describe(`B3. Oracles (unregister)`, () => {
+describe(`B3. [ETH] Oracles (unregister)`, function () {
   let accounts;
   let custodians;
   let owner;
   let factory;
   let wfio;
 
-  before(async () => {
+  before(async function () {
     [owner, ...accounts] = await ethers.getSigners();
     custodians = [];
     for (let i = 1; i < 11; i++) {
@@ -489,7 +494,7 @@ describe(`B3. Oracles (unregister)`, () => {
     await wfio.connect(accounts[7]).regoracle(accounts[12].address);
   });
 
-  it(`Unregister oracle`, async () => {
+  it(`Unregister oracle`, async function () {
     await wfio.connect(accounts[1]).unregoracle(accounts[12].address);
     await wfio.connect(accounts[2]).unregoracle(accounts[12].address);
     await wfio.connect(accounts[3]).unregoracle(accounts[12].address);
@@ -503,7 +508,7 @@ describe(`B3. Oracles (unregister)`, () => {
   });
 
   // unhappy paths
-  it(`unregister a missing ETH address, expect error`, async () => {
+  it(`unregister a missing ETH address, expect error`, async function () {
     try {
       let result = await wfio.unregoracle();
     } catch (err) {
@@ -517,7 +522,7 @@ describe(`B3. Oracles (unregister)`, () => {
     }
   });
 
-  it(`unregister an invalid address, expect error.`, async () => {
+  it(`unregister an invalid address, expect error.`, async function () {
     try {
       let result = await wfio.unregoracle('0x0');
     } catch (err) {
@@ -531,7 +536,7 @@ describe(`B3. Oracles (unregister)`, () => {
     }
   });
 
-  it(`unregister with no authority, expect error.`, async () => {
+  it(`unregister with no authority, expect error.`, async function () {
     try {
       let result = await wfio.unregoracle(custodians[0])
     } catch (err) {
@@ -546,7 +551,7 @@ describe(`B3. Oracles (unregister)`, () => {
   // TODO: Test with incorrect consensus (too few approvers, already approved address)
 });
 
-describe(`C1. wFIO wrapping`, () => {
+describe(`C1. [ETH] wFIO wrapping`, function () {
 
   let fioAccount;
   let fioBalance;
@@ -558,19 +563,19 @@ describe(`C1. wFIO wrapping`, () => {
   let wfio;
   let transactionId;
 
-  beforeEach(async () => {
+  beforeEach(async function () {
     fioAccount = await newUser(faucet);
     fioBalance = await fioAccount.sdk.genericAction('getFioBalance', { });
     fioTransaction = await faucet.genericAction('transferTokens', {
       payeeFioPublicKey: fioAccount.publicKey,
-      amount: 100,
+      amount: 100000000000,
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     })
     transactionId = fioTransaction.transaction_id;
   });
 
-  before(async () => {
+  before(async function () {
     [owner, ...accounts] = await ethers.getSigners();
     custodians = [];
     for (let i = 1; i < 11; i++) {
@@ -603,27 +608,27 @@ describe(`C1. wFIO wrapping`, () => {
     await wfio.connect(accounts[7]).regoracle(accounts[14].address);
   });
 
-  it(`Wrap 100 wFIO`, async () => {
+  it(`Wrap 100 wFIO`, async function () {
     let fromStartingBal = await accounts[14].getBalance();
     let toStartingWfioBal = await wfio.balanceOf(accounts[0].address);
 
-    await wfio.connect(accounts[12]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[13]).wrap(accounts[0].address, 100, transactionId);
+    await wfio.connect(accounts[12]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[13]).wrap(accounts[0].address, 100000000000, transactionId);
     try {
-      let result = await wfio.connect(accounts[14]).wrap(accounts[0].address, 100, transactionId);
+      let result = await wfio.connect(accounts[14]).wrap(accounts[0].address, 100000000000, transactionId);
       let fromEndingBal = await accounts[14].getBalance();
       let toEndingWfioBal = await wfio.balanceOf(accounts[0].address);
       expect(result.from).to.equal(accounts[14].address);
       expect(result.to).to.equal(wfio.address);
       expect(fromStartingBal.gt(fromEndingBal)).to.be.true;
       expect(toStartingWfioBal.lt(toEndingWfioBal)).to.be.true;
-      expect(toEndingWfioBal.sub(toStartingWfioBal).toNumber()).to.equal(100)
+      expect(toEndingWfioBal.sub(toStartingWfioBal).toNumber()).to.equal(100000000000)
     } catch (err) {
-      expect(err).to.equal(null);
+      throw err;
     }
   });
 
-  it(`Add 3 new oracles and wrap 100 wFIO`, async () => {
+  it(`Add 3 new oracles and wrap 100 wFIO`, async function () {
     // add 3 new oracles
     await wfio.connect(accounts[1]).regoracle(accounts[15].address);
     await wfio.connect(accounts[2]).regoracle(accounts[15].address);
@@ -650,26 +655,26 @@ describe(`C1. wFIO wrapping`, () => {
     let fromStartingBal = await accounts[17].getBalance();
     let toStartingWfioBal = await wfio.balanceOf(accounts[0].address);
 
-    await wfio.connect(accounts[12]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[13]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[14]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[15]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[16]).wrap(accounts[0].address, 100, transactionId);
+    await wfio.connect(accounts[12]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[13]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[14]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[15]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[16]).wrap(accounts[0].address, 100000000000, transactionId);
     try {
-      let result = await wfio.connect(accounts[17]).wrap(accounts[0].address, 100, transactionId);
+      let result = await wfio.connect(accounts[17]).wrap(accounts[0].address, 100000000000, transactionId);
       let fromEndingBal = await accounts[17].getBalance();
       let toEndingWfioBal = await wfio.balanceOf(accounts[0].address);
       expect(result.from).to.equal(accounts[17].address);
       expect(result.to).to.equal(wfio.address);
       expect(fromStartingBal.gt(fromEndingBal)).to.be.true;
       expect(toStartingWfioBal.lt(toEndingWfioBal)).to.be.true;
-      expect(toEndingWfioBal.sub(toStartingWfioBal).toNumber()).to.equal(100)
+      expect(toEndingWfioBal.sub(toStartingWfioBal).toNumber()).to.equal(100000000000)
     } catch (err) {
-      expect(err).to.equal(null);
+      throw err;
     }
   });
 
-  it(`Add 10 new oracles and wrap 100 wFIO`, async () => {
+  it(`Add 10 new oracles and wrap 100 wFIO`, async function () {
 
     // register 10 more new oracles
     await wfio.connect(accounts[1]).regoracle(accounts[18].address);
@@ -746,190 +751,190 @@ describe(`C1. wFIO wrapping`, () => {
     let fromStartingBal = await accounts[27].getBalance();
     let toStartingWfioBal = await wfio.balanceOf(accounts[0].address);
 
-    await wfio.connect(accounts[12]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[13]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[14]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[15]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[16]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[17]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[18]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[19]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[20]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[21]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[22]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[23]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[24]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[25]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[26]).wrap(accounts[0].address, 100, transactionId);
+    await wfio.connect(accounts[12]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[13]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[14]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[15]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[16]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[17]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[18]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[19]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[20]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[21]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[22]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[23]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[24]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[25]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[26]).wrap(accounts[0].address, 100000000000, transactionId);
 
     try {
-      let result = await wfio.connect(accounts[27]).wrap(accounts[0].address, 100, transactionId);
+      let result = await wfio.connect(accounts[27]).wrap(accounts[0].address, 100000000000, transactionId);
       let fromEndingBal = await accounts[27].getBalance();
       let toEndingWfioBal = await wfio.balanceOf(accounts[0].address);
       expect(result.from).to.equal(accounts[27].address);
       expect(result.to).to.equal(wfio.address);
       expect(fromStartingBal.gt(fromEndingBal)).to.be.true;
       expect(toStartingWfioBal.lt(toEndingWfioBal)).to.be.true;
-      expect(toEndingWfioBal.sub(toStartingWfioBal).toNumber()).to.equal(100)
+      expect(toEndingWfioBal.sub(toStartingWfioBal).toNumber()).to.equal(100000000000)
     } catch (err) {
-      expect(err).to.equal(null);
+      throw err;
     }
   });
 
   // unhappy paths
-  it(`invalid address, expect Error 400`, async () => {
-    await wfio.connect(accounts[12]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[13]).wrap(accounts[0].address, 100, transactionId);
+  it(`invalid address, expect Error 400`, async function () {
+    await wfio.connect(accounts[12]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[13]).wrap(accounts[0].address, 100000000000, transactionId);
     try {
-      let result = await wfio.connect(accounts[14]).wrap("donkey", 100, transactionId);
+      let result = await wfio.connect(accounts[14]).wrap("donkey", 100000000000, transactionId);
     } catch (err) {
-      expect(err).to.have.property('reason').which.is.a('string');
-      expect(err).to.have.property('code').which.is.a('string');
-      expect(err).to.have.property('argument').which.is.a('string');
-      expect(err).to.have.property('value').which.is.a('string');
+      expect(err).to.have.property('reason').which.is.a('string').and.equal('network does not support ENS');
+      expect(err).to.have.property('code').which.is.a('string').and.equal('UNSUPPORTED_OPERATION');
+      expect(err).to.have.property('operation').which.is.a('string').and.equal('ENS');
+
+      // expect(err).to.have.property('reason').which.is.a('string').and.equal('resolver or addr is not configured for ENS name');
+      // expect(err).to.have.property('code').which.is.a('string').and.equal('INVALID_ARGUMENT');
+
       expect(err).to.have.property('stack').which.is.a('string');
       expect(err).to.have.property('message').which.is.a('string');
-      expect(err.reason).to.equal('resolver or addr is not configured for ENS name');
     }
   });
 
-  it(`missing address, expect Error 400`, async () => {
-    await wfio.connect(accounts[12]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[13]).wrap(accounts[0].address, 100, transactionId);
+  it(`missing address, expect Error 400`, async function () {
+    await wfio.connect(accounts[12]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[13]).wrap(accounts[0].address, 100000000000, transactionId);
     try {
-      let result = await wfio.connect(accounts[14]).wrap(100, transactionId);
+      let result = await wfio.connect(accounts[14]).wrap(100000000000, transactionId);
     } catch (err) {
-      expect(err).to.have.property('reason').which.is.a('string');
-      expect(err).to.have.property('code').which.is.a('string');
-      expect(err).to.have.property('count').which.is.a('number');
-      expect(err).to.have.property('expectedCount').which.is.a('number');
+      expect(err).to.have.property('reason').which.is.a('string').and.equal('missing argument: passed to contract');
+      expect(err).to.have.property('code').which.is.a('string').and.equal('MISSING_ARGUMENT');
+      expect(err).to.have.property('count').which.is.a('number').and.equal(2);
+      expect(err).to.have.property('expectedCount').which.is.a('number').and.equal(3);
       expect(err).to.have.property('stack').which.is.a('string');
       expect(err).to.have.property('message').which.is.a('string');
-      expect(err.reason).to.equal('missing argument: passed to contract');
     }
   });
 
-  it(`invalid tx amount, expect Error 400`, async () => {
+  it(`invalid tx amount, expect Error 400`, async function () {
+    let invalidTxAmt = "invalid-tx-amt";
     try {
-      let result = await wfio.wrap(custodians[0], "donkey", transactionId);
+      let result = await wfio.wrap(custodians[0], invalidTxAmt, transactionId);
       expect(result.status).to.equal('OK');
     } catch (err) {
-      expect(err).to.have.property('reason').which.is.a('string');
-      expect(err).to.have.property('code').which.is.a('string');
-      expect(err).to.have.property('argument').which.is.a('string');
-      expect(err).to.have.property('value').which.is.a('string');
+      expect(err).to.have.property('reason').which.is.a('string').and.equal('invalid BigNumber string');
+      expect(err).to.have.property('code').which.is.a('string').and.equal('INVALID_ARGUMENT');
+      expect(err).to.have.property('argument').which.is.a('string').and.equal('value');
+      expect(err).to.have.property('value').which.is.a('string').and.equal(invalidTxAmt);
       expect(err).to.have.property('stack').which.is.a('string');
       expect(err).to.have.property('message').which.is.a('string');
-      expect(err.reason).to.equal('invalid BigNumber string');
     }
   });
 
-  it(`missing tx amount, expect Error 400`, async () => {
+  it(`missing tx amount, expect Error 400`, async function () {
     try {
       let result = await wfio.wrap(custodians[0], transactionId);
       expect(result.status).to.equal('OK');
     } catch (err) {
-      expect(err).to.have.property('reason').which.is.a('string');
-      expect(err).to.have.property('code').which.is.a('string');
-      expect(err).to.have.property('count').which.is.a('number');
-      expect(err).to.have.property('expectedCount').which.is.a('number');
+      expect(err).to.have.property('reason').which.is.a('string').and.equal('missing argument: passed to contract');
+      expect(err).to.have.property('code').which.is.a('string').and.equal('MISSING_ARGUMENT');
+      expect(err).to.have.property('count').which.is.a('number').and.equal(2);
+      expect(err).to.have.property('expectedCount').which.is.a('number').and.equal(3);
       expect(err).to.have.property('stack').which.is.a('string');
       expect(err).to.have.property('message').which.is.a('string');
-      expect(err.reason).to.equal('missing argument: passed to contract');
     }
   });
 
-  it(`invalid obtid, expect Error 400`, async () => {
-    await wfio.connect(accounts[12]).wrap(accounts[0].address, 100, "donkey");
-    await wfio.connect(accounts[13]).wrap(accounts[0].address, 100, "donkey");
+  it(`invalid obtid, expect Error 400`, async function () {
+    await wfio.connect(accounts[12]).wrap(accounts[0].address, 100000000000, "donkey");
+    await wfio.connect(accounts[13]).wrap(accounts[0].address, 100000000000, "donkey");
     try {
-      let result = await wfio.connect(accounts[14]).wrap(accounts[0].address, 100, 1); // TODO: Should this third arg take any arbitrary string
+      let result = await wfio.connect(accounts[14]).wrap(accounts[0].address, 100000000000, 1);
       expect(result.status).to.equal('OK');
     } catch (err) {
-      expect(err.message).to.contain('Invalid obtid');
+      expect(err).to.have.property('stackTrace').which.is.a('Array');
+      expect(err).to.have.property('message').which.is.a('string').and.contain('Invalid obtid');
+      expect(err).to.have.property('transactionHash').which.is.a('string');
+      expect(err).to.have.property('stack').which.is.a('string');
     }
   });
 
-  it(`missing obtid, expect Error 400`, async () => {
+  it(`missing obtid, expect Error 400`, async function () {
     try {
       let result = await wfio.wrap(custodians[0], 1000);
       expect(result.status).to.equal('OK');
     } catch (err) {
-      expect(err).to.have.property('reason').which.is.a('string');
-      expect(err).to.have.property('code').which.is.a('string');
-      expect(err).to.have.property('count').which.is.a('number');
-      expect(err).to.have.property('expectedCount').which.is.a('number');
+      expect(err).to.have.property('reason').which.is.a('string').and.equal('missing argument: passed to contract');
+      expect(err).to.have.property('code').which.is.a('string').and.equal('MISSING_ARGUMENT');
+      expect(err).to.have.property('count').which.is.a('number').and.equal(2);
+      expect(err).to.have.property('expectedCount').which.is.a('number').and.equal(3);
       expect(err).to.have.property('stack').which.is.a('string');
       expect(err).to.have.property('message').which.is.a('string');
-      expect(err.reason).to.equal('missing argument: passed to contract');
     }
   });
 
-  it(`no authority, expect Error 403`, async () => {
+  it(`no authority, expect Error 403`, async function () {
     try {
-      let result = await wfio.wrap(accounts[13].address, 100, transactionId);
+      let result = await wfio.wrap(accounts[13].address, 100000000000, transactionId);
       expect(result.status).to.equal('OK');
     } catch (err) {
-      expect(err).to.have.property('stackTrace').which.is.a('array');
+      expect(err).to.have.property('stackTrace').which.is.a('Array');
       expect(err).to.have.property('stack').which.is.a('string');
-      expect(err).to.have.property('message').which.is.a('string');
-      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Only a wFIO oracle may call this function.\'');
+      expect(err).to.have.property('message').which.is.a('string').and.equal('VM Exception while processing transaction: reverted with reason string \'Only a wFIO oracle may call this function.\'');
     }
   });
 
-  it(`recipient account does not match prior approvals`, async () => {
+  it(`recipient account does not match prior approvals`, async function () {
 
     let toStartingWfioBal = await wfio.balanceOf(accounts[0].address);
 
-    await wfio.connect(accounts[12]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[13]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[14]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[15]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[16]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[17]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[18]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[19]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[20]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[21]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[22]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[23]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[24]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[25]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[26]).wrap(accounts[0].address, 100, transactionId);
+    await wfio.connect(accounts[12]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[13]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[14]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[15]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[16]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[17]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[18]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[19]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[20]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[21]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[22]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[23]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[24]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[25]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[26]).wrap(accounts[0].address, 100000000000, transactionId);
 
     try {
-      let result = await wfio.connect(accounts[27]).wrap(accounts[1].address, 100, transactionId);
+      let result = await wfio.connect(accounts[27]).wrap(accounts[1].address, 100000000000, transactionId);
     } catch (err) {
-      expect(err).to.have.property('stackTrace').which.is.a('array');
+      expect(err).to.have.property('stackTrace').which.is.a('Array');
       expect(err).to.have.property('transactionHash').which.is.a('string');
       expect(err).to.have.property('stack').which.is.a('string');
-      expect(err).to.have.property('message').which.is.a('string');
-      expect(err.message).to.contain('account does not match prior approvals');
+      expect(err).to.have.property('message').which.is.a('string').and.contain('account does not match prior approvals');
       let toEndingWfioBal = await wfio.balanceOf(accounts[0].address);
       expect(toStartingWfioBal.lt(toEndingWfioBal)).to.be.false;
       expect(toEndingWfioBal.sub(toStartingWfioBal).toNumber()).to.equal(0)
     }
   });
 
-  it(`amount does not match prior approvals`, async () => {
+  it(`amount does not match prior approvals`, async function () {
 
     let toStartingWfioBal = await wfio.balanceOf(accounts[0].address);
 
-    await wfio.connect(accounts[12]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[13]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[14]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[15]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[16]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[17]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[18]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[19]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[20]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[21]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[22]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[23]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[24]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[25]).wrap(accounts[0].address, 100, transactionId);
-    await wfio.connect(accounts[26]).wrap(accounts[0].address, 100, transactionId);
+    await wfio.connect(accounts[12]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[13]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[14]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[15]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[16]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[17]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[18]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[19]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[20]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[21]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[22]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[23]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[24]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[25]).wrap(accounts[0].address, 100000000000, transactionId);
+    await wfio.connect(accounts[26]).wrap(accounts[0].address, 100000000000, transactionId);
 
     try {
       let result = await wfio.connect(accounts[27]).wrap(accounts[0].address, 2500, transactionId);
@@ -937,8 +942,7 @@ describe(`C1. wFIO wrapping`, () => {
       expect(err).to.have.property('stackTrace').which.is.a('array');
       expect(err).to.have.property('transactionHash').which.is.a('string');
       expect(err).to.have.property('stack').which.is.a('string');
-      expect(err).to.have.property('message').which.is.a('string');
-      expect(err.message).to.contain('amount does not match prior approvals');
+      expect(err).to.have.property('message').which.is.a('string').and.contain('amount does not match prior approvals');
       let fromEndingBal = await accounts[27].getBalance();
       let toEndingWfioBal = await wfio.balanceOf(accounts[0].address);
       expect(toStartingWfioBal.lt(toEndingWfioBal)).to.be.false;
@@ -947,7 +951,7 @@ describe(`C1. wFIO wrapping`, () => {
   });
 });
 
-describe(`C2. wFIO unwrapping`, () => {
+describe(`C2. [ETH] wFIO unwrapping`, function () {
 
   let fioAccount;
   let fioTransaction;
@@ -958,25 +962,25 @@ describe(`C2. wFIO unwrapping`, () => {
   let wfio;
   let TRANSACTIION_ID;
 
-  beforeEach(async () => {
+  beforeEach(async function () {
     let _bal = await wfio.balanceOf(accounts[0].address);
-    if ( _bal.lt(100)) {
+    if ( _bal.lt(100000000000)) {
       fioTransaction = await faucet.genericAction('transferTokens', {
         payeeFioPublicKey: fioAccount.publicKey,
-        amount: 100,
+        amount: 100000000000,
         maxFee: config.api.transfer_tokens_pub_key.fee,
         technologyProviderId: ''
       })
       TRANSACTIION_ID = fioTransaction.transaction_id;
 
-      await wfio.connect(accounts[12]).wrap(accounts[0].address, 100, TRANSACTIION_ID);
-      await wfio.connect(accounts[13]).wrap(accounts[0].address, 100, TRANSACTIION_ID);
-      await wfio.connect(accounts[14]).wrap(accounts[0].address, 100, TRANSACTIION_ID);
+      await wfio.connect(accounts[12]).wrap(accounts[0].address, 100000000000, TRANSACTIION_ID);
+      await wfio.connect(accounts[13]).wrap(accounts[0].address, 100000000000, TRANSACTIION_ID);
+      await wfio.connect(accounts[14]).wrap(accounts[0].address, 100000000000, TRANSACTIION_ID);
       _bal = await wfio.balanceOf(accounts[0].address);
     }
   });
 
-  before(async () => {
+  before(async function () {
     fioAccount = await newUser(faucet);
 
     [owner, ...accounts] = await ethers.getSigners();
@@ -1025,9 +1029,9 @@ describe(`C2. wFIO unwrapping`, () => {
     });   // tests seem to pass either way...
   });
 
-  it(`Unwrap 100 wFIO`, async () => {
+  it(`Unwrap 100 wFIO`, async function () {
     let fromStartingWfioBal = await wfio.balanceOf(accounts[0].address);
-    await wfio.connect(accounts[0]).unwrap(fioAccount.address, 100);
+    await wfio.connect(accounts[0]).unwrap(fioAccount.address, 100000000000);
     let fromEndingWfioBal = await wfio.balanceOf(accounts[0].address);
     expect(fromStartingWfioBal.gt(fromEndingWfioBal))
     expect(fromEndingWfioBal.toNumber()).to.equal(0);
@@ -1035,11 +1039,11 @@ describe(`C2. wFIO unwrapping`, () => {
   });
 
   // unwrap
-  it(`invalid address, expect Error 400`, async () => {
+  it(`invalid address, expect Error 400`, async function () {
     let fromStartingWfioBal = await wfio.balanceOf(accounts[0].address);
     try {
       // TODO: what kind of checks are expected? this validation isn't enough for arbitrary strings
-      await wfio.connect(accounts[0]).unwrap("0x", 100);
+      await wfio.connect(accounts[0]).unwrap("0x", 100000000000);
     } catch (err) {
       let fromEndingWfioBal = await wfio.balanceOf(accounts[0].address);
       expect(fromEndingWfioBal.eq(fromStartingWfioBal));
@@ -1051,10 +1055,10 @@ describe(`C2. wFIO unwrapping`, () => {
     }
   });
 
-  it(`missing address, expect Error 400`, async () => {
+  it(`missing address, expect Error 400`, async function () {
     let fromStartingWfioBal = await wfio.balanceOf(accounts[0].address);
     try {
-      await wfio.connect(accounts[0]).unwrap(100);
+      await wfio.connect(accounts[0]).unwrap(100000000000);
     } catch (err) {
       let fromEndingWfioBal = await wfio.balanceOf(accounts[0].address);
       expect(fromEndingWfioBal.eq(fromStartingWfioBal));
@@ -1068,7 +1072,7 @@ describe(`C2. wFIO unwrapping`, () => {
     }
   });
 
-  it(`invalid tx amount, expect Error 400`, async () => {
+  it(`invalid tx amount, expect Error 400`, async function () {
     let fromStartingWfioBal = await wfio.balanceOf(accounts[0].address);
     try {
       let result = await wfio.connect(accounts[0]).unwrap(fioAccount.address, "text");
@@ -1085,7 +1089,7 @@ describe(`C2. wFIO unwrapping`, () => {
     }
   });
 
-  it(`missing tx amount, expect Error 400`, async () => {
+  it(`missing tx amount, expect Error 400`, async function () {
     let fromStartingWfioBal = await wfio.balanceOf(accounts[0].address);
     try {
       let result = await wfio.connect(accounts[0]).unwrap(fioAccount.address);
@@ -1101,9 +1105,11 @@ describe(`C2. wFIO unwrapping`, () => {
       expect(err.reason).to.equal('missing argument: passed to contract');
     }
   });
+
+  //todo: more unhappy paths
 });
 
-describe(`D. Approval`, () => {
+describe(`D. [ETH] Approval`, function () {
 
   let fioAccount;
   let fioTransaction;
@@ -1114,25 +1120,25 @@ describe(`D. Approval`, () => {
   let wfio;
   let TRANSACTIION_ID;
 
-  beforeEach(async () => {
+  beforeEach(async function () {
     let _bal = await wfio.balanceOf(accounts[0].address);
-    if ( _bal.lt(100)) {
+    if ( _bal.lt(100000000000)) {
       fioTransaction = await faucet.genericAction('transferTokens', {
         payeeFioPublicKey: fioAccount.publicKey,
-        amount: 100,
+        amount: 100000000000,
         maxFee: config.api.transfer_tokens_pub_key.fee,
         technologyProviderId: ''
       })
       TRANSACTIION_ID = fioTransaction.transaction_id;
 
-      await wfio.connect(accounts[12]).wrap(accounts[0].address, 100, TRANSACTIION_ID);
-      await wfio.connect(accounts[13]).wrap(accounts[0].address, 100, TRANSACTIION_ID);
-      await wfio.connect(accounts[14]).wrap(accounts[0].address, 100, TRANSACTIION_ID);
+      await wfio.connect(accounts[12]).wrap(accounts[0].address, 100000000000, TRANSACTIION_ID);
+      await wfio.connect(accounts[13]).wrap(accounts[0].address, 100000000000, TRANSACTIION_ID);
+      await wfio.connect(accounts[14]).wrap(accounts[0].address, 100000000000, TRANSACTIION_ID);
       _bal = await wfio.balanceOf(accounts[0].address);
     }
   });
 
-  before(async () => {
+  before(async function () {
     fioAccount = await newUser(faucet);
 
     [owner, ...accounts] = await ethers.getSigners();
@@ -1181,7 +1187,7 @@ describe(`D. Approval`, () => {
     });   // tests seem to pass either way...
   });
 
-  it(`get approval by obtid`, async () => {
+  it(`get approval by obtid`, async function () {
     let result = await wfio.connect(accounts[1]).getApproval(TRANSACTIION_ID);
     expect(result).to.be.a('array');
     expect(result[0]).to.be.a('object');
@@ -1190,7 +1196,7 @@ describe(`D. Approval`, () => {
   });
 
   // unhappy path
-  it(`invalid obtid`, async () => {
+  it(`invalid obtid`, async function () {
     try {
       await wfio.connect(accounts[1]).getApproval('');
     } catch (err) {
@@ -1198,7 +1204,7 @@ describe(`D. Approval`, () => {
     }
   });
 
-  it(`missing obtid`, async () => {
+  it(`missing obtid`, async function () {
     try {
       await wfio.connect(accounts[1]).getApproval();
     } catch (err) {
@@ -1208,7 +1214,7 @@ describe(`D. Approval`, () => {
 
 });
 
-describe(`E. Pausing`, () => {
+describe(`E. [ETH] Pausing`, function () {
 
   let fioAccount;
   let fioTransaction;
@@ -1219,12 +1225,12 @@ describe(`E. Pausing`, () => {
   let wfio;
   let TRANSACTIION_ID;
 
-  before(async () => {
+  before(async function () {
 
     fioAccount = await newUser(faucet);
     fioTransaction = await faucet.genericAction('transferTokens', {
       payeeFioPublicKey: fioAccount.publicKey,
-      amount: 100,
+      amount: 100000000000,
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     })
@@ -1261,11 +1267,11 @@ describe(`E. Pausing`, () => {
     await wfio.connect(accounts[7]).regoracle(accounts[14].address);
   });
 
-  it(`pause the wFIO contract`, async () => {
+  it(`pause the wFIO contract`, async function () {
     await wfio.connect(accounts[1]).pause();
     try {
       // wrapping/unwrapping is prohibited when contract is paused
-      await wfio.connect(accounts[12]).wrap(accounts[0].address, 100, TRANSACTIION_ID);
+      await wfio.connect(accounts[12]).wrap(accounts[0].address, 100000000000, TRANSACTIION_ID);
     } catch (err) {
       expect(err.message).to.contain('Pausable: paused');
     } finally {
@@ -1273,7 +1279,7 @@ describe(`E. Pausing`, () => {
     }
   });
 
-  it(`non-custodian users should not be able to pause`, async () => {
+  it(`non-custodian users should not be able to pause`, async function () {
     try {
       await wfio.connect(accounts[0]).pause()
     } catch (err) {
@@ -1293,7 +1299,7 @@ describe(`E. Pausing`, () => {
     }
   });
 
-  it(`should not be able to pause when already paused`, async () => {
+  it(`should not be able to pause when already paused`, async function () {
     await wfio.connect(accounts[1]).pause();
     try {
       await wfio.connect(accounts[1]).pause();
@@ -1305,7 +1311,7 @@ describe(`E. Pausing`, () => {
   });
 });
 
-describe(`F. Unpausing`, () => {
+describe(`F. [ETH] Unpausing`, function () {
 
   let fioAccount;
   let fioTransaction;
@@ -1316,12 +1322,12 @@ describe(`F. Unpausing`, () => {
   let wfio;
   let TRANSACTIION_ID;
 
-  before(async () => {
+  before(async function () {
 
     fioAccount = await newUser(faucet);
     fioTransaction = await faucet.genericAction('transferTokens', {
       payeeFioPublicKey: fioAccount.publicKey,
-      amount: 100,
+      amount: 100000000000,
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     })
@@ -1359,17 +1365,17 @@ describe(`F. Unpausing`, () => {
     await wfio.connect(accounts[1]).pause();
   });
 
-  it(`unpause the wFIO contract`, async () => {
+  it(`unpause the wFIO contract`, async function () {
     try {
       await wfio.connect(accounts[1]).unpause();
       // wrapping/unwrapping is prohibited when contract is paused
-      await wfio.connect(accounts[12]).wrap(accounts[0].address, 100, TRANSACTIION_ID);
+      await wfio.connect(accounts[12]).wrap(accounts[0].address, 100000000000, TRANSACTIION_ID);
     } catch (err) {
-      expect(err).to.equal(null);
+      throw err;
     }
   });
 
-  it(`non-custodian users should not be able to unpause`, async () => {
+  it(`non-custodian users should not be able to unpause`, async function () {
     await wfio.connect(accounts[1]).pause();
     try {
       await wfio.connect(accounts[0]).unpause();
@@ -1380,7 +1386,7 @@ describe(`F. Unpausing`, () => {
     }
   });
 
-  it(`should not be able to unpause when already unpaused`, async () => {
+  it(`should not be able to unpause when already unpaused`, async function () {
     try {
       await wfio.connect(accounts[1]).unpause()
     } catch (err) {
