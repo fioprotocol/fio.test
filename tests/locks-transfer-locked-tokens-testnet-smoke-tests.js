@@ -75,14 +75,6 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-function wait(ms){
-  var start = new Date().getTime();
-  var end = start;
-  while(end < start + ms) {
-    end = new Date().getTime();
-  }
-}
-
 describe(`************************** locks-transfer-locked-tokens-testnet-smoke-tests.js ************************** \n A. Parameter tests`, () => {
 
 //These tests are for test net only...

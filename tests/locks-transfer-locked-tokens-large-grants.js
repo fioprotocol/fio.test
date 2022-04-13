@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, getProdVoteTotal, fetchJson, existingUser, generateFioDomain, getAccountFromKey, callFioApi,  generateFioAddress, createKeypair} = require('../utils.js');
+const {newUser, getProdVoteTotal, fetchJson, existingUser, generateFioDomain, getAccountFromKey, callFioApi,  generateFioAddress, timeout, createKeypair} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
@@ -8,13 +8,13 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-function wait(ms){
-  var start = new Date().getTime();
-  var end = start;
-  while(end < start + ms) {
-    end = new Date().getTime();
-  }
-}
+/**
+ *  NOTE -- these tests must be run on the local 3 node test net.
+ *          they use the faucet account
+ *          they assume the faucet is given more than 100M fio.
+ * 
+ *     The test will only work the first time through since it allocates 100M FIO each call.
+ */
 
 let userA1, userA2, userA3, userA4, keys, keys1, keys2, keys3, locksdk,
     locksdk1, locksdk2, locksdk3, newFioAddress, newFioDomain, newFioDomain2, newFioAddress2,
@@ -24,14 +24,11 @@ const maxTestFundsAmount = 5000000000
 const halfundsAmount = 220000000000
 const largeGrantAmount = 100000000000000000
 
-describe(`************************** locks-transfer-locked-tokens-large-grants.js ************************** \n A. Create accounts for tests`, () => {
+describe(`************************** locks-transfer-locked-tokens-large-grants.js ************************** \n A. Large grant tests`, () => {
 
 
   it(`Create users`, async () => {
     try {
-      //NOTE -- these tests must be run on the local 3 node test net.
-      //        they use the faucet account
-      //       they assume the faucet is given more than 100M fio.
     //create SDK for the  htjonrkf1lgs account.
     keys = await createKeypair();
     //console.log("priv key ", keys.privateKey);
@@ -44,11 +41,6 @@ describe(`************************** locks-transfer-locked-tokens-large-grants.j
       console.log(err.message)
     }
   })
-})
-
-
-
-describe(`A. Large grant tests`, () => {
 
   it(`Success Test, Transfer locked tokens,  create grant of 100M`, async () => {
     try {
@@ -77,21 +69,12 @@ describe(`A. Large grant tests`, () => {
       expect(result.status).to.equal('OK')
 
     } catch (err) {
-     console.log(err.message)
+     console.log(err.message);
+     expect(err).to.equal(null);
     }
   })
 
-  it(`Waiting 25 seconds`, async () => {
-    console.log("            waiting 25 seconds ")
-  })
-
-  it(` wait 25 seconds`, async () => {
-    try {
-      wait(25000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
+  it(`Wait 25 seconds`, async () => { await timeout(25000) });
 
   //one half should get unlocked
   it(`Transfer 4900000 FIO to another account`, async () => {
@@ -107,7 +90,8 @@ describe(`A. Large grant tests`, () => {
     })
     expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
   } catch (err) {
-    console.log(err.message)
+    console.log(err.message);
+    expect(err).to.equal(null);
   }
   })
 

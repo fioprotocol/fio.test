@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, getProdVoteTotal, fetchJson, generateFioDomain, callFioApi,  generateFioAddress, createKeypair, getTestType} = require('../utils.js');
+const {newUser, getProdVoteTotal, fetchJson, generateFioDomain, callFioApi,  generateFioAddress, createKeypair, getTestType, timeout} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
 const testType = getTestType();
@@ -8,14 +8,6 @@ const testType = getTestType();
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
-
-function wait(ms){
-  var start = new Date().getTime();
-  var end = start;
-  while(end < start + ms) {
-    end = new Date().getTime();
-  }
-}
 
 let userA1, userA2, userA3, userA4, keys, keys1, keys2, keys3,keys4, locksdk,
     locksdk1, locksdk2, locksdk3,locksdk4, newFioAddress, newFioDomain, newFioDomain2, newFioAddress2,
@@ -229,66 +221,6 @@ describe(`B. Parameter tests`, () => {
               },
               {
                 duration: 120,
-                amount: 280000000000,
-              }
-            ],
-            amount: fundsAmount,
-            max_fee: 400000000000,
-            tpid: '',
-            actor: userA1.account
-          }
-
-        })
-        expect(result.status).to.not.equal('OK')
-      } catch (err) {
-        var expected = `Error 400`
-        expect(err.message).to.include(expected)
-      }
-    }
-  })
-
-  it(`(${testType}) Failure test, Transfer locked tokens to an account that already exists. Expect Error 400`, async () => {
-    if (testType == 'sdk') {
-      try {
-        const result = await userA1.sdk.genericAction('transferLockedTokens', {
-          payeePublicKey: userA1.publicKey,
-          canVote: 0,
-          periods: [
-            {
-              duration: 120,
-              amount: 220000000000,
-            },
-            {
-              duration: 240,
-              amount: 280000000000,
-            }
-          ],
-          amount: fundsAmount,
-          maxFee: 400000000000,
-          tpid: '',
-
-        })
-        expect(result.status).to.not.equal('OK')
-      } catch (err) {
-        //console.log('error: ', err)
-        var expected = `Error 400`
-        expect(err.message).to.include(expected)
-      }
-    } else {
-      try {
-        const result = await userA1.sdk.genericAction('pushTransaction', {
-          action: 'trnsloctoks',
-          account: 'fio.token',
-          data: {
-            payee_public_key: userA1.publicKey,
-            can_vote: 0,
-            periods: [
-              {
-                duration: 120,
-                amount: 220000000000,
-              },
-              {
-                duration: 240,
                 amount: 280000000000,
               }
             ],
@@ -759,7 +691,8 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
       expect(result.ram_quota).to.be.a('number')
       rambefore = result.ram_quota
     } catch (err) {
-      console.log('Error', err)
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 
@@ -791,10 +724,10 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
           tpid: '',
 
         })
-        expect(result.status).to.equal('OK')
-        expect(result).to.have.all.keys('status', 'fee_collected')
+        expect(result.status).to.equal('OK');
       } catch (err) {
-        console.log(' Error', err)
+        console.log(' Error', err);
+        expect(err).to.equal(null);
       }
     } else {
       try {
@@ -822,9 +755,9 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
 
         })
         expect(result.status).to.equal('OK')
-        expect(result).to.have.all.keys('status', 'fee_collected')
       } catch (err) {
-        console.log(' Error', err)
+        console.log(' Error', err);
+        expect(err).to.equal(null);
       }
     }
   })
@@ -858,6 +791,7 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
     expect(result.unlock_periods[1].amount).to.equal(300000000000)
     } catch (err) {
       console.log('Error', err)
+      expect(err).to.equal(null);
     }
   })
 
@@ -893,7 +827,8 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
       let diffram = ramafter-rambefore
       expect(diffram).to.equal(1152)
     } catch (err) {
-      console.log('Error', err)
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 
@@ -908,7 +843,8 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
         tpid: '',
       })
     } catch (err) {
-      console.log('Error', err)
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 
@@ -923,7 +859,8 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
       //console.log('Result', result)
       domainFee = result.fee_collected
     } catch (err) {
-      console.log('Error', err)
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 
@@ -938,7 +875,8 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
       //console.log('Result', result)
       addressFee = result.fee_collected
     } catch (err) {
-      console.log('Error', err)
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 
@@ -946,7 +884,8 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
     try {
       total_bp_votes_before = await getProdVoteTotal('bp1@dapixdev');
     } catch (err) {
-      console.log('Error: ', err)
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
     }
   })
 
@@ -966,7 +905,8 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
       })
       expect(result.status).to.equal('OK')
     } catch (err) {
-      console.log('Error: ', err.json)
+      console.log('Error: ', err.json);
+      expect(err).to.equal(null);
     }
   })
 
@@ -976,7 +916,8 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
       let diff = total_bp_votes_after - total_bp_votes_before
       expect(diff).to.equal(1000000000000 - domainFee - addressFee)
     } catch (err) {
-      console.log('Error: ', err)
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
     }
   })
 
@@ -1010,9 +951,9 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
 
       })
       expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys( 'status', 'fee_collected')
     } catch (err) {
-      console.log('Error', err)
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 
@@ -1052,7 +993,7 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
       technologyProviderId: ''
     })
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+    expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
@@ -1170,7 +1111,7 @@ describe.skip(`FUTURE FEATURE (commented out) C. staking incentives, canvote = f
           }
         })
         expect(result.status).to.equal('OK')
-        expect(result).to.have.all.keys('status', 'fee_collected')
+        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
       } catch (err) {
         console.log('edededed Error', err)
       }
@@ -1237,7 +1178,7 @@ describe.skip(`FUTURE FEATURE (commented out) C. staking incentives, canvote = f
 
         })
         expect(result.status).to.equal('OK')
-        expect(result).to.have.all.keys('status', 'fee_collected')
+        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
       } catch (err) {
         console.log('edeeedeeedeed 1 Error', err)
       }
@@ -1326,7 +1267,7 @@ describe.skip(`FUTURE FEATURE (commented out) C. staking incentives, canvote = f
 
         })
         expect(result.status).to.equal('OK')
-        expect(result).to.have.all.keys('status', 'fee_collected')
+        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
       } catch (err) {
         console.log('Error', err)
       }
@@ -1414,7 +1355,7 @@ describe.skip(`FUTURE FEATURE (commented out) C. staking incentives, canvote = f
 
         })
         expect(result.status).to.equal('OK')
-        expect(result).to.have.all.keys('status', 'fee_collected')
+        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
       } catch (err) {
         console.log('Error', err)
       }
@@ -1502,7 +1443,7 @@ describe.skip(`FUTURE FEATURE (commented out) C. staking incentives, canvote = f
 
         })
         expect(result.status).to.equal('OK')
-        expect(result).to.have.all.keys('status', 'fee_collected')
+        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
       } catch (err) {
         console.log('Error', err)
       }
@@ -1590,7 +1531,7 @@ describe.skip(`FUTURE FEATURE (commented out) C. staking incentives, canvote = f
 
         })
         expect(result.status).to.equal('OK')
-        expect(result).to.have.all.keys('status', 'fee_collected')
+        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
       } catch (err) {
         console.log('Error', err)
       }
@@ -1710,7 +1651,7 @@ describe.skip(`FUTURE FEATURE (commented out) C. staking incentives, canvote = f
 
         })
         expect(result.status).to.equal('OK')
-        expect(result).to.have.all.keys('status', 'fee_collected')
+        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
       } catch (err) {
         console.log('Error', err)
       }
@@ -1778,7 +1719,7 @@ describe.skip(`FUTURE FEATURE (commented out) C. staking incentives, canvote = f
 
         })
         expect(result.status).to.equal('OK')
-        expect(result).to.have.all.keys('status', 'fee_collected')
+        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
       } catch (err) {
         console.log('Error', err)
       }
@@ -1837,10 +1778,10 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
         }
 
       })
-      expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys( 'status', 'fee_collected')
+      expect(result.status).to.equal('OK');
     } catch (err) {
-      console.log('Error', err)
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 
@@ -1856,7 +1797,8 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
       expect(result.unlock_periods[0].amount).to.equal(250000000000)
       expect(result.unlock_periods[1].amount).to.equal(250000000000)
     } catch (err) {
-      console.log('Error', err)
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 
@@ -1869,7 +1811,8 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
         tpid: '',
       })
     } catch (err) {
-      console.log('Error', err)
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 
@@ -1882,7 +1825,8 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
         tpid: '',
       })
     } catch (err) {
-      console.log('Error', err)
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 
@@ -1895,7 +1839,8 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
         tpid: '',
       })
     } catch (err) {
-      console.log('Error', err)
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 
@@ -1905,7 +1850,7 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
       //console.log('bp1@dapixdev total_votes:', total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
-      expect(err).to.equal('null')
+      expect(err).to.equal(null);
     }
   })
 
@@ -1927,7 +1872,7 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
-      expect(err).to.equal('null')
+      expect(err).to.equal(null);
     }
   })
 
@@ -1937,7 +1882,8 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
       let diff = total_bp_votes_after - total_bp_votes_before
       expect(diff).to.equal(660000000000)
     } catch (err) {
-      console.log('Error: ', err)
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
     }
   })
 })
@@ -2161,8 +2107,7 @@ describe(`E. Token unlocking tests`, () => {
         }
 
       })
-      expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys( 'status', 'fee_collected')
+      expect(result.status).to.equal('OK');
   })
 
 
@@ -2170,13 +2115,7 @@ describe(`E. Token unlocking tests`, () => {
     console.log("            waiting 20 seconds ")
   })
 
-  it(` wait 20 seconds`, async () => {
-    try {
-     wait(20000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
+  it(`Wait 20 seconds.`, async () => { await timeout(20000) });
 
   //try to transfer whole amount, fail.
   it(`Transfer ${fundsAmount} Fail, fail to transfer entire amount`, async () => {
@@ -2195,49 +2134,38 @@ describe(`E. Token unlocking tests`, () => {
   })
 
 
-it(`Transfer 1 FIO to another account`, async () => {
-  const result = await locksdk4.genericAction('transferTokens', {
-    payeeFioPublicKey: userA1.publicKey,
-    amount: 1000000000,
-    maxFee: config.maxFee,
-    technologyProviderId: ''
-  })
-  expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
-})
+  it(`Transfer 1 FIO to another account`, async () => {
+    const result = await locksdk4.genericAction('transferTokens', {
+      payeeFioPublicKey: userA1.publicKey,
+      amount: 1000000000,
+      maxFee: config.maxFee,
+      technologyProviderId: ''
+    })
+    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  });
 
   it(`Waiting 20 seconds`, async () => {
     console.log("            waiting 20 seconds ")
   })
 
-it(` wait 20 seconds`, async () => {
-  try {
-    wait(20000)
-  } catch (err) {
-    console.log('Error', err)
-  }
-})
+  it(`Wait 20 seconds.`, async () => { await timeout(20000) });
 
 
-it(`Transfer 30 FIO to another account`, async () => {
-  const result = await locksdk4.genericAction('transferTokens', {
-    payeeFioPublicKey: userA1.publicKey,
-    amount: 30000000000,
-    maxFee: config.maxFee,
-    technologyProviderId: ''
-  })
-  expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
-})
+  it(`Transfer 30 FIO to another account`, async () => {
+    const result = await locksdk4.genericAction('transferTokens', {
+      payeeFioPublicKey: userA1.publicKey,
+      amount: 30000000000,
+      maxFee: config.maxFee,
+      technologyProviderId: ''
+    })
+    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+  });
 
   it(`Waiting 20 seconds`, async () => {
     console.log("            waiting 20 seconds ")
   })
-  it(` wait 20 seconds`, async () => {
-    try {
-      wait(20000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
+
+  it(`Wait 20 seconds.`, async () => { await timeout(20000) });
 
   it(`Transfer 13 FIO to another account`, async () => {
     const result = await locksdk4.genericAction('transferTokens', {
@@ -2248,7 +2176,7 @@ it(`Transfer 30 FIO to another account`, async () => {
     })
 
     expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
-  })
+  });
 
 })
 
@@ -2297,8 +2225,7 @@ describe(`F. Test 50 (max number) lock periods`, () => {
           actor: config.FAUCET_ACCOUNT,
         }
       })
-      expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys('status', 'fee_collected')
+      expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error', err.json)
       expect(err).to.equal(null)
@@ -2332,8 +2259,7 @@ describe(`F. Test 50 (max number) lock periods`, () => {
           actor: config.FAUCET_ACCOUNT,
         }
       })
-      expect(result.status).to.not.equal('OK')
-      expect(result).to.have.all.keys('status', 'fee_collected')
+      expect(result.status).to.not.equal('OK');
     } catch (err) {
       //console.log('Error', err.json)
       expect(err.json.fields[0].error).to.equal('Invalid number of unlock periods')
