@@ -71,6 +71,7 @@ describe('TEST SUITE', () => {
   //require('./tests/stake-tokens.js');
   //require('./tests/stake-mainnet-locked-tokens-with-staking.js'); //FIP-21 tests for genesis lock accounts performing staking
   //require('./tests/stake-rapid-unstake-with-mainnet-locks.js'); //FIP-21 tests for rapid fire unstaking in succession
+  //require('./tests/stake-regression-with-validator.js');
   //require('./tests/stake-regression.js'); //FIP-21 tests for new account calling staking using auto proxy, and full pull through to spend after unstaking unlock
   //require('./tests/stake-timing.js');
 
@@ -84,11 +85,6 @@ describe('TEST SUITE', () => {
    */
   //require('./tests/producer-fee-voting-fee-setting.js'); // FIP-10
   //require('./tests/producer-fee-setting.js');  // FIP-10
-
-  /**
-   * Expired Address and Domain Testing. Requires manual updates to contracts to shorten expiration timing
-   */
-  //require('./tests/expired-address-domain.js');
 
   /**
    * History Node tests. Only run against history node.

@@ -249,22 +249,6 @@ describe('************************** expired-address-domain.js *****************
     }
   })
 
-  it(`Transfer expired domain. Expect error type 400: ${config.error.fioDomainNeedsRenew}`, async () => {
-    try {
-      const result = await user1.sdk.genericAction('transferFioDomain', {
-        fioDomain: user1.domain,
-        newOwnerKey: user2.publicKey,
-        maxFee: config.api.transfer_fio_domain.fee,
-        technologyProviderId: ''
-      })
-      expect(result.status).to.equal(null);
-    } catch (err) {
-      //console.log('Error: ', err.json);
-      expect(err.json.fields[0].error).to.equal(config.error.fioDomainNeedsRenew);
-      expect(err.errorCode).to.equal(400);
-    }
-  })
-
   it(`Get bundle count for user1`, async () => {
     const result = await user1.sdk.genericAction('getFioNames', { fioPublicKey: user1.publicKey });
     bundleCount = result.fio_addresses[0].remaining_bundled_tx;
@@ -463,7 +447,7 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
   })
 
   it('Wait a few seconds...', async () => {
-    await timeout(2000);
+    await timeout(1000);
   })
 
   it(`TEST: remaddress`, async () => { });
@@ -823,7 +807,7 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
       //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
-      console.log('Error: ', err);
+      console.log('Error: ', err.json);
       expect(err).to.equal('null');
     }
   })
