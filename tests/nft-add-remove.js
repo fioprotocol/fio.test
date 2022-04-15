@@ -3444,6 +3444,7 @@ describe(`I. (api) Confirm that get_nfts_contract returns NFTs at a specific con
   let user1Hash, user2Hash;
 
   const fundsAmount = 10000000000000;
+  const newEthAddr = `0x${Math.random().toString(32).substr(2, 15)}`;
   const randEthAddr = `0x${Math.random().toString(32).substr(2, 15)}`;
 
   before(async () => {
@@ -3477,14 +3478,14 @@ describe(`I. (api) Confirm that get_nfts_contract returns NFTs at a specific con
         fio_address: user1.address,
         nfts: [{
           "chain_code":"ETH",
-          "contract_address":"0x123456789ABCDEF",
+          "contract_address":newEthAddr,
           "token_id":"1",
           "url":"",
           "hash":"",
           "metadata": ""
         },{
           "chain_code":"ETH",
-          "contract_address":"0x123456789ABCDEF",
+          "contract_address":newEthAddr,
           "token_id":"2",
           "url":"",
           "hash":"",
@@ -3524,10 +3525,10 @@ describe(`I. (api) Confirm that get_nfts_contract returns NFTs at a specific con
     });
     expect(user1Nfts.nfts.length).to.equal(3);
     expect(user1Nfts.nfts[0].chain_code).to.equal("ETH");
-    expect(user1Nfts.nfts[0].contract_address).to.equal("0x123456789ABCDEF");
+    expect(user1Nfts.nfts[0].contract_address).to.equal(newEthAddr);
     expect(user1Nfts.nfts[0].token_id).to.equal("1");
     expect(user1Nfts.nfts[1].chain_code).to.equal("ETH");
-    expect(user1Nfts.nfts[1].contract_address).to.equal("0x123456789ABCDEF");
+    expect(user1Nfts.nfts[1].contract_address).to.equal(newEthAddr);
     expect(user1Nfts.nfts[1].token_id).to.equal("2");
     expect(user1Nfts.nfts[2].chain_code).to.equal("ETH");
     expect(user1Nfts.nfts[2].contract_address).to.equal(randEthAddr);
@@ -3557,15 +3558,15 @@ describe(`I. (api) Confirm that get_nfts_contract returns NFTs at a specific con
     }
   });
 
-  it.skip(`BD-3265 (limit = 2) user1 calls get_nfts_contract, expect 2 NFTs`, async () => {
+  it(`(offset = 0, limit = 2) user1 calls get_nfts_contract, expect 2 NFTs`, async () => {
     try {
       const result = await callFioApi('get_nfts_contract', {
         chain_code: "ETH",
-        contract_address: "0x123456789ABCDEF",
+        contract_address: newEthAddr,
         offset: 0,
         limit: 2
       });
-      console.log('Result: ', result);
+      //console.log('Result: ', result);
       expect(result.nfts.length).to.equal(2);
     } catch (err) {
       console.log('err: ', err);
@@ -3573,16 +3574,32 @@ describe(`I. (api) Confirm that get_nfts_contract returns NFTs at a specific con
     }
   });
 
-  it(`(limit = 3, offset = 2) user1 calls get_nfts_contract, expect 3 NFTs`, async () => {
+  it(`(no offset or limit) user1 calls get_nfts_contract, expect 2 NFTs`, async () => {
     try {
       const result = await callFioApi('get_nfts_contract', {
         chain_code: "ETH",
-        contract_address: "0x123456789ABCDEF",
+        contract_address: newEthAddr
+      });
+      //console.log('Result: ', result);
+      expect(result.nfts.length).to.equal(2);
+    } catch (err) {
+      console.log('err: ', err);
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`(offset = 2, limit = 3) user1 calls get_nfts_contract, expect 0 NFTs`, async () => {
+    try {
+      const result = await callFioApi('get_nfts_contract', {
+        chain_code: "ETH",
+        contract_address: newEthAddr,
         limit: 3,
         offset: 2
       });
-      expect(result.nfts.length).to.equal(3);
+      //console.log('Result: ', result);
+      expect(result.nfts.length).to.equal(0);
     } catch (err) {
+      console.log('err: ', err);
       expect(err).to.equal(null);
     }
   });
@@ -3663,7 +3680,7 @@ describe(`I. (api) Confirm that get_nfts_contract returns NFTs at a specific con
     try {
       const result = await callFioApi('get_nfts_contract', {
         chain_code: "ETH",
-        contract_address: "0x123456789ABCDEF",
+        contract_address: newEthAddr,
         limit: -100
       });
       expect(result.nfts.length).to.equal(2);
@@ -3676,7 +3693,7 @@ describe(`I. (api) Confirm that get_nfts_contract returns NFTs at a specific con
     try {
       const result = await callFioApi('get_nfts_contract', {
         chain_code: "ETH",
-        contract_address: "0x123456789ABCDEF",
+        contract_address: newEthAddr,
         limit: "!invalID$%"
       });
       expect(result.nfts.length).to.equal(2);
@@ -3689,7 +3706,7 @@ describe(`I. (api) Confirm that get_nfts_contract returns NFTs at a specific con
     try {
       const result = await callFioApi('get_nfts_contract', {
         chain_code: "ETH",
-        contract_address: "0x123456789ABCDEF",
+        contract_address: newEthAddr,
         limit: 3,
         offset: -20
       });
@@ -3703,7 +3720,7 @@ describe(`I. (api) Confirm that get_nfts_contract returns NFTs at a specific con
     try {
       const result = await callFioApi('get_nfts_contract', {
         chain_code: "ETH",
-        contract_address: "0x123456789ABCDEF",
+        contract_address: newEthAddr,
         limit: 3,
         offset: "$invalid!#"
       });

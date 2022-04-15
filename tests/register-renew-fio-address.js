@@ -10,7 +10,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-describe(`************************** register-fio-address.js ************************** \n    A. Renew address on private domain`, () => {
+describe(`************************** register-renew-fio-address.js ************************** \n    A. Renew address on private domain`, () => {
     let user1, user2, expirationYear
 
     it(`Create users`, async () => {
@@ -70,7 +70,7 @@ describe(`************************** register-fio-address.js *******************
         })
         //console.log('Result: ', result)
         expect(parseInt(result.expiration.split('-',1))).to.equal(expirationYear)
-        expect(result).to.have.all.keys('status', 'expiration', 'fee_collected', 'block_num', 'transaction_id')
+        expect(result).to.have.all.keys('block_num', 'status', 'expiration', 'fee_collected','transaction_id')
         expect(result.status).to.be.a('string')
         expect(result.expiration).to.be.a('string')
         expect(result.fee_collected).to.be.a('number')
@@ -96,7 +96,7 @@ describe(`B. Renew address`, () => {
                 })
             //console.log('Result: ', result)
             expect(result.status).to.equal('OK');
-            expect(result).to.have.all.keys('status', 'expiration', 'fee_collected', 'block_num', 'transaction_id')
+            expect(result).to.have.all.keys('block_num', 'status', 'expiration', 'fee_collected','transaction_id')
             expect(result.status).to.be.a('string')
             expect(result.expiration).to.be.a('string')
             expect(result.fee_collected).to.be.a('number')

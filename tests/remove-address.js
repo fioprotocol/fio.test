@@ -984,7 +984,7 @@ describe(`E-2. Add and remove addresses with NO bundles remaining`, () => {
           tpid: ''
         })
         //console.log('Result:', result)
-        expect(result).to.have.all.keys('status', 'fee_collected', 'block_num', 'transaction_id')
+        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
         expect(result.fee_collected).to.equal(remove_all_pub_addresses_fee);
       } catch (err) {
         console.log('Error', err)
@@ -1064,7 +1064,7 @@ describe(`E-2. Add and remove addresses with NO bundles remaining`, () => {
           tpid: ''
         })
         //console.log('Result:', result)
-        expect(result).to.have.all.keys('status', 'fee_collected', 'block_num', 'transaction_id')
+        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
         expect(result.fee_collected).to.equal(remove_pub_address_fee);
       } catch (err) {
         console.log('Error', err)

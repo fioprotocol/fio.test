@@ -501,6 +501,7 @@ describe(`C. FIP-13. Get_pub_addresses endpoint`, () => {
         })
         //console.log('Result:', result)
         expect(result).to.have.all.keys('status', 'fee_collected', 'block_num', 'transaction_id')
+        expect(result.status).to.equal('OK');
       } catch (err) {
         console.log('Error', err)
         expect(err).to.equal(null)
@@ -646,6 +647,7 @@ describe(`FIP18. Chain-level addressing`, () => {
             })
             //console.log('Result:', result)
             expect(result).to.have.all.keys('status', 'fee_collected', 'block_num', 'transaction_id');
+            expect(result.status).to.equal('OK');
         } catch (err) {
             console.log('Error', err)
             expect(err).to.equal(null)
