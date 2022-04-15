@@ -672,6 +672,7 @@ describe('B. Testing domain actions', () => {
       expect(result.fee_collected).to.be.a('number')
     } catch (e) {
       console.log(e);
+      expect(err).to.equal(null);
     }
   })
 
@@ -1222,7 +1223,7 @@ describe('I. Check prepared transaction', () => {
 
     } catch (err) {
       console.log('Error: ', err)
-      expect(err).to.equal(null)
+      expect(err).to.equal(null);
     }
   })
 })
