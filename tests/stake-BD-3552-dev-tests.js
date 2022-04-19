@@ -25,10 +25,11 @@ const UNSTAKELOCKDURATIONSECONDS = config.UNSTAKELOCKDURATIONSECONDS;
 const SECONDSPERDAY = config.SECONDSPERDAY;
 const INITIALROE = '0.500000000000000';
 
+
 describe(`************************** stake-BD-3552-dev-tests.js ************************** \n    A. Stake tokens using auto proxy without voting first.`, () => {
 
 
-  let userA1, proxy1, staker1, staker2, user2, lockDuration, prevBalance, prevAvailable, prevStaked, prevSrps
+  let userA1, proxy1, lockDuration, prevBalance, prevAvailable, prevStaked, prevSrps
   let durActual1, durActual2, durActual3, durActual4, durActual5
   let dayNumber = 0
 
@@ -51,11 +52,6 @@ describe(`************************** stake-BD-3552-dev-tests.js ****************
   before(async () => {
     userA1 = await newUser(faucet);
     proxy1 = await newUser(faucet);
-
-    keys = await createKeypair();
-    staker1 = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
-    staker2 = await newUser(faucet);
-    user2 = await newUser(faucet);
     
     console.log("TPId account is ",proxy1.account)
 
@@ -69,14 +65,6 @@ describe(`************************** stake-BD-3552-dev-tests.js ****************
     expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
 
     console.log('userA1.publicKey: ', userA1.publicKey);
-
-    const result2 = await faucet.genericAction('transferTokens', {
-      payeeFioPublicKey: staker1.publicKey,
-      amount: transferAmount1,
-      maxFee: config.maxFee,
-      technologyProviderId: ''
-    })
-    expect(result2).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
 
   })
 
@@ -298,7 +286,114 @@ describe(`************************** stake-BD-3552-dev-tests.js ****************
     }
   })
 
-  it.skip(`Confirm staker1, with no FIO Address and thus no bundles, can stake with autoproxy`, async () => {
+})
+
+
+describe(`B. Stake with empty FIO Address. Confirm autoproxy and staking works.`, () => {
+
+  let proxy1, staker1
+
+  const stakeAmount2 = 500000000000       // 500 FIO
+  const transferAmount1 = 2000000000000  // 2000 FIO
+
+  before(async () => {
+    proxy1 = await newUser(faucet);
+
+    keys = await createKeypair();
+    staker1 = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+
+    const result = await faucet.genericAction('transferTokens', {
+      payeeFioPublicKey: staker1.publicKey,
+      amount: transferAmount1,
+      maxFee: config.maxFee,
+      technologyProviderId: ''
+    })
+    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+    
+  })
+
+  it('Confirm TPID account: not in the voters table', async () => {
+    let inVotersTable;
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        limit: 1000,
+        reverse: false,
+        show_payer: false
+      }
+      const voters = await callFioApi("get_table_rows", json);
+      //console.log('voters: ', voter);
+      inVotersTable = false;
+      for (voter in voters.rows) {
+        if (voters.rows[voter].owner == proxy1.account) {
+          inVotersTable = true;
+          break;
+        }
+      }
+      expect(inVotersTable).to.equal(false)
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Register TPID account as a proxy`, async () => {
+    try {
+      const result = await proxy1.sdk.genericAction('pushTransaction', {
+        action: 'regproxy',
+        account: 'eosio',
+        data: {
+          fio_address: proxy1.address,
+          actor: proxy1.account,
+          max_fee: config.maxFee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it('Confirm TPID account: is_proxy = 1, is_auto_proxy = 0', async () => {
+    let inVotersTable;
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        limit: 1000,
+        reverse: false,
+        show_payer: false
+      }
+      inVotersTable = false;
+      voters = await callFioApi("get_table_rows", json);
+      //console.log('voters: ', voter);
+      for (voter in voters.rows) {
+        if (voters.rows[voter].owner == proxy1.account) {
+          inVotersTable = true;
+          //console.log('TPID INFO from voters for account ', proxy1.account)
+          //console.log('voters.rows[voter].is_proxy: ', voters.rows[voter].is_proxy);
+          //console.log('voters.rows[voter].is_auto_proxy: ', voters.rows[voter].is_auto_proxy);
+          //console.log('voters.rows[voter].proxy: ', voters.rows[voter].proxy);
+          break;
+        }
+      }
+      expect(voters.rows[voter].is_auto_proxy).to.equal(0);
+      expect(voters.rows[voter].is_proxy).to.equal(1);
+      expect(inVotersTable).to.equal(true)
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`staker1 has no FIO Address (and thus no bundles). Confirm stake with autoproxy succeeds.`, async () => {
     try {
       const result = await staker1.genericAction('pushTransaction', {
         action: 'stakefio',
@@ -318,7 +413,102 @@ describe(`************************** stake-BD-3552-dev-tests.js ****************
     }
   })
 
-  it(`Using up staker2 bunldes...`, async () => { });
+})
+
+describe(`C. User has FIO address with NO bundles. Confirm autoproxy and staking works.`, () => {
+
+  let proxy1, staker2, user2;
+
+  const stakeAmount2 = 500000000000       // 500 FIO
+
+  before(async () => {
+    proxy1 = await newUser(faucet);
+    staker2 = await newUser(faucet);
+    user2 = await newUser(faucet);
+  })
+
+  it('Confirm TPID account: not in the voters table', async () => {
+    let inVotersTable;
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        limit: 1000,
+        reverse: false,
+        show_payer: false
+      }
+      const voters = await callFioApi("get_table_rows", json);
+      //console.log('voters: ', voter);
+      inVotersTable = false;
+      for (voter in voters.rows) {
+        if (voters.rows[voter].owner == proxy1.account) {
+          inVotersTable = true;
+          break;
+        }
+      }
+      expect(inVotersTable).to.equal(false)
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Register TPID account as a proxy`, async () => {
+    try {
+      const result = await proxy1.sdk.genericAction('pushTransaction', {
+        action: 'regproxy',
+        account: 'eosio',
+        data: {
+          fio_address: proxy1.address,
+          actor: proxy1.account,
+          max_fee: config.maxFee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it('Confirm TPID account: is_proxy = 1, is_auto_proxy = 0', async () => {
+    let inVotersTable;
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        limit: 1000,
+        reverse: false,
+        show_payer: false
+      }
+      inVotersTable = false;
+      voters = await callFioApi("get_table_rows", json);
+      //console.log('voters: ', voter);
+      for (voter in voters.rows) {
+        if (voters.rows[voter].owner == proxy1.account) {
+          inVotersTable = true;
+          //console.log('TPID INFO from voters for account ', proxy1.account)
+          //console.log('voters.rows[voter].is_proxy: ', voters.rows[voter].is_proxy);
+          //console.log('voters.rows[voter].is_auto_proxy: ', voters.rows[voter].is_auto_proxy);
+          //console.log('voters.rows[voter].proxy: ', voters.rows[voter].proxy);
+          break;
+        }
+      }
+      expect(voters.rows[voter].is_auto_proxy).to.equal(0);
+      expect(voters.rows[voter].is_proxy).to.equal(1);
+      expect(inVotersTable).to.equal(true)
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Using up staker2 bundles...`, async () => { });
 
   it(`Use up all of staker2's bundles with 51 record_obt_data transactions`, async () => {
     for (i = 0; i < 51; i++) {
@@ -371,25 +561,25 @@ describe(`************************** stake-BD-3552-dev-tests.js ****************
     }
   })
 
-  it.skip(`Confirm staker2, with a FIO Address with NO bundles, can stake with autoproxy`, async () => {
+  it(`staker2 has a FIO Address with NO bundles. Verify staker2 can stake with autoproxy`, async () => {
     try {
-      const result = await staker1.genericAction('pushTransaction', {
+      const result = await staker2.sdk.genericAction('pushTransaction', {
         action: 'stakefio',
         account: 'fio.staking',
         data: {
           fio_address: staker2.address,
           amount: stakeAmount2,
-          actor: staker1.account,
+          actor: staker2.account,
           max_fee: config.maxFee,
           tpid: proxy1.address
         }
       })
       expect(result.status).to.equal('OK')
     } catch (err) {
-      console.log("Error : ", err);
+      console.log("Error : ", err.json.error);
       expect(err).to.equal(null);
     }
   })
 
-})
 
+})
