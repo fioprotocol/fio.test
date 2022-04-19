@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, callFioApi,fetchJson, timeout} = require('../utils.js');
+const {newUser, callFioApi,fetchJson, createKeypair} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 const config = require('../config.js');
 let faucet;
@@ -25,10 +25,10 @@ const UNSTAKELOCKDURATIONSECONDS = config.UNSTAKELOCKDURATIONSECONDS;
 const SECONDSPERDAY = config.SECONDSPERDAY;
 const INITIALROE = '0.500000000000000';
 
-describe(`************************** stake-regression.js ************************** \n    A. Stake tokens using auto proxy without voting first.`, () => {
+describe.only(`************************** stake-BD-3552-dev-tests.js ************************** \n    A. Stake tokens using auto proxy without voting first.`, () => {
 
 
-  let userA1, proxy1, lockDuration, prevBalance, prevAvailable, prevStaked, prevSrps
+  let userA1, proxy1, staker1, staker2, user2, lockDuration, prevBalance, prevAvailable, prevStaked, prevSrps
   let durActual1, durActual2, durActual3, durActual4, durActual5
   let dayNumber = 0
 
@@ -52,18 +52,31 @@ describe(`************************** stake-regression.js ***********************
     userA1 = await newUser(faucet);
     proxy1 = await newUser(faucet);
 
+    keys = await createKeypair();
+    staker1 = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+    staker2 = await newUser(faucet);
+    user2 = await newUser(faucet);
+    
     console.log("TPId account is ",proxy1.account)
 
-    //now transfer 1k fio from the faucet to this account
+    //now transfer 1k fio from the faucet to accounts
     const result = await faucet.genericAction('transferTokens', {
       payeeFioPublicKey: userA1.publicKey,
       amount: transferAmount1,
-      maxFee: config.api.transfer_tokens_pub_key.fee,
+      maxFee: config.maxFee,
       technologyProviderId: ''
     })
     expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
 
-    console.log('userA1.publicKey: ', userA1.publicKey)
+    console.log('userA1.publicKey: ', userA1.publicKey);
+
+    const result2 = await faucet.genericAction('transferTokens', {
+      payeeFioPublicKey: staker1.publicKey,
+      amount: transferAmount1,
+      maxFee: config.maxFee,
+      technologyProviderId: ''
+    })
+    expect(result2).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
 
   })
 
@@ -216,7 +229,8 @@ describe(`************************** stake-regression.js ***********************
 
       expect(result.status).to.equal('OK')
     } catch (err) {
-      console.log("Error : ", err)
+      console.log("Error : ", err);
+      expect(err).to.equal(null);
      // expect(err.json.fields[0].error).to.contain('has not voted')
     }
   })
@@ -284,7 +298,98 @@ describe(`************************** stake-regression.js ***********************
     }
   })
 
+  it.skip(`Confirm staker1, with no FIO Address and thus no bundles, can stake with autoproxy`, async () => {
+    try {
+      const result = await staker1.genericAction('pushTransaction', {
+        action: 'stakefio',
+        account: 'fio.staking',
+        data: {
+          fio_address: '',
+          amount: stakeAmount2,
+          actor: staker1.account,
+          max_fee: config.maxFee,
+          tpid: proxy1.address
+        }
+      })
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log("Error : ", err.json.error);
+      expect(err).to.equal(null);
+    }
+  })
 
+  it(`Using up staker2 bunldes...`, async () => { });
+
+  it(`Use up all of staker2's bundles with 51 record_obt_data transactions`, async () => {
+    for (i = 0; i < 51; i++) {
+      try {
+        const result = await staker2.sdk.genericAction('recordObtData', {
+          payerFioAddress: staker2.address,
+          payeeFioAddress: user2.address,
+          payerTokenPublicAddress: staker2.publicKey,
+          payeeTokenPublicAddress: user2.publicKey,
+          amount: 5000000000,
+          chainCode: "BTC",
+          tokenCode: "BTC",
+          status: '',
+          obtId: '',
+          maxFee: config.maxFee,
+          technologyProviderId: '',
+          payeeFioPublicKey: staker2.publicKey,
+          memo: '',
+          hash: '',
+          offLineUrl: ''
+        })
+        //console.log('Result: ', result)
+        expect(result.status).to.equal('sent_to_blockchain')
+      } catch (err) {
+        console.log('Error', err)
+        expect(err).to.equal(null)
+      }
+    }
+  })
+
+  it('Call get_table_rows from fionames to get bundles remaining for staker2. Verify 0 bundles', async () => {
+    try {
+      const json = {
+        json: true,
+        code: 'fio.address',
+        scope: 'fio.address',
+        table: 'fionames',
+        lower_bound: staker2.account,
+        upper_bound: staker2.account,
+        key_type: "i64",
+        index_position: "4"
+      }
+      fionames = await callFioApi("get_table_rows", json);
+      //console.log('fionames: ', fionames);
+      const bundleCount = fionames.rows[0].bundleeligiblecountdown;
+      expect(bundleCount).to.equal(0);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it.skip(`Confirm staker2, with a FIO Address with NO bundles, can stake with autoproxy`, async () => {
+    try {
+      const result = await staker1.genericAction('pushTransaction', {
+        action: 'stakefio',
+        account: 'fio.staking',
+        data: {
+          fio_address: staker2.address,
+          amount: stakeAmount2,
+          actor: staker1.account,
+          max_fee: config.maxFee,
+          tpid: proxy1.address
+        }
+      })
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log("Error : ", err);
+      expect(err).to.equal(null);
+    }
+  })
 
 })
 
