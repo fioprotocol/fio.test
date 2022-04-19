@@ -25,7 +25,7 @@ const UNSTAKELOCKDURATIONSECONDS = config.UNSTAKELOCKDURATIONSECONDS;
 const SECONDSPERDAY = config.SECONDSPERDAY;
 const INITIALROE = '0.500000000000000';
 
-describe.only(`************************** stake-BD-3552-dev-tests.js ************************** \n    A. Stake tokens using auto proxy without voting first.`, () => {
+describe(`************************** stake-BD-3552-dev-tests.js ************************** \n    A. Stake tokens using auto proxy without voting first.`, () => {
 
 
   let userA1, proxy1, staker1, staker2, user2, lockDuration, prevBalance, prevAvailable, prevStaked, prevSrps
