@@ -70,7 +70,6 @@ describe(`************************** register-fio-address.js *******************
         })
         //console.log('Result: ', result)
         expect(parseInt(result.expiration.split('-',1))).to.equal(expirationYear)
-        expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
         expect(result.status).to.be.a('string')
         expect(result.expiration).to.be.a('string')
         expect(result.fee_collected).to.be.a('number')
@@ -96,7 +95,6 @@ describe(`B. Renew address`, () => {
                 })
             //console.log('Result: ', result)
             expect(result.status).to.equal('OK');
-            expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
             expect(result.status).to.be.a('string')
             expect(result.expiration).to.be.a('string')
             expect(result.fee_collected).to.be.a('number')

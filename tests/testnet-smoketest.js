@@ -250,7 +250,7 @@ describe('B. Testing domain actions', () => {
   it(`Register fio domain`, async () => {
     const result = await fioSdk2.sdk.genericAction('registerFioDomain', { fioDomain: newFioDomain, maxFee: defaultFee })
     //console.log('New Domain: ', newFioDomain)
-    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected', 'transaction_id', 'block_num')
     expect(result.status).to.be.a('string')
     expect(result.expiration).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
@@ -259,7 +259,7 @@ describe('B. Testing domain actions', () => {
   it(`Renew fio domain`, async () => {
     const result = await fioSdk2.sdk.genericAction('renewFioDomain', { fioDomain: newFioDomain, maxFee: defaultFee })
 
-    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected', 'transaction_id', 'block_num')
     expect(result.status).to.be.a('string')
     expect(result.expiration).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
@@ -273,7 +273,7 @@ describe('B. Testing domain actions', () => {
       technologyProviderId: ''
     })
 
-    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result).to.have.all.keys('status', 'fee_collected', 'transaction_id', 'block_num')
     expect(result.status).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
   })
@@ -284,7 +284,7 @@ describe('B. Testing domain actions', () => {
       maxFee: defaultFee
     })
 
-    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected', 'transaction_id', 'block_num')
     expect(result.status).to.be.a('string')
     expect(result.expiration).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
@@ -316,7 +316,7 @@ describe('B. Testing domain actions', () => {
       ownerPublicKey: publicKey2,
       maxFee: defaultFee
     })
-    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected', 'transaction_id', 'block_num')
     expect(result.status).to.be.a('string')
     expect(result.expiration).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
@@ -330,7 +330,7 @@ describe('B. Testing domain actions', () => {
       technologyProviderId: ''
     })
 
-    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result).to.have.all.keys('status', 'fee_collected', 'transaction_id', 'block_num')
     expect(result.status).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
   })
@@ -345,7 +345,7 @@ describe('B. Testing domain actions', () => {
       technologyProviderId: ''
     })
 
-    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result).to.have.all.keys('status', 'fee_collected', 'transaction_id', 'block_num')
     expect(result.status).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
   })
@@ -366,7 +366,7 @@ describe('B. Testing domain actions', () => {
       maxFee: defaultFee
     })
 
-    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result).to.have.all.keys('status', 'fee_collected', 'transaction_id', 'block_num')
     expect(result.status).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
   })
@@ -393,7 +393,7 @@ describe('B. Testing domain actions', () => {
         maxFee: defaultFee
       })
       //console.log('Result: ', result)
-      expect(result).to.have.all.keys('status', 'fee_collected')
+      expect(result).to.have.all.keys('status', 'fee_collected', 'transaction_id', 'block_num')
       expect(result.status).to.be.a('string')
       expect(result.fee_collected).to.be.a('number')
     } catch (err) {
@@ -427,7 +427,7 @@ describe('B. Testing domain actions', () => {
   it(`Renew fio address`, async () => {
     const result = await fioSdk2.sdk.genericAction('renewFioAddress', { fioAddress: newFioAddress, maxFee: defaultFee })
 
-    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected', 'transaction_id', 'block_num')
     expect(result.status).to.be.a('string')
     expect(result.expiration).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
@@ -445,7 +445,7 @@ describe('B. Testing domain actions', () => {
       }
     })
 
-    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected', 'transaction_id', 'block_num')
     expect(result.status).to.be.a('string')
     expect(result.expiration).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
@@ -475,7 +475,7 @@ describe('B. Testing domain actions', () => {
       maxFee: defaultFee,
       technologyProviderId: ''
     })
-    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result).to.have.all.keys('status', 'fee_collected', 'transaction_id', 'block_num')
     expect(result.status).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
   } catch (err) {
@@ -503,7 +503,7 @@ describe('B. Testing domain actions', () => {
       technologyProviderId: ''
     })
 
-    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result).to.have.all.keys('status', 'fee_collected', 'transaction_id', 'block_num')
     expect(result.status).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
   })
@@ -531,7 +531,7 @@ describe('B. Testing domain actions', () => {
       maxFee: defaultFee,
       technologyProviderId: ''
     })
-    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result).to.have.all.keys('status', 'fee_collected', 'transaction_id', 'block_num')
     expect(result.status).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
   })
@@ -565,7 +565,7 @@ describe('B. Testing domain actions', () => {
       maxFee: defaultFee,
       technologyProviderId: ''
     })
-    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result).to.have.all.keys('status', 'fee_collected', 'transaction_id', 'block_num')
     expect(result.status).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
   })
@@ -647,7 +647,7 @@ describe('B. Testing domain actions', () => {
       newOwnerKey: fioSdk.publicKey,
       maxFee: defaultFee
     })
-    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result).to.have.all.keys('status', 'fee_collected', 'transaction_id', 'block_num')
     expect(result.status).to.equal('OK')
     expect(result.fee_collected).to.be.a('number')
   })
@@ -667,11 +667,12 @@ describe('B. Testing domain actions', () => {
           fioAddress: newFioAddress,
           maxFee: defaultFee
       })
-      expect(result).to.have.all.keys('status', 'fee_collected')
+      expect(result).to.have.all.keys('status', 'fee_collected', 'transaction_id', 'block_num')
       expect(result.status).to.be.a('string')
       expect(result.fee_collected).to.be.a('number')
     } catch (e) {
       console.log(e);
+      expect(err).to.equal(null);
     }
   })
 
@@ -708,7 +709,7 @@ describe('C. Request funds, approve and send', () => {
     })
     //console.log('requestFunds: ', result)
     requestId = result.fio_request_id
-    expect(result).to.have.all.keys('fio_request_id', 'status', 'fee_collected')
+    expect(result).to.have.all.keys('fio_request_id', 'status', 'fee_collected', 'transaction_id', 'block_num')
     expect(result.fio_request_id).to.be.a('number')
     expect(result.status).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
@@ -751,7 +752,7 @@ describe('C. Request funds, approve and send', () => {
       obtId: '',
       maxFee: defaultFee,
     })
-    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result).to.have.all.keys('status', 'fee_collected', 'transaction_id', 'block_num')
     expect(result.status).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
   })
@@ -822,7 +823,7 @@ describe('D. Request funds, cancel funds request', () => {
     })
 
     requestId = result.fio_request_id
-    expect(result).to.have.all.keys('fio_request_id', 'status', 'fee_collected')
+    expect(result).to.have.all.keys('fio_request_id', 'status', 'fee_collected', 'transaction_id', 'block_num')
     expect(result.fio_request_id).to.be.a('number')
     expect(result.status).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
@@ -835,7 +836,7 @@ describe('D. Request funds, cancel funds request', () => {
       maxFee: defaultFee,
       tpid: ''
     })
-    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result).to.have.all.keys('status', 'fee_collected', 'transaction_id', 'block_num')
     expect(result.status).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
     } catch (e) {
@@ -884,7 +885,7 @@ describe('E. Request funds, reject', () => {
     })
 
     requestId = result.fio_request_id
-    expect(result).to.have.all.keys('fio_request_id', 'status', 'fee_collected')
+    expect(result).to.have.all.keys('fio_request_id', 'status', 'fee_collected', 'transaction_id', 'block_num')
     expect(result.fio_request_id).to.be.a('number')
     expect(result.status).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
@@ -922,7 +923,7 @@ describe('E. Request funds, reject', () => {
       maxFee: defaultFee,
     })
 
-    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result).to.have.all.keys('status', 'fee_collected', 'transaction_id', 'block_num')
     expect(result.status).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
   })
@@ -987,7 +988,7 @@ describe('G. Record obt data, check', () => {
       obtId,
       maxFee: defaultFee,
     })
-    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result).to.have.all.keys('status', 'fee_collected', 'transaction_id', 'block_num')
     expect(result.status).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
   })
@@ -1222,7 +1223,7 @@ describe('I. Check prepared transaction', () => {
 
     } catch (err) {
       console.log('Error: ', err)
-      expect(err).to.equal(null)
+      expect(err).to.equal(null);
     }
   })
 })
