@@ -78,7 +78,8 @@ describe(`************************** locks-transfer-locked-tokens-account-tests.
         expect(result.status).to.equal('OK')
         expect(result).to.have.all.keys( 'block_num', 'fee_collected', 'status', 'transaction_id')
       } catch (err) {
-        console.log('Error', err)
+        console.log('Error', err);
+        expect(err).to.equal(null);
       }
     } else {  
       try {
@@ -108,7 +109,8 @@ describe(`************************** locks-transfer-locked-tokens-account-tests.
         expect(result.status).to.equal('OK')
         expect(result).to.have.all.keys( 'block_num', 'fee_collected', 'status', 'transaction_id')
       } catch (err) {
-        console.log(' Error', err)
+        console.log(' Error', err);
+        expect(err).to.equal(null);
       }
     }
   })
@@ -167,7 +169,8 @@ describe(`************************** locks-transfer-locked-tokens-account-tests.
         expect(result.status).to.equal('OK')
         expect(result).to.have.all.keys( 'block_num', 'fee_collected', 'status', 'transaction_id')
       } catch (err) {
-        console.log(' Error', err)
+        console.log(' Error', err);
+        expect(err).to.equal(null);
       }
     }
   })

@@ -141,7 +141,7 @@ describe(`************************** fio-request.js ************************** \
       }
     })
   
-  it.skip(`BUG BD-2992 userA1 requests funds from userA2`, async () => {
+  it(`BUG BD-2992 userA1 requests funds from userA2`, async () => {
     try {
       const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'newfundsreq',
@@ -164,7 +164,7 @@ describe(`************************** fio-request.js ************************** \
       //console.log('Result: ', result)
       expect(result.status).to.equal('requested')
     } catch (err) {
-      console.log('Error: ', err.json)
+      console.log('Error: ', err)
       expect(err).to.equal(null)
     }
   })
@@ -1220,7 +1220,7 @@ describe(`C. cancel_funds_request with bundles remaining`, () => {
         technologyProviderId: ''
       })
       //console.log('Result: ', result);
-      expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+      expect(result).to.have.all.keys('status', 'fee_collected', 'block_num', 'transaction_id');
       expect(result.status).to.equal('cancelled');
       expect(result.fee_collected).to.equal(0);
     } catch (err) {

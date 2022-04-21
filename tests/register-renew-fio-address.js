@@ -208,7 +208,7 @@ describe(`C. Register Address for other user and confirm get_fio_balance returns
                 "fio_public_key": user1Keys.publicKey
             }
             result = await callFioApi("get_fio_balance", json);
-            console.log('user1 balance', result);
+            //console.log('user1 balance', result);
         } catch (err) {
             //console.log('Error', err);
             expect(err).to.equal(null);

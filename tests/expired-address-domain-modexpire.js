@@ -210,22 +210,6 @@ describe('************************** expired-address-domain-modexpire.js *******
     }
   })
 
-  it(`Falure test. Transfer expired domain. Expect error type 400: ${config.error.fioDomainNeedsRenew}`, async () => {
-    try {
-      const result = await user1.sdk.genericAction('transferFioDomain', {
-        fioDomain: user1.domain,
-        newOwnerKey: user2.publicKey,
-        maxFee: config.api.transfer_fio_domain.fee,
-        technologyProviderId: ''
-      })
-      expect(result.status).to.not.equal('OK');
-    } catch (err) {
-      //console.log('Error: ', err.json);
-      expect(err.json.fields[0].error).to.equal(config.error.fioDomainNeedsRenew);
-      expect(err.errorCode).to.equal(400);
-    }
-  })
-
   it(`Burn user1.address. Expect success since Addresses no longer expire (BD-2475)`, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
