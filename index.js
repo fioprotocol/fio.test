@@ -13,21 +13,14 @@ describe('TEST SUITE', () => {
    * FIO token wrapping and unwrapping (FIP-17a)
    * FIO domain wrapping and unwrapping (FIP-17b)
    */
-  describe.only(`** FIP-17a and b - WRAPPING TESTS **`, function () {
+  describe.skip(`** FIP-17a and b - WRAPPING TESTS **`, function () {
 
-    // require('./tests/fio-erc20');
-    //
-    // require('./tests/fio-erc721');
-
+    require('./tests/fio-erc20');
+    require('./tests/fio-erc721');
     require('./tests/fio-token-wrapping-sdk');
-
     require('./tests/fio-token-wrapping-api');
-
     require('./tests/fio-domain-wrapping-sdk');
-
     require('./tests/fio-domain-wrapping-api');
-
-    // require('./tests/fio-wrapping-integration-tests');
   });
 
   /**
