@@ -3,13 +3,10 @@
     "version": "1.0.0",
     "license": "MIT",
     "dependencies": {
-        "@fioprotocol/fiosdk": "1.6.0",
-        "child_process": "",
+        "@fioprotocol/fiosdk": "github:fioprotocol/fiosdk_typescript#0bc99a5b",
         "mathjs": "^9.4.4",
-        "lossless-json": "",
         "process": "^0.11.10",
         "request": "^2.34.0",
-        "request-promise": "",
         "semver": "^7.1.1",
         "submodules": "^3.0.0"
     },
