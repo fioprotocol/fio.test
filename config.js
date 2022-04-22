@@ -313,7 +313,7 @@ const config = {
         },
         buy_domain: {
             bundledEligible: false,
-            fee: 1000000000
+            fee: 2000000000
         },
         set_marketplace_config: {
             bundledEligible: false,
@@ -373,7 +373,7 @@ const config = {
         XFERADDRESSRAM: 512,
         CANCELFUNDSRAM: 512,
         BUNDLEVOTERAM: 0,
-        FIOESCROWRAM: 512,
+        FIOESCROWRAM: 1536,
         ADDNFTRAMBASE: 512,
         ADDNFTRAM: 2048,
         STAKEFIOTOKENSRAM: 512,
