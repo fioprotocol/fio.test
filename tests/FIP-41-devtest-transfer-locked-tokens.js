@@ -56,20 +56,17 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
     test5 = await newUser(faucet);
     test6 = await newUser(faucet);
 
-
-
-
     keys = await createKeypair();
-    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
-    keys1 = await createKeypair();
-    locksdk1 = new FIOSDK(keys1.privateKey, keys1.publicKey, config.BASE_URL, fetchJson);
-    keys2 = await createKeypair();
-    locksdk2 = new FIOSDK(keys2.privateKey, keys2.publicKey, config.BASE_URL, fetchJson);
-    // console.log("account for keys2 is ",keys2.account)
-    keys3 = await createKeypair();
-    locksdk3 = new FIOSDK(keys3.privateKey, keys3.publicKey, config.BASE_URL, fetchJson);
-    keys4 = await createKeypair();
-    locksdk4 = new FIOSDK(keys4.privateKey, keys4.publicKey, config.BASE_URL, fetchJson);
+    // locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+    // keys1 = await createKeypair();
+    // locksdk1 = new FIOSDK(keys1.privateKey, keys1.publicKey, config.BASE_URL, fetchJson);
+    // keys2 = await createKeypair();
+    // locksdk2 = new FIOSDK(keys2.privateKey, keys2.publicKey, config.BASE_URL, fetchJson);
+    // // console.log("account for keys2 is ",keys2.account)
+    // keys3 = await createKeypair();
+    // locksdk3 = new FIOSDK(keys3.privateKey, keys3.publicKey, config.BASE_URL, fetchJson);
+    // keys4 = await createKeypair();
+    // locksdk4 = new FIOSDK(keys4.privateKey, keys4.publicKey, config.BASE_URL, fetchJson);
   });
 
   it(`(${testType}) Failure test, Transfer locked tokens,  periods total not equal to amount`, async () => {
@@ -96,7 +93,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
         expect(result.status).to.not.equal('OK')
       } catch (err) {
         //console.error('error: ', err);
-        var expected = `Error 400`
+        let expected = `Error 400`
         expect(err.message).to.include(expected)
       }
     } else {  
@@ -219,7 +216,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
         expect(result.status).to.not.equal('OK')
       } catch (err) {
         //console.error('error: ', err);
-        var expected = `Error 400`
+        let expected = `Error 400`
         expect(err.message).to.include(expected)
       }
     } else {
@@ -1743,20 +1740,17 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
     test5 = await newUser(faucet);
     test6 = await newUser(faucet);
 
-
-
-
     keys = await createKeypair();
-    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
-    keys1 = await createKeypair();
-    locksdk1 = new FIOSDK(keys1.privateKey, keys1.publicKey, config.BASE_URL, fetchJson);
-    keys2 = await createKeypair();
-    locksdk2 = new FIOSDK(keys2.privateKey, keys2.publicKey, config.BASE_URL, fetchJson);
-    //console.log("account for keys2 is ",keys2.account)
-    keys3 = await createKeypair();
-    locksdk3 = new FIOSDK(keys3.privateKey, keys3.publicKey, config.BASE_URL, fetchJson);
-    keys4 = await createKeypair();
-    locksdk4 = new FIOSDK(keys4.privateKey, keys4.publicKey, config.BASE_URL, fetchJson);
+    // locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+    // keys1 = await createKeypair();
+    // locksdk1 = new FIOSDK(keys1.privateKey, keys1.publicKey, config.BASE_URL, fetchJson);
+    // keys2 = await createKeypair();
+    // locksdk2 = new FIOSDK(keys2.privateKey, keys2.publicKey, config.BASE_URL, fetchJson);
+    // //console.log("account for keys2 is ",keys2.account)
+    // keys3 = await createKeypair();
+    // locksdk3 = new FIOSDK(keys3.privateKey, keys3.publicKey, config.BASE_URL, fetchJson);
+    // keys4 = await createKeypair();
+    // locksdk4 = new FIOSDK(keys4.privateKey, keys4.publicKey, config.BASE_URL, fetchJson);
   });
 
   it(`(non-SDK) Failure test, Transfer locked tokens, periods total not equal to amount`, async () => {
@@ -2754,24 +2748,12 @@ describe(`C. Try to transfer more locked tokens than available`, function () {
     test4 = await newUser(faucet);
     test5 = await newUser(faucet);
     test6 = await newUser(faucet);
-
-    keys = await createKeypair();
-    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
-    keys1 = await createKeypair();
-    locksdk1 = new FIOSDK(keys1.privateKey, keys1.publicKey, config.BASE_URL, fetchJson);
-    keys2 = await createKeypair();
-    locksdk2 = new FIOSDK(keys2.privateKey, keys2.publicKey, config.BASE_URL, fetchJson);
-    // console.log("account for keys2 is ",keys2.account)
-    keys3 = await createKeypair();
-    locksdk3 = new FIOSDK(keys3.privateKey, keys3.publicKey, config.BASE_URL, fetchJson);
-    keys4 = await createKeypair();
-    locksdk4 = new FIOSDK(keys4.privateKey, keys4.publicKey, config.BASE_URL, fetchJson);
   });
 
   let preTransferA1Bal, postTransferA1Bal;
   it(`get userA1 balance`, async () => {
     preTransferA1Bal = await userA1.sdk.genericAction('getFioBalance', {});
-    console.log('userA1: ', preTransferA1Bal);
+    // console.log('userA1: ', preTransferA1Bal);
   });
   it(`success test, Transfer locked tokens to a new account. `, async () => {
     try {
@@ -2812,22 +2794,22 @@ describe(`C. Try to transfer more locked tokens than available`, function () {
   });
   it(`get userA1 balance`, async () => {
     postTransferA1Bal = await userA1.sdk.genericAction('getFioBalance', {});
-    console.error(`equal? : ${postTransferA1Bal.balance === preTransferA1Bal.balance}`);
-    console.error(`equal? : ${postTransferA1Bal.available === preTransferA1Bal.available}`);
-    console.log('userA1: ', postTransferA1Bal);
+    // console.error(`equal? : ${postTransferA1Bal.balance === preTransferA1Bal.balance}`);
+    // console.error(`equal? : ${postTransferA1Bal.available === preTransferA1Bal.available}`);
+    // console.log('userA1: ', postTransferA1Bal);
   });
   it(`Wait 10 seconds.`, async () => { await timeout(10000) });
 
   let preTransferA4Bal, postTransferA4Bal;
   it(`get userA4 balance`, async () => {
     preTransferA4Bal = await userA4.sdk.genericAction('getFioBalance', {});
-    console.log('userA4: ', preTransferA4Bal);
+    // console.log('userA4: ', preTransferA4Bal);
   });
 
   let preTransferTest1Bal, postTransferTest1Bal;
   it(`get test1 balance`, async () => {
     preTransferTest1Bal = await test1.sdk.genericAction('getFioBalance', {});
-    console.log('test1: ', preTransferTest1Bal);
+    // console.log('test1: ', preTransferTest1Bal);
   });
   it(`call get_table_rows from locktokens and confirm merged periods`, async () => {
     try {
@@ -2868,16 +2850,16 @@ describe(`C. Try to transfer more locked tokens than available`, function () {
     expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected');
   });
   it(`get userA4 balance`, async () => {
-    console.log('pre transfer userA4: ', preTransferA4Bal);
+    // console.log('pre transfer userA4: ', preTransferA4Bal);
     postTransferA4Bal = await userA4.sdk.genericAction('getFioBalance', {});
-    console.log('userA4: ', postTransferA4Bal);
+    // console.log('userA4: ', postTransferA4Bal);
     expect(postTransferA4Bal.balance).to.equal(preTransferA4Bal.balance + 10);
     expect(postTransferA4Bal.available).to.equal(preTransferA4Bal.available + 10);
   });
   it(`get test1 balance`, async () => {
-    console.log('pre transfer test1: ', preTransferTest1Bal);
+    // console.log('pre transfer test1: ', preTransferTest1Bal);
     postTransferTest1Bal = await test1.sdk.genericAction('getFioBalance', {});
-    console.log('test1: ', postTransferTest1Bal);
+    // console.log('test1: ', postTransferTest1Bal);
     expect(postTransferTest1Bal.balance).to.equal(preTransferTest1Bal.balance - (10 + config.api.transfer_tokens_pub_key.fee));
     expect(postTransferTest1Bal.available).to.equal(preTransferTest1Bal.available - (10 + config.api.transfer_tokens_pub_key.fee));
   });
@@ -3004,29 +2986,17 @@ describe(`D. Attempt a transfer of zero locked tokens`, function () {
     test4 = await newUser(faucet);
     test5 = await newUser(faucet);
     test6 = await newUser(faucet);
-
-    keys = await createKeypair();
-    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
-    keys1 = await createKeypair();
-    locksdk1 = new FIOSDK(keys1.privateKey, keys1.publicKey, config.BASE_URL, fetchJson);
-    keys2 = await createKeypair();
-    locksdk2 = new FIOSDK(keys2.privateKey, keys2.publicKey, config.BASE_URL, fetchJson);
-    // console.log("account for keys2 is ",keys2.account)
-    keys3 = await createKeypair();
-    locksdk3 = new FIOSDK(keys3.privateKey, keys3.publicKey, config.BASE_URL, fetchJson);
-    keys4 = await createKeypair();
-    locksdk4 = new FIOSDK(keys4.privateKey, keys4.publicKey, config.BASE_URL, fetchJson);
   });
 
   let preTransferTest1Bal, postTransferTest1Bal;
   it(`get test1 balance`, async () => {
     preTransferTest1Bal = await test1.sdk.genericAction('getFioBalance', {});
-    console.log('test1: ', preTransferTest1Bal);
+    // console.log('test1: ', preTransferTest1Bal);
   });
   let preTransferA1Bal, postTransferA1Bal;
   it(`get userA1 balance`, async () => {
     preTransferA1Bal = await userA1.sdk.genericAction('getFioBalance', {});
-    console.log('userA1: ', preTransferA1Bal);
+    // console.log('userA1: ', preTransferA1Bal);
   });
 
   it(`(empty unlock periods) try to transfer 0 locked tokens, expect Error`, async () => {
@@ -3116,18 +3086,6 @@ describe(`E. test locked token transfer invalid input handling`, function () {
     test4 = await newUser(faucet);
     test5 = await newUser(faucet);
     test6 = await newUser(faucet);
-
-    keys = await createKeypair();
-    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
-    keys1 = await createKeypair();
-    locksdk1 = new FIOSDK(keys1.privateKey, keys1.publicKey, config.BASE_URL, fetchJson);
-    keys2 = await createKeypair();
-    locksdk2 = new FIOSDK(keys2.privateKey, keys2.publicKey, config.BASE_URL, fetchJson);
-    // console.log("account for keys2 is ",keys2.account)
-    keys3 = await createKeypair();
-    locksdk3 = new FIOSDK(keys3.privateKey, keys3.publicKey, config.BASE_URL, fetchJson);
-    keys4 = await createKeypair();
-    locksdk4 = new FIOSDK(keys4.privateKey, keys4.publicKey, config.BASE_URL, fetchJson);
   });
 
   let preTransferTest1Bal, postTransferTest1Bal;
@@ -3156,18 +3114,6 @@ describe(`E. test locked token transfer invalid input handling`, function () {
     preTransferA4Bal = await userA4.sdk.genericAction('getFioBalance', {});
     preTransferA5Bal = await userA5.sdk.genericAction('getFioBalance', {});
     preTransferA6Bal = await userA6.sdk.genericAction('getFioBalance', {});
-    console.log('test1: ', preTransferTest1Bal);
-    console.log('test2: ', preTransferTest2Bal);
-    console.log('test3: ', preTransferTest3Bal);
-    console.log('test4: ', preTransferTest4Bal);
-    console.log('test5: ', preTransferTest5Bal);
-    console.log('test6: ', preTransferTest6Bal);
-    console.log('userA1: ', preTransferA1Bal);
-    console.log('userA2: ', preTransferA2Bal);
-    console.log('userA3: ', preTransferA3Bal);
-    console.log('userA4: ', preTransferA4Bal);
-    console.log('userA5: ', preTransferA5Bal);
-    console.log('userA6: ', preTransferA6Bal);
   });
 
   it(`(mismatched amounts) try to transfer locked tokens, expect Error`, async () => {
@@ -3356,6 +3302,68 @@ describe(`E. test locked token transfer invalid input handling`, function () {
     }
   });
 
+  it(`(non-existent payee_public_key) try to transfer locked tokens, expect Error`, async () => {
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        actor: userA4.account,
+        privKey: userA4.privateKey,
+        data: {
+          payee_public_key: "!nvalid@#$",
+          can_vote: 0,
+          periods: [
+            {
+              duration: 120,
+              amount: 220000000000,
+            },
+          ],
+          amount: 220000000010,
+          max_fee: 400000000000,
+          tpid: '',
+          actor: userA4.account,
+        }
+      });
+      expect(result.type).to.equal('invalid_input');
+      expect(result.fields[0].name).to.equal('payee_public_key');
+      expect(result.fields[0].value).to.equal('!nvalid@#$');
+      expect(result.fields[0].error).to.equal('Invalid FIO Public Key');
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`(invalid payee_public_key) try to transfer locked tokens, expect Error`, async () => {
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        actor: userA4.account,
+        privKey: userA4.privateKey,
+        data: {
+          payee_public_key: -10000000000,
+          can_vote: 0,
+          periods: [
+            {
+              duration: 120,
+              amount: 220000000000,
+            },
+          ],
+          amount: 220000000010,
+          max_fee: 400000000000,
+          tpid: '',
+          actor: userA4.account,
+        }
+      });
+      expect(result.type).to.equal('invalid_input');
+      expect(result.fields[0].name).to.equal('payee_public_key');
+      expect(result.fields[0].value).to.equal('-10000000000');
+      expect(result.fields[0].error).to.equal('Invalid FIO Public Key');
+    } catch (err) {
+      throw err;
+    }
+  });
+
   it(`validate ending balances`, async () => {
     postTransferA1Bal = await userA1.sdk.genericAction('getFioBalance', {});
     postTransferA2Bal = await userA2.sdk.genericAction('getFioBalance', {});
@@ -3409,18 +3417,6 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
     test4 = await newUser(faucet);
     test5 = await newUser(faucet);
     test6 = await newUser(faucet);
-
-    keys = await createKeypair();
-    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
-    keys1 = await createKeypair();
-    locksdk1 = new FIOSDK(keys1.privateKey, keys1.publicKey, config.BASE_URL, fetchJson);
-    keys2 = await createKeypair();
-    locksdk2 = new FIOSDK(keys2.privateKey, keys2.publicKey, config.BASE_URL, fetchJson);
-    // console.log("account for keys2 is ",keys2.account)
-    keys3 = await createKeypair();
-    locksdk3 = new FIOSDK(keys3.privateKey, keys3.publicKey, config.BASE_URL, fetchJson);
-    keys4 = await createKeypair();
-    locksdk4 = new FIOSDK(keys4.privateKey, keys4.publicKey, config.BASE_URL, fetchJson);
   });
 
   // test 1
