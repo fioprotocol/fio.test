@@ -11,7 +11,7 @@
  * 
  *   expiration_time = get_now_plus_one_year();
  * to
- *   expiration_time = now() + 20;
+ *   expiration_time = now() + 30;
  *
  * 
  * To enable an expired address, in fio_address_updated change:
@@ -216,8 +216,8 @@ describe('************************** expired-address-domain.js *****************
     }
   })
 
-  it(`Wait 10 seconds for the domains to expire`, async () => {
-    await timeout(11000);
+  it(`Wait 20 seconds for the domains to expire`, async () => {
+    await timeout(20000);
   })
 
   it(`Call get_table_rows from domains. Verify domain is expired.`, async () => {
@@ -249,7 +249,8 @@ describe('************************** expired-address-domain.js *****************
     }
   })
 
-  it(`Transfer expired domain. Expect error type 400: ${config.error.fioDomainNeedsRenew}`, async () => {
+  it(`Transfer expired domain. Expect success (expired domains allowed as per FIP-17.b)`, async () => {
+    // FIP 17.b changed behavior to allow for transfer of FIO Domains that are expired to support the Domain Marketplace
     try {
       const result = await user1.sdk.genericAction('transferFioDomain', {
         fioDomain: user1.domain,
@@ -257,11 +258,10 @@ describe('************************** expired-address-domain.js *****************
         maxFee: config.api.transfer_fio_domain.fee,
         technologyProviderId: ''
       })
-      expect(result.status).to.equal(null);
+      expect(result.status).to.equal('OK');
     } catch (err) {
-      //console.log('Error: ', err.json);
-      expect(err.json.fields[0].error).to.equal(config.error.fioDomainNeedsRenew);
-      expect(err.errorCode).to.equal(400);
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 
@@ -429,7 +429,6 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
       expect(err).to.equal(null);
     }
   })
-
   it(`TEST: addaddress`, async () => { });
 
   it(`Add DASH and BCH addresses to user1`, async () => {
@@ -686,7 +685,6 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
         technologyProviderId: ''
       })
       //console.log('Result: ', result);
-      expect(result).to.have.all.keys('status', 'fee_collected')
       expect(result.status).to.equal('cancelled');
       expect(result.fee_collected).to.equal(0);
     } catch (err) {
@@ -750,7 +748,6 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
         technologyProviderId: ''
       })
       //console.log('Result: ', result);
-      expect(result).to.have.all.keys('status', 'fee_collected');
       expect(result.status).to.equal('request_rejected');
       expect(result.fee_collected).to.equal(0);
     } catch (err) {
@@ -823,7 +820,7 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
       //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
-      console.log('Error: ', err);
+      console.log('Error: ', err.json);
       expect(err).to.equal('null');
     }
   })
