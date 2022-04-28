@@ -937,6 +937,46 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
     }
   })
 
+  it(`TEST: stakefio`, async () => { });
+
+  it(`user1 stakes 10 fio `, async () => {
+    const result = await user1.sdk.genericAction('pushTransaction', {
+      action: 'stakefio',
+      account: 'fio.staking',
+      data: {
+        fio_address: user1.address,
+        amount: 10000000000,
+        actor: user1.account,
+        max_fee: config.maxFee,
+        tpid: ''
+      }
+    });
+    // console.log('Result: ', result)
+    expect(result.status).to.equal('OK');
+  });
+
+  it(`TEST: unstakefio`, async () => { });
+
+  it(`user1 unstakes 5 fio `, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'unstakefio',
+        account: 'fio.staking',
+        data: {
+          fio_address: user1.address,
+          amount: 5000000000,
+          actor: user1.account,
+          max_fee: config.maxFee,
+          tpid: ''
+        }
+      });
+      // console.log('Result: ', result)
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log("ERROR: ", err.json);
+      expect(err).to.equal(null);
+    }
+  });
 
   it(`TEST: addnft`, async () => { });
 
