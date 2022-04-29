@@ -141,7 +141,7 @@ describe(`************************** fio-request.js ************************** \
       }
     })
   
-  it(`BUG BD-2992 userA1 requests funds from userA2`, async () => {
+  it(`(push transaction) userA1 requests funds from userA2 (BD-2992)`, async () => {
     try {
       const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'newfundsreq',
@@ -155,12 +155,13 @@ describe(`************************** fio-request.js ************************** \
             amount: 2000000000,
             chain_code: 'BTC',
             token_code: 'BTC',
-            memo: requestMemo
+            memo: requestMemo,
+            hash:'',
+            offline_url: ''
           },
           max_fee: config.maxFee
         }
       })
-      requestId = result.fio_request_id
       //console.log('Result: ', result)
       expect(result.status).to.equal('requested')
     } catch (err) {
@@ -272,12 +273,10 @@ describe(`************************** fio-request.js ************************** \
 
     it(`get_received_fio_requests for userA2 (payer)`, async () => {
       try {
-        const json = {
-          fio_public_key: userA2.publicKey,
-          limit: 100,
-          offset: 0
-        }
-        result = await callFioApi("get_received_fio_requests", json);
+        const result = await userA2.sdk.genericAction('getReceivedFioRequests', {
+          limit: '',
+          offset: ''
+        })
         //console.log('result: ', result)
         //console.log('content: ', result.requests[0].content)
         expect(result.requests[0].fio_request_id).to.equal(requestId);
@@ -286,7 +285,7 @@ describe(`************************** fio-request.js ************************** \
         expect(result.requests[0].payer_fio_public_key).to.equal(userA2.publicKey);
         expect(result.requests[0].payee_fio_public_key).to.equal(userA1.publicKey);
         expect(result.requests[0].status).to.equal('requested');
-        //expect(result.requests[0].content.memo).to.equal(requestMemo);
+        expect(result.requests[0].content.memo).to.equal(requestMemo);
       } catch (err) {
         console.log('Error: ', err)
         expect(err).to.equal(null)
@@ -437,21 +436,6 @@ describe(`************************** fio-request.js ************************** \
     }
   })
 
-  it(`get_pending_fio_requests for userA2 (payer)`, async () => {
-    try {
-      const result = await userA2.sdk.genericAction('getPendingFioRequests', {
-        limit: '',
-        offset: ''
-      })
-      //console.log('result: ', result)
-      //console.log('content: ', result.requests[0].content)
-      expect(result).to.equal(null)
-    } catch (err) {
-        //console.log('Error: ', err)
-        expect(err.json.message).to.equal('No FIO Requests')
-    }
-  })
-
   it(`get_cancelled_fio_requests for userA1 (payee). Expect 'No FIO Requests'`, async () => {
     try {
       const result = await userA1.sdk.genericAction('getCancelledFioRequests', {
@@ -484,12 +468,10 @@ describe(`************************** fio-request.js ************************** \
 
   it(`get_received_fio_requests for userA2 (payer)`, async () => {
     try {
-      const json = {
-        fio_public_key: userA2.publicKey,
-        limit: 100,
-        offset: 0
-      }
-      result = await callFioApi("get_received_fio_requests", json);
+      const result = await userA2.sdk.genericAction('getReceivedFioRequests', {
+        limit: '',
+        offset: ''
+      })
       //console.log('result: ', result)
       //console.log('content: ', result.requests[0].content)
       expect(result.requests[0].fio_request_id).to.equal(requestId);
@@ -498,7 +480,7 @@ describe(`************************** fio-request.js ************************** \
       expect(result.requests[0].payer_fio_public_key).to.equal(userA2.publicKey);
       expect(result.requests[0].payee_fio_public_key).to.equal(userA1.publicKey);
       expect(result.requests[0].status).to.equal('sent_to_blockchain');
-      //expect(result.requests[0].content.memo).to.equal(requestMemo);
+      expect(result.requests[0].content.memo).to.equal(requestMemo);
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal(null)

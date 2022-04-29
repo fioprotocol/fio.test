@@ -53,7 +53,7 @@ describe(`************************** stake-BD-3552-dev-tests.js ****************
     userA1 = await newUser(faucet);
     proxy1 = await newUser(faucet);
     
-    console.log("TPId account is ",proxy1.account)
+    //console.log("TPId account is ",proxy1.account)
 
     //now transfer 1k fio from the faucet to accounts
     const result = await faucet.genericAction('transferTokens', {
@@ -64,7 +64,7 @@ describe(`************************** stake-BD-3552-dev-tests.js ****************
     })
     expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
 
-    console.log('userA1.publicKey: ', userA1.publicKey);
+    //console.log('userA1.publicKey: ', userA1.publicKey);
 
   })
 
@@ -133,10 +133,10 @@ describe(`************************** stake-BD-3552-dev-tests.js ****************
       for (voter in voters.rows) {
         if (voters.rows[voter].owner == proxy1.account) {
           inVotersTable = true;
-          console.log('TPID INFO from voters for account ', proxy1.account)
-          console.log('voters.rows[voter].is_proxy: ', voters.rows[voter].is_proxy);
-          console.log('voters.rows[voter].is_auto_proxy: ', voters.rows[voter].is_auto_proxy);
-          console.log('voters.rows[voter].proxy: ', voters.rows[voter].proxy);
+           //console.log('TPID INFO from voters for account ', proxy1.account)
+          //console.log('voters.rows[voter].is_proxy: ', voters.rows[voter].is_proxy);
+          //console.log('voters.rows[voter].is_auto_proxy: ', voters.rows[voter].is_auto_proxy);
+          //console.log('voters.rows[voter].proxy: ', voters.rows[voter].proxy);
           break;
         }
       }
@@ -180,7 +180,7 @@ describe(`************************** stake-BD-3552-dev-tests.js ****************
   it(`getFioBalance for staking account`, async () => {
     try {
       const result = await userA1.sdk.genericAction('getFioBalance', {})
-      console.log(result)
+      //console.log(result)
       prevBalance = result.balance
       expect(result.available).to.equal(result.balance)
       expect(result.staked).to.equal(0)
@@ -194,15 +194,15 @@ describe(`************************** stake-BD-3552-dev-tests.js ****************
 
   it(`Success -- stake from staking account fio using tpid and auto proxy`, async () => {
     try {
-      console.log("stake address used ",userA1.address)
-      console.log("stake account used ",userA1.account)
+      //console.log("stake address used ",userA1.address)
+      //console.log("stake account used ",userA1.account)
       let paramsstr = "action: 'stakefio',"+
           "fio_address: "+ userA1.address+
             "amount: "+ stakeAmount1 +
            " actor: "+ userA1.account +
            " max_fee:" + config.maxFee +
             " tpid: "+ proxy1.address ;
-      console.log("stake params ",paramsstr)
+      //console.log("stake params ",paramsstr)
       const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'stakefio',
         account: 'fio.staking',
@@ -226,12 +226,12 @@ describe(`************************** stake-BD-3552-dev-tests.js ****************
   it(`getFioBalance for staking account`, async () => {
     try {
       const result = await userA1.sdk.genericAction('getFioBalance', {})
-      console.log(result)
-     // prevBalance = result.balance
-     // expect(result.available).to.equal(result.balance)
-     // expect(result.staked).to.equal(0)
-     // prevSrps = result.srps
-     // expect(result.roe).to.equal(INITIALROE);
+      //console.log(result)
+      prevBalance = result.balance
+      expect(result.available).to.equal(result.balance - stakeAmount1)
+      expect(result.staked).to.equal(stakeAmount1)
+      prevSrps = result.srps
+      expect(result.roe).to.equal(INITIALROE);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -243,12 +243,11 @@ describe(`************************** stake-BD-3552-dev-tests.js ****************
       const result = await userA1.sdk.genericAction('getFioAddresses', {
         fioPublicKey: userA1.publicKey
       })
-      console.log('staking account fio addresses: ', result);
-      //expect(result.fio_domains.length).to.equal(0)
+      //console.log('staking account fio addresses: ', result);
+      expect(result.fio_addresses.length).to.equal(1)
     } catch (err) {
-      console.log('Error', err)
-      //expect(err.json.message).to.equal(config.error.noFioAddresses);
-      //expect(err.errorCode).to.equal(404);
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
 
 
@@ -271,10 +270,10 @@ describe(`************************** stake-BD-3552-dev-tests.js ****************
       inVotersTable = false;
       for (voter in voters.rows) {
         if (voters.rows[voter].owner == userA1.account) {
-          console.log('staking account info from voters for account ', userA1.account)
-          console.log('voters.rows[voter].is_proxy: ', voters.rows[voter].is_proxy);
-          console.log('voters.rows[voter].is_auto_proxy: ', voters.rows[voter].is_auto_proxy);
-          console.log('voters.rows[voter].proxy: ', voters.rows[voter].proxy);
+          //console.log('staking account info from voters for account ', userA1.account)
+          //console.log('voters.rows[voter].is_proxy: ', voters.rows[voter].is_proxy);
+          //console.log('voters.rows[voter].is_auto_proxy: ', voters.rows[voter].is_auto_proxy);
+          //console.log('voters.rows[voter].proxy: ', voters.rows[voter].proxy);
           inVotersTable = true;
           break;
         }
