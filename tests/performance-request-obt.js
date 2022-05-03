@@ -197,21 +197,22 @@ describe(`************************** performance-request-obt.js ****************
 
           try {
                 const result = await user1.sdk.genericAction('recordObtData', {
-                    payerFioAddress: user1.address,
-                    payeeFioAddress: user2.address,
-                    payerTokenPublicAddress: user1.publicKey,
-                    payeeTokenPublicAddress: user2.publicKey,
-                    amount: payment,
-                    chainCode: "FIO",
-                    tokenCode: "FIO",
-                    status: '',
-                    obtId: requestId,
-                    maxFee: config.api.record_obt_data.fee,
-                    technologyProviderId: '',
-                    payeeFioPublicKey: user2.publicKey,
-                    memo: 'this is a test',
-                    hash: '',
-                    offLineUrl: ''
+                  fioRequestId: requestId,
+                  payerFioAddress: user1.address,
+                  payeeFioAddress: user2.address,
+                  payerTokenPublicAddress: user1.publicKey,
+                  payeeTokenPublicAddress: user2.publicKey,
+                  amount: payment,
+                  chainCode: "FIO",
+                  tokenCode: "FIO",
+                  status: '',
+                  obtId: '',
+                  maxFee: config.api.record_obt_data.fee,
+                  technologyProviderId: '',
+                  payeeFioPublicKey: user2.publicKey,
+                  memo: 'this is a test',
+                  hash: '',
+                  offLineUrl: ''
                 })
                 //console.log('Result: ', result)
                 expect(result.status).to.equal('sent_to_blockchain')
@@ -226,21 +227,22 @@ describe(`************************** performance-request-obt.js ****************
         for (i = 0; i < count; i++) {
             try {
                 const result = await user3.sdk.genericAction('recordObtData', {
-                    payerFioAddress: user3.address,
-                    payeeFioAddress: user1.address,
-                    payerTokenPublicAddress: user3.publicKey,
-                    payeeTokenPublicAddress: user1.publicKey,
-                    amount: payment,
-                    chainCode: "BTC",
-                    tokenCode: "BTC",
-                    status: '',
-                    obtId: '',
-                    maxFee: config.api.record_obt_data.fee,
-                    technologyProviderId: '',
-                    payeeFioPublicKey: user1.publicKey,
-                    memo: 'this is a test',
-                    hash: '',
-                    offLineUrl: ''
+                  fioRequestId: '',
+                  payerFioAddress: user3.address,
+                  payeeFioAddress: user1.address,
+                  payerTokenPublicAddress: user3.publicKey,
+                  payeeTokenPublicAddress: user1.publicKey,
+                  amount: payment,
+                  chainCode: "BTC",
+                  tokenCode: "BTC",
+                  status: '',
+                  obtId: '',
+                  maxFee: config.api.record_obt_data.fee,
+                  technologyProviderId: '',
+                  payeeFioPublicKey: user1.publicKey,
+                  memo: 'this is a test',
+                  hash: '',
+                  offLineUrl: ''
                 })
                 //console.log('Result: ', result)
                 expect(result.status).to.equal('sent_to_blockchain')

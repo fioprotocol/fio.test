@@ -23,6 +23,7 @@ describe(`*********************** record-obt-data.js *********************** \n 
     it(`userA1 sends recordObtData to userA2`, async () => {
         try {
             const result = await userA1.sdk.genericAction('recordObtData', {
+                fioRequestId: '',
                 payerFioAddress: userA1.address,
                 payeeFioAddress: userA2.address,
                 payerTokenPublicAddress: userA1.publicKey,
@@ -169,6 +170,7 @@ describe(`*********************** record-obt-data.js *********************** \n 
         for (i = 0; i < 50; i++) {
             try {
                 const result = await userA2.sdk.genericAction('recordObtData', {
+                    fioRequestId: '',
                     payerFioAddress: userA2.address,
                     payeeFioAddress: userA1.address,
                     payerTokenPublicAddress: userA2.publicKey,
@@ -224,6 +226,7 @@ describe(`*********************** record-obt-data.js *********************** \n 
     it(`userA2 requests funds from userA1 with no bundles`, async () => {
         try {
             const result = await userA2.sdk.genericAction('recordObtData', {
+                fioRequestId: '',
                 payerFioAddress: userA2.address,
                 payeeFioAddress: userA1.address,
                 payerTokenPublicAddress: userA2.publicKey,
@@ -293,6 +296,7 @@ describe(`*********************** record-obt-data.js *********************** \n 
     it(`userA2 requests funds from userA1 with no bundles and no FIO`, async () => {
         try {
             const result = await userA2.sdk.genericAction('recordObtData', {
+                fioRequestId: '',
                 payerFioAddress: userA2.address,
                 payeeFioAddress: userA1.address,
                 payerTokenPublicAddress: userA2.publicKey,
@@ -334,6 +338,7 @@ describe(`B. OBT Data Error Check`, () => {
     it(`badly formatted payer_fio_address`, async () => {
         try {
             const result = await userA1.sdk.genericAction('recordObtData', {
+                fioRequestId: '',
                 payerFioAddress: 'userA1.address',
                 payeeFioAddress: userA2.address,
                 payerTokenPublicAddress: userA1.publicKey,
@@ -360,6 +365,7 @@ describe(`B. OBT Data Error Check`, () => {
     it(`badly formatted payee_fio_address`, async () => {
         try {
             const result = await userA1.sdk.genericAction('recordObtData', {
+                fioRequestId: '',
                 payerFioAddress: userA1.address,
                 payeeFioAddress: 'userA2.address',
                 payerTokenPublicAddress: userA1.publicKey,
@@ -408,6 +414,7 @@ describe(`B. OBT Data Error Check`, () => {
     it(`payee_fio_public_key that does not own the the payee_fio_address`, async () => {
         try {
             const result = await userA2.sdk.genericAction('recordObtData', {
+                fioRequestId: '',
                 payerFioAddress: userA2.address,
                 payeeFioAddress: userA1.address,
                 payerTokenPublicAddress: userA2.publicKey,
@@ -492,6 +499,7 @@ describe(`C. Test get_obt_data`, () => {
     it(`userA1 sends recordObtData to userA2`, async () => {
         try {
             const result = await userA1.sdk.genericAction('recordObtData', {
+                fioRequestId: '',
                 payerFioAddress: userA1.address,
                 payeeFioAddress: userA2.address,
                 payerTokenPublicAddress: userA1.publicKey,
@@ -518,6 +526,7 @@ describe(`C. Test get_obt_data`, () => {
     it(`userA1 sends second recordObtData to userA2`, async () => {
         try {
             const result = await userA1.sdk.genericAction('recordObtData', {
+                fioRequestId: '',
                 payerFioAddress: userA1.address,
                 payeeFioAddress: userA2.address,
                 payerTokenPublicAddress: userA1.publicKey,
