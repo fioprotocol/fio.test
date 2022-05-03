@@ -14,7 +14,7 @@
  *   expiration_time = now() + 30;
  *
  * 
- * To enable an expired address, in fio_address_updated change:
+ * To enable an expired address, in fio_address_update change:
  * 
  *   const uint32_t expiration_time = 4294967295;
  * to
@@ -370,7 +370,7 @@ describe('************************** expired-address-domain.js *****************
 
 })
 
-describe('B. On expired address: confirm actions still work and expire date is no longer checked', () => {
+describe.only('B. On expired address: confirm actions still work and expire date is no longer checked', () => {
 /*
 Confirm the following do not check for expired addresses anymore:
 addaddress, remaddress, remalladdr, newfundsreq, cancelfndreq, recordobt, xferaddress, voteproducer, regproxy, unregproxy, 
@@ -386,6 +386,7 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
     user2 = await newUser(faucet);
     user3 = await newUser(faucet);
     user4 = await newUser(faucet);
+    user5 = await newUser(faucet);
   })
 
   it(`Wait 10 seconds for the addresses to expire`, async () => {
@@ -847,6 +848,52 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
     }
   })
 
+  it(`TEST: stakefio autoproxy`, async () => { });
+
+  it(`user5 (who has NOT voted) stakes 10 fio with user3 as proxy`, async () => {
+    try {
+      const result = await user5.sdk.genericAction('pushTransaction', {
+        action: 'stakefio',
+        account: 'fio.staking',
+        data: {
+          fio_address: user5.address,
+          amount: 10000000000,
+          actor: user5.account,
+          max_fee: config.maxFee,
+          tpid: user3.address
+        }
+      });
+      // console.log('Result: ', result)
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log("ERROR: ", err.json);
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`TEST: unstakefio`, async () => { });
+
+  it(`user5 (who has NOT voted) unstakes 5 fio with user3 as proxy`, async () => {
+    try {
+      const result = await user5.sdk.genericAction('pushTransaction', {
+        action: 'unstakefio',
+        account: 'fio.staking',
+        data: {
+          fio_address: user5.address,
+          amount: 5000000000,
+          actor: user5.account,
+          max_fee: config.maxFee,
+          tpid: user3.address
+        }
+      });
+      // console.log('Result: ', result)
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log("ERROR: ", err.json);
+      expect(err).to.equal(null);
+    }
+  });
+
   it(`TEST: voteproxy`, async () => { });
 
   it(`user1 proxy votes to user3`, async () => {
@@ -939,7 +986,7 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
 
   it(`TEST: stakefio`, async () => { });
 
-  it(`user1 stakes 10 fio `, async () => {
+  it(`user1 (who has voted) stakes 10 fio `, async () => {
     const result = await user1.sdk.genericAction('pushTransaction', {
       action: 'stakefio',
       account: 'fio.staking',
@@ -957,7 +1004,7 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
 
   it(`TEST: unstakefio`, async () => { });
 
-  it(`user1 unstakes 5 fio `, async () => {
+  it(`user1 (who has voted) unstakes 5 fio `, async () => {
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
         action: 'unstakefio',
