@@ -370,7 +370,7 @@ describe('************************** expired-address-domain.js *****************
 
 })
 
-describe.only('B. On expired address: confirm actions still work and expire date is no longer checked', () => {
+describe('B. On expired address: confirm actions still work and expire date is no longer checked', () => {
 /*
 Confirm the following do not check for expired addresses anymore:
 addaddress, remaddress, remalladdr, newfundsreq, cancelfndreq, recordobt, xferaddress, voteproducer, regproxy, unregproxy, 
