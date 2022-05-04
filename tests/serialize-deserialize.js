@@ -6,8 +6,9 @@ const config = require('../config.js');
 
 const createHash = require('create-hash');
 const { arrayToHex } = require('@fioprotocol/fiojs/dist/chain-numeric');
+const { ser } = require('@fioprotocol/fiojs/dist/chain-serialize');
 
-describe(`************************** serialize-deserialize.js ************************** \n    A. Test for incremental serialization and signing`, () => {
+describe.only(`************************** serialize-deserialize.js ************************** \n    A. Test for incremental serialization and signing`, () => {
 
     let user1, user2, chainData, transaction, serializedContextFreeData, serializedTransaction, signedTransaction, txnId, packedTrx;
     const fundsAmount = 2 * FIOSDK.SUFUnit
@@ -41,8 +42,8 @@ describe(`************************** serialize-deserialize.js ******************
                 publicKey,
                 chainData,
             });
-            //console.log('transaction: ', transaction);
-            //console.log('actions: ', transaction.actions);
+            console.log('transaction: ', transaction);
+            console.log('actions: ', transaction.actions);
         } catch (err) {
             console.log('Error: ', err);
             expect(err).to.equal(null);
@@ -55,7 +56,7 @@ describe(`************************** serialize-deserialize.js ******************
                 chainId: chainData.chain_id,
                 transaction,
             });
-            //console.log('Result: ', result);
+            console.log('Result: ', result);
             serializedContextFreeData = result.serializedContextFreeData;
             serializedTransaction = result.serializedTransaction;
         } catch (err) {
@@ -93,8 +94,41 @@ describe(`************************** serialize-deserialize.js ******************
                 serializedTransaction,
                 serializedContextFreeData,
             });
-            //console.log('signedTransaction: ', signedTransaction);
+            console.log('signedTransaction: ', signedTransaction);
             expect(signedTransaction.packed_trx).to.equal(packedTrx);
+        } catch (err) {
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`Deserialize serializedTransaction`, async () => {
+        try {
+            const result = await user1.sdk.transactions.deserialize({
+                chainId: chainData.chain_id,
+                serializedTransaction,
+            });
+            console.log('result: ', result);
+            console.log('one: ', result.actions[0])
+            console.log('two: ',transaction.actions[0] )
+            expect(result.actions[0]).to.equal(transaction.actions[0]);
+        } catch (err) {
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`Get original transaction data from packed_txn`, async () => {
+        try {
+            //unpackedTrx = 
+            const array = ser.hexToUint8Array(newFundsContentHex);
+            const buffer = new ser.SerialBuffer({ array, textEncoder, textDecoder });
+            const result = await user1.sdk.transactions.deserialize({
+                chainId: chainData.chain_id,
+                serializedTransaction,
+            });
+            console.log('result: ', result);
+            //expect(signedTransaction.packed_trx).to.equal(packedTrx);
         } catch (err) {
             console.log('Error: ', err);
             expect(err).to.equal(null);
