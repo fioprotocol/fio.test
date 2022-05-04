@@ -37,6 +37,7 @@ describe('TEST SUITE', () => {
   //require('./tests/performance-request-obt.js');
   require('./tests/fee-distribution.js');
   //require('./tests/eosio-updateauth.js');
+  require('./tests/serialize-deserialize.js');  // Tests for BD-3636
 
   //require('./tests/expired-address-domain.js'); // Requires manual updates to contracts to shorten expiration timing
   //require('./tests/expired-address-domain-modexpire.js'); // Requires modexpire action which allows expiring of domains
