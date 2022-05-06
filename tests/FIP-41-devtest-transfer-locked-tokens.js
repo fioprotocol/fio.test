@@ -3955,7 +3955,7 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
   });
 });
 
-describe.only(`G. [BUG?] test a mix of non-restricted and voting-restricted locked tokens`, function () {
+describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked tokens`, function () {
 
   before(async () => {
     userA1 = await newUser(faucet);
@@ -4895,7 +4895,7 @@ describe(`J. Test trnsloctoks effect on total_voted_fio for a user with non-rest
   });
 });
 
-describe.only(`K. [BUG?] Test trnsloctoks effect on total_voted_fio for a user with restricted locks`, () => {
+describe(`K. [BUG?] Test trnsloctoks effect on total_voted_fio for a user with restricted locks`, () => {
 
   let user1, user2, total_voted_fio, totalVotesBP1, totalVotesBP2, totalVotesBP3
 
