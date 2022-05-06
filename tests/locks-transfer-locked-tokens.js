@@ -814,6 +814,7 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
         maxFee: config.api.transfer_tokens_pub_key.fee,
         technologyProviderId: ''
       })
+      expect(result.status).to.not.equal('OK')
     } catch (err) {
       var expected = `Error 400`
       expect(err.message).to.include(expected)
@@ -826,8 +827,10 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
       const result = await userA1.sdk.genericAction('getAccount', {account:accountnm.accountnm})
       expect(result.ram_quota).to.be.a('number')
       ramafter = result.ram_quota
+      // fio.contracts: raminc = 1024 + (64 * periods.size());
+      const ramInc = 1024 + (64 * 2);
       let diffram = ramafter-rambefore
-      expect(diffram).to.equal(1152)
+      expect(diffram).to.equal(ramInc)
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
