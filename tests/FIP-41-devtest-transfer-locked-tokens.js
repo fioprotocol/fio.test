@@ -4347,7 +4347,7 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
     }
   });
 
-  it(`[BUG?] Try to transfer non-restricted voting locked tokens (can_vote=1) to the account with restricted voting tokens, expect Error. `, async () => {
+  it(`[BD-3744] Try to transfer non-restricted voting locked tokens (can_vote=1) to the account with restricted voting tokens, expect Error. `, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
@@ -4462,7 +4462,7 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
 
   it(`wait for 1 unlock period`, async () => {await timeout(10000);});
 
-  it(`[BUG?] Try to transfer locked tokens from test1 (can_vote=1) to test2 (can_vote=0), expect Error`, async () => {
+  it(`[BD-3744] Try to transfer locked tokens from test1 (can_vote=1) to test2 (can_vote=0), expect Error`, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
