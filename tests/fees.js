@@ -1,7 +1,8 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, fetchJson} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/fiosdk')
+const {newUser, fetchJson, callFioApi} = require('../utils.js');
+const {FIOSDK } = require('@fioprotocol/fiosdk');
+const { to } = require('mathjs');
 config = require('../config.js');
 
 before(async () => {
@@ -68,3 +69,51 @@ describe('************************** fees.js ************************** \n    Te
     }
   })
 })
+
+describe('B. Compare get_fee to actual fee returned from transaction', () => {
+
+  let user1, user2, fee;
+  const amount = 2000000000; // 2 FIO
+
+  it(`Create users`, async () => {
+    user1 = await newUser(faucet);
+    user2 = await newUser(faucet);
+  })
+
+  it('Get fee for transfer_fio_pub_key', async () => {
+    try {
+        const result = await callFioApi("get_fee", {
+          end_point: 'transfer_tokens_pub_key',
+          fio_address: user1.address
+      })
+      //console.log('Result', result);
+      fee = result.fee;
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Test all fees UPPERCASE`, async () => {
+    try {
+      result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'trnsfiopubky',
+        account: 'fio.token',
+        data: {
+          payee_public_key: user2.publicKey,
+          amount: amount,
+          max_fee: config.maxFee,
+          actor: user1.account,
+          tpid: ''
+        }
+      });
+      //console.log('Result', result);
+      expect(result.fee_collected).to.equal(fee);
+    } catch (err) {
+      console.log('Error: ', err)
+    }
+  });
+
+
+
+});
