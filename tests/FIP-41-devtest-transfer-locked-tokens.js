@@ -1690,7 +1690,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
   });
 });
 
-describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSigned)`, function () {
+describe.only(`B. FIP-41 tests without using the SDK (just the API via callFioApiSigned)`, function () {
 
   before(async () => {
     userA1 = await newUser(faucet);
@@ -2566,7 +2566,7 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
     }
   });
 
-  it(`Call get_table_rows from locktokens and confirm merged periods`, async () => {
+  it(`Call get_table_rows from locktokens and confirm 2 periods`, async () => {
     try {
       const json = {
         json: true,
@@ -2688,8 +2688,8 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
       expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(120).and.lessThanOrEqual(129);
       expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(130).and.lessThanOrEqual(139);
-      // expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(249);
-      //expect(result.rows[0].periods[2].duration).to.be.greaterThanOrEqual(250).and.lessThanOrEqual(259);
+      expect(result.rows[0].periods[2].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(249);
+      expect(result.rows[0].periods[3].duration).to.be.greaterThanOrEqual(250).and.lessThanOrEqual(259);
     } catch (err) {
       throw err;
     }
@@ -2771,7 +2771,7 @@ describe(`C. Try to transfer more locked tokens than available`, function () {
     preTransferTest1Bal = await test1.sdk.genericAction('getFioBalance', {});
   });
 
-  it(`call get_table_rows from locktokens and confirm merged periods`, async () => {
+  it(`call get_table_rows from locktokens and confirm 3 periods`, async () => {
     try {
       const json = {
         json: true,
@@ -2980,9 +2980,6 @@ describe(`D. Attempt a transfer of zero locked tokens`, function () {
       expect(result.fields[0].name).to.equal('unlock_periods');
       expect(result.fields[0].value).to.equal('Invalid unlock periods');
       expect(result.fields[0].error).to.equal('Invalid number of unlock periods');
-      // expect(result).to.have.all.keys('transaction_id', 'processed');
-      // expect(result.processed.receipt.status).to.equal('executed');
-      // expect(result.processed.action_traces[0].receipt.response).to.equal(`{"status": "OK","fee_collected":${config.api.transfer_tokens_pub_key.fee}}`);
     } catch (err) {
       throw err;
     }
@@ -3013,9 +3010,6 @@ describe(`D. Attempt a transfer of zero locked tokens`, function () {
       expect(result.fields[0].name).to.equal('amount');
       expect(result.fields[0].value).to.equal('0');
       expect(result.fields[0].error).to.equal('Invalid amount value');
-      // expect(result).to.have.all.keys('transaction_id', 'processed');
-      // expect(result.processed.receipt.status).to.equal('executed');
-      // expect(result.processed.action_traces[0].receipt.response).to.equal(`{"status": "OK","fee_collected":${config.api.transfer_tokens_pub_key.fee}}`);
     } catch (err) {
       throw err;
     }
@@ -3412,10 +3406,6 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
         }
       });
       expect(result).to.have.all.keys('transaction_id', 'processed');
-      // expect(result.type).to.equal('invalid_input');
-      // expect(result.fields[0].name).to.equal('can_vote');
-      // expect(result.fields[0].value).to.equal('1');
-      // expect(result.fields[0].error).to.equal('Locked tokens with restricted voting can only be transferred to a new account.');
     } catch (err) {
       throw err;
     }
@@ -3447,7 +3437,6 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
           actor: userA2.account,
         }
       });
-      // expect(result).to.have.all.keys('transaction_id', 'processed');
       expect(result.type).to.equal('invalid_input');
       expect(result.fields[0].name).to.equal('can_vote');
       expect(result.fields[0].value).to.equal('1');
@@ -3484,10 +3473,6 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
         }
       });
       expect(result).to.have.all.keys('transaction_id', 'processed');
-      // expect(result.type).to.equal('invalid_input');
-      // expect(result.fields[0].name).to.equal('can_vote');
-      // expect(result.fields[0].value).to.equal('1');
-      // expect(result.fields[0].error).to.equal('Locked tokens with restricted voting can only be transferred to a new account.');
     } catch (err) {
       throw err;
     }
@@ -3514,10 +3499,8 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
       expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(120).and.lessThanOrEqual(130);
       expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(120).and.lessThanOrEqual(130);
-      // expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(124).and.lessThanOrEqual(134);
       expect(result.rows[0].periods[2].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(250);
       expect(result.rows[0].periods[3].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(250);
-      // expect(result.rows[0].periods[3].duration).to.be.greaterThanOrEqual(244).and.lessThanOrEqual(254);
     } catch (err) {
       throw err;
     }
@@ -3547,8 +3530,6 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
         index_position: '2'
       }
       const result = await callFioApi("get_table_rows", json);
-      //NOTE -- these checks fail sometimes if the timing of the wait adds one sec to the duration,
-      //  when this happense please run the test again.
       expect(result.rows).empty;
     } catch (err) {
       throw err;
@@ -3582,10 +3563,6 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
         }
       });
       expect(result).to.have.all.keys('transaction_id', 'processed');
-      // expect(result.type).to.equal('invalid_input');
-      // expect(result.fields[0].name).to.equal('can_vote');
-      // expect(result.fields[0].value).to.equal('1');
-      // expect(result.fields[0].error).to.equal('Locked tokens with restricted voting can only be transferred to a new account.');
     } catch (err) {
       throw err;
     }
@@ -3618,10 +3595,6 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
         }
       });
       expect(result).to.have.all.keys('transaction_id', 'processed');
-      // expect(result.type).to.equal('invalid_input');
-      // expect(result.fields[0].name).to.equal('can_vote');
-      // expect(result.fields[0].value).to.equal('1');
-      // expect(result.fields[0].error).to.equal('Locked tokens with restricted voting can only be transferred to a new account.');
     } catch (err) {
       throw err;
     }
@@ -3653,7 +3626,6 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
           actor: userA4.account,
         }
       });
-      // expect(result).to.have.all.keys('transaction_id', 'processed');
       expect(result.type).to.equal('invalid_input');
       expect(result.fields[0].name).to.equal('can_vote');
       expect(result.fields[0].value).to.equal('0');
@@ -3711,8 +3683,6 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
         index_position: '2'
       }
       const result = await callFioApi("get_table_rows", json);
-      //NOTE -- these checks fail sometimes if the timing of the wait adds one sec to the duration,
-      //  when this happense please run the test again.
       expect(result.rows).empty;
     } catch (err) {
       throw err;
@@ -3742,10 +3712,6 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
         }
       });
       expect(result).to.have.all.keys('transaction_id', 'processed');
-      // expect(result.type).to.equal('invalid_input');
-      // expect(result.fields[0].name).to.equal('can_vote');
-      // expect(result.fields[0].value).to.equal('1');
-      // expect(result.fields[0].error).to.equal('Locked tokens with restricted voting can only be transferred to a new account.');
     } catch (err) {
       throw err;
     }
@@ -3783,7 +3749,6 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
           actor: userA4.account,
         }
       });
-      // expect(result).to.have.all.keys('transaction_id', 'processed');
       expect(result.type).to.equal('invalid_input');
       expect(result.fields[0].name).to.equal('can_vote');
       expect(result.fields[0].value).to.equal('1');
@@ -3838,13 +3803,7 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
         index_position: '2'
       }
       const result = await callFioApi("get_table_rows", json);
-      //NOTE -- these checks fail sometimes if the timing of the wait adds one sec to the duration,
-      //  when this happense please run the test again.
       expect(result.rows).empty;
-      // expect(result.rows[0].periods.length).to.equal(4);  // two periods then two more periods
-      // expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
-      // expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(120).and.lessThanOrEqual(129);
-      // expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(249);
     } catch (err) {
       throw err;
     }
@@ -3877,10 +3836,6 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
         }
       });
       expect(result).to.have.all.keys('transaction_id', 'processed');
-      // expect(result.type).to.equal('invalid_input');
-      // expect(result.fields[0].name).to.equal('can_vote');
-      // expect(result.fields[0].value).to.equal('1');
-      // expect(result.fields[0].error).to.equal('Locked tokens with restricted voting can only be transferred to a new account.');
     } catch (err) {
       throw err;
     }
@@ -3918,7 +3873,6 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
           actor: userA4.account,
         }
       });
-      // expect(result).to.have.all.keys('transaction_id', 'processed');
       expect(result.type).to.equal('invalid_input');
       expect(result.fields[0].name).to.equal('can_vote');
       expect(result.fields[0].value).to.equal('1');
@@ -4138,10 +4092,6 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
         }
       });
       expect(result).to.have.all.keys('transaction_id', 'processed');
-      // expect(result.type).to.equal('invalid_input');
-      // expect(result.fields[0].name).to.equal('can_vote');
-      // expect(result.fields[0].value).to.equal('1');
-      // expect(result.fields[0].error).to.equal('Locked tokens with restricted voting can only be transferred to a new account.');
     } catch (err) {
       throw err;
     }
@@ -4207,10 +4157,6 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
         }
       });
       expect(result).to.have.all.keys('transaction_id', 'processed');
-      // expect(result.type).to.equal('invalid_input');
-      // expect(result.fields[0].name).to.equal('can_vote');
-      // expect(result.fields[0].value).to.equal('1');
-      // expect(result.fields[0].error).to.equal('Locked tokens with restricted voting can only be transferred to a new account.');
     } catch (err) {
       throw err;
     }
@@ -4230,7 +4176,6 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
         index_position: '2'
       }
       const result = await callFioApi("get_table_rows", json);
-      // console.log('Result: ', result);
       //NOTE -- these checks fail sometimes if the timing of the wait adds one sec to the duration,
       //  when this happense please run the test again.
       expect(result.rows[0].can_vote).to.equal(1);
@@ -4507,10 +4452,6 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
         }
       });
       expect(result.type).to.equal('invalid_input');
-      // expect(result.fields[0].name).to.equal('can_vote');
-      // expect(result.fields[0].value).to.equal('1');
-      // TODO: Double check with Ed the best way to trigger this condition
-      // expect(result.fields[0].error).to.equal('This account has voting restriction on locked tokens, sending locked tokens without voting restriction is not allowed.');
       expect(result.fields[0].error).to.equal('Funds locked');
     } catch (err) {
       throw err;
@@ -4994,8 +4935,8 @@ describe(`K. [BUG?] Test trnsloctoks effect on total_voted_fio for a user with r
         privKey: user2.privateKey,
         data: {
           payee_public_key: user1.publicKey,
-          can_vote: 1,
-          // can_vote: 0,
+          // can_vote: 1,
+          can_vote: 0,
           periods: [
             {
               duration: 5,
@@ -5013,10 +4954,6 @@ describe(`K. [BUG?] Test trnsloctoks effect on total_voted_fio for a user with r
         }
       });
       expect(result).to.have.all.keys('transaction_id', 'processed');
-      // expect(result.type).to.equal('invalid_input');
-      // expect(result.fields[0].name).to.equal('can_vote');
-      // expect(result.fields[0].value).to.equal('1');
-      // expect(result.fields[0].error).to.equal('Locked tokens with restricted voting can only be transferred to a new account.');
     } catch (err) {
       throw err;
     }
