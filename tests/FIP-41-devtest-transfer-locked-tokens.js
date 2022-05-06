@@ -20,6 +20,8 @@ let faucet;
 
 /*
 NOTE
+NOTE    Update 5/6/2022: this should not be an issue anymore, but it might be good to keep in mind for any failing tests
+NOTE
 NOTE
 NOTE
 NOTE  -- these tests have some timing issues that crop up from run to run
@@ -1690,7 +1692,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
   });
 });
 
-describe.only(`B. FIP-41 tests without using the SDK (just the API via callFioApiSigned)`, function () {
+describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSigned)`, function () {
 
   before(async () => {
     userA1 = await newUser(faucet);
@@ -4935,7 +4937,6 @@ describe(`K. [BUG?] Test trnsloctoks effect on total_voted_fio for a user with r
         privKey: user2.privateKey,
         data: {
           payee_public_key: user1.publicKey,
-          // can_vote: 1,
           can_vote: 0,
           periods: [
             {
