@@ -3955,7 +3955,7 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
   });
 });
 
-describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked tokens`, function () {
+describe.only(`G. [BUG?] test a mix of non-restricted and voting-restricted locked tokens`, function () {
 
   before(async () => {
     userA1 = await newUser(faucet);
@@ -4412,7 +4412,7 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
           can_vote: 1,
           periods: [
             {
-              duration: 121,
+              duration: 5,
               amount: 220000000000,
             },
             {
@@ -4437,7 +4437,8 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
     }
   });
 
-  it(`Try to transfer restricted voting locked tokens (can_vote=0) to the account with non-restricted voting tokens, expect Error. `, async () => {
+  // should have restricted locks already from above
+  it.skip(`Try to transfer restricted voting locked tokens (can_vote=0) to the account with non-restricted voting tokens, expect Error. `, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
@@ -4477,11 +4478,7 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
     console.log(newUser3);
   });
 
-  it(`wait for 1 unlock period`, async () => {await timeout(130000);});
-
-
-
-
+  it.skip(`wait for 1 unlock period`, async () => {await timeout(130000);});
 
   it(`Try to transfer locked tokens from test1 (can_vote=1) to test2 (can_vote=0), expect Error`, async () => {
     try {
@@ -4520,9 +4517,9 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
     }
   });
 
-  it(`wait for 1 unlock period`, async () => {await timeout(130000);});
+  it(`wait for 1 unlock period`, async () => {await timeout(10000);});
 
-  it(`Try to transfer locked tokens from test1 (can_vote=1) to test2 (can_vote=0), expect ???`, async () => {
+  it(`[BUG?] Try to transfer locked tokens from test1 (can_vote=1) to test2 (can_vote=0), expect Error`, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
@@ -4530,33 +4527,29 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
         actor: newUser3.account,
         privKey: newUser3.privateKey,
         data: {
-          // payee_public_key: test2.publicKey,
-          payee_public_key: test3.publicKey,
+          payee_public_key: test2.publicKey,
           can_vote: 1,
           periods: [
             {
               duration: 121,
-              amount: 230000000000,
+              amount: 220000000000,
             },
             // {
             //   duration: 241,
             //   amount: 280000000000,
             // }
           ],
-          amount: 230000000000, //fundsAmount,
+          amount: 220000000000, //fundsAmount,
           max_fee: 400000000000,
           tpid: '',
           actor: newUser3.account,
         }
       });
-      expect(result).to.have.all.keys('transaction_id', 'processed');
-      expect(result.processed.receipt.status).to.equal('executed');
-      expect(result.processed.action_traces[0].receipt.response).to.equal(`{"status": "OK","fee_collected":${config.api.transfer_tokens_pub_key.fee}}`);
-      // expect(result.type).to.equal('invalid_input');
-      // expect(result.fields[0].name).to.equal('can_vote');
-      // expect(result.fields[0].value).to.equal('1');
-      // // TODO: Double check with Ed the best way to trigger this condition
-      // expect(result.fields[0].error).to.equal('This account has voting restriction on locked tokens, sending locked tokens without voting restriction is not allowed.');
+      expect(result.type).to.equal('invalid_input');
+      expect(result.fields[0].name).to.equal('can_vote');
+      expect(result.fields[0].value).to.equal('1');
+      // TODO: Double check with Ed the best way to trigger this condition
+      expect(result.fields[0].error).to.equal('This account has voting restriction on locked tokens, sending locked tokens without voting restriction is not allowed.');
     } catch (err) {
       throw err;
     }
@@ -4902,7 +4895,7 @@ describe(`J. Test trnsloctoks effect on total_voted_fio for a user with non-rest
   });
 });
 
-describe(`K. Test trnsloctoks effect on total_voted_fio for a user with restricted locks`, () => {
+describe.only(`K. [BUG?] Test trnsloctoks effect on total_voted_fio for a user with restricted locks`, () => {
 
   let user1, user2, total_voted_fio, totalVotesBP1, totalVotesBP2, totalVotesBP3
 
@@ -5045,27 +5038,10 @@ describe(`K. Test trnsloctoks effect on total_voted_fio for a user with restrict
   });
 
   // vote weight assertion
-  it(`expect ??? in total FIO and vote weight after lock token transfer`, async () => {
+  it(`[BUG?] expect no change in total FIO and vote weight after lock token transfer`, async () => {
     let weightIncrease = postTransferVoteWeight > postVoteWeight;
     let fioIncrease = postTransferVoteFio > postVoteFio;
     expect(weightIncrease).to.equal(false);
     expect(fioIncrease).to.equal(false);
   });
-
 });
-
-
-/**
- * if userA1 has voted 1000 FIO, and someone transfers another 1000, voting power is now 2000
- *
- *
- * Does voting table get updated?
- *
- *
- * Does the transfer to 1000 consist of locked or unlocked?
- *
- *
- *
- *
- *
- */
