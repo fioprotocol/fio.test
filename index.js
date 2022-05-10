@@ -59,6 +59,8 @@ describe('TEST SUITE', () => {
     require('./tests/locks-transfer-locked-tokens-account-tests.js');  // FIP-6 tests of generic account functionality
     require('./tests/locks-transfer-locked-tokens-large-grants.js'); //FIP-21 tests for FIO genesis locks functionality.
     require('./tests/locks-transfer-locked-tokens.js');  //FIP-21 locking tests for general locks
+    require('./tests/stake-general-locked-tokens.js'); //FIP-21 tests for general lock accounts performing staking
+    require('./tests/stake-BD-3552-dev-tests.js');
   });
 
   /**
