@@ -828,7 +828,8 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
       expect(result.ram_quota).to.be.a('number')
       ramafter = result.ram_quota
       // fio.contracts: raminc = 1024 + (64 * periods.size());
-      const ramInc = 1024 + (64 * 2);
+      //hardcoded value ram bump for trnsloctoks
+      const ramInc = 1200;
       let diffram = ramafter-rambefore
       expect(diffram).to.equal(ramInc)
     } catch (err) {
