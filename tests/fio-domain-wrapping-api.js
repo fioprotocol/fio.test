@@ -148,7 +148,7 @@ describe(`************************** fio-domain-wrapping-api.js ****************
   });
 });
 
-describe(`** ORACLE TABLE CLEANUP **`, async function () {
+describe.only(`** ORACLE TABLE CLEANUP **`, async function () {
   it(`clean out oracless record with helper function`, async function () {
     try {
       await cleanUpOraclessTable(faucet, true);
@@ -160,7 +160,7 @@ describe(`** ORACLE TABLE CLEANUP **`, async function () {
   });
 });
 
-describe(`B. [FIO][api] Wrap FIO domains`, function () {
+describe.only(`B. [FIO][api] Wrap FIO domains`, function () {
 
   let oracle1, oracle2, oracle3, newOracle1, newOracle2, newOracle3,
       user1, user2, user3, user4, user5, user6, user7, user8,
@@ -691,7 +691,7 @@ describe(`B. [FIO][api] Wrap FIO domains`, function () {
   });
 });
 
-describe.skip(`C. [FIO][api] Unwrap FIO domains`, function () {
+describe.only(`C. [FIO][api] Unwrap FIO domains`, function () {
 
   let wrapAmt = 1000000000000;
   let oracle1, oracle2, oracle3, user1, newOracle1, newOracle2, newOracle3, newOracle4,
@@ -710,7 +710,7 @@ describe.skip(`C. [FIO][api] Unwrap FIO domains`, function () {
       user14;
 
   let custodians, factory, owner, fioNft, fioNftAccts;
-  let OBT_ID;
+  let OBT_ID, ORACLE_FEE;
 
   before(async function () {
     // oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');

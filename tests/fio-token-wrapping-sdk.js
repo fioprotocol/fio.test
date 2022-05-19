@@ -1140,11 +1140,18 @@ describe(`E. [FIO] Wrap FIO tokens`, function () {
     }
   });
 
+
+
+
+
+
+
+
   // happy ish tests (SDK default values get injected into otherwise invalid requests)
   it(`(missing tpid) try to wrap 1000 FIO tokens, expect OK - SDK should use default value`, async function () {
     // skipping because the SDK adds a default value
     try {
-      const result = await user1.sdk.genericAction('pushTransaction', {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
         action: 'wraptokens',
         account: 'fio.oracle',
         data: {
@@ -1153,7 +1160,7 @@ describe(`E. [FIO] Wrap FIO tokens`, function () {
           public_address: wfio.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
-          //tpid: "",
+          tpid: "",
         }
       });
       expect(result.status).to.equal('OK');
@@ -1298,7 +1305,7 @@ describe(`E. [FIO] Wrap FIO tokens`, function () {
   // unhappy tests
   it(`(empty amount) try to wrap FIO tokens`, async function () {
     try {
-      const result = await user1.sdk.genericAction('pushTransaction', {
+      const result = await newOracle1.sdk.genericAction('pushTransaction', {
         action: 'wraptokens',
         account: 'fio.oracle',
         data: {
@@ -1836,7 +1843,7 @@ describe(`** ORACLE TABLE CLEANUP **`, async function () {
   });
 });
 
-describe(`F. [FIO] Unwrap FIO tokens`, function () {
+describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
   let wrapAmt = 1000000000000;
   let unwrapAmt = 500000000000;
   let oracle1, oracle2, oracle3, newOracle1, newOracle2, newOracle3,
