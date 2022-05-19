@@ -12,7 +12,7 @@ describe('TEST SUITE', () => {
    * WFIO and FIONFT wrapping and unwrapping
    * FIO token wrapping and unwrapping (FIP-17a)
    * FIO domain wrapping and unwrapping (FIP-17b)
-   */
+   
   describe.skip(`** FIP-17a and b - WRAPPING TESTS **`, function () {
 
     require('./tests/fio-erc20');
@@ -22,7 +22,7 @@ describe('TEST SUITE', () => {
     require('./tests/fio-domain-wrapping-sdk');
     require('./tests/fio-domain-wrapping-api');
   });
-
+*/
   /**
    * Staking Tests (FIP-21)
    * May require additional configuration (see the notes in js files before running these tests)
@@ -63,91 +63,95 @@ describe('TEST SUITE', () => {
     require('./tests/stake-BD-3552-dev-tests.js');
   });
 
-  /**
-   * General Tests. Should work against all builds. Do not require additional configuration.
-   */
-  require('./tests/addaddress.js'); // v1.0.x  Also includes FIP-13 tests.
-  require('./tests/fees.js'); // v1.0.x
-  require('./tests/fio-request.js'); // v1.0.x
-  require('./tests/producer.js'); // v1.0.x
-  require('./tests/pushtransaction.js'); // v1.0.x
-  require('./tests/ram.js');  // v1.0.x //Eric to update to remove clio
-  require('./tests/register-renew-fio-address.js');
-  require('./tests/register-renew-fio-domain.js'); // v1.0.x
-  require('./tests/transfer-tokens.js'); // v1.0.x
-  require('./tests/vote.js');  // v1.0.x
-  require('./tests/action-whitelisting.js'); // FIP-12, fio v2.0.0, fio.contracts v2.0.0 // Causes future tests to fail. Only run alone.
-  require('./tests/transfer-domain.js'); // FIP-1.a, fio v2.0.0, fio.contracts v2.1.0
-  require('./tests/paging.js'); // FIP-2, fio v2.0.0, fio.contracts v2.1.0
-  require('./tests/remove-address.js'); // FIP-4, fio v2.0.0, fio.contracts v2.1.0
-  require('./tests/txn-resubmit.js'); //Available with fiosdk_typescript v1.2.0
-  require('./tests/burn-address.js'); // FIP-7
-  require('./tests/record-obt-data.js'); //FIP-1.b testing
-  require('./tests/transfer-address.js'); // FIP-1.b
-  require('./tests/addbundles.js');  // FIP-11.a
-  //require('./tests/retire-tokens.js');  // FIP-22 Retire tokens. Requires setup to run.
-  require('./tests/tpid.js');
+  describe.only('** GENERAL TESTS **', () => {
 
-  /**
-   * FIP-27 FIO NFT
-   */
-  require('./tests/nft-add-remove.js'); //FIP-27
-  require('./tests/nft-sdk-tests.js');
-  //require('./tests/nft-performance-tests.js'); //FIP-27
-  require('./tests/nft-uniqueness.js'); //FIP-27
-  //require('./tests/nft-remove-burn.js'); //FIP-27
-  //require('./tests/clio.js');  // FIP-16  Only works with local testing
-  //require('./tests/performance-request-obt.js');
-  require('./tests/fee-distribution.js');
-  //require('./tests/eosio-updateauth.js');
-  require('./tests/serialize-deserialize.js');  // Tests for BD-3636
+    /**
+     * General Tests. Should work against all builds. Do not require additional configuration.
+     */
+    require('./tests/addaddress.js'); // v1.0.x  Also includes FIP-13 tests.
+    require('./tests/fees.js'); // v1.0.x
+    require('./tests/fio-request.js'); // v1.0.x
+    require('./tests/producer.js'); // v1.0.x
+    require('./tests/pushtransaction.js'); // v1.0.x
+    require('./tests/ram.js');  // v1.0.x //Eric to update to remove clio
+    require('./tests/register-renew-fio-address.js');
+    require('./tests/register-renew-fio-domain.js'); // v1.0.x
+    require('./tests/transfer-tokens.js'); // v1.0.x
+    require('./tests/vote.js');  // v1.0.x
+    require('./tests/action-whitelisting.js'); // FIP-12, fio v2.0.0, fio.contracts v2.0.0 // Causes future tests to fail. Only run alone.
+    require('./tests/transfer-domain.js'); // FIP-1.a, fio v2.0.0, fio.contracts v2.1.0
+    require('./tests/paging.js'); // FIP-2, fio v2.0.0, fio.contracts v2.1.0
+    require('./tests/remove-address.js'); // FIP-4, fio v2.0.0, fio.contracts v2.1.0
+    require('./tests/txn-resubmit.js'); //Available with fiosdk_typescript v1.2.0
+    require('./tests/burn-address.js'); // FIP-7
+    require('./tests/record-obt-data.js'); //FIP-1.b testing
+    require('./tests/transfer-address.js'); // FIP-1.b
+    require('./tests/addbundles.js');  // FIP-11.a
+    //require('./tests/retire-tokens.js');  // FIP-22 Retire tokens. Requires setup to run.
+    require('./tests/tpid.js');
+    require('./tests/FIP-41-devtest-transfer-locked-tokens.js');
 
-  //require('./tests/expired-address-domain.js'); // Requires manual updates to contracts to shorten expiration timing
-  //require('./tests/expired-address-domain-modexpire.js'); // Requires modexpire action which allows expiring of domains
+    /**
+     * FIP-27 FIO NFT
+     */
+    require('./tests/nft-add-remove.js'); //FIP-27
+    require('./tests/nft-sdk-tests.js');
+    //require('./tests/nft-performance-tests.js'); //FIP-27
+    require('./tests/nft-uniqueness.js'); //FIP-27
+    //require('./tests/nft-remove-burn.js'); //FIP-27
+    //require('./tests/clio.js');  // FIP-16  Only works with local testing
+    //require('./tests/performance-request-obt.js');
+    require('./tests/fee-distribution.js');
+    //require('./tests/eosio-updateauth.js');
+    require('./tests/serialize-deserialize.js');  // Tests for BD-3636
 
-  //require('./tests/fio-escrow'); // FIP-26 (marketplace). Requires additional configuration to add the modexpire action
+    //require('./tests/expired-address-domain.js'); // Requires manual updates to contracts to shorten expiration timing
+    //require('./tests/expired-address-domain-modexpire.js'); // Requires modexpire action which allows expiring of domains
 
-  //require('./tests/history.js'); // Only run against history node.
+    //require('./tests/fio-escrow'); // FIP-26 (marketplace). Requires additional configuration to add the modexpire action
 
-  /**
-   * Testnet smoketest. By default runs against local build.
-   */
-  require('./tests/testnet-smoketest.js');
+    //require('./tests/history.js'); // Only run against history node.
 
-  /**
-   * clio tests. Only works with local testing since it accesses the fio.devtools/bin directory
-   */
-  //require('./tests/clio.js');  // FIP-16
+    /**
+     * Testnet smoketest. By default runs against local build.
+     */
+    require('./tests/testnet-smoketest.js');
 
-  /**
-   * Producer Tests. Only run on devnet. Requires additional configuration
-   */
-  //require('./tests/producer-fee-voting-fee-setting.js'); // FIP-10
-  //require('./tests/producer-fee-setting.js');  // FIP-10
+    /**
+     * clio tests. Only works with local testing since it accesses the fio.devtools/bin directory
+     */
+    //require('./tests/clio.js');  // FIP-16
 
-  /**
-   * Expired Address and Domain Testing. Requires manual updates to contracts to shorten expiration timing
-   */
-  //require('./tests/expired-address-domain.js');
-  //require('./tests/expired-address-domain-modexpire.js'); // Requires modexpire action which allows expiring of domains
+    /**
+     * Producer Tests. Only run on devnet. Requires additional configuration
+     */
+    //require('./tests/producer-fee-voting-fee-setting.js'); // FIP-10
+    //require('./tests/producer-fee-setting.js');  // FIP-10
 
-  /**
-   * History Node tests. Only run against history node.
-   */
-  //require('./tests/history.js');
+    /**
+     * Expired Address and Domain Testing. Requires manual updates to contracts to shorten expiration timing
+     */
+    //require('./tests/expired-address-domain.js');
+    //require('./tests/expired-address-domain-modexpire.js'); // Requires modexpire action which allows expiring of domains
 
-  /**
-   * Performance tests. May require additional configuration. See notes in tests
-   */
-  //require('./tests/performance-request-obt.js');
+    /**
+     * History Node tests. Only run against history node.
+     */
+    //require('./tests/history.js');
 
-  /**
-   * Archived tests
-   */
-  //require('./tests/bravo-migr-test.js'); //This is required when testing 2.3.0 (bravo) with fio bahamas (need to do the full table migration).
+    /**
+     * Performance tests. May require additional configuration. See notes in tests
+     */
+    //require('./tests/performance-request-obt.js');
 
-  /**
-   * FIP-26 (marketplace)
-   */
-  // require('./tests/fio-escrow.js');
+    /**
+     * Archived tests
+     */
+    //require('./tests/bravo-migr-test.js'); //This is required when testing 2.3.0 (bravo) with fio bahamas (need to do the full table migration).
+
+    /**
+     * FIP-26 (marketplace)
+     */
+    // require('./tests/fio-escrow.js');
+  });
 });
