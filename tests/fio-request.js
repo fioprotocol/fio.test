@@ -35,6 +35,7 @@ before(async () => {
 })
 
 describe(`************************** fio-request.js ************************** \n    A. Send fio request from userA1 to userA2. userA2 responds with OBT Record`, () => {
+// describe.only(`************************** fio-request.js ************************** \n    A. Send fio request from userA1 to userA2. userA2 responds with OBT Record`, () => {
 
     let userA1, userA2, userA3, userA4, requestId
     const payment = 5000000000 // 5 FIO

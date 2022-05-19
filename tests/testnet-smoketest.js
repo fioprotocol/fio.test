@@ -18,21 +18,41 @@ let privateKey, publicKey, testFioAddressName, privateKey2, publicKey2, testFioA
 /**
 * Set to target = 'local' if running against devtools build. Leave blank if running against Testnet.
 */
-const target = 'local' 
+const target = 'local';
+// const target = '';
 
 /**
  * Set your testnet existing private/public keys and existing fioAddresses (not needed if running locally)
  */
-privateKey = '',
-publicKey = '',
-account = '',
-privateKey2 = '',
-publicKey2 = '',
-account2 = '',
-testFioDomain = '',
-testFioAddressName = '',
-testFioAddressName2 = ''
+privateKey = '5J5cS3HSstjBywtRgYzVtkps37d8QGPNFa6sfCwnqxxQVuY8ehV',
+publicKey = 'FIO6yhcFeVnpHtL5KSvcCgUssnP8nSTNZWdFyvV9EY3q59ohAbb9v',
+account = 'ntyn22dyujkx',
+privateKey2 = '5JnHU4awCZ85X8hTjnzD1RsrfnzqE8gTMhM2CsM1eVrfPerBuMu',
+publicKey2 = 'FIO52jQe2GVB5e5FBb9Pc6W41qaMdDUrhh2si4GvA1oDoE9g3rKmr',
+account2 = 'mrr5br55zbfq',
+testFioDomain = 'fiotestnet',
+testFioAddressName = 'blsec@fiotestnet',
+testFioAddressName2 = 'pumking@fiotestnet'
 
+// privateKey = '5Jw78NzS2QMvjcyemCgJ9XQv8SMSEvTEuLxF8TcKf27xWcX5fmw',
+// publicKey = 'FIO8k7N7jU9eyj57AfazGxMuvPGZG5hvXNUyxt9pBchnkXXx9KUuD',
+// account = 'v2lgwcdkb5gn',
+// privateKey2 = '5Hv1zRFa7XRo395dfHS8xrviszPiVYeBhQjJq4TsPv53NvAcfyU',
+// publicKey2 = 'FIO7b3WHTsS1wTF2dAUvE9DoDXvxYUVA8FepLW6x9Bv5rPJnUW6ab',
+// account2 = '3the3fevcz2u',
+// testFioDomain = 'fiotestnet',
+// testFioAddressName = 'ebtest1@fiotestnet',
+// testFioAddressName2 = 'ebtest3@fiotestnet'
+
+// privateKey = '5JHBHMDQ9mRdN1AXysoXYFG1CwFxkdFDQQaUGz3JFGZPhJxX3tM',
+// publicKey = 'FIO8hJ5vmucFdWtnrZXDhGbkWNT9YD93ULqggy9b3e139Te453nWw',
+// account = 'pxhamjsnwhvq',
+// privateKey2 = '5JoL1hBV2Snp2nrfZkyb2U3dUFTavhq2poiYNRFc6Y79znfb47Y',
+// publicKey2 = 'FIO8AejHvFuPYMka39Qkgb9DL6giN5NozCj3MkMRPLhe3xjjDA4TD',
+// account2 = 'jdexq3ahzb1e',
+// testFioDomain = 'fiotestnet',
+// testFioAddressName = 'blsec2@fiotestnet',
+// testFioAddressName2 = 'pumking2@fiotestnet'
 
 /**
  * Main Tests
