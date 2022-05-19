@@ -64,17 +64,17 @@ let faucet;
  *
  *     //must change foundation account for testing BPCLAIM...test change only!!
  *     static const name FOUNDATIONACCOUNT = name("htjonrkf1lgs");
- * 
+ *
  *  3. Change the allowable BP claim time (usually 4 hours)
- * 
- *    In fio.common.hpp 
- *      
+ *
+ *    In fio.common.hpp
+ *
  *      change the following line:
- *  
+ *
  *      #define SECONDSBETWEENBPCLAIM (SECONDSPERHOUR * 4)
- * 
+ *
  *      to become
- * 
+ *
  *      #define SECONDSBETWEENBPCLAIM (5)
  */
 
@@ -139,7 +139,7 @@ async function consumeRemainingBundles (user, user2) {
     }
   }
 
-  
+
 
   while (bundles > 0) {
     try {
@@ -349,7 +349,7 @@ describe(`************************** stake-tokens.js ************************** 
       tpid: '',
     });
     let newBal = await userC.sdk.genericAction('getFioBalance', {});
-    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected');
+    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected', 'block_num', 'transaction_id');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(config.api.register_fio_domain.fee);
     expect(bal.available - newBal.available).to.equal(config.api.register_fio_domain.fee);
@@ -364,7 +364,7 @@ describe(`************************** stake-tokens.js ************************** 
       tpid: '',
     });
     let newBal = await userC.sdk.genericAction('getFioBalance', {});
-    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected');
+    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected', 'block_num', 'transaction_id');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(config.api.register_fio_address.fee);
     expect(bal.available - newBal.available).to.equal(config.api.register_fio_address.fee);
@@ -427,7 +427,7 @@ describe(`************************** stake-tokens.js ************************** 
       maxFee: config.api.register_fio_address.fee,
       tpid: '',
     });
-    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected');
+    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected', 'block_num', 'transaction_id');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(config.api.register_fio_address.fee);
 
