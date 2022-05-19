@@ -500,7 +500,8 @@ describe(`C. FIP-13. Get_pub_addresses endpoint`, () => {
           tpid: ''
         })
         //console.log('Result:', result)
-        expect(result).to.have.all.keys('status', 'fee_collected')
+        expect(result).to.have.all.keys('status', 'fee_collected', 'block_num', 'transaction_id')
+        expect(result.status).to.equal('OK');
       } catch (err) {
         console.log('Error', err)
         expect(err).to.equal(null)
@@ -645,7 +646,8 @@ describe(`FIP18. Chain-level addressing`, () => {
                 tpid: ''
             })
             //console.log('Result:', result)
-            expect(result).to.have.all.keys('status', 'fee_collected')
+            expect(result).to.have.all.keys('status', 'fee_collected', 'block_num', 'transaction_id');
+            expect(result.status).to.equal('OK');
         } catch (err) {
             console.log('Error', err)
             expect(err).to.equal(null)
@@ -743,4 +745,207 @@ describe(`Remap FIO Address`, () => {
       expect(err).to.equal(null)
     }
   })
+})
+
+describe(`FIP-33 - Test allowable characters ($) in chain and token code`, () => {
+
+  let user1
+
+  it(`Create users`, async () => {
+    user1 = await newUser(faucet);
+  })
+
+  it(`Add $BCH in chain_code - Expect success`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('addPublicAddresses', {
+        fioAddress: user1.address,
+        publicAddresses: [
+          {
+            chain_code: '$BCH',
+            token_code: 'BCH',
+            public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+          }
+        ],
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      //console.log('Result:', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it('(api) get_pub_address with chain_code $BCH', async () => {
+    try {
+      const result = await callFioApi("get_pub_address", {
+        fio_address: user1.address,
+        chain_code: '$BCH',
+        token_code: 'BCH'
+      })
+      //console.log('Result', result)
+      expect(result.public_address).to.equal("bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9");
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Add $BCH in token_code - Expect success`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('addPublicAddresses', {
+        fioAddress: user1.address,
+        publicAddresses: [
+          {
+            chain_code: 'BCH',
+            token_code: '$BCH',
+            public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g2',
+          }
+        ],
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      //console.log('Result:', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it('(api) get_pub_address with token_code $BCH', async () => {
+    try {
+      const result = await callFioApi("get_pub_address", {
+        fio_address: user1.address,
+        chain_code: 'BCH',
+        token_code: '$BCH'
+      })
+      //console.log('Result', result)
+      expect(result.public_address).to.equal("bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g2");
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Add BCH# in chain_code- Expect failure 'Invalid chain code format'`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('addPublicAddresses', {
+        fioAddress: user1.address,
+        publicAddresses: [
+          {
+            chain_code: 'BCH#',
+            token_code: 'BCH',
+            public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+          }
+        ],
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      //console.log('Result:', result)
+      expect(result.status).to.not.equal('OK')
+    } catch (err) {
+      //console.log('Error', err.json)
+      expect(err.json.fields[0].error).to.equal('Invalid chain code format')
+    }
+  })
+
+  it(`Add BCH# in token_code- Expect failure 'Invalid token code format'`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('addPublicAddresses', {
+        fioAddress: user1.address,
+        publicAddresses: [
+          {
+            chain_code: 'BCH',
+            token_code: 'BCH#',
+            public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+          }
+        ],
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      //console.log('Result:', result)
+      expect(result.status).to.not.equal('OK')
+    } catch (err) {
+      //console.log('Error', err.json)
+      expect(err.json.fields[0].error).to.equal('Invalid token code format')
+    }
+  })
+})
+
+describe(`Test various sized chain and token codes`, () => {
+
+  let user1
+
+  it(`Create users`, async () => {
+    user1 = await newUser(faucet);
+  })
+
+  it(`Add 10 character chain_code and token_code - Expect success`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('addPublicAddresses', {
+        fioAddress: user1.address,
+        publicAddresses: [
+          {
+            chain_code: '1234567890',
+            token_code: '1234567890',
+            public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+          }
+        ],
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      //console.log('Result:', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Add 11 character chain_code - Expect failure`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('addPublicAddresses', {
+        fioAddress: user1.address,
+        publicAddresses: [
+          {
+            chain_code: '12345678901',
+            token_code: 'BCH',
+            public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+          }
+        ],
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      //console.log('Result:', result)
+      expect(result.status).to.not.equal('OK')
+    } catch (err) {
+      //console.log('Error', err.json)
+      expect(err.json.fields[0].error).to.equal('Invalid chain code format')
+    }
+  })
+
+  it(`Add 11 character token_code - Expect failure`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('addPublicAddresses', {
+        fioAddress: user1.address,
+        publicAddresses: [
+          {
+            chain_code: 'BCH',
+            token_code: '12345678901',
+            public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+          }
+        ],
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      //console.log('Result:', result)
+      expect(result.status).to.not.equal('OK')
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err.json.fields[0].error).to.equal('Invalid token code format')
+    }
+  })
+
 })

@@ -3,9 +3,10 @@ const exec = require('child_process').exec;
 var fs = require('fs');
 config = require('./config');
 var http = require('http');
+const { createHash } = require('crypto');
 
 const fiourl = config.URL + "/v1/chain/";
-const historyUrl = config.URL + "/v1/history/"
+const historyUrl = config.HISTORYURL + "/v1/history/"
 
 const { Fio } = require('@fioprotocol/fiojs');
 fetch = require('node-fetch');
@@ -25,6 +26,11 @@ function randStr(len) {
 function convertToK1(pubkey) {
     return pubkey.replace("FIO", "PUB_K1_");
 }
+
+function stringToHash (term){
+    const hash = createHash('sha1');
+    return '0x' + hash.update(term).digest().slice(0, 16).reverse().toString('hex');
+};
 
 function user(account, privateKey, publicKey) {
     this.account = account;
@@ -324,9 +330,9 @@ const callFioApiSigned = async (endPoint, txn) => {
         body: JSON.stringify(tx),
         method: 'POST',
     });
-
-    const json = await pushResult.json()
-    return json;
+    
+    const json = await pushResult.json();
+    return json; 
   };
 
 /**
@@ -741,6 +747,71 @@ async function readProdFile(prodFile) {
     });
 }
 
+async function getBundleCount(user) {
+    const result = await user.genericAction('getFioNames', { fioPublicKey: user.publicKey });
+    return result.fio_addresses[0].remaining_bundled_tx;
+}
+
+async function consumeRemainingBundles(user, user2) {
+    let bundles;
+    bundles = await getBundleCount(user.sdk);
+    process.stdout.write('\tconsuming remaining bundled transactions\n\tthis may take a while');
+    if (bundles % 2 !== 0) {
+        try {
+            const result = await user.sdk.genericAction('addPublicAddresses', {
+                fioAddress: user.address,
+                publicAddresses: [
+                    {
+                        chain_code: 'ETH',
+                        token_code: 'ETH',
+                        public_address: 'ethaddress',
+                    }
+                ],
+                maxFee: config.api.add_pub_address.fee,
+                walletFioAddress: ''
+            })
+            //console.log('Result:', result)
+            expect(result.status).to.equal('OK')
+        } catch (err) {
+            console.log(`Error consuming bundle, retrying (${err.message})`);
+            wait(1000);
+        } finally {
+            bundles = await getBundleCount(user.sdk);
+            expect(bundles % 2).to.equal(0);
+        }
+    }
+
+    while (bundles > 0) {
+        try {
+            await user.sdk.genericAction('recordObtData', {
+                payerFioAddress: user.address,
+                payeeFioAddress: user2.address,
+                payerTokenPublicAddress: user.publicKey,
+                payeeTokenPublicAddress: user2.publicKey,
+                amount: 5000000000,
+                chainCode: "BTC",
+                tokenCode: "BTC",
+                status: '',
+                obtId: '',
+                maxFee: config.api.record_obt_data.fee,
+                technologyProviderId: '',
+                payeeFioPublicKey: user2.publicKey,
+                memo: 'this is a test',
+                hash: '',
+                offLineUrl: ''
+            })
+            process.stdout.write('.');
+            // wait(500);  //1000);
+        } catch (err) {
+            console.log(`Error consuming bundle, retrying (${err.message})`);
+            //wait(1000);
+        } finally {
+            bundles = await getBundleCount(user.sdk);
+        }
+    }
+    console.log('\n');
+}
+
 
 /**
  * Old. Need to get rid of clio calls and replace with API
@@ -1136,4 +1207,4 @@ class Ram {
 } //Ram class
 */
 
-module.exports = { newUser, existingUser, getTestType, getTopprods, callFioApi, callFioApiSigned, httpRequest, httpRequestBig, callFioHistoryApi, convertToK1, unlockWallet, getFees, getAccountFromKey, getProdVoteTotal, addLock, getTotalVotedFio, getAccountVoteWeight, setRam, printUserRam, user, getMnemonic, fetchJson, randStr, timeout, generateFioDomain, generateFioAddress, createKeypair, readProdFile};
+module.exports = { newUser, existingUser, stringToHash, getTestType, getTopprods, callFioApi, callFioApiSigned, httpRequest, httpRequestBig, callFioHistoryApi, convertToK1, unlockWallet, getFees, getAccountFromKey, getProdVoteTotal, addLock, getTotalVotedFio, getAccountVoteWeight, setRam, printUserRam, user, getMnemonic, fetchJson, randStr, timeout, generateFioDomain, generateFioAddress, createKeypair, readProdFile, consumeRemainingBundles, getBundleCount};

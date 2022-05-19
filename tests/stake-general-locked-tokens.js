@@ -8,14 +8,6 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-function wait(ms){
-  var start = new Date().getTime();
-  var end = start;
-  while(end < start + ms) {
-    end = new Date().getTime();
-  }
-}
-
 const UNSTAKELOCKDURATIONSECONDS = 604800
 
 describe(`************************** stake-general-locked-tokens.js ************************** \n    A. Stake/unstake tokens with existing general lock account`, () => {
@@ -238,13 +230,7 @@ describe(`************************** stake-general-locked-tokens.js ************
     console.log("            waiting 65 seconds ")
   })
 
-  it(` wait 65 seconds`, async () => {
-    try {
-      wait(65000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
+  it(`Wait 65 seconds.`, async () => { await timeout(65000) });
 
   it(`Transfer 1 FIO from locksdk to trigger update of locktokensv2`, async () => {
     try {
@@ -904,13 +890,7 @@ describe(`************************** stake-general-locked-tokens.js ************
     console.log("            waiting 60 seconds ")
   })
 
-  it(` wait 60 seconds`, async () => {
-    try {
-      wait(60000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
+  it(`Wait 60 seconds.`, async () => { await timeout(60000) });
 
   it(`Success, Transfer 700 FIO to userA1 FIO public key`, async () => {
 
@@ -1225,13 +1205,7 @@ describe(`B. Insert stake period in middle of locktokensv2 general locks, then u
     console.log("            waiting 65 seconds ")
   })
 
-  it(` wait 65 seconds`, async () => {
-    try {
-      wait(65000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
+  it(`Wait 65 seconds.`, async () => { await timeout(65000) });
 
   it(`Transfer 1 FIO from locksdk to trigger update of locktokensv2`, async () => {
     try {
@@ -1714,13 +1688,7 @@ describe(`C. Insert stake period at END of locktokensv2 general locks, then unlo
     console.log("            waiting 35 seconds ")
   })
 
-  it(` wait 35 seconds`, async () => {
-    try {
-      wait(35000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
+  it(`Wait 35 seconds.`, async () => { await timeout(35000) });
 
   it(`Transfer 1 FIO from locksdk to trigger update of locktokensv2`, async () => {
     try {
@@ -1816,13 +1784,7 @@ describe(`C. Insert stake period at END of locktokensv2 general locks, then unlo
     console.log("            waiting 35 seconds ")
   })
 
-  it(` wait 35 seconds`, async () => {
-    try {
-      wait(35000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
+  it(`Wait 35 seconds.`, async () => { await timeout(35000) });
 
   it(`Transfer 1 FIO from locksdk to trigger update of locktokensv2`, async () => {
     try {
@@ -1968,37 +1930,6 @@ describe(`D. Insert stake period at BEGINNING of locktokensv2 general locks. No 
       }
     })
     expect(result.status).to.equal('OK')
-  })
-
-  it(`Try to do another trnsloctoks. Expect: Locked tokens can only be transferred to new account`, async () => {
-    try { 
-      const result = await faucet.genericAction('pushTransaction', {
-        action: 'trnsloctoks',
-        account: 'fio.token',
-        data: {
-          payee_public_key: keys.publicKey,
-          can_vote: 0,
-          periods: [
-            {
-              duration: genLock1Dur,
-              amount: genLock1Amount + 1,
-            },
-            {
-              duration: genLock2Dur,
-              amount: genLock2Amount + 1,
-            }
-          ],
-          amount: genLockTotal + 2,
-          max_fee: config.maxFee,
-          tpid: '',
-          actor: config.FAUCET_ACCOUNT,
-        }
-      })
-      expect(result.status).to.not.equal('OK')
-    } catch (err) {
-      //console.log('Error', err.json);
-      expect(err.json.fields[0].error).to.equal('Locked tokens can only be transferred to new account');
-    }
   })
 
   it(`Call get_table_rows from locktokensv2 and confirm: two lock periods added correctly`, async () => {
@@ -2248,14 +2179,15 @@ describe(`E. Check ram quota for stakefio and unstakefio`, () => {
     }
   })
 
-  it(`get account ram after. Expect RAM After = RAM Before + 256  `, async () => {
+  it(`get account ram after. Expect RAM After = RAM Before + ${config.RAM.STAKEFIOTOKENSRAM}  `, async () => {
     try {
       let rambefore = ram
       const result = await userA1.sdk.genericAction('getAccount', { account: userA1.account })
       ram = result.ram_quota
-      expect(result.ram_quota).to.equal(rambefore + 256)
+      expect(result.ram_quota).to.equal(rambefore + config.RAM.STAKEFIOTOKENSRAM)
     } catch (err) {
-      console.log('Error', err)
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 
@@ -2275,13 +2207,14 @@ describe(`E. Check ram quota for stakefio and unstakefio`, () => {
     expect(result.status).to.equal('OK')
   })
 
-  it(`get account ram after. Expect RAM After = RAM Before + 256  `, async () => {
+  it(`get account ram after. Expect RAM After = RAM Before + ${config.RAM.UNSTAKEFIOTOKENSRAM}  `, async () => {
     try {
       let rambefore = ram
       const result = await userA1.sdk.genericAction('getAccount', { account: userA1.account })
-      expect(result.ram_quota).to.equal(rambefore + 256)
+      expect(result.ram_quota).to.equal(rambefore + config.RAM.UNSTAKEFIOTOKENSRAM)
     } catch (err) {
-      console.log('Error', err)
+      console.log('Error', err);
+      expect(err).to.equal(null);
     }
   })
 

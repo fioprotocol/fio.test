@@ -1,21 +1,12 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, existingUser,callFioApi,fetchJson, generateFioDomain, getAccountFromKey, generateFioAddress, createKeypair} = require('../utils.js');
+const {newUser, existingUser,callFioApi,fetchJson, generateFioDomain, getAccountFromKey, generateFioAddress, createKeypair} = require('../../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
-config = require('../config.js');
+config = require('../../config.js');
 
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
-
-function wait(ms){
-  var start = new Date().getTime();
-  var end = start;
-  while(end < start + ms) {
-    end = new Date().getTime();
-  }
-}
-
 
 /*
    these tests perform development level test of the staking rewards.

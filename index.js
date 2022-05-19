@@ -4,25 +4,23 @@ const {expect} = require('chai');
 describe('TEST SUITE', () => {
 
   /**
+   * !!! ERC20 and ERC721 contract tests inside this test suite rely on hardhat
+   * Be sure to rerun npm install !!!
+   */
+
+  /**
    * WFIO and FIONFT wrapping and unwrapping
    * FIO token wrapping and unwrapping (FIP-17a)
    * FIO domain wrapping and unwrapping (FIP-17b)
    */
-  describe.only(`** FIP-17a and b - WRAPPING TESTS **`, function () {
+  describe.skip(`** FIP-17a and b - WRAPPING TESTS **`, function () {
 
-    // require('./tests/fio-erc20');
-    //
-    // require('./tests/fio-erc721');
-
+    require('./tests/fio-erc20');
+    require('./tests/fio-erc721');
     require('./tests/fio-token-wrapping-sdk');
-
     require('./tests/fio-token-wrapping-api');
-
     require('./tests/fio-domain-wrapping-sdk');
-
     require('./tests/fio-domain-wrapping-api');
-
-    // require('./tests/fio-wrapping-integration-tests');
   });
 
   /**
@@ -61,6 +59,8 @@ describe('TEST SUITE', () => {
     require('./tests/locks-transfer-locked-tokens-account-tests.js');  // FIP-6 tests of generic account functionality
     require('./tests/locks-transfer-locked-tokens-large-grants.js'); //FIP-21 tests for FIO genesis locks functionality.
     require('./tests/locks-transfer-locked-tokens.js');  //FIP-21 locking tests for general locks
+    require('./tests/stake-general-locked-tokens.js'); //FIP-21 tests for general lock accounts performing staking
+    require('./tests/stake-BD-3552-dev-tests.js');
   });
 
   /**
@@ -72,8 +72,8 @@ describe('TEST SUITE', () => {
   require('./tests/producer.js'); // v1.0.x
   require('./tests/pushtransaction.js'); // v1.0.x
   require('./tests/ram.js');  // v1.0.x //Eric to update to remove clio
-  require('./tests/register-fio-address.js');
-  require('./tests/register-fio-domain.js'); // v1.0.x
+  require('./tests/register-renew-fio-address.js');
+  require('./tests/register-renew-fio-domain.js'); // v1.0.x
   require('./tests/transfer-tokens.js'); // v1.0.x
   require('./tests/vote.js');  // v1.0.x
   require('./tests/action-whitelisting.js'); // FIP-12, fio v2.0.0, fio.contracts v2.0.0 // Causes future tests to fail. Only run alone.
@@ -85,21 +85,29 @@ describe('TEST SUITE', () => {
   require('./tests/record-obt-data.js'); //FIP-1.b testing
   require('./tests/transfer-address.js'); // FIP-1.b
   require('./tests/addbundles.js');  // FIP-11.a
+  //require('./tests/retire-tokens.js');  // FIP-22 Retire tokens. Requires setup to run.
   require('./tests/tpid.js');
-
-  /**
-   * !!! ERC20 and ERC721 contract tests inside this test suite rely on hardhat
-   * Be sure to rerun npm install !!!
-   */
 
   /**
    * FIP-27 FIO NFT
    */
   require('./tests/nft-add-remove.js'); //FIP-27
   require('./tests/nft-sdk-tests.js');
-  require('./tests/nft-remove-burn.js'); //FIP-27
-  require('./tests/nft-uniqueness.js'); //FIP-27
   //require('./tests/nft-performance-tests.js'); //FIP-27
+  require('./tests/nft-uniqueness.js'); //FIP-27
+  //require('./tests/nft-remove-burn.js'); //FIP-27
+  //require('./tests/clio.js');  // FIP-16  Only works with local testing
+  //require('./tests/performance-request-obt.js');
+  require('./tests/fee-distribution.js');
+  //require('./tests/eosio-updateauth.js');
+  require('./tests/serialize-deserialize.js');  // Tests for BD-3636
+
+  //require('./tests/expired-address-domain.js'); // Requires manual updates to contracts to shorten expiration timing
+  //require('./tests/expired-address-domain-modexpire.js'); // Requires modexpire action which allows expiring of domains
+
+  //require('./tests/fio-escrow'); // FIP-26 (marketplace). Requires additional configuration to add the modexpire action
+
+  //require('./tests/history.js'); // Only run against history node.
 
   /**
    * Testnet smoketest. By default runs against local build.

@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, existingUser,callFioApi,fetchJson, generateFioDomain, generateFioAddress, createKeypair} = require('../utils.js');
+const {newUser, existingUser,callFioApi,fetchJson, timeout, generateFioDomain, generateFioAddress, createKeypair} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 const config = require('../config.js');
 const StakingTimingValidator = require('./Helpers/staking-timing-validator.js');
@@ -9,14 +9,6 @@ let faucet;
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
-
-function wait(ms){
-  var start = new Date().getTime();
-  var end = start;
-  while(end < start + ms) {
-    end = new Date().getTime();
-  }
-}
 
 /********************* setting up these tests
  *
@@ -77,7 +69,7 @@ function wait(ms){
 const UNSTAKELOCKDURATIONSECONDS = config.UNSTAKELOCKDURATIONSECONDS;
 const SECONDSPERDAY = config.SECONDSPERDAY;
 
-describe(`************************** stake-regression.js ************************** \n    A. Stake tokens using auto proxy without voting first, \n Then do a full pull through unstaking including testing the locking period.`, () => {
+describe(`************************** stake-regression-with-validator.js ************************** \n    A. Stake tokens using auto proxy without voting first, \n Then do a full pull through unstaking including testing the locking period.`, () => {
 
   let validator = new StakingTimingValidator();
 
@@ -568,13 +560,7 @@ describe(`************************** stake-regression.js ***********************
     console.log("            DAY #" + dayNumber + ": waiting " + SECONDSPERDAY + " seconds ")
   })
 
-  it(`wait ${SECONDSPERDAY} seconds`, async () => {
-    try {
-      wait(SECONDSPERDAY * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
+  it(`Wait ${SECONDSPERDAY} seconds.`, async () => { await timeout(SECONDSPERDAY * 1000) });
 
   it(`success. userA1 vote for producer to trigger locktokensv2 update.`, async () => {
     try {
@@ -880,13 +866,7 @@ describe(`************************** stake-regression.js ***********************
     console.log("            DAY #" + dayNumber + ": waiting " + SECONDSPERDAY + " seconds ")
   })
 
-  it(`wait ${SECONDSPERDAY} seconds`, async () => {
-    try {
-      wait(SECONDSPERDAY * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
+  it(`Wait ${SECONDSPERDAY} seconds.`, async () => { await timeout(SECONDSPERDAY * 1000) });
 
   it(`success, userA1 unstake ${unstake5 / 1000000000} tokens `, async () => {
     const result = await userA1.sdk.genericAction('pushTransaction', {
@@ -983,13 +963,7 @@ describe(`************************** stake-regression.js ***********************
     console.log("            DAY #" + dayNumber + ": waiting " + SECONDSPERDAY + " seconds ")
   })
 
-  it(`wait ${SECONDSPERDAY} seconds`, async () => {
-    try {
-      wait(SECONDSPERDAY * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
+  it(`Wait ${SECONDSPERDAY} seconds.`, async () => { await timeout(SECONDSPERDAY * 1000) });
 
   it(`success, userA1 unstake ${unstake6 / 1000000000} tokens `, async () => {
     const result = await userA1.sdk.genericAction('pushTransaction', {
@@ -1088,13 +1062,7 @@ describe(`************************** stake-regression.js ***********************
     console.log("            DAY #" + dayNumber + ": waiting " + SECONDSPERDAY + " seconds ")
   })
 
-  it(`wait ${SECONDSPERDAY} seconds`, async () => {
-    try {
-      wait(SECONDSPERDAY * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
+  it(`Wait ${SECONDSPERDAY} seconds.`, async () => { await timeout(SECONDSPERDAY * 1000) });
 
   it(`success, userA1 unstake ${unstake7 / 1000000000} tokens `, async () => {
     const result = await userA1.sdk.genericAction('pushTransaction', {
@@ -1195,13 +1163,7 @@ describe(`************************** stake-regression.js ***********************
     console.log("            DAY #" + dayNumber + ": waiting " + SECONDSPERDAY + " seconds ")
   })
 
-  it(`wait ${SECONDSPERDAY} seconds`, async () => {
-    try {
-      wait(SECONDSPERDAY * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
+  it(`Wait ${SECONDSPERDAY} seconds.`, async () => { await timeout(SECONDSPERDAY * 1000) });
 
   it(`success, userA1 unstake ${unstake8 / 1000000000} tokens `, async () => {
     const result = await userA1.sdk.genericAction('pushTransaction', {
@@ -1304,13 +1266,7 @@ describe(`************************** stake-regression.js ***********************
     console.log("            DAY #" + dayNumber + ": waiting " + SECONDSPERDAY + " seconds ")
   })
 
-  it(`wait ${SECONDSPERDAY} seconds`, async () => {
-    try {
-      wait(SECONDSPERDAY * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
+  it(`Wait ${SECONDSPERDAY} seconds.`, async () => { await timeout(SECONDSPERDAY * 1000) });
 
   it(`success, userA1 unstake ${unstake9 / 1000000000} tokens `, async () => {
     const result = await userA1.sdk.genericAction('pushTransaction', {
@@ -1415,13 +1371,7 @@ describe(`************************** stake-regression.js ***********************
     console.log("            DAY #" + dayNumber + ": waiting " + SECONDSPERDAY + " seconds ")
   })
 
-  it(`wait ${SECONDSPERDAY} seconds`, async () => {
-    try {
-      wait(SECONDSPERDAY * 1000)
-    } catch (err) {
-      console.log('Error', err)
-    }
-  })
+  it(`Wait ${SECONDSPERDAY} seconds.`, async () => { await timeout(SECONDSPERDAY * 1000) });
 
   it(`success, userA1 unstake ${unstake10 / 1000000000} tokens `, async () => {
     try {
