@@ -790,7 +790,7 @@ describe(`C1. [ETH] wFIO wrapping`, function () {
     } catch (err) {
       expect(err).to.have.property('reason').which.is.a('string').and.equal('network does not support ENS');
       expect(err).to.have.property('code').which.is.a('string').and.equal('UNSUPPORTED_OPERATION');
-      expect(err).to.have.property('operation').which.is.a('string').and.equal('ENS');
+      expect(err).to.have.property('operation').which.is.a('string').and.equal('getResolver');
 
       // expect(err).to.have.property('reason').which.is.a('string').and.equal('resolver or addr is not configured for ENS name');
       // expect(err).to.have.property('code').which.is.a('string').and.equal('INVALID_ARGUMENT');
