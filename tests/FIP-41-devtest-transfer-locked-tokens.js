@@ -5,6 +5,7 @@ const {
   fetchJson,
   callFioApi,
   createKeypair,
+  generateFioAddress,
   existingUser,
   getTestType,
   timeout,
@@ -3413,7 +3414,7 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
     }
   });
 
-  it(`Try to transfer non-restricted voting locked tokens (can_vote=1) to the same account and expect Error because the account is not a new account.`, async () => {
+  it(`Try to transfer non-restricted voting locked tokens (can_vote=1) to the same account and expect Error because the account has existing can_vote=0 locked tokens.`, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
@@ -3448,6 +3449,8 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
     }
   });
 
+  it(`wait 2 seconds`, async function () {await timeout(2000);});
+
   it(`Try to transfer MORE restricted voting locked tokens (can_vote=0) to the same account, expect success.`, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
@@ -3476,6 +3479,7 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
       });
       expect(result).to.have.all.keys('transaction_id', 'processed');
     } catch (err) {
+      console.log('Error: ', err);
       throw err;
     }
   });
@@ -3508,14 +3512,10 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
     }
   });
 
-  let newKeyPair2, newUser2;
+  let newKeyPair2; 
 
   it(`Create a new keypair`, async () => {
     newKeyPair2 = await createKeypair();
-  });
-
-  it(`init new account `, async () => {
-    newUser2 = await existingUser(newKeyPair2.account, newKeyPair2.privateKey, newKeyPair2.publicKey, "", "");
   });
 
   it(`Call get_table_rows from locktokens, expect zero entries for the new keypair`, async () => {
@@ -3569,6 +3569,8 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
       throw err;
     }
   });
+
+  it(`wait 2 seconds`, async function () {await timeout(2000);});
 
   it(`Try to transfer MORE non-restricted voting locked tokens (can_vote=1) to the same account, expect success because existing lock entries are non-restricted.`, async () => {
     try {
@@ -4208,7 +4210,7 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
   it(`init new account from new key`, async () => {
     newUser2 = await //newUser(faucet);
                   existingUser(newKeyPair.account, newKeyPair.privateKey, newKeyPair.publicKey, "", "");
-    console.log(newUser2);
+    //console.log(newUser2);
   });
 
   it(`Success test, Transfer locked tokens with restricted voting to a new account.`, async () => {
@@ -4347,7 +4349,7 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
     }
   });
 
-  it(`[BD-3744] Try to transfer non-restricted voting locked tokens (can_vote=1) to the account with restricted voting tokens, expect Error. `, async () => {
+  it(`[BUG BD-3744] Try to transfer non-restricted voting locked tokens (can_vote=1) to the account with restricted voting tokens, expect Error. `, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
@@ -4422,7 +4424,7 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
 
   it(`init new account from new key`, async () => {
     newUser3 = await existingUser(newKeyPair.account, newKeyPair.privateKey, newKeyPair.publicKey, "", "");
-    console.log(newUser3);
+    //console.log(newUser3);
   });
 
   it.skip(`wait for 1 unlock period`, async () => {await timeout(130000);});
@@ -4462,7 +4464,7 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
 
   it(`wait for 1 unlock period`, async () => {await timeout(10000);});
 
-  it(`[BD-3744] Try to transfer locked tokens from test1 (can_vote=1) to test2 (can_vote=0), expect Error`, async () => {
+  it(`BUG [BD-3744] Try to transfer locked tokens from test1 (can_vote=1) to test2 (can_vote=0), expect Error`, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
@@ -4838,7 +4840,7 @@ describe(`J. Test trnsloctoks effect on total_voted_fio for a user with non-rest
   });
 });
 
-describe(`K. [BUG?] Test trnsloctoks effect on total_voted_fio for a user with restricted locks`, () => {
+describe(`K. Test trnsloctoks effect on total_voted_fio for a user with restricted locks`, () => {
 
   let user1, user2, total_voted_fio, totalVotesBP1, totalVotesBP2, totalVotesBP3
 
@@ -4877,10 +4879,93 @@ describe(`K. [BUG?] Test trnsloctoks effect on total_voted_fio for a user with r
     }
   });
 
+  it(`Create a new keypair`, async () => {
+    newKeyPair = await createKeypair();
+  });
+
+  it(`Create a new SDK object for newKeyPair user`, async () => {
+    newKeyPairSDK = new FIOSDK(newKeyPair.privateKey, newKeyPair.publicKey, config.BASE_URL, fetchJson);
+  });
+
+  it(`Transfer can_vote=0 locks to unestablished newKeyPair account.`, async () => {
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        actor: user1.account,
+        privKey: user1.privateKey,
+        data: {
+          payee_public_key: newKeyPair.publicKey,
+          can_vote: 0,
+          periods: [
+            {
+              duration: 121,
+              amount: 220000000000,
+            },
+            {
+              duration: 241,
+              amount: 280000000000,
+            }
+          ],
+          amount: fundsAmount,
+          max_fee: 400000000000,
+          tpid: '',
+          actor: user1.account,
+        }
+      });
+      expect(result).to.have.all.keys('transaction_id', 'processed');
+    } catch (err) {
+      throw err;
+    }
+  });
+
   let preVoteWeight, preVoteFio;
 
-  it(`Get user1.last_vote_weight`, async () => {
-    preVoteWeight = await getAccountVoteWeight(user1.account);
+  it(`Set user1 domain as public`, async () => {
+    const result = await user1.sdk.genericAction('setFioDomainVisibility', {
+      fioDomain: user1.domain,
+      isPublic: true,
+      maxFee: config.maxFee
+    })
+    //console.log('Result: ', result)
+    expect(result.status).to.equal('OK')
+    //const result = await user1Ram.setRamData('SETDOMAINPUBRAM', user1Ram)
+  })
+
+  it(`Transfer 200 FIO from user1 back to newKeyPair`, async () => {
+    const result = await user1.sdk.genericAction('transferTokens', {
+      payeeFioPublicKey: newKeyPair.publicKey,
+      amount: 200000000000,
+      maxFee: config.maxFee,
+    })
+    //console.log('Result', result)
+    expect(result.status).to.equal('OK')
+  })
+
+
+  it(`regaddressfor newKeyPair so it can vote`, async () => {
+    try {
+      newKeyPair.address = generateFioAddress(user1.domain, 8)
+      const result = await newKeyPairSDK.genericAction('pushTransaction', {
+        action: 'regaddress',
+        account: 'fio.address',
+        data: {
+          fio_address: newKeyPair.address,
+          owner_fio_public_key: newKeyPair.publicKey,
+          max_fee: config.maxFee,
+          tpid: ''
+        }
+      })
+      //console.log('Result: ', result);
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`Get newKeyPair.last_vote_weight`, async () => {
+    preVoteWeight = await getAccountVoteWeight(newKeyPair.account);
     console.log('[dbg] pre-vote last_vote_weight: ', preVoteWeight / 1000000000);
     //expect(preVoteWeight).to.equal(0);
   });
@@ -4890,9 +4975,9 @@ describe(`K. [BUG?] Test trnsloctoks effect on total_voted_fio for a user with r
     console.log('[dbg] total_voted_fio: ', preVoteFio);
   });
 
-  it(`user1 votes for bp1 and bp2`, async () => {
+  it(`newKeyPair votes for bp1 and bp2`, async () => {
     try {
-      const result = await user1.sdk.genericAction('pushTransaction', {
+      const result = await newKeyPairSDK.genericAction('pushTransaction', {
         action: 'voteproducer',
         account: 'eosio',
         data: {
@@ -4900,13 +4985,15 @@ describe(`K. [BUG?] Test trnsloctoks effect on total_voted_fio for a user with r
             'bp1@dapixdev',
             'bp2@dapixdev'
           ],
-          fio_address: user1.address,
-          actor: user1.account,
+          fio_address: newKeyPair.address,
+          actor: newKeyPair.account,
           max_fee: config.maxFee
         }
       });
+      //console.log('Result: ', result);
       expect(result.status).to.equal('OK');
     } catch (err) {
+      console.log('Error: ', err);
       throw err;
     }
   });
@@ -4914,12 +5001,11 @@ describe(`K. [BUG?] Test trnsloctoks effect on total_voted_fio for a user with r
   let postVoteWeight, postVoteFio;
 
   // get vote weight after voting
-  it(`Get user1.last_vote_weight after voting`, async () => {
-    postVoteWeight = await getAccountVoteWeight(user1.account);
+  it(`Get newKeyPair.last_vote_weight after voting`, async () => {
+    postVoteWeight = await getAccountVoteWeight(newKeyPair.account);
     console.log('[dbg] post-vote last_vote_weight: ', postVoteWeight / 1000000000)
-    let bal = await user1.sdk.genericAction('getFioBalance', {});
+    let bal = await newKeyPairSDK.genericAction('getFioBalance', {});
     expect(postVoteWeight).to.equal(bal.available);
-    expect(postVoteWeight).to.equal(bal.balance);
   });
 
   it(`Get total_voted_fio`, async () => {
@@ -4928,7 +5014,7 @@ describe(`K. [BUG?] Test trnsloctoks effect on total_voted_fio for a user with r
   });
 
   // transfer some lock tokens to the voter
-  it(`Try to transfer restricted voting locked tokens (can_vote=0) to a newly generated public key so that the locks table is not empty.`, async () => {
+  it(`Transfer additional ${fundsAmount} LOCKED tokens (can_vote=0) to newKeyPair.`, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
@@ -4936,7 +5022,7 @@ describe(`K. [BUG?] Test trnsloctoks effect on total_voted_fio for a user with r
         actor: user2.account,
         privKey: user2.privateKey,
         data: {
-          payee_public_key: user1.publicKey,
+          payee_public_key: newKeyPair.publicKey,
           can_vote: 0,
           periods: [
             {
@@ -4965,8 +5051,8 @@ describe(`K. [BUG?] Test trnsloctoks effect on total_voted_fio for a user with r
   let postTransferVoteWeight, postTransferVoteFio;
 
   // get vote weight and confirm that it increased
-  it(`Get user1.last_vote_weight after transferring locked tokens`, async () => {
-    postTransferVoteWeight = await getAccountVoteWeight(user1.account);
+  it(`Get newKeyPair.last_vote_weight after transferring locked tokens`, async () => {
+    postTransferVoteWeight = await getAccountVoteWeight(newKeyPair.account);
     console.log('[dbg] post-transfer last_vote_weight: ', postTransferVoteWeight / 1000000000)
   });
 
@@ -4975,11 +5061,58 @@ describe(`K. [BUG?] Test trnsloctoks effect on total_voted_fio for a user with r
     console.log('[dbg] total_voted_fio: ', postTransferVoteFio);
   });
 
-  // vote weight assertion
-  it(`[BUG?] expect no change in total FIO and vote weight after lock token transfer`, async () => {
+  it(`[BUG BD-3808] expect no change in newKeyPair vote weight after lock token transfer`, async () => {
     let weightIncrease = postTransferVoteWeight > postVoteWeight;
-    let fioIncrease = postTransferVoteFio > postVoteFio;
     expect(weightIncrease).to.equal(false);
+  });
+
+  it(`[BUG BD-3809] expect no change in total voted FIO after lock token transfer`, async () => {
+    let fioIncrease = postTransferVoteFio > postVoteFio;
     expect(fioIncrease).to.equal(false);
   });
+});
+
+describe(`L. Transfer locked tokens canvote=0 to existing account with no locks`, () => {
+
+  before(async () => {
+    user1 = await newUser(faucet);
+    user2 = await newUser(faucet);
+  });
+
+  it(`[BUG BD-3807] Expect error: Transfer locked tokens canvote=0 to existing account user2 with NO locks.`, async () => {
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        actor: user1.account,
+        privKey: user1.privateKey,
+        data: {
+          payee_public_key: user2.publicKey,
+          can_vote: 0,
+          periods: [
+            {
+              duration: 5,
+              amount: 220000000000,
+            },
+            {
+              duration: 10,
+              amount: 280000000000,
+            }
+          ],
+          amount: fundsAmount,
+          max_fee: 400000000000,
+          tpid: '',
+          actor: user1.account,
+        }
+      });
+      console.log('Result: ', result)
+      expect(result.type).to.equal('invalid_input');
+      expect(result.fields[0].name).to.equal('can_vote');
+      expect(result.fields[0].value).to.equal('1');
+      expect(result.fields[0].error).to.equal('Locked tokens with restricted voting can only be transferred to a new account.');
+    } catch (err) {
+      throw err;
+    }
+  });
+
 });
