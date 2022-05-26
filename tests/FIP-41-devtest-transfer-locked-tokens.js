@@ -3724,7 +3724,7 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
 
   it(`wait 15 seconds for the one period to unlock`, async function () {await timeout(15000);});
 
-  it(`(BUG BD-xxxx) Try to transfer additional restricted (can_vote=0) voting locked tokens to the account now that the restricted lock period has ended (so no locks exist), expect Error.`, async () => {
+  it(`[BUG BD-3816] Try to transfer additional restricted (can_vote=0) voting locked tokens to the account now that the restricted lock period has ended (so no locks exist), expect Error.`, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
@@ -4249,7 +4249,7 @@ describe(`G. Test a mix of non-restricted and voting-restricted locked tokens`, 
     }
   });
 
-  it(`[BUG BD-wrongerror] Try to transfer non-restricted voting locked tokens (can_vote=1) to the account with restricted (can_vote=0) tokens, expect Error. `, async () => {
+  it(`[BUG BD-3744] Try to transfer non-restricted voting locked tokens (can_vote=1) to the account with restricted (can_vote=0) tokens, expect Error. `, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
@@ -4350,7 +4350,7 @@ describe(`G. Test a mix of non-restricted and voting-restricted locked tokens`, 
     }
   });
 
-  it(`[BUG BD-wrongerror] Try to transfer non-restricted voting locked tokens (can_vote=1) to the account with restricted (can_vote=0) locked tokens, expect Error. `, async () => {
+  it(`[BUG BD-3744] Try to transfer non-restricted voting locked tokens (can_vote=1) to the account with restricted (can_vote=0) locked tokens, expect Error. `, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
@@ -4412,7 +4412,6 @@ describe(`G. Test a mix of non-restricted and voting-restricted locked tokens`, 
           actor: userA3.account,
         }
       });
-      console.log(result);
       expect(result).to.have.all.keys('transaction_id', 'processed');
       expect(result.processed.receipt.status).to.equal('executed');
     } catch (err) {
@@ -5065,7 +5064,7 @@ describe(`K. Test trnsloctoks effect on total_voted_fio for a user with restrict
   });
 });
 
-describe.only(`L. Transfer locked tokens canvote=0 to existing account with no locks`, () => {
+describe(`L. Transfer locked tokens canvote=0 to existing account with no locks`, () => {
 
   before(async () => {
     user1 = await newUser(faucet);
