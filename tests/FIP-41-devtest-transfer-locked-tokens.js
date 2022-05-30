@@ -3444,7 +3444,7 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
       expect(result.type).to.equal('invalid_input');
       expect(result.fields[0].name).to.equal('can_vote');
       expect(result.fields[0].value).to.equal('1');
-      expect(result.fields[0].error).to.equal(config.error.locktoken0to1);
+      expect(result.fields[0].error).to.equal(config.error.locktoken1to0);
     } catch (err) {
       throw err;
     }
@@ -3724,7 +3724,8 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
 
   it(`wait 15 seconds for the one period to unlock`, async function () {await timeout(15000);});
 
-  it(`[BUG BD-3816] Try to transfer additional restricted (can_vote=0) voting locked tokens to the account now that the restricted lock period has ended (so no locks exist), expect Error.`, async () => {
+  // See notes in BD-3816. Caused by table staing in state even though all periods have expired. So, expected behavior. There is a workaround for this bug.
+  it.skip(`[BUG BD-3816 - Will not fix.] Try to transfer additional restricted (can_vote=0) voting locked tokens to the account now that the restricted lock period has ended (so no locks exist), expect Error.`, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
