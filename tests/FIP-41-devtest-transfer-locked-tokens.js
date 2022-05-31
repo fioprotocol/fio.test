@@ -4833,7 +4833,7 @@ describe(`J. Test trnsloctoks effect on total_voted_fio for a user with non-rest
   });
 });
 
-describe(`K.1 -  BD-3808 - Test trnsloctoks effect on total_voted_fio for a user with restricted locks`, () => {
+describe(`K.1 -  BD-3809 - Test trnsloctoks effect on total_voted_fio for a user with restricted locks`, () => {
 
   let user1, totalVotedFio, newKeyPairSDK;
 
@@ -5031,7 +5031,7 @@ describe(`K.1 -  BD-3808 - Test trnsloctoks effect on total_voted_fio for a user
     }
   });
 
-  it(`[BUG BD-3808] Get totalVotedFio. Expect: totalVotedFio does NOT increase`, async () => {
+  it(`[BUG BD-3809] Get totalVotedFio. Expect: totalVotedFio does NOT increase`, async () => {
     const oldTotalVotedFio = totalVotedFio;
     totalVotedFio = await getTotalVotedFio();
     console.log('total_voted_fio: ', totalVotedFio);
@@ -5039,7 +5039,7 @@ describe(`K.1 -  BD-3808 - Test trnsloctoks effect on total_voted_fio for a user
   });
 });
 
-describe(`K.2 - BD-3809 - Test trnsloctoks effect on last_vote_weight for a user with restricted locks`, () => {
+describe(`K.2 - BD-3808 - Test trnsloctoks effect on last_vote_weight for a user with restricted locks`, () => {
 
   let user1, voteWeight, newKeyPairSDK;
 
@@ -5229,7 +5229,7 @@ describe(`K.2 - BD-3809 - Test trnsloctoks effect on last_vote_weight for a user
     }
   });
 
-  it(`[BUG BD-3809] Get voteWeight. Expect: voteWeight does NOT increase`, async () => {
+  it(`[BUG BD-3808] Get voteWeight. Expect: voteWeight does NOT increase`, async () => {
     const oldvoteWeight = voteWeight;
     voteWeight = await getAccountVoteWeight(newKeyPair.account);
     console.log('[dbg] pre-vote last_vote_weight: ', voteWeight / 1000000000);
