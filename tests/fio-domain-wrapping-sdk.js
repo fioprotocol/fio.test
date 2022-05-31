@@ -5,15 +5,25 @@ require("mocha");
 const {expect} = require("chai");
 const {FIOSDK} = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
-const {newUser, fetchJson, existingUser, callFioApiSigned, getAccountFromKey} = require("../utils.js");
-const {getOracleRecords, registerNewBp, registerNewOracle, setTestOracleFees, setupWFIOontract, registerWfioOracles, cleanUpOraclessTable, setupFIONFTcontract, registerFioNftOracles, calculateOracleFee} = require("./Helpers/wrapping");
+const {
+  newUser,
+  fetchJson,
+  existingUser,
+  callFioApi,
+  callFioApiSigned,
+  getAccountFromKey
+} = require("../utils.js");
+const {
+  getOracleRecords,
+  registerNewBp,
+  registerNewOracle,
+  setTestOracleFees,
+  cleanUpOraclessTable,
+  setupFIONFTcontract,
+  registerFioNftOracles,
+  calculateOracleFeeFromOraclessTable
+} = require("./Helpers/wrapping");
 let faucet;
-
-/**
- * If trouble with the after() hook in the global scope, cherrypick individual nested hooks
- *
- * commit: 1a9fa73ca6f731279b54553aea56cc90bf9f4aa3
- */
 
 /**
  * INSTRUCTIONS TO SET UP THESE TESTS
@@ -150,7 +160,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
   let oracle1, oracle2, oracle3, newOracle1, newOracle2, newOracle3, newOracle4,
       user1, user2, user3, user4, user5, user6, user7, user8, user9, user10, user11, user12, user13, user14,
       custodians, factory, owner, fioNft, fioNftAccts,
-      OBT_ID, ORACLE_FEE;
+      OBT_ID, ORACLE_FEE, WRAP_FEE;
 
   before(async function () {
     // oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
@@ -243,9 +253,40 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
     // }
   });
 
-  it(`get average fees`, async function () {
-    ORACLE_FEE = await calculateOracleFee('domain')
-    console.log(`fee: ${ORACLE_FEE}`);
+  it(`query the oracless table, expects the three original new records`, async function () {
+    try {
+      let origOracles = [];
+      const oracleRecords = await getOracleRecords();
+      for (let row in oracleRecords.rows) {
+        row = oracleRecords.rows[row]
+        if (row.actor === 'qbxn5zhw2ypw' || row.actor === 'hfdg2qumuvlc' || row.actor === 'wttywsmdmfew') {
+          expect(row).to.have.all.keys('actor', 'fees');
+          origOracles.push(row);
+        }
+      }
+      expect(origOracles.length).to.equal(0);
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`get the oracle fee from the API`, async function () {
+    let result = await callFioApi('get_oracle_fees', {});
+
+    if (result.oracle_fees[0].fee_name === 'wrap_fio_domain')
+      ORACLE_FEE = result.oracle_fees[0].fee_amount;
+    else
+      ORACLE_FEE = result.oracle_fees[1].fee_amount;
+    let median_fee = await calculateOracleFeeFromOraclessTable('domain');
+    expect(ORACLE_FEE).to.equal(median_fee);
+  });
+
+  it(`get wrap fee`, async function () {
+    let result = await callFioApi('get_fee', {
+      end_point: "wrap_fio_domain",
+      fio_address: oracle1.address //"vote1@dapixdev"
+    });
+    WRAP_FEE = result.fee;
   });
 
   it(`try to wrap a FIO domain, expect OK`, async function () {
@@ -260,20 +301,20 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
           public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
-          tpid: oracle1.address,
+          tpid: "", //oracle1.address,
           actor: user1.account
         }
       });
+      expect(result).to.have.all.keys('block_num', 'transaction_id', 'status', 'oracle_fee_collected', 'fee_collected');
       expect(result.status).to.equal('OK');
-      //TODO: should oracle_fee_collected be a string?
-      expect(result.fee_collected).to.equal(400000000);
-      expect(result.oracle_fee_collected).to.equal('33000000000');
+      expect(result.fee_collected).to.equal(WRAP_FEE);
+      expect(parseInt(result.oracle_fee_collected)).to.equal(ORACLE_FEE);
     } catch (err) {
-      // expect(err.json.fields[0].error).to.equal('FIO Domain not registered');
       throw err;
     }
   });
 
+  // unhappy tests
   it(`(empty tpid) try to wrap a FIO domain, expect OK`, async function () {
     let domain = user10.domain;
     try {
@@ -290,14 +331,15 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
           actor: user10.account
         }
       });
+      expect(result).to.have.all.keys('block_num', 'transaction_id', 'status', 'oracle_fee_collected', 'fee_collected');
       expect(result.status).to.equal('OK');
-      //TODO: should oracle_fee_collected be a string?
-      expect(result.fee_collected).to.equal(400000000);
-      expect(result.oracle_fee_collected).to.equal('33000000000');
+      expect(result.fee_collected).to.equal(WRAP_FEE);
+      expect(parseInt(result.oracle_fee_collected)).to.equal(ORACLE_FEE);
     } catch (err) {
       throw err;
     }
   });
+
   it(`(missing tpid) try to wrap a FIO domain, expect SDK to inject an empty value`, async function () {
     let domain = user11.domain;
     try {
@@ -320,7 +362,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
   });
 
   // issues
-  it.skip(`(int chain_code) try to wrap a FIO domain`, async function () {
+  it.skip(`(BUG?)(int chain_code) try to wrap a FIO domain`, async function () {
     let domain = user2.domain;
     try {
       const result = await user2.sdk.genericAction('pushTransaction', {
@@ -342,7 +384,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
       expect(err.json.fields[0].error).to.equal('Invalid chain code format');
     }
   });
-  it(`(invalid public_address) try to wrap a FIO domain`, async function () {
+  it.skip(`(BUG?)(invalid public_address) try to wrap a FIO domain`, async function () {
     // todo: test with the API, verify whether SDK is using default values
     let domain = user3.domain;
     try {
@@ -365,7 +407,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
       expect(err.json.fields[0].error).to.equal('Invalid public address');
     }
   });
-  it(`(int public_address) try to wrap a FIO domain`, async function () {
+  it.skip(`(BUG?)(int public_address) try to wrap a FIO domain`, async function () {
     // todo: test with the API, verify whether SDK is using default values
     let domain = user4.domain;
     try {
@@ -388,7 +430,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
       expect(err.json.fields[0].error).to.equal('Invalid public address');
     }
   });
-  it(`(negative public_address) try to wrap a FIO domain`, async function () {
+  it.skip(`(BUG?)(negative public_address) try to wrap a FIO domain`, async function () {
     // todo: test with the API, verify whether SDK is using default values
     let domain = user5.domain;
     try {
@@ -411,9 +453,29 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
       expect(err.json.fields[0].error).to.equal('Invalid public address');
     }
   });
+  it.skip(`(BUG?)(int tpid) try to wrap a FIO domain`, async function () {
+    let domain = user12.domain;
+    try {
+      const result = await user12.sdk.genericAction('pushTransaction', {
+        action: 'wrapdomain',
+        account: 'fio.oracle',
+        data: {
+          fio_domain: domain,
+          chain_code: "ETH",
+          public_address: fioNft.address,
+          max_oracle_fee: config.maxFee,
+          max_fee: config.maxFee,
+          tpid: 12345,
+          actor: user12.account
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.json.fields[0].error).to.equal('TPID must be empty or valid FIO address');
+    }
+  });
+
   it(`(negative max_oracle_fee) try to wrap a FIO domain`, async function () {
-    //TODO: test with API
-    //  also verify if signed int is being cast to uint
     let domain = user7.domain;
     try {
       const result = await user7.sdk.genericAction('pushTransaction', {
@@ -435,8 +497,8 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
       expect(err.json.fields[0].error).to.equal('Invalid oracle fee value');
     }
   });
+
   it(`(negative max_fee) try to wrap a FIO domain`, async function () {
-    //TODO: test with API for default values or int to uint casting
     let domain = user9.domain;
     try {
       const result = await user9.sdk.genericAction('pushTransaction', {
@@ -456,28 +518,6 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
     } catch (err) {
       // expect(err.message).to.equal('Invalid fee value');
       expect(err.json.fields[0].error).to.equal('Invalid fee value');
-    }
-  });
-  it(`(int tpid) try to wrap a FIO domain`, async function () {
-    // todo: invalid tpid validation producing wrong exception
-    let domain = user12.domain;
-    try {
-      const result = await user12.sdk.genericAction('pushTransaction', {
-        action: 'wrapdomain',
-        account: 'fio.oracle',
-        data: {
-          fio_domain: domain,
-          chain_code: "ETH",
-          public_address: fioNft.address,
-          max_oracle_fee: config.maxFee,
-          max_fee: config.maxFee,
-          tpid: 12345,
-          actor: user12.account
-        }
-      });
-      expect(result.status).to.not.equal('OK');
-    } catch (err) {
-      expect(err.json.fields[0].error).to.equal('TPID must be empty or valid FIO address');
     }
   });
 
@@ -526,7 +566,6 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
   });
 
   it(`(empty actor) try to wrap a FIO domain, expect SDK to use default value`, async function () {
-    //todo - test with API to see if API is using default values
     let domain = user13.domain;
     try {
       const result = await user13.sdk.genericAction('pushTransaction', {
@@ -548,7 +587,6 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
     }
   });
 
-  // unhappy tests
   it(`(actor and domain owner mismatch) try to wrap a FIO domain`, async function () {
     let domain = user1.domain;
     try {
@@ -591,6 +629,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
       expect(err.json.fields[0].error).to.equal('FIO Domain not registered');
     }
   });
+
   it(`(missing fio_domain) try to wrap a FIO domain`, async function () {
     try {
       const result = await newOracle1.sdk.genericAction('pushTransaction', {
@@ -610,6 +649,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
       expect(err.message).to.equal('missing wrapdomain.fio_domain (type=string)');
     }
   });
+
   it(`(invalid fio_domain) try to wrap a FIO domain`, async function () {
     try {
       const result = await newOracle1.sdk.genericAction('pushTransaction', {
@@ -630,6 +670,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
       expect(err.json.fields[0].error).to.equal('Invalid FIO domain');
     }
   });
+
   it(`(int fio_domain) try to wrap a FIO domain`, async function () {
     try {
       const result = await newOracle1.sdk.genericAction('pushTransaction', {
@@ -650,6 +691,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
       expect(err.json.fields[0].error).to.equal('FIO Domain not registered');
     }
   });
+
   it(`(negative fio_domain) try to wrap a FIO domain`, async function () {
     try {
       const result = await newOracle1.sdk.genericAction('pushTransaction', {
@@ -692,6 +734,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
       expect(err.json.fields[0].error).to.equal('Invalid chain code format');
     }
   });
+
   it(`(missing chain_code) try to wrap a FIO domain`, async function () {
     let domain = user1.domain;
     try {
@@ -712,6 +755,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
       expect(err.message).to.equal('missing wrapdomain.chain_code (type=string)');
     }
   });
+
   it(`(invalid chain_code) try to wrap a FIO domain`, async function () {
     let domain = user1.domain;
     try {
@@ -733,6 +777,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
       expect(err.json.fields[0].error).to.equal('Invalid chain code format');
     }
   });
+
   it(`(negative chain_code) try to wrap a FIO domain`, async function () {
     let domain = user1.domain;
     try {
@@ -776,6 +821,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
       expect(err.json.fields[0].error).to.equal('Invalid public address');
     }
   });
+
   it(`(missing public_address) try to wrap a FIO domain`, async function () {
     let domain = user1.domain;
     try {
@@ -818,6 +864,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
       expect(err.message).to.equal('missing wrapdomain.max_oracle_fee (type=int64)');
     }
   });
+
   it(`(invalid max_oracle_fee) try to wrap a FIO domain`, async function () {
     let domain = user1.domain;
     try {
@@ -860,6 +907,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
       expect(err.message).to.equal('missing wrapdomain.max_fee (type=int64)');
     }
   });
+
   it(`(invalid max_fee) try to wrap a FIO domain`, async function () {
     let domain = user1.domain;
     try {
@@ -903,6 +951,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
       expect(err.json.fields[0].error).to.equal('TPID must be empty or valid FIO address');
     }
   });
+
   it(`(negative tpid) try to wrap a FIO domain`, async function () {
     let domain = user1.domain;
     try {
@@ -926,11 +975,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
   });
 
   it(`(missing actor) try to wrap a FIO domain`, async function () {
-    //todo - make sure 'Actor and domain owner mismatch.' is valid when actor is missing
-    //  is sdk injecting it?
-    //  I feel like it might be, but the error is different than invalid down below
-    //  would not hurt to also test with API
-    let domain = user1.domain;
+   let domain = user1.domain;
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
         action: 'wrapdomain',
@@ -950,6 +995,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
       expect(err.json.fields[0].error).to.equal('Actor and domain owner mismatch.');
     }
   });
+
   it(`(invalid actor) try to wrap a FIO domain`, async function () {
     let domain = user1.domain;
     try {
@@ -971,6 +1017,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
       expect(err.json.error.details[0].message).to.equal('missing authority of .invalid');
     }
   });
+
   it(`(int actor) try to wrap a FIO domain`, async function () {
     let domain = user1.domain;
     try {
@@ -992,6 +1039,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
       expect(err.message).to.equal('Expected string containing name');
     }
   });
+
   it(`(negative actor) try to wrap a FIO domain`, async function () {
     let domain = user1.domain;
     try {
