@@ -4961,7 +4961,7 @@ describe(`K.1 -  BD-3809 - Test trnsloctoks effect on total_voted_fio for a user
 
   it(`Get updated total_voted_fio`, async () => {
     totalVotedFio = await getTotalVotedFio();
-    console.log('total_voted_fio: ', totalVotedFio);
+    //console.log('total_voted_fio: ', totalVotedFio);
   });
 
   it(`newKeyPair votes for bp1 and bp2`, async () => {
@@ -4990,7 +4990,7 @@ describe(`K.1 -  BD-3809 - Test trnsloctoks effect on total_voted_fio for a user
   it(`Get totalVotedFio after user with can_vote=0 votes. Expect: totalVotedFio increases by available FIO (not locked FIO)`, async () => {
     const oldTotalVotedFio = totalVotedFio;
     totalVotedFio = await getTotalVotedFio();
-    console.log('total_voted_fio: ', totalVotedFio);
+    //console.log('total_voted_fio: ', totalVotedFio);
     expect(totalVotedFio).to.equal(oldTotalVotedFio + availableFio);
   });
 
@@ -5034,18 +5034,26 @@ describe(`K.1 -  BD-3809 - Test trnsloctoks effect on total_voted_fio for a user
   it(`[BUG BD-3809] Get totalVotedFio. Expect: totalVotedFio does NOT increase`, async () => {
     const oldTotalVotedFio = totalVotedFio;
     totalVotedFio = await getTotalVotedFio();
-    console.log('total_voted_fio: ', totalVotedFio);
+    //console.log('total_voted_fio: ', totalVotedFio);
     expect(totalVotedFio).to.equal(oldTotalVotedFio);
   });
 });
 
 describe(`K.2 - BD-3808 - Test trnsloctoks effect on last_vote_weight for a user with restricted locks`, () => {
 
-  let user1, voteWeight, newKeyPairSDK;
+  let user1, voteWeight, newKeyPairSDK, totalVotesBP1;
 
   before(async () => {
     user1 = await newUser(faucet);
     user2 = await newUser(faucet);
+  });
+
+  it(`Get bp1@dapixdev total_votes`, async () => {
+    try {
+      totalVotesBP1 = await getProdVoteTotal('bp1@dapixdev');
+    } catch (err) {
+      throw err;
+    }
   });
 
   /**
@@ -5148,7 +5156,7 @@ describe(`K.2 - BD-3808 - Test trnsloctoks effect on last_vote_weight for a user
       let bal = await newKeyPairSDK.genericAction('getFioBalance', {});
       availableFio = bal.available;
       lockedFio = bal.balance - availableFio;
-      console.log('bal: ', bal);
+      //console.log('bal: ', bal);
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal('null');
@@ -5157,8 +5165,17 @@ describe(`K.2 - BD-3808 - Test trnsloctoks effect on last_vote_weight for a user
 
   it(`Get newKeyPair.last_vote_weight`, async () => {
     voteWeight = await getAccountVoteWeight(newKeyPair.account);
-    console.log('pre-vote last_vote_weight: ', voteWeight / 1000000000);
-    //expect(preVoteWeight).to.equal(0);
+    //console.log('pre-vote last_vote_weight: ', voteWeight / 1000000000);
+  });
+
+  it(`Get bp1@dapixdev total_votes`, async () => {
+    try {
+      const oldtotalVotesBP1 = totalVotesBP1;
+      totalVotesBP1 = await getProdVoteTotal('bp1@dapixdev');
+      expect(totalVotesBP1).to.equal(oldtotalVotesBP1);
+    } catch (err) {
+      throw err;
+    }
   });
 
   it(`newKeyPair votes for bp1 and bp2`, async () => {
@@ -5187,8 +5204,18 @@ describe(`K.2 - BD-3808 - Test trnsloctoks effect on last_vote_weight for a user
   it(`Get newKeyPair.last_vote_weight. Expect vote weight to increase by Available tokens.`, async () => {
     const oldvoteWeight = voteWeight;
     voteWeight = await getAccountVoteWeight(newKeyPair.account);
-    console.log('pre-vote last_vote_weight: ', voteWeight / 1000000000);
+    //console.log('pre-vote last_vote_weight: ', voteWeight / 1000000000);
     expect(voteWeight).to.equal(oldvoteWeight + availableFio);
+  });
+
+  it(`Get bp1@dapixdev total_votes. Expect votes to increase by newKeyPair Available FIO`, async () => {
+    try {
+      const oldtotalVotesBP1 = totalVotesBP1;
+      totalVotesBP1 = await getProdVoteTotal('bp1@dapixdev');
+      expect(totalVotesBP1).to.equal(oldtotalVotesBP1 + availableFio);
+    } catch (err) {
+      throw err;
+    }
   });
 
 
@@ -5232,13 +5259,23 @@ describe(`K.2 - BD-3808 - Test trnsloctoks effect on last_vote_weight for a user
   it(`[BUG BD-3808] Get voteWeight. Expect: voteWeight does NOT increase`, async () => {
     const oldvoteWeight = voteWeight;
     voteWeight = await getAccountVoteWeight(newKeyPair.account);
-    console.log('[dbg] pre-vote last_vote_weight: ', voteWeight / 1000000000);
+    //console.log('[dbg] pre-vote last_vote_weight: ', voteWeight / 1000000000);
     expect(voteWeight).to.equal(oldvoteWeight);
+  });
+
+  it(`Get bp1@dapixdev total_votes. Expect no change.`, async () => {
+    try {
+      const oldtotalVotesBP1 = totalVotesBP1;
+      totalVotesBP1 = await getProdVoteTotal('bp1@dapixdev');
+      expect(totalVotesBP1).to.equal(oldtotalVotesBP1);
+    } catch (err) {
+      throw err;
+    }
   });
   
 });
 
-describe.skip(`OLD. Test trnsloctoks effect on total_voted_fio for a user with restricted locks`, () => {
+describe(`Test trnsloctoks effect on total_voted_fio for a user with restricted locks`, () => {
 
   let user1, user2, total_voted_fio, totalVotesBP1, totalVotesBP2, totalVotesBP3
 
@@ -5364,13 +5401,13 @@ describe.skip(`OLD. Test trnsloctoks effect on total_voted_fio for a user with r
 
   it(`Get newKeyPair.last_vote_weight`, async () => {
     preVoteWeight = await getAccountVoteWeight(newKeyPair.account);
-    console.log('[dbg] pre-vote last_vote_weight: ', preVoteWeight / 1000000000);
+    //console.log('[dbg] pre-vote last_vote_weight: ', preVoteWeight / 1000000000);
     //expect(preVoteWeight).to.equal(0);
   });
 
   it(`Get total_voted_fio`, async () => {
     preVoteFio = await getTotalVotedFio();
-    console.log('[dbg] total_voted_fio: ', preVoteFio);
+    //console.log('[dbg] total_voted_fio: ', preVoteFio);
   });
 
   it(`newKeyPair votes for bp1 and bp2`, async () => {
@@ -5401,14 +5438,14 @@ describe.skip(`OLD. Test trnsloctoks effect on total_voted_fio for a user with r
   // get vote weight after voting
   it(`Get newKeyPair.last_vote_weight after voting`, async () => {
     postVoteWeight = await getAccountVoteWeight(newKeyPair.account);
-    console.log('[dbg] post-vote last_vote_weight: ', postVoteWeight / 1000000000)
+    //console.log('[dbg] post-vote last_vote_weight: ', postVoteWeight / 1000000000)
     let bal = await newKeyPairSDK.genericAction('getFioBalance', {});
     expect(postVoteWeight).to.equal(bal.available);
   });
 
   it(`Get total_voted_fio`, async () => {
     postVoteFio = await getTotalVotedFio();
-    console.log('[dbg] total_voted_fio: ', postVoteFio);
+    //console.log('[dbg] total_voted_fio: ', postVoteFio);
   });
 
   // transfer some lock tokens to the voter
@@ -5451,12 +5488,12 @@ describe.skip(`OLD. Test trnsloctoks effect on total_voted_fio for a user with r
   // get vote weight and confirm that it increased
   it(`Get newKeyPair.last_vote_weight after transferring locked tokens`, async () => {
     postTransferVoteWeight = await getAccountVoteWeight(newKeyPair.account);
-    console.log('[dbg] post-transfer last_vote_weight: ', postTransferVoteWeight / 1000000000)
+    //console.log('[dbg] post-transfer last_vote_weight: ', postTransferVoteWeight / 1000000000)
   });
 
   it(`Get total_voted_fio`, async () => {
     postTransferVoteFio = await getTotalVotedFio();
-    console.log('[dbg] total_voted_fio: ', postTransferVoteFio);
+    //console.log('[dbg] total_voted_fio: ', postTransferVoteFio);
   });
 
   it(`[BUG BD-3808] expect no change in newKeyPair vote weight after lock token transfer`, async () => {
