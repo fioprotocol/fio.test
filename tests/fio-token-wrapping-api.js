@@ -14,15 +14,15 @@ const {
   getAccountFromKey
 } = require("../utils.js");
 const {
-  calculateOracleFeeFromOraclessTable,
-  getOracleRecords,
   getOracleVotes,
+  getOracleRecords,
   registerNewBp,
   registerNewOracle,
   setTestOracleFees,
   setupWFIOontract,
   registerWfioOracles,
-  cleanUpOraclessTable
+  cleanUpOraclessTable,
+  calculateOracleFeeFromOraclessTable
 } = require("./Helpers/wrapping.js");
 let INIT_SUPPLY = 0;
 let faucet;
@@ -817,7 +817,7 @@ describe(`D. [FIO][api] Oracles (setoraclefee)`, function () {
   });
 
   //unhappy tests
-  it(`(BD-3406)(negative wrap_fio_domain) try to set oracle fees, expect Error`, async function () {
+  it.skip(`(BD-3406)(negative wrap_fio_domain) try to set oracle fees, expect Error`, async function () {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'setoraclefee',
@@ -838,7 +838,7 @@ describe(`D. [FIO][api] Oracles (setoraclefee)`, function () {
       expect(err.message).to.equal('invalid number');
     }
   });
-  it(`(BD-3406)(negative wrap_fio_tokens) try to set oracle fees, expect Error`, async function () {
+  it.skip(`(BD-3406)(negative wrap_fio_tokens) try to set oracle fees, expect Error`, async function () {
     try{
       const result = await callFioApiSigned('push_transaction', {
         action: 'setoraclefee',
@@ -1489,7 +1489,7 @@ describe(`F. [FIO][api] Wrap FIO tokens`, function () {
    *
    * 31 May 2022 - still a problem
    */
-  it(`(BD-3788)(int tpid) try to wrap 1000 FIO tokens`, async function () {
+  it.skip(`(BD-3788)(int tpid) try to wrap 1000 FIO tokens`, async function () {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'wraptokens',
@@ -2346,7 +2346,7 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       throw err;
     }
   });
-  it(`(BD-3409?)(invalid obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
+  it.skip(`(BD-3409?)(invalid obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
@@ -2365,7 +2365,7 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       throw err;
     }
   });
-  it(`(BD-3409?)(int obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
+  it.skip(`(BD-3409?)(int obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
@@ -2384,7 +2384,7 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       throw err;
     }
   });
-  it(`(BD-3409?)(negative obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
+  it.skip(`(BD-3409?)(negative obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',

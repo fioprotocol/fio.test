@@ -14,15 +14,15 @@ const {
   getAccountFromKey
 } = require("../utils.js");
 const {
-  calculateOracleFeeFromOraclessTable,
-  getOracleRecords,
   getOracleVotes,
+  getOracleRecords,
   registerNewBp,
   registerNewOracle,
   setTestOracleFees,
   setupWFIOontract,
   registerWfioOracles,
-  cleanUpOraclessTable
+  cleanUpOraclessTable,
+  calculateOracleFeeFromOraclessTable
 } = require("./Helpers/wrapping.js");
 let INIT_SUPPLY = 0;
 let faucet;
@@ -1260,8 +1260,8 @@ describe(`F. [FIO] Wrap FIO tokens`, function () {
 
   it(`get wrap fee`, async function () {
     let result = await callFioApi('get_fee', {
-        end_point: "wrap_fio_tokens",
-        fio_address: oracle1.address //"vote1@dapixdev"
+      end_point: "wrap_fio_tokens",
+      fio_address: oracle1.address //"vote1@dapixdev"
     });
     WRAP_FEE = result.fee;
   });
