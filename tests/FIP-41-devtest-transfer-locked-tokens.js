@@ -71,7 +71,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
       try {
         const result = await userA1.sdk.genericAction('transferLockedTokens', {
           payeePublicKey: keys.publicKey,
-          canVote: 0,
+          canVote: 1,
           periods: [
             {
               duration: 120,
@@ -157,7 +157,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
           account: 'fio.token',
           data: {
             payee_public_key: keys.publicKey,
-            can_vote: 0,
+            can_vote: 1,
             periods: [
               {
                 duration: 240,
@@ -189,7 +189,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
       try {
         const result = await userA1.sdk.genericAction('transferLockedTokens', {
           payeePublicKey: keys.publicKey,
-          canVote: 0,
+          canVote: 1,
           periods: [
             {
               duration: 0,
@@ -217,7 +217,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
           account: 'fio.token',
           data: {
             payee_public_key: keys.publicKey,
-            can_vote: 0,
+            can_vote: 1,
             periods: [
               {
                 duration: 0,
@@ -244,12 +244,12 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
   });
 
   // test 1 same number of periods in follow on grant as in initial grant.
-  it(`(${testType}) success test, Transfer locked tokens to a new account. `, async () => {
+  it(`(${testType}) success test, Transfer canvote:1 locked tokens to an existing account. `, async () => {
     if (testType === 'sdk') {
       try {
         const result = await userA1.sdk.genericAction('transferLockedTokens', {
           payeePublicKey: test1.publicKey,
-          canVote: 0,
+          canVote: 1,
           periods: [
             {
               duration: 120,
@@ -275,7 +275,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
           account: 'fio.token',
           data: {
             payee_public_key: test1.publicKey,
-            can_vote: 0,
+            can_vote: 1,
             periods: [
               {
                 duration: 120,
@@ -307,7 +307,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
       try {
         const result = await userA1.sdk.genericAction('transferLockedTokens', {
           payeePublicKey: test1.publicKey,
-          canVote: 0,
+          canVote: 1,
           periods: [
             {
               duration: 121,
@@ -334,7 +334,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
           account: 'fio.token',
           data: {
             payee_public_key: test1.publicKey,
-            can_vote: 0,
+            can_vote: 1,
             periods: [
               {
                 duration: 121,
@@ -375,7 +375,8 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
       const result = await callFioApi("get_table_rows", json);
       //NOTE -- these checks fail sometimes if the timing of the wait adds one sec to the duration,
       //  when this happense please run the test again.
-      expect(result.rows[0].can_vote).to.equal(0);
+      //console.log('Result: ', result);
+      expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
       expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(120).and.lessThanOrEqual(129);
       expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(130).and.lessThanOrEqual(139);
@@ -392,7 +393,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
       try {
         const result = await userA4.sdk.genericAction('transferLockedTokens', {
           payeePublicKey: test2.publicKey,
-          canVote: 0,
+          canVote: 1,
           periods: [
             {
               duration: 1,
@@ -510,7 +511,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
         account: 'fio.token',
         data: {
           payee_public_key: test2.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 1,
@@ -630,7 +631,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
       try {
         const result = await userA4.sdk.genericAction('transferLockedTokens', {
           payeePublicKey: test2.publicKey,
-          canVote: 0,
+          canVote: 1,
           periods: [
             {
               duration: 1,
@@ -748,7 +749,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
           account: 'fio.token',
           data: {
             payee_public_key: test2.publicKey,
-            can_vote: 0,
+            can_vote: 1,
             periods: [
               {
                 duration: 1,
@@ -877,7 +878,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
         index_position: '2'
       }
       const result = await callFioApi("get_table_rows", json);
-      expect(result.rows[0].can_vote).to.equal(0);
+      expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
       expect(result.rows[0].periods.length).to.be.greaterThanOrEqual(25).and.lessThanOrEqual(35);
     } catch (err) {
@@ -891,7 +892,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
       try {
         const result = await userA4.sdk.genericAction('transferLockedTokens', {
           payeePublicKey: test3.publicKey,
-          canVote: 0,
+          canVote: 1,
           periods: [
             {
               duration: 3,
@@ -1008,7 +1009,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
         account: 'fio.token',
         data: {
           payee_public_key: test3.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 3,
@@ -1128,7 +1129,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
       try {
         const result = await userA4.sdk.genericAction('transferLockedTokens', {
           payeePublicKey: test3.publicKey,
-          canVote: 0,
+          canVote: 1,
           periods: [
             {
               duration: 1,
@@ -1246,7 +1247,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
           account: 'fio.token',
           data: {
             payee_public_key: test3.publicKey,
-            can_vote: 0,
+            can_vote: 1,
             periods: [
               {
                 duration: 1,
@@ -1376,7 +1377,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
         index_position: '2'
       }
       const result = await callFioApi("get_table_rows", json);
-      expect(result.rows[0].can_vote).to.equal(0);
+      expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
       expect(result.rows[0].periods.length).to.be.greaterThanOrEqual(25).and.lessThanOrEqual(30);
     } catch (err) {
@@ -1426,7 +1427,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
       try {
         const result = await userA1.sdk.genericAction('transferLockedTokens', {
           payeePublicKey: test5.publicKey,
-          canVote: 0,
+          canVote: 1,
           periods: [
             {
               duration: 240,
@@ -1449,7 +1450,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
           account: 'fio.token',
           data: {
             payee_public_key: test5.publicKey,
-            can_vote: 0,
+            can_vote: 1,
             periods: [
               {
                 duration: 240,
@@ -1477,7 +1478,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
       try {
         const result = await userA1.sdk.genericAction('transferLockedTokens', {
           payeePublicKey: test5.publicKey,
-          canVote: 0,
+          canVote: 1,
           periods: [
             {
               duration: 121,
@@ -1504,7 +1505,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
           account: 'fio.token',
           data: {
             payee_public_key: test5.publicKey,
-            can_vote: 0,
+            can_vote: 1,
             periods: [
               {
                 duration: 121,
@@ -1546,7 +1547,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
       //NOTE -- these checks fail sometimes if the timing of the wait adds one sec to the duration,
       //  when this happense please run the test again.
       expect(result.rows[0].periods.length).to.equal(3);
-      expect(result.rows[0].can_vote).to.equal(0);
+      expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
       expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(130).and.lessThanOrEqual(139);
       expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(249);
@@ -1562,7 +1563,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
       try {
         const result = await userA2.sdk.genericAction('transferLockedTokens', {
           payeePublicKey: test6.publicKey,
-          canVote: 0,
+          canVote: 1,
           periods: [
             {
               duration: 121,
@@ -1589,7 +1590,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
           account: 'fio.token',
           data: {
             payee_public_key: test6.publicKey,
-            can_vote: 0,
+            can_vote: 1,
             periods: [
               {
                 duration: 121,
@@ -1621,7 +1622,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
       try {
         const result = await userA2.sdk.genericAction('transferLockedTokens', {
           payeePublicKey: test6.publicKey,
-          canVote: 0,
+          canVote: 1,
           periods: [
             {
               duration: 240,
@@ -1644,7 +1645,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
           account: 'fio.token',
           data: {
             payee_public_key: test6.publicKey,
-            can_vote: 0,
+            can_vote: 1,
             periods: [
               {
                 duration: 240,
@@ -1682,7 +1683,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
       //NOTE -- these checks fail sometimes if the timing of the wait adds one sec to the duration,
       //  when this happense please run the test again.
       expect(result.rows[0].periods.length).to.equal(3);
-      expect(result.rows[0].can_vote).to.equal(0);
+      expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
       expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(120).and.lessThanOrEqual(129);
       expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(249);
@@ -1718,7 +1719,7 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
         privKey: userA1.privateKey,
         data: {
           payee_public_key: keys.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 120,
@@ -1753,7 +1754,7 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
         privKey: userA1.privateKey,
         data: {
           payee_public_key: keys.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 240,
@@ -1788,7 +1789,7 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
         privKey: userA1.privateKey,
         data: {
           payee_public_key: keys.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 0,
@@ -1824,7 +1825,7 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
         privKey: userA1.privateKey,
         data: {
           payee_public_key: test1.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 120,
@@ -1860,7 +1861,7 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
         privKey: userA1.privateKey,
         data: {
           payee_public_key: test1.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 121,
@@ -1902,7 +1903,7 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
       //NOTE -- these checks fail sometimes if the timing of the wait adds one sec to the duration,
       //  when this happense please run the test again.
       expect(result.rows[0].periods.length).to.equal(4);
-      expect(result.rows[0].can_vote).to.equal(0);
+      expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
       expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(120).and.lessThanOrEqual(129);
       expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(130).and.lessThanOrEqual(139);
@@ -1923,7 +1924,7 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
         privKey: userA4.privateKey,
         data: {
           payee_public_key: test2.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 1,
@@ -2051,7 +2052,7 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
         privKey: userA4.privateKey,
         data: {
           payee_public_key: test2.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 1,
@@ -2182,7 +2183,7 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
         index_position: '2'
       }
       const result = await callFioApi("get_table_rows", json);
-      expect(result.rows[0].can_vote).to.equal(0);
+      expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
       expect(result.rows[0].periods.length).to.be.greaterThanOrEqual(27).and.lessThanOrEqual(37);
     } catch (err) {
@@ -2200,7 +2201,7 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
         privKey: userA4.privateKey,
         data: {
           payee_public_key: test3.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 3,
@@ -2328,7 +2329,7 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
         privKey: userA4.privateKey,
         data: {
           payee_public_key: test3.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 1,
@@ -2459,7 +2460,7 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
         index_position: '2'
       }
       const result = await callFioApi("get_table_rows", json);
-      expect(result.rows[0].can_vote).to.equal(0);
+      expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
       expect(result.rows[0].periods.length).to.be.greaterThanOrEqual(25).and.lessThanOrEqual(35);
     } catch (err) {
@@ -2512,7 +2513,7 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
         privKey: userA4.privateKey,
         data: {
           payee_public_key: test3.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 240,
@@ -2544,7 +2545,7 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
         privKey: userA1.privateKey,
         data: {
           payee_public_key: test5.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 121,
@@ -2586,7 +2587,7 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
       //NOTE -- these checks fail sometimes if the timing of the wait adds one sec to the duration,
       //  when this happense please run the test again.
       expect(result.rows[0].periods.length).to.equal(2);
-      expect(result.rows[0].can_vote).to.equal(0);
+      expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
       // expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(130).and.lessThanOrEqual(139);
       // expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(249);
@@ -2609,7 +2610,7 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
         privKey: userA2.privateKey,
         data: {
           payee_public_key: test6.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 121,
@@ -2645,7 +2646,7 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
         privKey: userA2.privateKey,
         data: {
           payee_public_key: test6.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 121,
@@ -2687,7 +2688,7 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
       //NOTE -- these checks fail sometimes if the timing of the wait adds one sec to the duration,
       //  when this happense please run the test again.
       expect(result.rows[0].periods.length).to.equal(4);
-      expect(result.rows[0].can_vote).to.equal(0);
+      expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
       expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(120).and.lessThanOrEqual(129);
       expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(130).and.lessThanOrEqual(139);
@@ -2728,7 +2729,7 @@ describe(`C. Try to transfer more locked tokens than available`, function () {
         privKey: userA1.privateKey,
         data: {
           payee_public_key: test1.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 5,
@@ -2791,7 +2792,7 @@ describe(`C. Try to transfer more locked tokens than available`, function () {
       //NOTE -- these checks fail sometimes if the timing of the wait adds one sec to the duration,
       //  when this happense please run the test again.
       expect(result.rows[0].periods.length).to.equal(3);
-      expect(result.rows[0].can_vote).to.equal(0);
+      expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
       expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(5).and.lessThanOrEqual(10);
       expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(40).and.lessThanOrEqual(49);
@@ -2881,7 +2882,7 @@ describe(`C. Try to transfer more locked tokens than available`, function () {
       }
       const result = await callFioApi("get_table_rows", json);
       expect(result.rows[0].periods.length).to.equal(3);
-      expect(result.rows[0].can_vote).to.equal(0);
+      expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount).to.equal(600000000000);
       expect(result.rows[0].remaining_lock_amount).to.equal(380000000000);
       expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(5).and.lessThanOrEqual(15);
@@ -2904,7 +2905,7 @@ describe(`C. Try to transfer more locked tokens than available`, function () {
         privKey: test1.privateKey,
         data: {
           payee_public_key: userA4.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 250,
@@ -3082,7 +3083,7 @@ describe(`E. test locked token transfer invalid input handling`, function () {
         privKey: userA1.privateKey,
         data: {
           payee_public_key: test1.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 120,
@@ -3113,7 +3114,7 @@ describe(`E. test locked token transfer invalid input handling`, function () {
         privKey: userA2.privateKey,
         data: {
           payee_public_key: test2.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 120,
@@ -3144,7 +3145,7 @@ describe(`E. test locked token transfer invalid input handling`, function () {
         privKey: userA3.privateKey,
         data: {
           payee_public_key: test3.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 120,
@@ -3175,7 +3176,7 @@ describe(`E. test locked token transfer invalid input handling`, function () {
         privKey: userA4.privateKey,
         data: {
           payee_public_key: test4.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 120,
@@ -3206,7 +3207,7 @@ describe(`E. test locked token transfer invalid input handling`, function () {
         privKey: userA4.privateKey,
         data: {
           payee_public_key: test5.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: -120,
@@ -3237,7 +3238,7 @@ describe(`E. test locked token transfer invalid input handling`, function () {
         privKey: userA4.privateKey,
         data: {
           payee_public_key: test5.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: "!invalid@#",
@@ -3268,7 +3269,7 @@ describe(`E. test locked token transfer invalid input handling`, function () {
         privKey: userA4.privateKey,
         data: {
           payee_public_key: "!nvalid@#$",
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 120,
@@ -3299,7 +3300,7 @@ describe(`E. test locked token transfer invalid input handling`, function () {
         privKey: userA4.privateKey,
         data: {
           payee_public_key: -10000000000,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 120,
@@ -3443,7 +3444,7 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
       expect(result.type).to.equal('invalid_input');
       expect(result.fields[0].name).to.equal('can_vote');
       expect(result.fields[0].value).to.equal('1');
-      expect(result.fields[0].error).to.equal('Locked tokens with restricted voting can only be transferred to a new account.');
+      expect(result.fields[0].error).to.equal(config.error.locktoken1to0);
     } catch (err) {
       throw err;
     }
@@ -3604,7 +3605,7 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
     }
   });
 
-  it(`Try to transfer restricted voting locked tokens (can_vote=0) to the same account, expect Error.`, async () => {
+  it(`Try to transfer restricted voting locked tokens (can_vote=0) to the same account that has (can_vote=1) locked tokens, expect Error.`, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
@@ -3633,7 +3634,7 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
       expect(result.type).to.equal('invalid_input');
       expect(result.fields[0].name).to.equal('can_vote');
       expect(result.fields[0].value).to.equal('0');
-      expect(result.fields[0].error).to.equal('Locked tokens with restricted voting can only be transferred to a new account.');
+      expect(result.fields[0].error).to.equal(config.error.locktoken0to1);
     } catch (err) {
       throw err;
     }
@@ -3723,7 +3724,8 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
 
   it(`wait 15 seconds for the one period to unlock`, async function () {await timeout(15000);});
 
-  it(`Try to transfer non-restricted voting locked tokens (can_vote=1) to the account now that the restricted lock period has ended, expect Error.`, async () => {
+  // See notes in BD-3816. Caused by table staing in state even though all periods have expired. So, expected behavior. There is a workaround for this bug.
+  it.skip(`[BUG BD-3816 - Will not fix.] Try to transfer additional restricted (can_vote=0) voting locked tokens to the account now that the restricted lock period has ended (so no locks exist), expect Error.`, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
@@ -3732,7 +3734,7 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
         privKey: userA4.privateKey,
         data: {
           payee_public_key: newKeyPair3.publicKey,
-          can_vote: 1,
+          can_vote: 0,
           periods: [
             {
               duration: 121,
@@ -3753,10 +3755,11 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
           actor: userA4.account,
         }
       });
+      console.log(result);
       expect(result.type).to.equal('invalid_input');
       expect(result.fields[0].name).to.equal('can_vote');
       expect(result.fields[0].value).to.equal('1');
-      expect(result.fields[0].error).to.equal('Locked tokens with restricted voting can only be transferred to a new account.');
+      expect(result.fields[0].error).to.equal(config.error.locktokenacctexists);
     } catch (err) {
       throw err;
     }
@@ -3822,7 +3825,7 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
         privKey: userA4.privateKey,
         data: {
           payee_public_key: newKeyPair4.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 5,
@@ -3847,7 +3850,7 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
 
   it(`wait 15 seconds for just one period to unlock`, async function () {await timeout(15000);});
 
-  it(`Try to transfer restricted voting locked tokens (can_vote=0) to the account, expect Error.`, async () => {
+  it(`Try to transfer restricted voting locked tokens (can_vote=0) to the account with (can_vote=1) existing locks, expect Error.`, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
@@ -3856,7 +3859,7 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
         privKey: userA4.privateKey,
         data: {
           payee_public_key: newKeyPair4.publicKey,
-          can_vote: 1,
+          can_vote: 0,
           periods: [
             {
               duration: 121,
@@ -3879,8 +3882,8 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
       });
       expect(result.type).to.equal('invalid_input');
       expect(result.fields[0].name).to.equal('can_vote');
-      expect(result.fields[0].value).to.equal('1');
-      expect(result.fields[0].error).to.equal('Locked tokens with restricted voting can only be transferred to a new account.');
+      expect(result.fields[0].value).to.equal('0');
+      expect(result.fields[0].error).to.equal(config.error.locktoken0to1);
     } catch (err) {
       throw err;
     }
@@ -3903,7 +3906,7 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
       //NOTE -- these checks fail sometimes if the timing of the wait adds one sec to the duration,
       //  when this happense please run the test again.
       expect(result.rows[0].periods.length).to.equal(2);
-      expect(result.rows[0].can_vote).to.equal(0);
+      expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
       expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(5).and.lessThanOrEqual(15);
       expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(249);
@@ -3913,7 +3916,7 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
   });
 });
 
-describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked tokens`, function () {
+describe(`G. Test a mix of non-restricted and voting-restricted locked tokens`, function () {
 
   before(async () => {
     userA1 = await newUser(faucet);
@@ -3965,7 +3968,7 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
 
   it(`Wait 10 seconds.`, async () => { await timeout(10000) });
 
-  it(`Try to transfer restricted voting locked tokens (can_vote=0) to the account with non-restricted voting tokens, expect Error. `, async () => {
+  it(`Try to transfer restricted voting locked tokens (can_vote=0) to the account with non-restricted (can_vote=0) voting tokens, expect Error. `, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
@@ -3994,7 +3997,7 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
       expect(result.type).to.equal('invalid_input');
       expect(result.fields[0].name).to.equal('can_vote');
       expect(result.fields[0].value).to.equal('0');
-      expect(result.fields[0].error).to.equal('Locked tokens with restricted voting can only be transferred to a new account.');
+      expect(result.fields[0].error).to.equal(config.error.locktoken0to1);
     } catch (err) {
       throw err;
     }
@@ -4029,7 +4032,7 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
   // test 2
   let newKeyPair, newUserAcct;
 
-  it(`Success test, Transfer locked tokens with restricted voting to a new account. `, async () => {
+  it(`Success test, Transfer locked tokens with non-restricted voting to a new account. `, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
@@ -4038,7 +4041,7 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
         privKey: userA2.privateKey,
         data: {
           payee_public_key: test2.publicKey,
-          can_vote: 0,
+          can_vote: 1,
           periods: [
             {
               duration: 120,
@@ -4247,7 +4250,7 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
     }
   });
 
-  it(`Try to transfer non-restricted voting locked tokens (can_vote=1) to the account with restricted voting tokens, expect Error. `, async () => {
+  it(`[BUG BD-3744] Try to transfer non-restricted voting locked tokens (can_vote=1) to the account with restricted (can_vote=0) tokens, expect Error. `, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
@@ -4276,7 +4279,7 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
       expect(result.type).to.equal('invalid_input');
       expect(result.fields[0].name).to.equal('can_vote');
       expect(result.fields[0].value).to.equal('1');
-      expect(result.fields[0].error).to.equal('Locked tokens with restricted voting can only be transferred to a new account.');
+      expect(result.fields[0].error).to.equal(config.error.locktoken1to0);
     } catch (err) {
       throw err;
     }
@@ -4312,10 +4315,9 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
 
   it(`Create a new keypair`, async () => {
     newKeyPair3 = await createKeypair();
-    // newUser3 = await existingUser(newKeyPair3.account, newKeyPair3.privateKey, newKeyPair3.publicKey, "", "");
   });
 
-  it(`Success test, Transfer locked tokens with restricted voting from an old to a new public key.`, async () => {
+  it(`Success test, Transfer locked tokens with restricted voting (can_vote=0) from an old to a new public key.`, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
@@ -4349,7 +4351,7 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
     }
   });
 
-  it(`[BUG BD-3744] Try to transfer non-restricted voting locked tokens (can_vote=1) to the account with restricted voting tokens, expect Error. `, async () => {
+  it(`[BUG BD-3744] Try to transfer non-restricted voting locked tokens (can_vote=1) to the account with restricted (can_vote=0) locked tokens, expect Error. `, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
@@ -4378,16 +4380,14 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
       expect(result.type).to.equal('invalid_input');
       expect(result.fields[0].name).to.equal('can_vote');
       expect(result.fields[0].value).to.equal('1');
-      // TODO: Double check with Ed the best way to trigger this condition
-      // expect(result.fields[0].error).to.equal('Locked tokens with restricted voting can only be transferred to a new account.');
-      expect(result.fields[0].error).to.equal('This account has voting restriction on locked tokens, sending locked tokens without voting restriction is not allowed.');
+      expect(result.fields[0].error).to.equal(config.error.locktoken1to0);
     } catch (err) {
       throw err;
     }
   });
 
   // should have restricted locks already from above
-  it.skip(`Try to transfer restricted voting locked tokens (can_vote=0) to the account with non-restricted voting tokens, expect Error. `, async () => {
+  it(`Try to transfer additional restricted voting locked tokens (can_vote=0) to account with existing (can_vote=0) locked tokens. Expect success. `, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
@@ -4413,10 +4413,8 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
           actor: userA3.account,
         }
       });
-      expect(result.type).to.equal('invalid_input');
-      expect(result.fields[0].name).to.equal('can_vote');
-      expect(result.fields[0].value).to.equal('1');
-      expect(result.fields[0].error).to.equal('Locked tokens with restricted voting can only be transferred to a new account.');
+      expect(result).to.have.all.keys('transaction_id', 'processed');
+      expect(result.processed.receipt.status).to.equal('executed');
     } catch (err) {
       throw err;
     }
@@ -4464,7 +4462,7 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
 
   it(`wait for 1 unlock period`, async () => {await timeout(10000);});
 
-  it(`BUG [BD-3744] Try to transfer locked tokens from test1 (can_vote=1) to test2 (can_vote=0), expect Error`, async () => {
+  it(`Try to transfer locked tokens, expect Error`, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
@@ -4491,10 +4489,8 @@ describe(`G. [BUG?] test a mix of non-restricted and voting-restricted locked to
         }
       });
       expect(result.type).to.equal('invalid_input');
-      expect(result.fields[0].name).to.equal('can_vote');
-      expect(result.fields[0].value).to.equal('1');
-      // TODO: Double check with Ed the best way to trigger this condition
-      expect(result.fields[0].error).to.equal('This account has voting restriction on locked tokens, sending locked tokens without voting restriction is not allowed.');
+      expect(result.fields[0].name).to.equal('actor');
+      expect(result.fields[0].error).to.equal('Funds locked');
     } catch (err) {
       throw err;
     }
@@ -4520,6 +4516,7 @@ describe(`H. redundant test - transfer restricted voting locks, then non-restric
 
   it(`Create a new keypair`, async () => {
     newKeyPair = await createKeypair();
+    newKeyPair2 = await createKeypair();
   });
 
   it(`Try to transfer restricted voting locked tokens (can_vote=0) to a newly generated public key so that the locks table is not empty.`, async () => {
@@ -4549,10 +4546,6 @@ describe(`H. redundant test - transfer restricted voting locks, then non-restric
         }
       });
       expect(result).to.have.all.keys('transaction_id', 'processed');
-      // expect(result.type).to.equal('invalid_input');
-      // expect(result.fields[0].name).to.equal('can_vote');
-      // expect(result.fields[0].value).to.equal('1');
-      // expect(result.fields[0].error).to.equal('Locked tokens with restricted voting can only be transferred to a new account.');
     } catch (err) {
       throw err;
     }
@@ -4560,7 +4553,7 @@ describe(`H. redundant test - transfer restricted voting locks, then non-restric
 
   it(`wait for both periods to unlock`, async () => {await timeout(30000);});
 
-  it(`Try to transfer non-restricted voting locked tokens (can_vote=1) to a newly generated public key, expect ???.`, async () => {
+  it(`Try to transfer non-restricted voting locked tokens (can_vote=1) to a newly generated public key, expect success.`, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
@@ -4568,7 +4561,7 @@ describe(`H. redundant test - transfer restricted voting locks, then non-restric
         actor: userA2.account,
         privKey: userA2.privateKey,
         data: {
-          payee_public_key: newKeyPair.publicKey,
+          payee_public_key: newKeyPair2.publicKey,
           can_vote: 1,
           periods: [
             {
@@ -4586,11 +4579,11 @@ describe(`H. redundant test - transfer restricted voting locks, then non-restric
           actor: userA2.account,
         }
       });
-      // expect(result).to.have.all.keys('transaction_id', 'processed');
-      expect(result.type).to.equal('invalid_input');
-      expect(result.fields[0].name).to.equal('can_vote');
-      expect(result.fields[0].value).to.equal('1');
-      expect(result.fields[0].error).to.equal('Locked tokens with restricted voting can only be transferred to a new account.');
+      expect(result).to.have.all.keys('transaction_id', 'processed');
+      //expect(result.type).to.equal('invalid_input');
+      //expect(result.fields[0].name).to.equal('can_vote');
+      //expect(result.fields[0].value).to.equal('1');
+      //expect(result.fields[0].error).to.equal('Locked tokens with restricted voting can only be transferred to a new account.');
     } catch (err) {
       throw err;
     }
@@ -4840,7 +4833,449 @@ describe(`J. Test trnsloctoks effect on total_voted_fio for a user with non-rest
   });
 });
 
-describe(`K. Test trnsloctoks effect on total_voted_fio for a user with restricted locks`, () => {
+describe(`K.1 -  BD-3809 - Test trnsloctoks effect on total_voted_fio for a user with restricted locks`, () => {
+
+  let user1, totalVotedFio, newKeyPairSDK;
+
+  before(async () => {
+    user1 = await newUser(faucet);
+  });
+
+  /**
+   * Test Case 1: Create account with can_vote=0 locks on it and register a FIO Address
+   */
+
+  it(`Get initial totalVotedFio`, async () => {
+    totalVotedFio = await getTotalVotedFio();
+  });
+
+  // Create new key pair and send can_vote=0 locks to key pair
+
+  it(`Create a new keypair`, async () => {
+    newKeyPair = await createKeypair();
+  });
+
+  it(`Create a new SDK object for newKeyPair user`, async () => {
+    newKeyPairSDK = new FIOSDK(newKeyPair.privateKey, newKeyPair.publicKey, config.BASE_URL, fetchJson);
+  });
+
+  it(`Transfer can_vote=0 locks to unestablished newKeyPair account.`, async () => {
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        actor: user1.account,
+        privKey: user1.privateKey,
+        data: {
+          payee_public_key: newKeyPair.publicKey,
+          can_vote: 0,
+          periods: [
+            {
+              duration: 121,
+              amount: 220000000000,
+            },
+            {
+              duration: 241,
+              amount: 280000000000,
+            }
+          ],
+          amount: fundsAmount,
+          max_fee: 400000000000,
+          tpid: '',
+          actor: user1.account,
+        }
+      });
+      expect(result).to.have.all.keys('transaction_id', 'processed');
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`Get totalVotedFio. Expect: No change`, async () => {
+    const oldTotalVotedFio = totalVotedFio;
+    totalVotedFio = await getTotalVotedFio();
+    //console.log('total_voted_fio: ', totalVotedFio);
+    expect(totalVotedFio).to.equal(oldTotalVotedFio);
+  });
+
+  it(`Set user1 domain as public so newkeypair can register address on it`, async () => {
+    const result = await user1.sdk.genericAction('setFioDomainVisibility', {
+      fioDomain: user1.domain,
+      isPublic: true,
+      maxFee: config.maxFee
+    })
+    //console.log('Result: ', result)
+    expect(result.status).to.equal('OK')
+    //const result = await user1Ram.setRamData('SETDOMAINPUBRAM', user1Ram)
+  })
+
+  it(`Transfer 200 FIO from user1 to newKeyPair to be used for registering a new address`, async () => {
+    const result = await user1.sdk.genericAction('transferTokens', {
+      payeeFioPublicKey: newKeyPair.publicKey,
+      amount: 200000000000,
+      maxFee: config.maxFee,
+    })
+    //console.log('Result', result)
+    expect(result.status).to.equal('OK')
+  })
+
+  it(`regaddress for newKeyPair so it can vote`, async () => {
+    try {
+      newKeyPair.address = generateFioAddress(user1.domain, 8)
+      const result = await newKeyPairSDK.genericAction('pushTransaction', {
+        action: 'regaddress',
+        account: 'fio.address',
+        data: {
+          fio_address: newKeyPair.address,
+          owner_fio_public_key: newKeyPair.publicKey,
+          max_fee: config.maxFee,
+          tpid: ''
+        }
+      })
+      //console.log('Result: ', result);
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal('null')
+    }
+  })
+
+
+  /**
+   * Test Case 1: Voting with can_vote=0 locked tokens
+   */
+
+  let availableFio, lockedFio;
+
+   it(`Get newKeyPair locked and available tokens`, async () => {
+     try {
+      let bal = await newKeyPairSDK.genericAction('getFioBalance', {});
+      availableFio = bal.available;
+      lockedFio = bal.balance - availableFio;
+      //console.log('bal: ', bal);
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal('null');
+    }
+  });
+
+  it(`Get updated total_voted_fio`, async () => {
+    totalVotedFio = await getTotalVotedFio();
+    //console.log('total_voted_fio: ', totalVotedFio);
+  });
+
+  it(`newKeyPair votes for bp1 and bp2`, async () => {
+    try {
+      const result = await newKeyPairSDK.genericAction('pushTransaction', {
+        action: 'voteproducer',
+        account: 'eosio',
+        data: {
+          "producers": [
+            'bp1@dapixdev',
+            'bp2@dapixdev'
+          ],
+          fio_address: newKeyPair.address,
+          actor: newKeyPair.account,
+          max_fee: config.maxFee
+        }
+      });
+      //console.log('Result: ', result);
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log('Error: ', err);
+      throw err;
+    }
+  });
+
+  it(`Get totalVotedFio after user with can_vote=0 votes. Expect: totalVotedFio increases by available FIO (not locked FIO)`, async () => {
+    const oldTotalVotedFio = totalVotedFio;
+    totalVotedFio = await getTotalVotedFio();
+    //console.log('total_voted_fio: ', totalVotedFio);
+    expect(totalVotedFio).to.equal(oldTotalVotedFio + availableFio);
+  });
+
+  /**
+   * Test Case 2: Transfer additional (can_vote=0) tokens to newKeyPair. This should not increase Total Voted FIO
+   */
+
+  // transfer additional locked tokens to newKeyPair
+  it(`Transfer additional ${fundsAmount} LOCKED tokens (can_vote=0) to newKeyPair.`, async () => {
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        actor: user1.account,
+        privKey: user1.privateKey,
+        data: {
+          payee_public_key: newKeyPair.publicKey,
+          can_vote: 0,
+          periods: [
+            {
+              duration: 5,
+              amount: 220000000000,
+            },
+            {
+              duration: 10,
+              amount: 280000000000,
+            }
+          ],
+          amount: fundsAmount,
+          max_fee: 400000000000,
+          tpid: '',
+          actor: user1.account,
+        }
+      });
+      expect(result).to.have.all.keys('transaction_id', 'processed');
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`[BUG BD-3809] Get totalVotedFio. Expect: totalVotedFio does NOT increase`, async () => {
+    const oldTotalVotedFio = totalVotedFio;
+    totalVotedFio = await getTotalVotedFio();
+    //console.log('total_voted_fio: ', totalVotedFio);
+    expect(totalVotedFio).to.equal(oldTotalVotedFio);
+  });
+});
+
+describe(`K.2 - BD-3808 - Test trnsloctoks effect on last_vote_weight for a user with restricted locks`, () => {
+
+  let user1, voteWeight, newKeyPairSDK, totalVotesBP1;
+
+  before(async () => {
+    user1 = await newUser(faucet);
+    user2 = await newUser(faucet);
+  });
+
+  it(`Get bp1@dapixdev total_votes`, async () => {
+    try {
+      totalVotesBP1 = await getProdVoteTotal('bp1@dapixdev');
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  /**
+   * Test Case 1: Create account with can_vote=0 locks on it and register a FIO Address
+   */
+
+  // Create new key pair and send can_vote=0 locks to key pair
+
+  it(`Create a new keypair`, async () => {
+    newKeyPair = await createKeypair();
+  });
+
+  it(`Create a new SDK object for newKeyPair user`, async () => {
+    newKeyPairSDK = new FIOSDK(newKeyPair.privateKey, newKeyPair.publicKey, config.BASE_URL, fetchJson);
+  });
+
+  it(`Transfer can_vote=0 locks to unestablished newKeyPair account.`, async () => {
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        actor: user1.account,
+        privKey: user1.privateKey,
+        data: {
+          payee_public_key: newKeyPair.publicKey,
+          can_vote: 0,
+          periods: [
+            {
+              duration: 121,
+              amount: 220000000000,
+            },
+            {
+              duration: 241,
+              amount: 280000000000,
+            }
+          ],
+          amount: fundsAmount,
+          max_fee: 400000000000,
+          tpid: '',
+          actor: user1.account,
+        }
+      });
+      expect(result).to.have.all.keys('transaction_id', 'processed');
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`Set user1 domain as public so newkeypair can register address on it`, async () => {
+    const result = await user1.sdk.genericAction('setFioDomainVisibility', {
+      fioDomain: user1.domain,
+      isPublic: true,
+      maxFee: config.maxFee
+    })
+    //console.log('Result: ', result)
+    expect(result.status).to.equal('OK')
+    //const result = await user1Ram.setRamData('SETDOMAINPUBRAM', user1Ram)
+  })
+
+  it(`Transfer 200 FIO from user1 to newKeyPair to be used for registering a new address`, async () => {
+    const result = await user1.sdk.genericAction('transferTokens', {
+      payeeFioPublicKey: newKeyPair.publicKey,
+      amount: 200000000000,
+      maxFee: config.maxFee,
+    })
+    //console.log('Result', result)
+    expect(result.status).to.equal('OK')
+  })
+
+  it(`regaddress for newKeyPair so it can vote`, async () => {
+    try {
+      newKeyPair.address = generateFioAddress(user1.domain, 8)
+      const result = await newKeyPairSDK.genericAction('pushTransaction', {
+        action: 'regaddress',
+        account: 'fio.address',
+        data: {
+          fio_address: newKeyPair.address,
+          owner_fio_public_key: newKeyPair.publicKey,
+          max_fee: config.maxFee,
+          tpid: ''
+        }
+      })
+      //console.log('Result: ', result);
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal('null')
+    }
+  })
+
+
+  /**
+   * Test Case 1: Voting with can_vote=0 locked tokens
+   */
+
+  let availableFio, lockedFio;
+
+   it(`Get newKeyPair locked and available tokens`, async () => {
+     try {
+      let bal = await newKeyPairSDK.genericAction('getFioBalance', {});
+      availableFio = bal.available;
+      lockedFio = bal.balance - availableFio;
+      //console.log('bal: ', bal);
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal('null');
+    }
+  });
+
+  it(`Get newKeyPair.last_vote_weight`, async () => {
+    voteWeight = await getAccountVoteWeight(newKeyPair.account);
+    //console.log('pre-vote last_vote_weight: ', voteWeight / 1000000000);
+  });
+
+  it(`Get bp1@dapixdev total_votes`, async () => {
+    try {
+      const oldtotalVotesBP1 = totalVotesBP1;
+      totalVotesBP1 = await getProdVoteTotal('bp1@dapixdev');
+      expect(totalVotesBP1).to.equal(oldtotalVotesBP1);
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`newKeyPair votes for bp1 and bp2`, async () => {
+    try {
+      const result = await newKeyPairSDK.genericAction('pushTransaction', {
+        action: 'voteproducer',
+        account: 'eosio',
+        data: {
+          "producers": [
+            'bp1@dapixdev',
+            'bp2@dapixdev'
+          ],
+          fio_address: newKeyPair.address,
+          actor: newKeyPair.account,
+          max_fee: config.maxFee
+        }
+      });
+      //console.log('Result: ', result);
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log('Error: ', err);
+      throw err;
+    }
+  });
+
+  it(`Get newKeyPair.last_vote_weight. Expect vote weight to increase by Available tokens.`, async () => {
+    const oldvoteWeight = voteWeight;
+    voteWeight = await getAccountVoteWeight(newKeyPair.account);
+    //console.log('pre-vote last_vote_weight: ', voteWeight / 1000000000);
+    expect(voteWeight).to.equal(oldvoteWeight + availableFio);
+  });
+
+  it(`Get bp1@dapixdev total_votes. Expect votes to increase by newKeyPair Available FIO`, async () => {
+    try {
+      const oldtotalVotesBP1 = totalVotesBP1;
+      totalVotesBP1 = await getProdVoteTotal('bp1@dapixdev');
+      expect(totalVotesBP1).to.equal(oldtotalVotesBP1 + availableFio);
+    } catch (err) {
+      throw err;
+    }
+  });
+
+
+  /**
+   * Test Case 2: Transfer additional (can_vote=0) tokens to newKeyPair. This should not increase Total Voted FIO
+   */
+
+  // transfer additional locked tokens to newKeyPair
+  it(`Transfer additional ${fundsAmount} LOCKED tokens (can_vote=0) to newKeyPair.`, async () => {
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'trnsloctoks',
+        account: 'fio.token',
+        actor: user1.account,
+        privKey: user1.privateKey,
+        data: {
+          payee_public_key: newKeyPair.publicKey,
+          can_vote: 0,
+          periods: [
+            {
+              duration: 5,
+              amount: 220000000000,
+            },
+            {
+              duration: 10,
+              amount: 280000000000,
+            }
+          ],
+          amount: fundsAmount,
+          max_fee: 400000000000,
+          tpid: '',
+          actor: user1.account,
+        }
+      });
+      expect(result).to.have.all.keys('transaction_id', 'processed');
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`[BUG BD-3808] Get voteWeight. Expect: voteWeight does NOT increase`, async () => {
+    const oldvoteWeight = voteWeight;
+    voteWeight = await getAccountVoteWeight(newKeyPair.account);
+    //console.log('[dbg] pre-vote last_vote_weight: ', voteWeight / 1000000000);
+    expect(voteWeight).to.equal(oldvoteWeight);
+  });
+
+  it(`Get bp1@dapixdev total_votes. Expect no change.`, async () => {
+    try {
+      const oldtotalVotesBP1 = totalVotesBP1;
+      totalVotesBP1 = await getProdVoteTotal('bp1@dapixdev');
+      expect(totalVotesBP1).to.equal(oldtotalVotesBP1);
+    } catch (err) {
+      throw err;
+    }
+  });
+  
+});
+
+describe(`Test trnsloctoks effect on total_voted_fio for a user with restricted locks`, () => {
 
   let user1, user2, total_voted_fio, totalVotesBP1, totalVotesBP2, totalVotesBP3
 
@@ -4966,13 +5401,13 @@ describe(`K. Test trnsloctoks effect on total_voted_fio for a user with restrict
 
   it(`Get newKeyPair.last_vote_weight`, async () => {
     preVoteWeight = await getAccountVoteWeight(newKeyPair.account);
-    console.log('[dbg] pre-vote last_vote_weight: ', preVoteWeight / 1000000000);
+    //console.log('[dbg] pre-vote last_vote_weight: ', preVoteWeight / 1000000000);
     //expect(preVoteWeight).to.equal(0);
   });
 
   it(`Get total_voted_fio`, async () => {
     preVoteFio = await getTotalVotedFio();
-    console.log('[dbg] total_voted_fio: ', preVoteFio);
+    //console.log('[dbg] total_voted_fio: ', preVoteFio);
   });
 
   it(`newKeyPair votes for bp1 and bp2`, async () => {
@@ -5003,14 +5438,14 @@ describe(`K. Test trnsloctoks effect on total_voted_fio for a user with restrict
   // get vote weight after voting
   it(`Get newKeyPair.last_vote_weight after voting`, async () => {
     postVoteWeight = await getAccountVoteWeight(newKeyPair.account);
-    console.log('[dbg] post-vote last_vote_weight: ', postVoteWeight / 1000000000)
+    //console.log('[dbg] post-vote last_vote_weight: ', postVoteWeight / 1000000000)
     let bal = await newKeyPairSDK.genericAction('getFioBalance', {});
     expect(postVoteWeight).to.equal(bal.available);
   });
 
   it(`Get total_voted_fio`, async () => {
     postVoteFio = await getTotalVotedFio();
-    console.log('[dbg] total_voted_fio: ', postVoteFio);
+    //console.log('[dbg] total_voted_fio: ', postVoteFio);
   });
 
   // transfer some lock tokens to the voter
@@ -5053,12 +5488,12 @@ describe(`K. Test trnsloctoks effect on total_voted_fio for a user with restrict
   // get vote weight and confirm that it increased
   it(`Get newKeyPair.last_vote_weight after transferring locked tokens`, async () => {
     postTransferVoteWeight = await getAccountVoteWeight(newKeyPair.account);
-    console.log('[dbg] post-transfer last_vote_weight: ', postTransferVoteWeight / 1000000000)
+    //console.log('[dbg] post-transfer last_vote_weight: ', postTransferVoteWeight / 1000000000)
   });
 
   it(`Get total_voted_fio`, async () => {
     postTransferVoteFio = await getTotalVotedFio();
-    console.log('[dbg] total_voted_fio: ', postTransferVoteFio);
+    //console.log('[dbg] total_voted_fio: ', postTransferVoteFio);
   });
 
   it(`[BUG BD-3808] expect no change in newKeyPair vote weight after lock token transfer`, async () => {
@@ -5079,7 +5514,7 @@ describe(`L. Transfer locked tokens canvote=0 to existing account with no locks`
     user2 = await newUser(faucet);
   });
 
-  it(`[BUG BD-3807] Expect error: Transfer locked tokens canvote=0 to existing account user2 with NO locks.`, async () => {
+  it(`Expect error: Transfer locked tokens canvote=0 to existing account user2 with NO locks.`, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
@@ -5105,11 +5540,10 @@ describe(`L. Transfer locked tokens canvote=0 to existing account with no locks`
           actor: user1.account,
         }
       });
-      console.log('Result: ', result)
       expect(result.type).to.equal('invalid_input');
       expect(result.fields[0].name).to.equal('can_vote');
-      expect(result.fields[0].value).to.equal('1');
-      expect(result.fields[0].error).to.equal('Locked tokens with restricted voting can only be transferred to a new account.');
+      expect(result.fields[0].value).to.equal('0');
+      expect(result.fields[0].error).to.equal(config.error.locktokenacctexists);
     } catch (err) {
       throw err;
     }
