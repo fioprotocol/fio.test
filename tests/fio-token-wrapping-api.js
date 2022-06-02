@@ -161,7 +161,7 @@ describe(`************************** fio-token-wrapping-api.js *****************
 });
 
 describe(`B. [FIO][api] Oracles (register)`, function () {
-  let user1, user2, user3, oracle1, oracle2, oracle3;
+  let user1, user2, user3, newOracle1, newOracle2, newOracle3, oracle1, oracle2, oracle3;
 
   before(async function () {
     oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
@@ -170,9 +170,14 @@ describe(`B. [FIO][api] Oracles (register)`, function () {
     user1 = await newUser(faucet);
     user2 = await newUser(faucet);
     user3 = await newUser(faucet);
-
-    await setTestOracleFees(oracle1, 10000000000, 11000000000);
-    await setTestOracleFees(oracle2, 13000000000, 11000000000);
+    newOracle1 = await newUser(faucet);
+    newOracle2 = await newUser(faucet);
+    newOracle3 = await newUser(faucet);
+    await registerNewBp(newOracle1);
+    await registerNewBp(newOracle2);
+    await registerNewBp(newOracle3);
+    // await setTestOracleFees(oracle1, 10000000000, 11000000000);
+    // await setTestOracleFees(oracle2, 13000000000, 11000000000);
   });
 
   it(`user1 registers as a new block producer`, async () => {
@@ -543,45 +548,41 @@ describe(`C. [FIO][api] Oracles (unregister)`, function () {
   });
 
   // unhappy tests
+  // it(`(empty actor) try to unregister an oracle, expect OK`, async function () {
+  //   try {
+  //     const result = await callFioApiSigned('push_transaction', {
+  //       action: 'unregoracle',
+  //       account: 'fio.oracle',
+  //       actor: newOracle2.account,
+  //       privKey: newOracle2.privateKey,
+  //       data: {
+  //         oracle_actor: newOracle2.account,
+  //         actor: ""
+  //       }
+  //     });
+  //     expect(result).to.have.all.keys('transaction_id', 'processed');
+  //   } catch (err) {
+  //     throw err;
+  //   }
+  // });
 
-  /**
-   * TODO: Bug - unregister successful when actor is empty or invalid
-   *    - actor is not used at all by unregoracle
-   */
-  it.skip(`(empty actor) try to unregister an oracle, expect OK`, async function () {
-    try {
-      const result = await callFioApiSigned('push_transaction', {
-        action: 'unregoracle',
-        account: 'fio.oracle',
-        actor: newOracle2.account,
-        privKey: newOracle2.privateKey,
-        data: {
-          oracle_actor: newOracle2.account,
-          actor: ""
-        }
-      });
-      expect(result).to.have.all.keys('transaction_id', 'processed');
-    } catch (err) {
-      throw err;
-    }
-  });
-  it.skip(`(invalid actor) try to unregister an oracle, expect Error`, async function () {
-    try {
-      const result = await callFioApiSigned('push_transaction', {
-        action: 'unregoracle',
-        account: 'fio.oracle',
-        actor: newOracle1.account,
-        privKey: newOracle1.privateKey,
-        data: {
-          oracle_actor: newOracle1.account,
-          actor: "!invalid@$%"
-        }
-      });
-      expect(result).to.not.have.all.keys('transaction_id', 'processed');
-    } catch (err) {
-      throw err;
-    }
-  });
+  // it(`(invalid actor) try to unregister an oracle, expect Error`, async function () {
+  //   try {
+  //     const result = await callFioApiSigned('push_transaction', {
+  //       action: 'unregoracle',
+  //       account: 'fio.oracle',
+  //       actor: newOracle1.account,
+  //       privKey: newOracle1.privateKey,
+  //       data: {
+  //         oracle_actor: newOracle1.account,
+  //         actor: "!invalid@$%"
+  //       }
+  //     });
+  //     expect(result).to.not.have.all.keys('transaction_id', 'processed');
+  //   } catch (err) {
+  //     throw err;
+  //   }
+  // });
 
   it(`(empty oracle_actor) newOracle tries to unregister an oracle, expect Error`, async function () {
     try {
@@ -684,58 +685,58 @@ describe(`C. [FIO][api] Oracles (unregister)`, function () {
     }
   });
 
-  it.skip(`(missing actor) try to unregister an oracle, expect Error`, async function () {
-    try {
-      const result = await callFioApiSigned('push_transaction', {
-        action: 'unregoracle',
-        account: 'fio.oracle',
-        actor: newOracle1.account,
-        privKey: newOracle1.privateKey,
-        data: {
-          oracle_actor: newOracle1.account,
-        }
-      });
-      expect(result).to.not.have.all.keys('transaction_id', 'processed');
-    } catch (err) {
-      expect(err.message).to.equal('missing unregoracle.actor (type=name)');
-    }
-  });
-
-  it.skip(`(int actor) try to unregister an oracle, expect Error`, async function () {
-    try {
-      const result = await callFioApiSigned('push_transaction', {
-        action: 'unregoracle',
-        account: 'fio.oracle',
-        actor: newOracle1.account,
-        privKey: newOracle1.privateKey,
-        data: {
-          oracle_actor: newOracle1.account,
-          actor: 1234500000000
-        }
-      });
-      expect(result).to.not.have.all.keys('transaction_id', 'processed');
-    } catch (err) {
-      expect(err.message).to.equal('Expected string containing name');
-    }
-  });
-
-  it.skip(`(negative actor) try to unregister an oracle, expect Error`, async function () {
-    try {
-      const result = await callFioApiSigned('push_transaction', {
-        action: 'unregoracle',
-        account: 'fio.oracle',
-        actor: newOracle1.account,
-        privKey: newOracle1.privateKey,
-        data: {
-          oracle_actor: newOracle1.account,
-          actor: -1234500000000
-        }
-      });
-      expect(result).to.not.have.all.keys('transaction_id', 'processed');
-    } catch (err) {
-      expect(err.message).to.equal('Expected string containing name');
-    }
-  });
+  // it.skip(`(missing actor) try to unregister an oracle, expect Error`, async function () {
+  //   try {
+  //     const result = await callFioApiSigned('push_transaction', {
+  //       action: 'unregoracle',
+  //       account: 'fio.oracle',
+  //       actor: newOracle1.account,
+  //       privKey: newOracle1.privateKey,
+  //       data: {
+  //         oracle_actor: newOracle1.account,
+  //       }
+  //     });
+  //     expect(result).to.not.have.all.keys('transaction_id', 'processed');
+  //   } catch (err) {
+  //     expect(err.message).to.equal('missing unregoracle.actor (type=name)');
+  //   }
+  // });
+  //
+  // it.skip(`(int actor) try to unregister an oracle, expect Error`, async function () {
+  //   try {
+  //     const result = await callFioApiSigned('push_transaction', {
+  //       action: 'unregoracle',
+  //       account: 'fio.oracle',
+  //       actor: newOracle1.account,
+  //       privKey: newOracle1.privateKey,
+  //       data: {
+  //         oracle_actor: newOracle1.account,
+  //         actor: 1234500000000
+  //       }
+  //     });
+  //     expect(result).to.not.have.all.keys('transaction_id', 'processed');
+  //   } catch (err) {
+  //     expect(err.message).to.equal('Expected string containing name');
+  //   }
+  // });
+  //
+  // it.skip(`(negative actor) try to unregister an oracle, expect Error`, async function () {
+  //   try {
+  //     const result = await callFioApiSigned('push_transaction', {
+  //       action: 'unregoracle',
+  //       account: 'fio.oracle',
+  //       actor: newOracle1.account,
+  //       privKey: newOracle1.privateKey,
+  //       data: {
+  //         oracle_actor: newOracle1.account,
+  //         actor: -1234500000000
+  //       }
+  //     });
+  //     expect(result).to.not.have.all.keys('transaction_id', 'processed');
+  //   } catch (err) {
+  //     expect(err.message).to.equal('Expected string containing name');
+  //   }
+  // });
 
   it(`(happy path) oracle1 tries to unregister newOracle, expect OK`, async function () {
     try {
@@ -817,7 +818,7 @@ describe(`D. [FIO][api] Oracles (setoraclefee)`, function () {
   });
 
   //unhappy tests
-  it.skip(`(BD-3406)(negative wrap_fio_domain) try to set oracle fees, expect Error`, async function () {
+  it(`(BD-3406)(negative wrap_fio_domain) try to set oracle fees, expect Error`, async function () {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'setoraclefee',
@@ -838,7 +839,7 @@ describe(`D. [FIO][api] Oracles (setoraclefee)`, function () {
       expect(err.message).to.equal('invalid number');
     }
   });
-  it.skip(`(BD-3406)(negative wrap_fio_tokens) try to set oracle fees, expect Error`, async function () {
+  it(`(BD-3406)(negative wrap_fio_tokens) try to set oracle fees, expect Error`, async function () {
     try{
       const result = await callFioApiSigned('push_transaction', {
         action: 'setoraclefee',
@@ -1356,19 +1357,7 @@ describe(`F. [FIO][api] Wrap FIO tokens`, function () {
   });
 
   // issues
-
-  /**
-   *
-   * TODO: How much validation for public_address?
-   *    validate negative values or conversion to unsigned int?
-   *
-   * TODO: Bug - improper validation for multiple fields
-   *  - public_address (string / ETH address) - is it not possible / reasonable to do more validation?
-   *  - max_oracle_fee (int)
-   *  - max_fee (int)
-   *
-   */
-  it.skip(`(invalid public_address) try to wrap 1000 FIO tokens`, async function () {
+  it(`(BD-3408)(invalid public_address) try to wrap 1000 FIO tokens`, async function () {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'wraptokens',
@@ -1391,7 +1380,8 @@ describe(`F. [FIO][api] Wrap FIO tokens`, function () {
       expect(err.json.fields[0].error).to.equal('Invalid public address');
     }
   });
-  it.skip(`(int public_address) try to wrap 1000 FIO tokens`, async function () {
+
+  it(`(BD-3408)(int public_address) try to wrap 1000 FIO tokens`, async function () {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'wraptokens',
@@ -1413,7 +1403,8 @@ describe(`F. [FIO][api] Wrap FIO tokens`, function () {
       expect(err.json.fields[0].error).to.equal('Invalid public address');
     }
   });
-  it.skip(`(negative public_address) try to wrap 1000 FIO tokens`, async function () {
+
+  it(`(BD-3408)(negative public_address) try to wrap 1000 FIO tokens`, async function () {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'wraptokens',
@@ -1436,60 +1427,7 @@ describe(`F. [FIO][api] Wrap FIO tokens`, function () {
     }
   });
 
-  it(`(negative max_fee) try to wrap 1000 FIO tokens, expect max_fee to cast to unsigned integer`, async function () {
-    try {
-      const result = await callFioApiSigned('push_transaction', {
-        action: 'wraptokens',
-        account: 'fio.oracle',
-        actor: user1.account,
-        privKey: user1.privateKey,
-        data: {
-          amount: wrapAmt,
-          chain_code: "ETH",
-          public_address: wfio.address,
-          max_oracle_fee: config.maxFee,
-          max_fee: -config.maxFee,
-          tpid: "",
-          actor: user1.account
-        }
-      });
-      expect(result).to.not.have.all.keys('transaction_id', 'processed');
-    } catch (err) {
-      throw err;
-    }
-  });
-  it(`(negative max_oracle_fee) try to wrap 1000 FIO tokens`, async function () {
-    try {
-      const result = await callFioApiSigned('push_transaction', {
-        action: 'wraptokens',
-        account: 'fio.oracle',
-        actor: user1.account,
-        privKey: user1.privateKey,
-        data: {
-          amount: wrapAmt,
-          chain_code: "ETH",
-          public_address: wfio.address,
-          max_oracle_fee: -config.maxFee,
-          max_fee: config.maxFee,
-          tpid: "",
-          actor: user1.account
-        }
-      });
-      expect(result).to.not.have.all.keys('transaction_id', 'processed');
-      expect(result.fields[0].name).to.equal('max_oracle_fee');
-      expect(result.fields[0].value).to.equal(`${-config.maxFee}`);
-      expect(result.fields[0].error).to.equal('Invalid oracle fee value');
-    } catch (err) {
-      throw err;
-    }
-  });
-  /**
-   * TODO: Bug - invalid TPID validation allows wraptokens to succeed with arbitrary nonspace character
-   *
-   *
-   * 31 May 2022 - still a problem
-   */
-  it.skip(`(BD-3788)(int tpid) try to wrap 1000 FIO tokens`, async function () {
+  it(`(BD-3408)(int tpid) try to wrap 1000 FIO tokens`, async function () {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'wraptokens',
@@ -1514,6 +1452,58 @@ describe(`F. [FIO][api] Wrap FIO tokens`, function () {
       expect(result).to.not.have.all.keys('transaction_id', 'processed');
     } catch (err) {
       expect(err.json.error.details[0].message).to.equal('TPID must be empty or valid FIO address');
+    }
+  });
+
+  it(`(negative max_fee) try to wrap 1000 FIO tokens, expect max_fee to cast to unsigned integer`, async function () {
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'wraptokens',
+        account: 'fio.oracle',
+        actor: user1.account,
+        privKey: user1.privateKey,
+        data: {
+          amount: wrapAmt,
+          chain_code: "ETH",
+          public_address: wfio.address,
+          max_oracle_fee: config.maxFee,
+          max_fee: -config.maxFee,
+          tpid: "",
+          actor: user1.account
+        }
+      });
+      expect(result).to.not.have.all.keys('transaction_id', 'processed');
+      expect(result.fields[0].name).to.equal('max_fee');
+      expect(result.fields[0].value).to.equal(`${-config.maxFee}`);
+      expect(result.fields[0].error).to.equal('Invalid fee value');
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`(negative max_oracle_fee) try to wrap 1000 FIO tokens`, async function () {
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'wraptokens',
+        account: 'fio.oracle',
+        actor: user1.account,
+        privKey: user1.privateKey,
+        data: {
+          amount: wrapAmt,
+          chain_code: "ETH",
+          public_address: wfio.address,
+          max_oracle_fee: -config.maxFee,
+          max_fee: config.maxFee,
+          tpid: "",
+          actor: user1.account
+        }
+      });
+      expect(result).to.not.have.all.keys('transaction_id', 'processed');
+      expect(result.fields[0].name).to.equal('max_oracle_fee');
+      expect(result.fields[0].value).to.equal(`${-config.maxFee}`);
+      expect(result.fields[0].error).to.equal('Invalid oracle fee value');
+    } catch (err) {
+      throw err;
     }
   });
 
@@ -2139,6 +2129,13 @@ describe(`F. [FIO][api] Wrap FIO tokens`, function () {
       expect(result).to.have.all.keys('transaction_id', 'processed');
       expect(result.processed.receipt.status).to.equal('executed');
       expect(result.processed.action_traces[0].receipt.response).to.equal(`{"status": "OK","oracle_fee_collected":"${ORACLE_FEE}","fee_collected":${WRAP_FEE}}`);
+      wrappingFee = result.fee_collected;
+      wrappingOracleFee = parseInt(result.oracle_fee_collected);
+
+
+
+
+
     } catch (err) {
       throw err;
     }
@@ -2324,9 +2321,6 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
     }
   });
 
-  /**
-   * TODO: Bug - improper obt_id validation (obt_id is required)
-   */
   it(`(empty obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
     try {
       const result = await callFioApiSigned('push_transaction', {
@@ -2346,7 +2340,7 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       throw err;
     }
   });
-  it.skip(`(BD-3409?)(invalid obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
+  it(`(BD-3409?)(invalid obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
@@ -2365,7 +2359,7 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       throw err;
     }
   });
-  it.skip(`(BD-3409?)(int obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
+  it(`(BD-3409?)(int obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
@@ -2384,7 +2378,7 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       throw err;
     }
   });
-  it.skip(`(BD-3409?)(negative obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
+  it(`(BD-3409?)(negative obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',

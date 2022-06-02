@@ -737,6 +737,18 @@ describe(`B. [FIO][api] Wrap FIO domains`, function () {
   });
 });
 
+describe.skip(`** ORACLE TABLE CLEANUP **`, async function () {
+  it(`clean out oracless record with helper function`, async function () {
+    try {
+      await cleanUpOraclessTable(faucet, true);
+      let records = await getOracleRecords();
+      expect(records.rows.length).to.be.oneOf([3, 0]);
+    } catch (err) {
+      throw err;
+    }
+  });
+});
+
 describe.skip(`C. [FIO][api] Unwrap FIO domains`, function () {
 
   let wrapAmt = 1000000000000;

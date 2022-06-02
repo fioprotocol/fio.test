@@ -1063,6 +1063,18 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
   });
 });
 
+describe.skip(`** ORACLE TABLE CLEANUP **`, async function () {
+  it(`clean out oracless record with helper function`, async function () {
+    try {
+      await cleanUpOraclessTable(faucet, true);
+      let records = await getOracleRecords();
+      expect(records.rows.length).to.be.oneOf([3, 0]);
+    } catch (err) {
+      throw err;
+    }
+  });
+});
+
 describe.skip(`C. [FIO] Unwrap FIO domains`, function () {
 
   let wrapAmt = 1000000000000;
@@ -1134,30 +1146,30 @@ describe.skip(`C. [FIO] Unwrap FIO domains`, function () {
       technologyProviderId: ''
     });
 
-    [fioNftAccts, fioNft] = await setupWFIOontract(ethers, INIT_SUPPLY);
-    await registerWfioOracles(fioNft, fioNftAccts);
+    [fioNftAccts, fioNft] = await setupFIONFTcontract(ethers);
+    await registerFioNftOracles(fioNft, fioNftAccts);
 
-    try {
-      const result = await callFioApiSigned('push_transaction', {
-        action: 'wraptokens',
-        account: 'fio.oracle',
-        actor: user1.account,
-        privKey: user1.privateKey,
-        data: {
-          amount: wrapAmt,
-          chain_code: "ETH",
-          public_address: fioNft.address,
-          max_oracle_fee: config.maxFee,
-          max_fee: config.maxFee,
-          tpid: "",
-          actor: user1.account
-        }
-      });
-      OBT_ID = result.transaction_id;
-    } catch (err) {
-      console.log('error wrapping test tokens: ', err);
-      throw err;
-    }
+    // try {
+    //   const result = await callFioApiSigned('push_transaction', {
+    //     action: 'wraptokens',
+    //     account: 'fio.oracle',
+    //     actor: user1.account,
+    //     privKey: user1.privateKey,
+    //     data: {
+    //       amount: wrapAmt,
+    //       chain_code: "ETH",
+    //       public_address: fioNft.address,
+    //       max_oracle_fee: config.maxFee,
+    //       max_fee: config.maxFee,
+    //       tpid: "",
+    //       actor: user1.account
+    //     }
+    //   });
+    //   OBT_ID = result.transaction_id;
+    // } catch (err) {
+    //   console.log('error wrapping test tokens: ', err);
+    //   throw err;
+    // }
 
     // call fioNft.wrap
     // let fromStartingBal = await fioNftAccts[14].getBalance();
