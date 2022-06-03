@@ -3144,7 +3144,7 @@ describe(`K. regproxy results in faulty record in voters table if account alread
 
 })
 
-describe(`J. Test total_voted_fio when user changes votes`, () => {
+describe(`L. Test total_voted_fio when user changes votes`, () => {
 
   let user1, total_voted_fio, totalVotesBP1, totalVotesBP2, totalVotesBP3
 
@@ -3328,5 +3328,140 @@ describe(`J. Test total_voted_fio when user changes votes`, () => {
       expect(err).to.equal('null')
     }
   })
+
+})
+
+
+describe(`M. Set Auto-proxy, then vote for producer (attempting to repro BD-3800 but failed)`, () => {
+
+  let user1, proxy1, total_voted_fio, totalVotesBP1, totalVotesBP2, totalVotesBP3
+
+  it(`Create users`, async () => {
+    user1 = await newUser(faucet);
+    proxy1 = await newUser(faucet);
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(1000) })
+
+  it(`Register proxy1 as a proxy`, async () => {
+    try {
+      const result = await proxy1.sdk.genericAction('pushTransaction', {
+        action: 'regproxy',
+        account: 'eosio',
+        data: {
+          fio_address: proxy1.address,
+          actor: proxy1.account,
+          max_fee: config.maxFee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      //console.log('Error: ', err.json)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`Transfer 100 FIO tokens with a registered proxy as TPID to set autoproxy for user1`, async function () {
+    await user1.sdk.genericAction('pushTransaction', {
+      action: 'trnsfiopubky',
+      account: 'fio.token',
+      data: {
+        payee_public_key: proxy1.publicKey,
+        amount: 100000000000,
+        max_fee: config.maxFee,
+        actor: faucet.account,
+        tpid: proxy1.address
+      }
+    });
+  });
+
+
+  it(`Wait a few seconds.`, async () => { await timeout(2000) })
+
+  it('confirm user1: is in the voters table and is_auto_proxy = 1, proxy is proxy1.account', async () => {
+    let inVotersTable;
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        lower_bound: user1.account,
+        upper_bound: user1.account,
+        key_type: "name",
+        index_position: 3,
+      }
+      const voterInfo = await callFioApi("get_table_rows", json);
+      //console.log('voterInfo: ', voterInfo);
+      expect(voterInfo.rows[0].is_auto_proxy).to.equal(1);
+      expect(voterInfo.rows[0].producers.length).to.equal(0);  // Has not voted for producers
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  });
+ 
+ 
+  it(`user1 votes for bp1 and bp2`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'voteproducer',
+        account: 'eosio',
+        data: {
+          "producers": [
+            'bp1@dapixdev',
+            'bp2@dapixdev'
+          ],
+          fio_address: user1.address,
+          actor: user1.account,
+          max_fee: config.maxFee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it('confirm user1: is in the voters table and is_auto_proxy = 1, proxy is proxy1.account', async () => {
+    let inVotersTable;
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        lower_bound: user1.account,
+        upper_bound: user1.account,
+        key_type: "name",
+        index_position: 3,
+      }
+      const voterInfo = await callFioApi("get_table_rows", json);
+      //console.log('voterInfo: ', voterInfo);
+      expect(voterInfo.rows[0].is_auto_proxy).to.equal(1);
+      expect(voterInfo.rows[0].producers.length).to.equal(2);  // Has not voted for producers
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`Transfer more FIO to user1. Expect success`, async function () {
+    await faucet.genericAction('pushTransaction', {
+      action: 'trnsfiopubky',
+      account: 'fio.token',
+      data: {
+        payee_public_key: user1.publicKey,
+        amount: 100000000000,
+        max_fee: config.maxFee,
+        actor: faucet.account,
+        tpid: ''
+      }
+    });
+  });
+  
 
 })
