@@ -22,8 +22,8 @@ describe('TEST SUITE', () => {
     /**
      * ERC20 and ERC721 contract tests
      */
-    // require('./tests/fio-erc20');
-    // require('./tests/fio-erc721');
+    require('./tests/fio-erc20');
+    require('./tests/fio-erc721');
 
     /**
      * fio.oracle contract tests
