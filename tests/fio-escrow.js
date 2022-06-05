@@ -1517,7 +1517,7 @@ describe.only(`************************** fio-escrow.js ************************
 		describe(`Golden Path`, async () => {
 			// cancel domain listing
 
-			it.only(`userA1 cancels domain listing`, async () => {
+			it(`userA1 cancels domain listing`, async () => {
 				try {
 					let domain = userA1.domain;
 					// give user tokens
@@ -1587,9 +1587,6 @@ describe.only(`************************** fio-escrow.js ************************
 					let userA1ListDomainResult = await listDomain(userA1, domain, 2000000000000);
 					await timeout(500);
 
-					// console.log(`userA1ListDomainResult`);
-					// console.log(userA1ListDomainResult);
-
 					const userBalanceResult = await userA1.sdk.genericAction('getFioBalance', {
 						fioPublicKey: userA1.publicKey
 					})
@@ -1608,18 +1605,11 @@ describe.only(`************************** fio-escrow.js ************************
 					const result = await userA1.sdk.genericAction('pushTransaction', {
 						action: 'cxlistdomain', account: 'fio.escrow', data: data
 					})
-					await timeout(500)
-
-					// console.log(`cancel payload`)
-					// console.log(data);
-
-					// console.log(`cancel result`)
-					// console.log(result)
+					await timeout(500);
 
 					expect(result.status).to.equal('OK');
 
 					const domainHash = stringToHash(domain);
-					// console.log(`searching for ${domain} (${domainHash})`)
 
 					const domainSaleRow = await callFioApi("get_table_rows", {
 						json          : true,
@@ -1637,34 +1627,24 @@ describe.only(`************************** fio-escrow.js ************************
 					expect(domainSaleRow.rows[0].status).to.equal(3); // cancelled listing
 					expect(domainSaleRow.rows[0].date_listed).to.not.equal(domainSaleRow.rows[0].date_updated);
 
-					// console.log(`passed 2 assertions`);
-
 					const userBalanceResultAfter = await userA1.sdk.genericAction('getFioBalance', {
 						fioPublicKey: userA1.publicKey
 					})
 
 					expect(userBalanceResultAfter.balance).to.equal(userA1Balance - config.api.cancel_list_domain.fee);
 
-					// console.log(`passed balance assertion`)
-
 					// UserA1 relists
 					let listDomainResult2 = await listDomain(userA1, domain, 2000000000000);
-					// console.log(`listDomainResult2`)
-					// console.log(listDomainResult2)
 					await timeout(500);
 
 					// userA2 buy domain
 					let userA2BuyDomainResult = await buyDomain(userA2, domain, listDomainResult2.domainsale_id, 2000000000000);
-					// console.log(`userA2BuyDomainResult`)
-					// console.log(userA2BuyDomainResult)
 					await timeout(500)
 
 					// userA2 lists domain
 					let userA2ListDomainResult = await listDomain(userA2, domain, 2000000000000);
 					await timeout(500);
 
-					// console.log(`userA2ListDomainResult`)
-					// console.log(userA2ListDomainResult)
 					let userA2CancelData = {
 						"actor"     : userA2.account,
 						"fio_domain": domain,
@@ -1673,16 +1653,11 @@ describe.only(`************************** fio-escrow.js ************************
 						"sale_id"   : userA2ListDomainResult.domainsale_id
 					};
 
-					// console.log(`userA2 cancel payload`)
-					// console.log(userA2CancelData);
 					// userA2 cancels listing
 					const userA2CancelResult = await userA2.sdk.genericAction('pushTransaction', {
 						action: 'cxlistdomain', account: 'fio.escrow', data: userA2CancelData
 					})
 					await timeout(500)
-
-					// console.log(`userA2CancelResult`)
-					// console.log(userA2CancelResult)
 
 					expect(userA2CancelResult.status).to.equal('OK');
 
@@ -1706,18 +1681,14 @@ describe.only(`************************** fio-escrow.js ************************
 					let domain = generateFioDomain(10)
 					await registerDomain(userA1, domain);
 					await timeout(500);
-					// let domain = userA1.domain;
 
 					let listResult, cancelResult, cancelPayload;
 
 					for (let i = 1; i <= 10; i++) {
-						// console.log(`Iteration ${i}`)
 						await transferTokens(userA1);
 						// list it for sale
 						listResult = await listDomain(userA1, domain, 2000000000000);
 						await timeout(500);
-						// console.log(`listResult`)
-						// console.log(listResult)
 
 						expect(listResult.status).to.equal('OK');
 
@@ -1736,8 +1707,6 @@ describe.only(`************************** fio-escrow.js ************************
 							data   : cancelPayload
 						})
 						await timeout(500)
-						// console.log(`cancelResult`)
-						// console.log(cancelResult)
 
 						expect(cancelResult.status).to.equal('OK');
 					}
