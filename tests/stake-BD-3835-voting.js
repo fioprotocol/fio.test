@@ -15,15 +15,17 @@ describe(`************************** stake-BD-3835-voting.js *******************
 
   let user1, proxy1;
 
-  before(async () => {
+  it(`Set up users`, async () => {
     user1 = await newUser(faucet);
     proxy1 = await newUser(faucet);
+    console.log('proxy: ', proxy1.account)
+    console.log('user1: ', user1.account)
     proxy1.address2 = generateFioAddress(proxy1.domain, 5);
   })
 
   // First, set up the proxy
 
-  it(`register second address for proxy1`, async () => {
+  it.skip(`register second address for proxy1`, async () => {
     try {
       const result = await proxy1.sdk.genericAction('pushTransaction', {
         action: 'regaddress',
@@ -43,7 +45,7 @@ describe(`************************** stake-BD-3835-voting.js *******************
     }
   })
 
-  it(`Register proxy1 as a proxy using address`, async () => {
+  it(`Register proxy1 as a proxy using proxy1.address`, async () => {
     try {
       const result = await proxy1.sdk.genericAction('pushTransaction', {
         action: 'regproxy',
@@ -62,7 +64,7 @@ describe(`************************** stake-BD-3835-voting.js *******************
     }
   })
 
-  it(`proxy1 votes for bp1 and bp2`, async () => {
+  it.skip(`proxy1 votes for bp1 and bp2`, async () => {
     try {
       const result = await proxy1.sdk.genericAction('pushTransaction', {
         action: 'voteproducer',
@@ -107,6 +109,26 @@ describe(`************************** stake-BD-3835-voting.js *******************
   });
 
   // Next, have the user vote directly for producers
+
+  it(`User1 stakes 100 FIO using address as tpid (the account it is linked to was registered as a proxy using a different FIO Address)`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'stakefio',
+        account: 'fio.staking',
+        data: {
+          fio_address: user1.address,
+          amount: 100000000000,
+          actor: user1.account,
+          max_fee: config.maxFee,
+          tpid: proxy1.address
+        }
+      })
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log("Error : ", err.json);
+      expect(err).to.equal(null);
+    }
+  })
   
   it(`user1 votes for bp1 and bp2`, async () => {
     try {
@@ -139,16 +161,16 @@ describe(`************************** stake-BD-3835-voting.js *******************
         action: 'stakefio',
         account: 'fio.staking',
         data: {
-          fio_address: '',
-          amount: 100000000000,
+          fio_address: user1.address,
+          amount: 200000000000,
           actor: user1.account,
           max_fee: config.maxFee,
-          tpid: proxy1.address2
+          tpid: proxy1.address
         }
       })
       expect(result.status).to.equal('OK')
     } catch (err) {
-      console.log("Error : ", err.json.error);
+      console.log("Error : ", err.json);
       expect(err).to.equal(null);
     }
   })
