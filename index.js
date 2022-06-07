@@ -12,17 +12,30 @@ describe('TEST SUITE', () => {
    * WFIO and FIONFT wrapping and unwrapping
    * FIO token wrapping and unwrapping (FIP-17a)
    * FIO domain wrapping and unwrapping (FIP-17b)
-   
+   */
   describe.skip(`** FIP-17a and b - WRAPPING TESTS **`, function () {
+    /**
+    require('./tests/testnet-smoketest.js');
+    require('./tests/FIP-41-devtest-transfer-locked-tokens.js');
+    */
 
+    /**
+     * ERC20 and ERC721 contract tests
+     */
     require('./tests/fio-erc20');
     require('./tests/fio-erc721');
+
+    /**
+     * fio.oracle contract tests
+     *
+     * Test coverage for the API as well as TypeScript SDK
+     */
     require('./tests/fio-token-wrapping-sdk');
     require('./tests/fio-token-wrapping-api');
     require('./tests/fio-domain-wrapping-sdk');
     require('./tests/fio-domain-wrapping-api');
   });
-*/
+
   /**
    * Staking Tests (FIP-21)
    * May require additional configuration (see the notes in js files before running these tests)
@@ -63,7 +76,7 @@ describe('TEST SUITE', () => {
     require('./tests/stake-BD-3552-dev-tests.js');
   });
 
-  describe.only('** GENERAL TESTS **', () => {
+  describe('** GENERAL TESTS **', () => {
 
     /**
      * General Tests. Should work against all builds. Do not require additional configuration.
