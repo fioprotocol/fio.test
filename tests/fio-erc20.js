@@ -146,8 +146,6 @@ describe(`A2. [ETH] Custodians (register)`, function () {
     expect(result[0]).to.be.a('boolean').and.equal(true);
   });
 
-  // TODO: Register some more new custodians and make sure they are where they should be
-
   // unhappy paths
   it(`register custodian with an invalid eth address, expect Error 400 `, async function () {
     try {
@@ -199,9 +197,6 @@ describe(`A2. [ETH] Custodians (register)`, function () {
       expect(err.message).to.contain('Custodian is already registered');
     }
   });
-
-  // TODO: Test with varying consensus among other custodians (different addresses, different amounts, etc)
-  // TODO: Test with incorrect consensus (too few approvers, already approved address)
 });
 
 describe(`A3. [ETH] Custodians (unregister)`, function () {
@@ -274,9 +269,6 @@ describe(`A3. [ETH] Custodians (unregister)`, function () {
       expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Only a wFIO custodian may call this function.\'');
     }
   });
-
-  // TODO: Test with varying consensus among other custodians (different addresses, different amounts, etc)
-  // TODO: Test with incorrect consensus (too few approvers, already approved address)
 });
 
 describe(`B1. [ETH] Oracles (get)`, function () {
@@ -377,7 +369,6 @@ describe(`B1. [ETH] Oracles (get)`, function () {
       throw err;
     }
   });
-
 });
 
 describe(`B2. [ETH] Oracles (register)`, function () {
@@ -422,8 +413,6 @@ describe(`B2. [ETH] Oracles (register)`, function () {
     expect(result[1]).to.be.a('object').with.property('_isBigNumber');
   });
 
-  // TODO: Register some more new custodians and make sure they are where they should be
-
   // unhappy paths
   it(`register oracle with an invalid eth address, expect Error 400`, async function () {
     try {
@@ -463,9 +452,6 @@ describe(`B2. [ETH] Oracles (register)`, function () {
       expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Only a wFIO custodian may call this function.\'');
     }
   });
-
-  // TODO: Test with varying consensus among other custodians (different addresses, different amounts, etc)
-  // TODO: Test with incorrect consensus (too few approvers, already approved address)
 });
 
 describe(`B3. [ETH] Oracles (unregister)`, function () {
@@ -546,9 +532,6 @@ describe(`B3. [ETH] Oracles (unregister)`, function () {
       expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Only a wFIO custodian may call this function.\'');
     }
   });
-
-  // TODO: Test with varying consensus among other custodians (different addresses, different amounts, etc)
-  // TODO: Test with incorrect consensus (too few approvers, already approved address)
 });
 
 describe(`C1. [ETH] wFIO wrapping`, function () {
@@ -1014,7 +997,6 @@ describe(`C2. [ETH] wFIO unwrapping`, function () {
     await wfio.connect(accounts[6]).regoracle(accounts[14].address);
     await wfio.connect(accounts[7]).regoracle(accounts[14].address);
 
-    // maybe I need to add the eth address to the fioAccount?
     await fioAccount.sdk.genericAction('addPublicAddresses', {
       fioAddress: fioAccount.address,
       publicAddresses: [
@@ -1026,7 +1008,7 @@ describe(`C2. [ETH] wFIO unwrapping`, function () {
       ],
       maxFee: config.api.add_pub_address.fee,
       technologyProviderId: ''
-    });   // tests seem to pass either way...
+    });
   });
 
   it(`Unwrap 100 wFIO`, async function () {
@@ -1105,8 +1087,6 @@ describe(`C2. [ETH] wFIO unwrapping`, function () {
       expect(err.reason).to.equal('missing argument: passed to contract');
     }
   });
-
-  //todo: more unhappy paths
 });
 
 describe(`D. [ETH] Approval`, function () {
@@ -1211,7 +1191,6 @@ describe(`D. [ETH] Approval`, function () {
       expect(err.message).to.contain('missing argument: passed to contract');
     }
   });
-
 });
 
 describe(`E. [ETH] Pausing`, function () {

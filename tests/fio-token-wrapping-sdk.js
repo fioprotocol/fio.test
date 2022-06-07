@@ -37,6 +37,9 @@ let faucet;
  *
  */
 
+//TODO: confirm the amount of validation required for contract inputs
+
+
 before(async function () {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
 });
@@ -682,7 +685,7 @@ describe.skip(`C1. PROBLEM TESTS (unregoracle)`, function () {
 
 describe(`D. [FIO] Oracles (setoraclefees)`, function () {
 
-  let oracle1, newOracle, user1;
+  let oracle1, newOracle, user1, newOracle1, newOracle2, newOracle3, newOracle4, newOracle5;
 
   before(async function () {
     oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
@@ -1181,7 +1184,7 @@ describe.skip(`E. (BD-3788)[FIO] Oracles (getoraclefees)`, function () {
   });
 });
 
-describe(`** ORACLE TABLE CLEANUP **`, async function () {
+describe.only(`** ORACLE TABLE CLEANUP **`, async function () {
   it(`clean out oracless record with helper function`, async function () {
     try {
       await cleanUpOraclessTable(faucet, true);
@@ -3111,4 +3114,3 @@ describe.skip(`G1. PROBLEM TESTS (unwraptokens)`, function () {
     }
   });
 });
-

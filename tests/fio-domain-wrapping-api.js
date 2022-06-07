@@ -1189,6 +1189,9 @@ describe(`C. [FIO][api] Unwrap FIO domains`, function () {
     }
   });
 
+  // todo: check if user has their funds back
+  // todo: can same oracle vote twice?
+
   it(`(empty actor) try to unwrap a FIO domain, expect SDK to use default actor value`, async function () {
     try {
       const result = await callFioApiSigned('push_transaction', {
