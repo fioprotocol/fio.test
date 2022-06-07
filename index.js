@@ -113,6 +113,11 @@ describe('TEST SUITE', () => {
     //require('./tests/history.js'); // Only run against history node.
 
     /**
+     * Bugs
+     */
+     require('./tests/BD-3835-autoproxy.js');
+
+    /**
      * Testnet smoketest. By default runs against local build.
      */
     require('./tests/testnet-smoketest.js');

@@ -3426,7 +3426,7 @@ describe(`M. Set Auto-proxy, then vote for producer (attempting to repro BD-3800
     }
   })
 
-  it('confirm user1: is in the voters table and is_auto_proxy = 1, proxy is proxy1.account', async () => {
+  it('confirm user1: is in the voters table and is_auto_proxy = 0, proxy is proxy1.account', async () => {
     let inVotersTable;
     try {
       const json = {
@@ -3441,7 +3441,7 @@ describe(`M. Set Auto-proxy, then vote for producer (attempting to repro BD-3800
       }
       const voterInfo = await callFioApi("get_table_rows", json);
       //console.log('voterInfo: ', voterInfo);
-      expect(voterInfo.rows[0].is_auto_proxy).to.equal(1);
+      expect(voterInfo.rows[0].is_auto_proxy).to.equal(0);
       expect(voterInfo.rows[0].producers.length).to.equal(2);  // Has not voted for producers
     } catch (err) {
       console.log('Error', err);
