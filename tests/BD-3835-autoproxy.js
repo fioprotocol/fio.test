@@ -11,39 +11,17 @@ before(async () => {
 })
 
 
-describe(`************************** stake-BD-3835-voting.js ************************** \n    A. Stake tokens before and after voteproducer.`, () => {
+describe(`************************** BD-3835-autoproxy.js ************************** \n    A. Stake tokens before and after voteproducer.`, () => {
 
   let user1, proxy1;
 
   it(`Set up users`, async () => {
     user1 = await newUser(faucet);
     proxy1 = await newUser(faucet);
-    console.log('proxy: ', proxy1.account)
-    console.log('user1: ', user1.account)
     proxy1.address2 = generateFioAddress(proxy1.domain, 5);
   })
 
   // First, set up the proxy
-
-  it.skip(`register second address for proxy1`, async () => {
-    try {
-      const result = await proxy1.sdk.genericAction('pushTransaction', {
-        action: 'regaddress',
-        account: 'fio.address',
-        data: {
-          fio_address: proxy1.address2,
-          owner_fio_public_key: proxy1.publicKey,
-          max_fee: config.maxFee,
-          tpid: ''
-        }
-      })
-      //console.log('Result: ', result);
-      expect(result.status).to.equal('OK');
-    } catch (err) {
-      console.log('Error: ', err)
-      expect(err).to.equal('null')
-    }
-  })
 
   it(`Register proxy1 as a proxy using proxy1.address`, async () => {
     try {
@@ -64,29 +42,6 @@ describe(`************************** stake-BD-3835-voting.js *******************
     }
   })
 
-  it.skip(`proxy1 votes for bp1 and bp2`, async () => {
-    try {
-      const result = await proxy1.sdk.genericAction('pushTransaction', {
-        action: 'voteproducer',
-        account: 'eosio',
-        data: {
-          "producers": [
-            'bp1@dapixdev',
-            'bp2@dapixdev'
-          ],
-          fio_address: proxy1.address,
-          actor: proxy1.account,
-          max_fee: config.maxFee
-        }
-      })
-      //console.log('Result: ', result)
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-      console.log('Error: ', err.json)
-      expect(err).to.equal('null')
-    }
-  })
-
   it('get voter info for proxy1', async () => {
     let inVotersTable;
     try {
@@ -101,7 +56,7 @@ describe(`************************** stake-BD-3835-voting.js *******************
         index_position: 3,
       }
       const voterInfo = await callFioApi("get_table_rows", json);
-      console.log('voterInfo: ', voterInfo);
+      //console.log('voterInfo: ', voterInfo);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -175,7 +130,7 @@ describe(`************************** stake-BD-3835-voting.js *******************
     }
   })
 
-  it('[BUG BD-nnnn] get voter info for user1: expect no entry in proxy field', async () => {
+  it('[BUG BD-3835] get voter info for user1: expect no entry in proxy field', async () => {
     let inVotersTable;
     try {
       const json = {
@@ -189,7 +144,7 @@ describe(`************************** stake-BD-3835-voting.js *******************
         index_position: 3,
       }
       const voterInfo = await callFioApi("get_table_rows", json);
-      console.log('voterInfo: ', voterInfo);
+      //console.log('voterInfo: ', voterInfo);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
