@@ -86,7 +86,10 @@ const config = {
         invalidTokenCode: 'Invalid token code format',
         ivalidRejection: 'Only pending requests can be rejected.',
         invalidPayerFioAddress: 'payerFioAddress must match /^(?:(?=.{3,64}$)[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}@[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}$)/gim.',
-        invalidPayeeFioAddress: 'payeeFioAddress must match /^(?:(?=.{3,64}$)[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}@[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}$)/gim.'
+        invalidPayeeFioAddress: 'payeeFioAddress must match /^(?:(?=.{3,64}$)[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}@[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}$)/gim.',
+        locktokenacctexists: 'can_vote:0 locked tokens cannot be transferred to an account that already exists',
+        locktoken0to1: 'can_vote:0 locked tokens cannot be transferred to an account that contains can_vote:1 locked tokens',
+        locktoken1to0: 'can_vote:1 locked tokens cannot be transferred to an account that contains can_vote:0 locked tokens'
     },
 
     error2: {
