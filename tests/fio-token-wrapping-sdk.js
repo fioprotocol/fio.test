@@ -1184,7 +1184,7 @@ describe.skip(`E. (BD-3788)[FIO] Oracles (getoraclefees)`, function () {
   });
 });
 
-describe.only(`** ORACLE TABLE CLEANUP **`, async function () {
+describe(`** ORACLE TABLE CLEANUP **`, async function () {
   it(`clean out oracless record with helper function`, async function () {
     try {
       await cleanUpOraclessTable(faucet, true);
