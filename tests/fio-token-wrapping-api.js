@@ -1120,7 +1120,7 @@ describe(`D. [FIO][api] Oracles (setoraclefee)`, function () {
     }
   });
 });
-describe.skip(`D1. [FIO][api] PROBLEM TESTS (setoraclefee)`, function () {
+describe(`D1. [FIO][api] PROBLEM TESTS (setoraclefee)`, function () {
 
   let oracle1, newOracle, newOracle1, newOracle2, newOracle3, newOracle4, newOracle5, user1;
 
@@ -2222,7 +2222,7 @@ describe(`F. [FIO][api] Wrap FIO tokens`, function () {
     }
   });
 });
-describe.skip(`F1. [FIO][api] PROBLEM TESTS (wraptokens)`, function () {
+describe(`F1. [FIO][api] PROBLEM TESTS (wraptokens)`, function () {
 
   let wrapAmt = 1000000000000;
   let oracle1, oracle2, oracle3, user1, user2, newOracle, newOracle1, newOracle2, custodians, factory, owner, wfio, wfioAccts;
@@ -3006,7 +3006,7 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
     }
   });
 });
-describe.skip(`G1. [FIO][api] PROBLEM TESTS (unwraptokens)`, function () {
+describe(`G1. [FIO][api] PROBLEM TESTS (unwraptokens)`, function () {
   let wrapAmt = 1000000000000;
   let unwrapAmt = 500000000000;
   let oracle1, oracle2, oracle3, newOracle1, newOracle2, newOracle3,

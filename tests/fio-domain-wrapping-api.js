@@ -722,7 +722,7 @@ describe(`B. [FIO][api] Wrap FIO domains`, function () {
     }
   });
 });
-describe.skip(`B1. PROBLEM TESTS (wrapdomains)`, function () {
+describe(`B1. PROBLEM TESTS (wrapdomains)`, function () {
 
   let oracle1, oracle2, oracle3, newOracle1, newOracle2, newOracle3,
     user1, user2, user3, user4, user5, user6, user7, user8,
@@ -1630,7 +1630,7 @@ describe(`C. [FIO][api] Unwrap FIO domains`, function () {
     }
   });
 });
-describe.skip(`C1. PROBLEM TESTS (unwrapdomains)`, function () {
+describe(`C1. PROBLEM TESTS (unwrapdomains)`, function () {
 
   let wrapAmt = 1000000000000;
   let //oracle1, oracle2, oracle3,

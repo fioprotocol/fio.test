@@ -618,7 +618,7 @@ describe(`C. [FIO] Oracles (unregister)`, function () {
     }
   });
 });
-describe.skip(`C1. PROBLEM TESTS (unregoracle)`, function () {
+describe(`C1. PROBLEM TESTS (unregoracle)`, function () {
   let user1, user2, user3, newOracle1, newOracle2, newOracle3, oracle1, oracle2, oracle3;
 
   before(async function () {
@@ -1011,7 +1011,7 @@ describe(`D. [FIO] Oracles (setoraclefees)`, function () {
     }
   });
 });
-describe.skip(`D1. PROBLEM TESTS (setoraclefees)`, function () {
+describe(`D1. PROBLEM TESTS (setoraclefees)`, function () {
 
   let oracle1, newOracle, newOracle1, newOracle2, newOracle3, newOracle4, newOracle5, user1;
 
@@ -2090,7 +2090,7 @@ describe(`F. [FIO] Wrap FIO tokens`, function () {
     }
   });
 });
-describe.skip(`F1. PROBLEM TESTS (wraptokens)`, function () {
+describe(`F1. PROBLEM TESTS (wraptokens)`, function () {
 
   let wrapAmt = 1000000000000;
   let oracle1, oracle2, oracle3, user1, newOracle, newOracle1, newOracle2, custodians, factory, owner, wfioAccts, wfio;
@@ -2937,7 +2937,7 @@ describe(`G. [FIO] Unwrap FIO tokens`, function () {
     }
   });
 });
-describe.skip(`G1. PROBLEM TESTS (unwraptokens)`, function () {
+describe(`G1. PROBLEM TESTS (unwraptokens)`, function () {
   let wrapAmt = 1000000000000;
   let unwrapAmt = 500000000000;
   let oracle1, oracle2, oracle3, newOracle1, newOracle2, newOracle3,

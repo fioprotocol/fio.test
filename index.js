@@ -13,7 +13,7 @@ describe('TEST SUITE', () => {
    * FIO token wrapping and unwrapping (FIP-17a)
    * FIO domain wrapping and unwrapping (FIP-17b)
    */
-  describe.skip(`** FIP-17a and b - WRAPPING TESTS **`, function () {
+  describe.only(`** FIP-17a and b - WRAPPING TESTS **`, function () {
     /**
     require('./tests/testnet-smoketest.js');
     require('./tests/FIP-41-devtest-transfer-locked-tokens.js');
