@@ -5,17 +5,27 @@ require("mocha");
 const {expect} = require("chai");
 const {FIOSDK} = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
-const {newUser, fetchJson} = require('../utils.js');
-const {existingUser, callFioApiSigned, getAccountFromKey} = require("../utils.js");
-const {getOracleRecords, getOracleVotes, registerNewBp, registerNewOracle, setTestOracleFees, setupWFIOontract, registerWfioOracles, cleanUpOraclessTable} = require("./Helpers/wrapping.js");
+const {
+  newUser,
+  fetchJson,
+  existingUser,
+  callFioApi,
+  callFioApiSigned,
+  getAccountFromKey
+} = require("../utils.js");
+const {
+  getOracleVotes,
+  getOracleRecords,
+  registerNewBp,
+  registerNewOracle,
+  setTestOracleFees,
+  setupWFIOontract,
+  registerWfioOracles,
+  cleanUpOraclessTable,
+  calculateOracleFeeFromOraclessTable
+} = require("./Helpers/wrapping.js");
 let INIT_SUPPLY = 0;
 let faucet;
-
-/**
- * If trouble with the after() hook in the global scope, cherrypick individual nested hooks
- *
- * commit: 1a9fa73ca6f731279b54553aea56cc90bf9f4aa3
- */
 
 /**
  * INSTRUCTIONS TO SET UP THESE TESTS
@@ -260,6 +270,7 @@ describe(`B. [FIO] Oracles (register)`, function () {
       expect(err.json.fields[0].error).to.equal('Account is not bound on the fio chain');
     }
   });
+
   it(`(missing oracle_actor) user1 tries to register an oracle, expect Error`, async function () {
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
@@ -295,6 +306,7 @@ describe(`B. [FIO] Oracles (register)`, function () {
       expect(err.json.fields[0].error).to.equal('Account is not bound on the fio chain');
     }
   });
+
   it(`(int oracle_actor) user1 tries to register an oracle, expect Error`, async function () {
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
@@ -311,6 +323,7 @@ describe(`B. [FIO] Oracles (register)`, function () {
       expect(err.message).to.equal('Expected string containing name');
     }
   });
+
   it(`(negative oracle_actor) user1 tries to register an oracle, expect Error`, async function () {
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
@@ -348,6 +361,7 @@ describe(`B. [FIO] Oracles (register)`, function () {
       throw err;
     }
   });
+
   it(`(invalid actor) user3 tries to register user2 as an oracle, expect Error`, async function () {
     try {
       const result = await user3.sdk.genericAction('pushTransaction', {
@@ -383,7 +397,8 @@ describe(`B. [FIO] Oracles (register)`, function () {
       expect(err.message).to.equal('Expected string containing name');
     }
   });
-  it.skip(`(negative actor) user1 tries to register an oracle, expect Error`, async function () {
+
+  it(`(negative actor) user1 tries to register an oracle, expect Error`, async function () {
     try {
       const result = await user2.sdk.genericAction('pushTransaction', {
         action: 'regoracle',
@@ -418,7 +433,7 @@ describe(`B. [FIO] Oracles (register)`, function () {
 });
 
 describe(`C. [FIO] Oracles (unregister)`, function () {
-  let user1, user2, user3, newOracle, oracle1, oracle2, oracle3;
+  let user1, user2, user3, newOracle1, newOracle2, newOracle3, oracle1, oracle2, oracle3;
 
   before(async function () {
     oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
@@ -427,9 +442,18 @@ describe(`C. [FIO] Oracles (unregister)`, function () {
     // user1 = await newUser(faucet);
     // user2 = await newUser(faucet);
     // user3 = await newUser(faucet);
-    newOracle = await newUser(faucet);
-    await registerNewBp(newOracle);
-    await registerNewOracle(newOracle);
+    newOracle1 = await newUser(faucet);
+    newOracle2 = await newUser(faucet);
+    newOracle3 = await newUser(faucet);
+    await registerNewBp(newOracle1);
+    await registerNewBp(newOracle2);
+    await registerNewBp(newOracle3);
+    await registerNewOracle(newOracle1);
+    await registerNewOracle(newOracle2);
+    await registerNewOracle(newOracle3);
+    await setTestOracleFees(newOracle1, 1000000000, 1200000000);
+    await setTestOracleFees(newOracle2, 1500000000, 2500000000);
+    await setTestOracleFees(newOracle3, 1750000000, 2950000000);
 
     try {
       await registerNewOracle(oracle1);
@@ -440,13 +464,13 @@ describe(`C. [FIO] Oracles (unregister)`, function () {
 
   it(`(empty oracle_actor) newOracle tries to unregister an oracle, expect Error`, async function () {
     try {
-      const result = await newOracle.sdk.genericAction('pushTransaction', {
+      const result = await newOracle1.sdk.genericAction('pushTransaction', {
         action: 'unregoracle',
         account: 'fio.oracle',
         actor: 'eosio',
         data: {
           oracle_actor: "",
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result.status).to.not.equal('OK');
@@ -457,15 +481,16 @@ describe(`C. [FIO] Oracles (unregister)`, function () {
       expect(err.json.fields[0].error).to.equal('Oracle is not registered');
     }
   });
+
   it(`(missing oracle_actor) try to unregister an oracle, expect Error`, async function () {
     try {
-      const result = await newOracle.sdk.genericAction('pushTransaction', {
+      const result = await newOracle1.sdk.genericAction('pushTransaction', {
         action: 'unregoracle',
         account: 'fio.oracle',
         actor: 'eosio',
         data: {
           oracle_actor: "",
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result.status).to.not.equal('OK');
@@ -476,15 +501,16 @@ describe(`C. [FIO] Oracles (unregister)`, function () {
       expect(err.json.fields[0].error).to.equal('Oracle is not registered');
     }
   });
+
   it(`(invalid oracle_actor) try to unregister an oracle, expect Error`, async function () {
     try {
-      const result = await newOracle.sdk.genericAction('pushTransaction', {
+      const result = await newOracle1.sdk.genericAction('pushTransaction', {
         action: 'unregoracle',
         account: 'fio.oracle',
         actor: 'eosio',
         data: {
           oracle_actor: "!invalid!@$",
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result.status).to.not.equal('OK');
@@ -495,15 +521,16 @@ describe(`C. [FIO] Oracles (unregister)`, function () {
       expect(err.json.fields[0].error).to.equal('Oracle is not registered');
     }
   });
+
   it(`(int oracle_actor) try to unregister an oracle, expect Error`, async function () {
     try {
-      const result = await newOracle.sdk.genericAction('pushTransaction', {
+      const result = await newOracle1.sdk.genericAction('pushTransaction', {
         action: 'unregoracle',
         account: 'fio.oracle',
         actor: 'eosio',
         data: {
           oracle_actor: 1234400000000,
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result.status).to.not.equal('OK');
@@ -511,15 +538,16 @@ describe(`C. [FIO] Oracles (unregister)`, function () {
       expect(err.message).to.equal('Expected string containing name');
     }
   });
+
   it(`(negative oracle_actor) try to unregister an oracle, expect Error`, async function () {
     try {
-      const result = await newOracle.sdk.genericAction('pushTransaction', {
+      const result = await newOracle1.sdk.genericAction('pushTransaction', {
         action: 'unregoracle',
         account: 'fio.oracle',
         actor: 'eosio',
         data: {
           oracle_actor: -1234400000000,
-          actor: newOracle.account
+          actor: newOracle1.account
         }
       });
       expect(result.status).to.not.equal('OK');
@@ -527,38 +555,40 @@ describe(`C. [FIO] Oracles (unregister)`, function () {
       expect(err.message).to.equal('Expected string containing name');
     }
   });
-  it.skip(`(int actor) try to unregister an oracle, expect Error`, async function () {
-    try {
-      const result = await newOracle.sdk.genericAction('pushTransaction', {
-        action: 'unregoracle',
-        account: 'fio.oracle',
-        actor: 'eosio',
-        data: {
-          oracle_actor: newOracle.account,
-          actor: 1234500000000
-        }
-      });
-      expect(result.status).to.not.equal('OK');
-    } catch (err) {
-      expect(err.message).to.equal('Expected string containing name');
-    }
-  });
-  it.skip(`(negative actor) try to unregister an oracle, expect Error`, async function () {
-    try {
-      const result = await newOracle.sdk.genericAction('pushTransaction', {
-        action: 'unregoracle',
-        account: 'fio.oracle',
-        actor: 'eosio',
-        data: {
-          oracle_actor: newOracle.account,
-          actor: -1234500000000
-        }
-      });
-      expect(result.status).to.not.equal('OK');
-    } catch (err) {
-      expect(err.message).to.equal('Expected string containing name');
-    }
-  });
+
+  // it.skip(`(BUG)(int actor) try to unregister an oracle, expect Error`, async function () {
+  //   try {
+  //     const result = await newOracle1.sdk.genericAction('pushTransaction', {
+  //       action: 'unregoracle',
+  //       account: 'fio.oracle',
+  //       actor: 'eosio',
+  //       data: {
+  //         oracle_actor: newOracle1.account,
+  //         actor: 1234500000000
+  //       }
+  //     });
+  //     expect(result.status).to.not.equal('OK');
+  //   } catch (err) {
+  //     expect(err.message).to.equal('Expected string containing name');
+  //   }
+  // });
+  //
+  // it.skip(`(BUG)(negative actor) try to unregister an oracle, expect Error`, async function () {
+  //   try {
+  //     const result = await newOracle2.sdk.genericAction('pushTransaction', {
+  //       action: 'unregoracle',
+  //       account: 'fio.oracle',
+  //       actor: 'eosio',
+  //       data: {
+  //         oracle_actor: newOracle2.account,
+  //         actor: -1234500000000
+  //       }
+  //     });
+  //     expect(result.status).to.not.equal('OK');
+  //   } catch (err) {
+  //     expect(err.message).to.equal('Expected string containing name');
+  //   }
+  // });
 
   let prevRecordIdx, currentRecordIdx;
 
@@ -573,7 +603,7 @@ describe(`C. [FIO] Oracles (unregister)`, function () {
         account: 'fio.oracle',
         actor: 'eosio',
         data: {
-          oracle_actor: newOracle.account,
+          oracle_actor: newOracle3.account,
         }
       });
       currentRecordIdx = await getOracleRecords();
@@ -585,29 +615,74 @@ describe(`C. [FIO] Oracles (unregister)`, function () {
     }
   });
 });
+describe.skip(`C1. PROBLEM TESTS (unregoracle)`, function () {
+  let user1, user2, user3, newOracle1, newOracle2, newOracle3, oracle1, oracle2, oracle3;
+
+  before(async function () {
+    oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+    // oracle2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+    // oracle3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+    // user1 = await newUser(faucet);
+    // user2 = await newUser(faucet);
+    // user3 = await newUser(faucet);
+    newOracle1 = await newUser(faucet);
+    newOracle2 = await newUser(faucet);
+    newOracle3 = await newUser(faucet);
+    await registerNewBp(newOracle1);
+    await registerNewBp(newOracle2);
+    await registerNewBp(newOracle3);
+    await registerNewOracle(newOracle1);
+    await registerNewOracle(newOracle2);
+    await registerNewOracle(newOracle3);
+    await setTestOracleFees(newOracle1, 1000000000, 1200000000);
+    await setTestOracleFees(newOracle2, 1500000000, 2500000000);
+    await setTestOracleFees(newOracle3, 1750000000, 2950000000);
+
+    try {
+      await registerNewOracle(oracle1);
+    } catch (err) {
+      expect(err.json.error.what).to.equal('could not insert object, most likely a uniqueness constraint was violated');
+    }
+  });
+
+  it(`(BUG)(int actor) try to unregister an oracle, expect Error`, async function () {
+    try {
+      const result = await newOracle1.sdk.genericAction('pushTransaction', {
+        action: 'unregoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: newOracle1.account,
+          actor: 1234500000000
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('Expected string containing name');
+    }
+  });
+
+  it(`(BUG)(negative actor) try to unregister an oracle, expect Error`, async function () {
+    try {
+      const result = await newOracle2.sdk.genericAction('pushTransaction', {
+        action: 'unregoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: newOracle2.account,
+          actor: -1234500000000
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.message).to.equal('Expected string containing name');
+    }
+  });
+});
 
 describe(`D. [FIO] Oracles (setoraclefees)`, function () {
 
   let oracle1, newOracle, user1;
-
-  // before(async function () {
-  //   oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
-  //   // oracle2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
-  //   // oracle3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
-  //   user1 = await newUser(faucet);
-  //   // user2 = await newUser(faucet);
-  //   // user3 = await newUser(faucet);
-  //   newOracle = await newUser(faucet);
-  //   await registerNewBp(newOracle);
-  //   await registerNewOracle(newOracle);
-  //
-  //   // make sure old oracle is registered
-  //   try {
-  //     await registerNewOracle(oracle1);
-  //   } catch (err) {
-  //     expect(err.json.error.what).to.equal('could not insert object, most likely a uniqueness constraint was violated');
-  //   }
-  // });
 
   before(async function () {
     oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
@@ -639,7 +714,7 @@ describe(`D. [FIO] Oracles (setoraclefees)`, function () {
     await registerNewOracle(newOracle5);
   });
 
-  it(`newOracle tries to set oracle fee`, async function () {
+  it(`newOracle tries to set oracle fee, expect OK`, async function () {
     try {
       const result = await newOracle.sdk.genericAction('pushTransaction', {
         action: 'setoraclefee',
@@ -675,6 +750,7 @@ describe(`D. [FIO] Oracles (setoraclefees)`, function () {
       expect(oracleRecords.rows[0].fees[1].fee_amount).to.equal(1);
     }
   });
+
   it(`(empty wrap_fio_tokens) try to set oracle fees, expect SDK to replace "" with 0`, async function () {
     try {
       const result = await newOracle.sdk.genericAction('pushTransaction', {
@@ -693,6 +769,7 @@ describe(`D. [FIO] Oracles (setoraclefees)`, function () {
       throw err;
     }
   });
+
   it(`(empty actor) try to set oracle fees, expect SDK to replace "" with 0`, async function () {
     try {
       const result = await newOracle.sdk.genericAction('pushTransaction', {
@@ -713,6 +790,7 @@ describe(`D. [FIO] Oracles (setoraclefees)`, function () {
       expect(err.json.error.details[0].message).to.equal('missing authority of .invalid');
     }
   });
+
   it(`(missing actor) try to set oracle fees, expect SDK to inject default value`, async function () {
     try {
       const result = await newOracle.sdk.genericAction('pushTransaction', {
@@ -735,47 +813,45 @@ describe(`D. [FIO] Oracles (setoraclefees)`, function () {
     }
   });
 
-  // issues
-  /**
-   * TODO: Bug - inadequate negative int validation leading to wraparound
-   */
-  it.skip(`(negative wrap_fio_domain) try to set oracle fees, expect Error`, async function () {
-    try {
-      const result = await newOracle.sdk.genericAction('pushTransaction', {
-        action: 'setoraclefee',
-        account: 'fio.oracle',
-        actor: 'eosio',
-        data: {
-          wrap_fio_domain:  -1234500000000,
-          wrap_fio_tokens: 1
-        }
-      });
-      expect(result.status).to.not.equal('OK');
-    } catch (err) {
-      const oracleRecords = await getOracleRecords(newOracle.account);
-      expect(err.message).to.equal('invalid number');
-    }
-  });
-  it.skip(`(negative wrap_fio_tokens) try to set oracle fees, expect Error`, async function () {
-    try{
-      const result = await newOracle.sdk.genericAction('pushTransaction', {
-        action: 'setoraclefee',
-        account: 'fio.oracle',
-        actor: 'eosio',
-        data: {
-          wrap_fio_domain: 1,
-          wrap_fio_tokens: -1234500000000,
-          actor: newOracle.account
-        }
-      });
-      expect(result.status).to.not.equal('OK');
-    } catch (err) {
-      const oracleRecords = await getOracleRecords(newOracle.account);
-      expect(oracleRecords.rows[0].fees[0].fee_amount).to.equal(1);
-      expect(oracleRecords.rows[0].fees[1].fee_amount).to.equal(0);
-      //expect(err.message).to.equal('invalid number');
-    }
-  });
+  // // issues
+  // it(`(BD-3406)(negative wrap_fio_domain) try to set oracle fees, expect Error`, async function () {
+  //   try {
+  //     const result = await newOracle.sdk.genericAction('pushTransaction', {
+  //       action: 'setoraclefee',
+  //       account: 'fio.oracle',
+  //       actor: 'eosio',
+  //       data: {
+  //         wrap_fio_domain:  -1234500000000,
+  //         wrap_fio_tokens: 1
+  //       }
+  //     });
+  //     expect(result.status).to.not.equal('OK');
+  //   } catch (err) {
+  //     const oracleRecords = await getOracleRecords(newOracle.account);
+  //     expect(err.message).to.equal('invalid number');
+  //   }
+  // });
+  //
+  // it(`(BD-3406)(negative wrap_fio_tokens) try to set oracle fees, expect Error`, async function () {
+  //   try{
+  //     const result = await newOracle.sdk.genericAction('pushTransaction', {
+  //       action: 'setoraclefee',
+  //       account: 'fio.oracle',
+  //       actor: 'eosio',
+  //       data: {
+  //         wrap_fio_domain: 1,
+  //         wrap_fio_tokens: -1234500000000,
+  //         actor: newOracle.account
+  //       }
+  //     });
+  //     expect(result.status).to.not.equal('OK');
+  //   } catch (err) {
+  //     const oracleRecords = await getOracleRecords(newOracle.account);
+  //     expect(oracleRecords.rows[0].fees[0].fee_amount).to.equal(1);
+  //     expect(oracleRecords.rows[0].fees[1].fee_amount).to.equal(0);
+  //     //expect(err.message).to.equal('invalid number');
+  //   }
+  // });
 
   //unhappy tests
   it(`(missing wrap_fio_domain) try to set oracle fees, expect Error`, async function () {
@@ -932,8 +1008,178 @@ describe(`D. [FIO] Oracles (setoraclefees)`, function () {
     }
   });
 });
+describe.skip(`D1. PROBLEM TESTS (setoraclefees)`, function () {
 
-// TODO: test total fee charged is an AVERAGE of all oracle fees
+  let oracle1, newOracle, newOracle1, newOracle2, newOracle3, newOracle4, newOracle5, user1;
+
+  before(async function () {
+    oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+    // oracle2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+    // oracle3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+    user1 = await newUser(faucet);
+    // user2 = await newUser(faucet);
+    // user3 = await newUser(faucet);
+    newOracle = await newUser(faucet);
+    newOracle1 = await newUser(faucet);
+    newOracle2 = await newUser(faucet);
+    newOracle3 = await newUser(faucet);
+    newOracle4 = await newUser(faucet);
+    newOracle5 = await newUser(faucet);
+
+    // register new oracles
+    await registerNewBp(newOracle);
+    await registerNewBp(newOracle1);
+    await registerNewBp(newOracle2);
+    await registerNewBp(newOracle3);
+    await registerNewBp(newOracle4);
+    await registerNewBp(newOracle5);
+
+    await registerNewOracle(newOracle);
+    await registerNewOracle(newOracle1);
+    await registerNewOracle(newOracle2);
+    await registerNewOracle(newOracle3);
+    await registerNewOracle(newOracle4);
+    await registerNewOracle(newOracle5);
+  });
+
+  // issues
+  it(`(BD-3406)(negative wrap_fio_domain) try to set oracle fees, expect Error`, async function () {
+    try {
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'setoraclefee',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          wrap_fio_domain:  -1234500000000,
+          wrap_fio_tokens: 1
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      const oracleRecords = await getOracleRecords(newOracle.account);
+      expect(err.message).to.equal('invalid number');
+    }
+  });
+
+  it(`(BD-3406)(negative wrap_fio_tokens) try to set oracle fees, expect Error`, async function () {
+    try{
+      const result = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'setoraclefee',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          wrap_fio_domain: 1,
+          wrap_fio_tokens: -1234500000000,
+          actor: newOracle.account
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      const oracleRecords = await getOracleRecords(newOracle.account);
+      expect(oracleRecords.rows[0].fees[0].fee_amount).to.equal(1);
+      expect(oracleRecords.rows[0].fees[1].fee_amount).to.equal(0);
+      //expect(err.message).to.equal('invalid number');
+    }
+  });
+});
+
+describe.skip(`** ORACLE TABLE CLEANUP **`, async function () {
+  it(`clean out oracless record with helper function`, async function () {
+    try {
+      await cleanUpOraclessTable(faucet, false);
+      let records = await getOracleRecords();
+      expect(records.rows.length).to.equal(0);
+    } catch (err) {
+      throw err;
+    }
+  });
+  let oracle1, oracle2, oracle3;
+  it.skip(`set oracle fees for all remaining oracles`, async function () {
+    oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+    oracle2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+    oracle3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+
+    console.log('[dbg] starting fee setting...')
+    //now set oracle fees
+    try {
+      await oracle1.sdk.genericAction('pushTransaction', {
+        action: 'setoraclefee',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          wrap_fio_domain: 10000000000,
+          wrap_fio_tokens: 11000000000
+        }
+      });
+      await oracle2.sdk.genericAction('pushTransaction', {
+        action: 'setoraclefee',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          wrap_fio_domain: 11000000000,
+          wrap_fio_tokens: 20000000000
+        }
+      });
+      await oracle3.sdk.genericAction('pushTransaction', {
+        action: 'setoraclefee',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          wrap_fio_domain: 20000000000,
+          wrap_fio_tokens: 21000000000
+        }
+      });
+    } catch (err) {
+      throw err;
+    }
+  });
+});
+
+describe.skip(`E. (BD-3788)[FIO] Oracles (getoraclefees)`, function () {
+
+  let oracle1, newOracle, newOracle2, newOracle3,  user1;
+  let ORACLE_FEE;
+
+  before(async function () {
+    user1 = await newUser(faucet);
+  });
+
+  it('try to get the wrapping fees from the API, expect no registered oracles', async function () {
+    try {
+      await callFioApi('get_oracle_fees', {});
+    } catch (err) {
+      expect(err.error.message).to.equal('Not enough registered oracles.');
+    }
+  });
+
+  it(`register new oracles for testing`, async function () {
+    newOracle = await newUser(faucet);
+    newOracle2 = await newUser(faucet);
+    newOracle3 = await newUser(faucet);
+
+    // register a new oracle
+    await registerNewBp(newOracle);
+    await registerNewOracle(newOracle);
+    await setTestOracleFees(newOracle, 1000000000, 1200000000);
+
+    await registerNewBp(newOracle2);
+    await registerNewOracle(newOracle2);
+    await setTestOracleFees(newOracle2, 1000000000, 1200000000);
+
+    await registerNewBp(newOracle3);
+    await registerNewOracle(newOracle3);
+    await setTestOracleFees(newOracle3, 3000000000, 3200000000);
+  });
+
+  it('get the wrapping fees from the API', async function () {
+    const result = await callFioApi('get_oracle_fees', {});
+    expect(result.oracle_fees.length).to.equal(2);
+    expect(result.oracle_fees[0].fee_name).to.equal('wrap_fio_domain');
+    expect(result.oracle_fees[0].fee_amount).to.equal(36000000000);//(3000000000);
+    expect(result.oracle_fees[1].fee_name).to.equal('wrap_fio_tokens');
+    expect(result.oracle_fees[1].fee_amount).to.equal(3600000000);
+  });
+});
 
 describe(`** ORACLE TABLE CLEANUP **`, async function () {
   it(`clean out oracless record with helper function`, async function () {
@@ -947,10 +1193,11 @@ describe(`** ORACLE TABLE CLEANUP **`, async function () {
   });
 });
 
-describe(`E. [FIO] Wrap FIO tokens`, function () {
+describe(`F. [FIO] Wrap FIO tokens`, function () {
 
   let wrapAmt = 1000000000000;
   let oracle1, oracle2, oracle3, user1, newOracle, newOracle1, newOracle2, custodians, factory, owner, wfioAccts, wfio;
+  let ORACLE_FEE, WRAP_FEE;
 
   before(async function () {
     oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
@@ -976,7 +1223,7 @@ describe(`E. [FIO] Wrap FIO tokens`, function () {
     [owner, wfioAccts, wfio] = await setupWFIOontract(ethers, INIT_SUPPLY);
   });
 
-  it(`query the oracless table, expects the three original new records`, async function () {
+  it(`query the oracless table, expects zero records`, async function () {
     try {
       let origOracles = [];
       const oracleRecords = await getOracleRecords();
@@ -1140,18 +1387,29 @@ describe(`E. [FIO] Wrap FIO tokens`, function () {
     }
   });
 
+  it(`get the oracle fee from the API`, async function () {
+    let result = await callFioApi('get_oracle_fees', {});
 
+    if (result.oracle_fees[0].fee_name === 'wrap_fio_token')
+      ORACLE_FEE = result.oracle_fees[0].fee_amount;
+    else
+      ORACLE_FEE = result.oracle_fees[1].fee_amount;
+    let median_fee = await calculateOracleFeeFromOraclessTable();
+    expect(ORACLE_FEE).to.equal(median_fee);
+  });
 
+  it(`get wrap fee`, async function () {
+    let result = await callFioApi('get_fee', {
+      end_point: "wrap_fio_tokens",
+      fio_address: oracle1.address //"vote1@dapixdev"
+    });
+    WRAP_FEE = result.fee;
+  });
 
-
-
-
-
-  // happy ish tests (SDK default values get injected into otherwise invalid requests)
   it(`(missing tpid) try to wrap 1000 FIO tokens, expect OK - SDK should use default value`, async function () {
     // skipping because the SDK adds a default value
     try {
-      const result = await newOracle.sdk.genericAction('pushTransaction', {
+      const result = await user1.sdk.genericAction('pushTransaction', {
         action: 'wraptokens',
         account: 'fio.oracle',
         data: {
@@ -1160,152 +1418,151 @@ describe(`E. [FIO] Wrap FIO tokens`, function () {
           public_address: wfio.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
-          tpid: "",
+          //tpid: "",
         }
       });
       expect(result.status).to.equal('OK');
-      expect(result.fee_collected).to.equal(400000000);
-      expect(parseInt(result.oracle_fee_collected)).to.equal(60000000000);
+      expect(result.fee_collected).to.equal(WRAP_FEE);
+      expect(parseInt(result.oracle_fee_collected)).to.equal(ORACLE_FEE);
     } catch (err) {
       // expect(err.json.error.details[0].message).to.equal('assertion failure with message: must transfer positive quantity');
       throw err;
     }
   });
 
-  // issues
-  /**
-   *
-   * TODO: How much validation for public_address?
-   *    validate negative values or conversion to unsigned int?
-   *    more tests in fio-token-wrapping-api
-   */
-  it.skip(`(invalid public_address) try to wrap 1000 FIO tokens`, async function () {
-    try {
-      const result = await user1.sdk.genericAction('pushTransaction', {
-        action: 'wraptokens',
-        account: 'fio.oracle',
-        data: {
-          amount: wrapAmt,
-          chain_code: "ETH",
-          public_address: "!invalid!@$",
-          max_oracle_fee: config.maxFee,
-          max_fee: config.maxFee,
-          tpid: "",
-        }
-      });
-      expect(result.status).to.not.equal('OK');
-    } catch (err) {
-      expect(err.json.fields[0].error).to.equal('Invalid public address');
-    }
-  });
-  it.skip(`(int public_address) try to wrap 1000 FIO tokens`, async function () {
-    try {
-      const result = await user1.sdk.genericAction('pushTransaction', {
-        action: 'wraptokens',
-        account: 'fio.oracle',
-        data: {
-          amount: wrapAmt,
-          chain_code: "ETH",
-          public_address: 1234500000000,
-          max_oracle_fee: config.maxFee,
-          max_fee: config.maxFee,
-          tpid: "",
-        }
-      });
-      expect(result.status).to.not.equal('OK');
-    } catch (err) {
-      expect(err.json.fields[0].error).to.equal('Invalid public address');
-    }
-  });
-  it.skip(`(negative public_address) try to wrap 1000 FIO tokens`, async function () {
-    try {
-      const result = await user1.sdk.genericAction('pushTransaction', {
-        action: 'wraptokens',
-        account: 'fio.oracle',
-        data: {
-          amount: wrapAmt,
-          chain_code: "ETH",
-          public_address: -1234500000000,
-          max_oracle_fee: config.maxFee,
-          max_fee: config.maxFee,
-          tpid: "",
-        }
-      });
-      expect(result.status).to.not.equal('OK');
-    } catch (err) {
-      expect(err.json.error.details[0].message).to.equal('assertion failure with message: must transfer positive quantity');
-    }
-  });
-  it.skip(`(negative max_fee) try to wrap 1000 FIO tokens`, async function () {
-    try {
-      const result = await user1.sdk.genericAction('pushTransaction', {
-        action: 'wraptokens',
-        account: 'fio.oracle',
-        data: {
-          amount: wrapAmt,
-          chain_code: "ETH",
-          public_address: wfio.address,
-          max_oracle_fee: config.maxFee,
-          max_fee: -config.maxFee,
-          tpid: "",
-        }
-      });
-      expect(result.status).to.not.equal('OK');
-      // expect(result.fee_collected).to.equal(400000000);
-      // expect(parseInt(result.oracle_fee_collected)).to.equal(60000000000);
-    } catch (err) {
-      // expect(err.json.error.details[0].message).to.equal('assertion failure with message: must transfer positive quantity');
-      throw err;
-    }
-  });
-  it.skip(`(negative max_oracle_fee) try to wrap 1000 FIO tokens`, async function () {
-    try {
-      const result = await user1.sdk.genericAction('pushTransaction', {
-        action: 'wraptokens',
-        account: 'fio.oracle',
-        data: {
-          amount: wrapAmt,
-          chain_code: "ETH",
-          public_address: wfio.address,
-          max_oracle_fee: -config.maxFee,
-          max_fee: config.maxFee,
-          tpid: "",
-        }
-      });
-      expect(result.status).to.equal('OK');
-      expect(result.fee_collected).to.equal(400000000);
-      expect(parseInt(result.oracle_fee_collected)).to.equal(60000000000);
-    } catch (err) {
-      expect(err.json.error.details[0].message).to.equal('assertion failure with message: must transfer positive quantity');
-    }
-  });
-  it.skip(`(int tpid) try to wrap 1000 FIO tokens`, async function () {
-    try {
-      const result = await user1.sdk.genericAction('pushTransaction', {
-        action: 'wraptokens',
-        account: 'fio.oracle',
-        data: {
-          amount: wrapAmt,
-          chain_code: "ETH",
-          public_address: wfio.address,
-          max_oracle_fee: config.maxFee,
-          max_fee: config.maxFee,
-          tpid: 1234500000000,
-        }
-      });
-      expect(result.status).to.not.equal('OK');
-      // expect(result.fee_collected).to.equal(400000000);
-      // expect(parseInt(result.oracle_fee_collected)).to.equal(60000000000);
-    } catch (err) {
-      console.log(err);
-      expect(err.json.error.details[0].message).to.equal('TPID must be empty or valid FIO address');
-    }
-  });
+  // // issues
+  // it(`(BD-3408)(invalid public_address) try to wrap 1000 FIO tokens`, async function () {
+  //   try {
+  //     const result = await user1.sdk.genericAction('pushTransaction', {
+  //       action: 'wraptokens',
+  //       account: 'fio.oracle',
+  //       data: {
+  //         amount: wrapAmt,
+  //         chain_code: "ETH",
+  //         public_address: "!invalid!@$",
+  //         max_oracle_fee: config.maxFee,
+  //         max_fee: config.maxFee,
+  //         tpid: "",
+  //       }
+  //     });
+  //     expect(result.status).to.not.equal('OK');
+  //   } catch (err) {
+  //     expect(err.json.fields[0].error).to.equal('Invalid public address');
+  //   }
+  // });
+  //
+  // it(`(BD-3408)(int public_address) try to wrap 1000 FIO tokens`, async function () {
+  //   try {
+  //     const result = await user1.sdk.genericAction('pushTransaction', {
+  //       action: 'wraptokens',
+  //       account: 'fio.oracle',
+  //       data: {
+  //         amount: wrapAmt,
+  //         chain_code: "ETH",
+  //         public_address: 1234500000000,
+  //         max_oracle_fee: config.maxFee,
+  //         max_fee: config.maxFee,
+  //         tpid: "",
+  //       }
+  //     });
+  //     expect(result.status).to.not.equal('OK');
+  //   } catch (err) {
+  //     expect(err.json.fields[0].error).to.equal('Invalid public address');
+  //   }
+  // });
+  //
+  // it(`(BD-3408)(negative public_address) try to wrap 1000 FIO tokens`, async function () {
+  //   try {
+  //     const result = await user1.sdk.genericAction('pushTransaction', {
+  //       action: 'wraptokens',
+  //       account: 'fio.oracle',
+  //       data: {
+  //         amount: wrapAmt,
+  //         chain_code: "ETH",
+  //         public_address: -1234500000000,
+  //         max_oracle_fee: config.maxFee,
+  //         max_fee: config.maxFee,
+  //         tpid: "",
+  //       }
+  //     });
+  //     expect(result.status).to.not.equal('OK');
+  //   } catch (err) {
+  //     expect(err.json.error.details[0].message).to.equal('assertion failure with message: must transfer positive quantity');
+  //   }
+  // });
+  //
+  // it(`(BD-3408)(negative max_fee) try to wrap 1000 FIO tokens`, async function () {
+  //   try {
+  //     const result = await user1.sdk.genericAction('pushTransaction', {
+  //       action: 'wraptokens',
+  //       account: 'fio.oracle',
+  //       data: {
+  //         amount: wrapAmt,
+  //         chain_code: "ETH",
+  //         public_address: wfio.address,
+  //         max_oracle_fee: config.maxFee,
+  //         max_fee: -config.maxFee,
+  //         tpid: "",
+  //       }
+  //     });
+  //     expect(result.status).to.not.equal('OK');
+  //     // expect(result.fee_collected).to.equal(400000000);
+  //     // expect(parseInt(result.oracle_fee_collected)).to.equal(60000000000);
+  //   } catch (err) {
+  //     // expect(err.json.error.details[0].message).to.equal('assertion failure with message: must transfer positive quantity');
+  //     throw err;
+  //   }
+  // });
+  //
+  // it(`(BD-3408)(negative max_oracle_fee) try to wrap 1000 FIO tokens`, async function () {
+  //   try {
+  //     const result = await user1.sdk.genericAction('pushTransaction', {
+  //       action: 'wraptokens',
+  //       account: 'fio.oracle',
+  //       data: {
+  //         amount: wrapAmt,
+  //         chain_code: "ETH",
+  //         public_address: wfio.address,
+  //         max_oracle_fee: -config.maxFee,
+  //         max_fee: config.maxFee,
+  //         tpid: "",
+  //       }
+  //     });
+  //     expect(result.status).to.equal('OK');
+  //     expect(result.fee_collected).to.equal(400000000);
+  //     expect(parseInt(result.oracle_fee_collected)).to.equal(60000000000);
+  //   } catch (err) {
+  //     expect(err.json.error.details[0].message).to.equal('assertion failure with message: must transfer positive quantity');
+  //   }
+  // });
+  //
+  // it(`(BD-3408)(int tpid) try to wrap 1000 FIO tokens`, async function () {
+  //   try {
+  //     const result = await user1.sdk.genericAction('pushTransaction', {
+  //       action: 'wraptokens',
+  //       account: 'fio.oracle',
+  //       data: {
+  //         amount: wrapAmt,
+  //         chain_code: "ETH",
+  //         public_address: wfio.address,
+  //         max_oracle_fee: config.maxFee,
+  //         max_fee: config.maxFee,
+  //         tpid: 1234500000000,
+  //       }
+  //     });
+  //     expect(result.status).to.not.equal('OK');
+  //     // expect(result.fee_collected).to.equal(400000000);
+  //     // expect(parseInt(result.oracle_fee_collected)).to.equal(60000000000);
+  //   } catch (err) {
+  //     console.log(err);
+  //     expect(err.json.error.details[0].message).to.equal('TPID must be empty or valid FIO address');
+  //   }
+  // });
 
   // unhappy tests
   it(`(empty amount) try to wrap FIO tokens`, async function () {
     try {
-      const result = await newOracle1.sdk.genericAction('pushTransaction', {
+      const result = await user1.sdk.genericAction('pushTransaction', {
         action: 'wraptokens',
         account: 'fio.oracle',
         data: {
@@ -1747,10 +2004,10 @@ describe(`E. [FIO] Wrap FIO tokens`, function () {
 
   it(`store user1 balance`, async function () {
     preWrapBal = await user1.sdk.genericAction('getFioBalance', {});
-    console.log(preWrapBal);
+    //console.log(preWrapBal);
   });
 
-  it(`(happy w/ tpid) try to wrap 1000 FIO tokens`, async function () {
+  it.skip(`(happy w/ tpid) try to wrap 1000 FIO tokens`, async function () {
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
         action: 'wraptokens',
@@ -1761,18 +2018,18 @@ describe(`E. [FIO] Wrap FIO tokens`, function () {
           public_address: wfio.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
-          tpid: user1.address,
+          tpid: oracle1.address,
         }
       });
       expect(result.status).to.equal('OK');
-      expect(result.fee_collected).to.equal(400000000);
+      expect(result.fee_collected).to.equal(ORACLE_FEE);
       expect(parseInt(result.oracle_fee_collected)).to.equal(60000000000);
     } catch (err) {
       throw err;
     }
   });
 
-  it(`(happy w/ tpid v2) try to wrap 1000 FIO tokens`, async function () {
+  it.skip(`(happy w/ tpid v2) try to wrap 1000 FIO tokens`, async function () {
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
         action: 'wraptokens',
@@ -1787,7 +2044,7 @@ describe(`E. [FIO] Wrap FIO tokens`, function () {
         }
       });
       expect(result.status).to.equal('OK');
-      expect(result.fee_collected).to.equal(400000000);
+      expect(result.fee_collected).to.equal(ORACLE_FEE);
       expect(parseInt(result.oracle_fee_collected)).to.equal(60000000000);
     } catch (err) {
       // expect(err.json.error.details[0].message).to.equal('assertion failure with message: must transfer positive quantity');
@@ -1811,8 +2068,8 @@ describe(`E. [FIO] Wrap FIO tokens`, function () {
         }
       });
       expect(result.status).to.equal('OK');
-      expect(result.fee_collected).to.equal(400000000);
-      expect(parseInt(result.oracle_fee_collected)).to.equal(60000000000);
+      expect(result.fee_collected).to.equal(WRAP_FEE);
+      expect(parseInt(result.oracle_fee_collected)).to.equal(ORACLE_FEE);
       wrappingFee = result.fee_collected;
       wrappingOracleFee = parseInt(result.oracle_fee_collected);
 
@@ -1830,6 +2087,271 @@ describe(`E. [FIO] Wrap FIO tokens`, function () {
     }
   });
 });
+describe.skip(`F1. PROBLEM TESTS (wraptokens)`, function () {
+
+  let wrapAmt = 1000000000000;
+  let oracle1, oracle2, oracle3, user1, newOracle, newOracle1, newOracle2, custodians, factory, owner, wfioAccts, wfio;
+  let ORACLE_FEE, WRAP_FEE;
+
+  before(async function () {
+    oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+    // oracle2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+    // oracle3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+    user1 = await newUser(faucet);
+    // user2 = await newUser(faucet);
+    // user3 = await newUser(faucet);
+    newOracle = await newUser(faucet);
+    newOracle1 = await newUser(faucet);
+    newOracle2 = await newUser(faucet);
+
+    await registerNewBp(newOracle);
+    await registerNewBp(newOracle1);
+    await registerNewBp(newOracle2);
+
+    await faucet.genericAction('transferTokens', {
+      payeeFioPublicKey: user1.publicKey,
+      amount: 10000000000000,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    });
+    [owner, wfioAccts, wfio] = await setupWFIOontract(ethers, INIT_SUPPLY);
+  });
+
+  it(`register newOracle to allow token wrapping`, async function () {
+    try {
+      const result1 = await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: newOracle.account,
+          actor: newOracle.account
+        }
+      });
+      expect(result1).to.have.property('status').which.is.a('string').and.equals('OK');
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`register newOracle1 oracle to allow token wrapping`, async function () {
+    try {
+      const result2 = await newOracle1.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: newOracle1.account,
+          actor: newOracle1.account
+        }
+      });
+      expect(result2).to.have.property('status').which.is.a('string').and.equals('OK');
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`register newOracle2 to allow token wrapping`, async function () {
+    try {
+      const result3 = await newOracle2.sdk.genericAction('pushTransaction', {
+        action: 'regoracle',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          oracle_actor: newOracle2.account,
+          actor: newOracle2.account
+        }
+      });
+      expect(result3).to.have.property('status').which.is.a('string').and.equals('OK');
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`set oracle fees for all new oracles`, async function () {
+    console.log('[dbg] starting fee setting...')
+    //now set oracle fees
+    try {
+      await newOracle.sdk.genericAction('pushTransaction', {
+        action: 'setoraclefee',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          wrap_fio_domain: 10000000000,
+          wrap_fio_tokens: 11000000000
+        }
+      });
+      await newOracle1.sdk.genericAction('pushTransaction', {
+        action: 'setoraclefee',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          wrap_fio_domain: 11000000000,
+          wrap_fio_tokens: 20000000000
+        }
+      });
+      await newOracle2.sdk.genericAction('pushTransaction', {
+        action: 'setoraclefee',
+        account: 'fio.oracle',
+        actor: 'eosio',
+        data: {
+          wrap_fio_domain: 20000000000,
+          wrap_fio_tokens: 21000000000
+        }
+      });
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`get the oracle fee from the API`, async function () {
+    let result = await callFioApi('get_oracle_fees', {});
+
+    if (result.oracle_fees[0].fee_name === 'wrap_fio_token')
+      ORACLE_FEE = result.oracle_fees[0].fee_amount;
+    else
+      ORACLE_FEE = result.oracle_fees[1].fee_amount;
+    let median_fee = await calculateOracleFeeFromOraclessTable();
+    expect(ORACLE_FEE).to.equal(median_fee);
+  });
+
+  it(`get wrap fee`, async function () {
+    let result = await callFioApi('get_fee', {
+      end_point: "wrap_fio_tokens",
+      fio_address: oracle1.address //"vote1@dapixdev"
+    });
+    WRAP_FEE = result.fee;
+  });
+
+  // issues
+  it(`(BD-3408)(invalid public_address) try to wrap 1000 FIO tokens`, async function () {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'wraptokens',
+        account: 'fio.oracle',
+        data: {
+          amount: wrapAmt,
+          chain_code: "ETH",
+          public_address: "!invalid!@$",
+          max_oracle_fee: config.maxFee,
+          max_fee: config.maxFee,
+          tpid: "",
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.json.fields[0].error).to.equal('Invalid public address');
+    }
+  });
+
+  it(`(BD-3408)(int public_address) try to wrap 1000 FIO tokens`, async function () {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'wraptokens',
+        account: 'fio.oracle',
+        data: {
+          amount: wrapAmt,
+          chain_code: "ETH",
+          public_address: 1234500000000,
+          max_oracle_fee: config.maxFee,
+          max_fee: config.maxFee,
+          tpid: "",
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.json.fields[0].error).to.equal('Invalid public address');
+    }
+  });
+
+  it(`(BD-3408)(negative public_address) try to wrap 1000 FIO tokens`, async function () {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'wraptokens',
+        account: 'fio.oracle',
+        data: {
+          amount: wrapAmt,
+          chain_code: "ETH",
+          public_address: -1234500000000,
+          max_oracle_fee: config.maxFee,
+          max_fee: config.maxFee,
+          tpid: "",
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.json.error.details[0].message).to.equal('assertion failure with message: must transfer positive quantity');
+    }
+  });
+
+  it(`(BD-3408)(negative max_fee) try to wrap 1000 FIO tokens`, async function () {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'wraptokens',
+        account: 'fio.oracle',
+        data: {
+          amount: wrapAmt,
+          chain_code: "ETH",
+          public_address: wfio.address,
+          max_oracle_fee: config.maxFee,
+          max_fee: -config.maxFee,
+          tpid: "",
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+      // expect(result.fee_collected).to.equal(400000000);
+      // expect(parseInt(result.oracle_fee_collected)).to.equal(60000000000);
+    } catch (err) {
+      // expect(err.json.error.details[0].message).to.equal('assertion failure with message: must transfer positive quantity');
+      throw err;
+    }
+  });
+
+  it(`(BD-3408)(negative max_oracle_fee) try to wrap 1000 FIO tokens`, async function () {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'wraptokens',
+        account: 'fio.oracle',
+        data: {
+          amount: wrapAmt,
+          chain_code: "ETH",
+          public_address: wfio.address,
+          max_oracle_fee: -config.maxFee,
+          max_fee: config.maxFee,
+          tpid: "",
+        }
+      });
+      expect(result.status).to.equal('OK');
+      expect(result.fee_collected).to.equal(400000000);
+      expect(parseInt(result.oracle_fee_collected)).to.equal(60000000000);
+    } catch (err) {
+      expect(err.json.error.details[0].message).to.equal('assertion failure with message: must transfer positive quantity');
+    }
+  });
+
+  it(`(BD-3408)(int tpid) try to wrap 1000 FIO tokens`, async function () {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'wraptokens',
+        account: 'fio.oracle',
+        data: {
+          amount: wrapAmt,
+          chain_code: "ETH",
+          public_address: wfio.address,
+          max_oracle_fee: config.maxFee,
+          max_fee: config.maxFee,
+          tpid: 1234500000000,
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+      // expect(result.fee_collected).to.equal(400000000);
+      // expect(parseInt(result.oracle_fee_collected)).to.equal(60000000000);
+    } catch (err) {
+      console.log(err);
+      expect(err.json.error.details[0].message).to.equal('TPID must be empty or valid FIO address');
+    }
+  });
+});
 
 describe(`** ORACLE TABLE CLEANUP **`, async function () {
   it(`clean out oracless record with helper function`, async function () {
@@ -1843,11 +2365,11 @@ describe(`** ORACLE TABLE CLEANUP **`, async function () {
   });
 });
 
-describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
+describe(`G. [FIO] Unwrap FIO tokens`, function () {
   let wrapAmt = 1000000000000;
   let unwrapAmt = 500000000000;
   let oracle1, oracle2, oracle3, newOracle1, newOracle2, newOracle3,
-      user1, user2, custodians, factory, owner, wfio, wfioAccts;
+      user1, user2, user3, factory, owner, wfio, wfioAccts;
 
   let OBT_ID_1, OBT_ID_2;
 
@@ -1857,7 +2379,7 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
     // oracle3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
     user1 = await newUser(faucet);
     user2 = await newUser(faucet);
-    // user3 = await newUser(faucet);
+    user3 = await newUser(faucet);
     newOracle1 = await newUser(faucet);
     newOracle2 = await newUser(faucet);
     newOracle3 = await newUser(faucet);
@@ -1894,7 +2416,7 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
         actor: user1.account,
         privKey: user1.privateKey,
         data: {
-          amount: wrapAmt,
+          amount: wrapAmt + 333,
           chain_code: "ETH",
           public_address: wfio.address,
           max_oracle_fee: config.maxFee,
@@ -1916,7 +2438,7 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
         actor: user2.account,
         privKey: user2.privateKey,
         data: {
-          amount: wrapAmt,
+          amount: wrapAmt + 666,
           chain_code: "ETH",
           public_address: wfio.address,
           max_oracle_fee: config.maxFee,
@@ -1966,19 +2488,8 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
     }
   });
 
-
-
-
-  it(`query oravotes table`, async function () {
-    const result = await getOracleVotes();
-    console.log(`[dbg] votes: ${result}`);
-  });
-
-
-
-
   // issues
-  it.skip(`(empty amount) try to unwrap FIO tokens, expect "" to be converted to 0`, async function () {
+  it(`(empty amount) try to unwrap FIO tokens, expect "" to be converted to 0`, async function () {
     try {
       const result = await newOracle1.sdk.genericAction('pushTransaction', {
         action: 'unwraptokens',
@@ -1988,7 +2499,7 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
           //obt_id: wfio.address,
           obt_id: OBT_ID_2,
           fio_address: user2.address,
-          actor: newOracle1.account
+          // actor: newOracle1.account
         }
       });
       // postWrapBal = await newOracle1.sdk.genericAction('getFioBalance', {});
@@ -2002,18 +2513,8 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
       // expect(err.json.fields[0].value).to.equal('0');
       throw err;
       // expect(err.json.error.details[0].message).to.equal('assertion failure with message: must transfer positive quantity');
-    //
     }
   });
-
-
-
-
-  it(`query oravotes table`, async function () {
-    const result = await getOracleVotes();
-    console.log(`[dbg] votes: ${result}`);
-  });
-
 
   it(`(negative amount) try to unwrap -${wrapAmt} FIO tokens`, async function () {
     try {
@@ -2024,7 +2525,7 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
           amount: -wrapAmt,
           obt_id: OBT_ID_1, //wfio.address,
           fio_address: user1.address,
-          actor: newOracle1.account
+          // actor: newOracle1.account
         }
       });
       expect(result.status).to.not.equal('OK');
@@ -2034,7 +2535,8 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
       expect(err.json.fields[0].error).to.equal('Invalid amount');
     }
   });
-  it.skip(`(empty obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
+
+  it(`(empty obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
     try {
       const result = await newOracle1.sdk.genericAction('pushTransaction', {
         action: 'unwraptokens',
@@ -2043,103 +2545,74 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
           amount: wrapAmt,
           obt_id: "", // wfio.address,
           fio_address: user1.address,
-          actor: newOracle1.account
-        }
-      });
-      expect(result.status).to.not.equal('OK');
-    } catch (err) {
-      throw err;
-    }
-  });
-  it.skip(`(invalid obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
-    try {
-      const result = await newOracle1.sdk.genericAction('pushTransaction', {
-        action: 'unwraptokens',
-        account: 'fio.oracle',
-        data: {
-          amount: wrapAmt,
-          obt_id: "!invalid@#$",
-          fio_address: user1.address,
-          actor: newOracle1.account
-        }
-      });
-      expect(result.status).to.not.equal('OK');
-    } catch (err) {
-      throw err;
-    }
-  });
-  it.skip(`(int obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
-    try {
-      const result = await newOracle1.sdk.genericAction('pushTransaction', {
-        action: 'unwraptokens',
-        account: 'fio.oracle',
-        data: {
-          amount: wrapAmt,
-          obt_id: 1000000000000,
-          fio_address: user1.address,
-          actor: newOracle1.account
-        }
-      });
-      expect(result.status).to.not.equal('OK');
-    } catch (err) {
-      throw err;
-    }
-  });
-  it.skip(`(negative obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
-    try {
-      const result = await newOracle1.sdk.genericAction('pushTransaction', {
-        action: 'unwraptokens',
-        account: 'fio.oracle',
-        data: {
-          amount: wrapAmt,
-          obt_id: -12345,
-          fio_address: user1.address,
-          actor: newOracle1.account
-        }
-      });
-      expect(result.status).to.not.equal('OK');
-    } catch (err) {
-      throw err;
-    }
-  });
-  it.skip(`(empty actor) try to unwrap ${wrapAmt} FIO tokens, expect SDK to use default actor`, async function () {
-    try {
-      const result = await newOracle1.sdk.genericAction('pushTransaction', {
-        action: 'unwraptokens',
-        account: 'fio.oracle',
-        data: {
-          amount: wrapAmt,
-          obt_id: OBT_ID_1, //wfio.address,
-          fio_address: user1.address,
-          actor: "" //newOracle1.account
-        }
-      });
-      expect(result.status).to.equal('OK');
-    } catch (err) {
-      throw err;
-    }
-  });
-  it.skip(`(missing actor) try to unwrap ${wrapAmt} FIO tokens, expect SDK to use default actor`, async function () {
-    try {
-      const result = await newOracle1.sdk.genericAction('pushTransaction', {
-        action: 'unwraptokens',
-        account: 'fio.oracle',
-        data: {
-          amount: wrapAmt,
-          obt_id: OBT_ID_1, //wfio.address,
-          fio_address: user1.address,
           // actor: newOracle1.account
         }
       });
-      expect(result.status).to.equal('OK');
+      expect(result.status).to.not.equal('OK');
     } catch (err) {
-      throw err;
+      expect(err.json.fields[0].name).to.equal('obt_it');
+      expect(err.json.fields[0].value).to.equal('');
+      expect(err.json.fields[0].error).to.equal('Invalid obt_id');
     }
   });
 
+  // it(`(BD-3409)(invalid obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
+  //   try {
+  //     const result = await newOracle1.sdk.genericAction('pushTransaction', {
+  //       action: 'unwraptokens',
+  //       account: 'fio.oracle',
+  //       data: {
+  //         amount: wrapAmt,
+  //         obt_id: "!invalid@#$",
+  //         fio_address: user1.address,
+  //         actor: newOracle1.account
+  //       }
+  //     });
+  //     expect(result.status).to.not.equal('OK');
+  //   } catch (err) {
+  //     throw err;
+  //   }
+  // });
+  //
+  // it(`(BD-3409)(int obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
+  //   try {
+  //     const result = await newOracle1.sdk.genericAction('pushTransaction', {
+  //       action: 'unwraptokens',
+  //       account: 'fio.oracle',
+  //       data: {
+  //         amount: wrapAmt,
+  //         obt_id: 1000000000000,
+  //         fio_address: user1.address,
+  //         actor: newOracle1.account
+  //       }
+  //     });
+  //     expect(result.status).to.not.equal('OK');
+  //   } catch (err) {
+  //     throw err;
+  //   }
+  // });
+  //
+  // it(`(BD-3409)(negative obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
+  //   try {
+  //     const result = await newOracle1.sdk.genericAction('pushTransaction', {
+  //       action: 'unwraptokens',
+  //       account: 'fio.oracle',
+  //       data: {
+  //         amount: wrapAmt,
+  //         obt_id: -12345,
+  //         fio_address: user1.address,
+  //         actor: newOracle1.account
+  //       }
+  //     });
+  //     expect(result.status).to.not.equal('OK');
+  //   } catch (err) {
+  //     throw err;
+  //   }
+  // });
+
   // unhappy tests
   it(`(greater amount than wrapped) try to unwrap 1500 FIO tokens`, async function () {
-    let amt = wrapAmt * 10;
+    let amt = wrapAmt + 333;
     try {
       const result = await newOracle1.sdk.genericAction('pushTransaction', {
         action: 'unwraptokens',
@@ -2147,8 +2620,44 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
         data: {
           amount: amt,
           obt_id: OBT_ID_1, //wfio.address,
-          fio_address: user1.address,
-          actor: newOracle1.account
+          fio_address: user3.address,
+          // actor: newOracle1.account
+        }
+      });
+      // expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      // expect(err.json.fields[0].error).to.equal('Token amount mismatch.');
+      throw err;
+    }
+
+    amt = wrapAmt + 333;
+    try {
+      const result = await newOracle2.sdk.genericAction('pushTransaction', {
+        action: 'unwraptokens',
+        account: 'fio.oracle',
+        data: {
+          amount: amt,
+          obt_id: OBT_ID_1, //wfio.address,
+          fio_address: user3.address,
+          // actor: newOracle2.account
+        }
+      });
+      // expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      // expect(err.json.fields[0].error).to.equal('Token amount mismatch.');
+      throw err;
+    }
+
+    amt = wrapAmt * 10;
+    try {
+      const result = await newOracle3.sdk.genericAction('pushTransaction', {
+        action: 'unwraptokens',
+        account: 'fio.oracle',
+        data: {
+          amount: amt,
+          obt_id: OBT_ID_1, //wfio.address,
+          fio_address: user3.address,
+          // actor: newOracle3.account
         }
       });
       expect(result.status).to.not.equal('OK');
@@ -2166,7 +2675,7 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
           // amount: wrapAmt,
           obt_id: OBT_ID_1, //wfio.address,
           fio_address: user1.address,
-          actor: newOracle1.account
+          // actor: newOracle1.account
         }
       });
       expect(result.status).to.not.equal('OK');
@@ -2184,7 +2693,7 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
           amount: "!invalid@#$",
           obt_id: OBT_ID_1, //wfio.address,
           fio_address: user1.address,
-          actor: newOracle1.account
+          // actor: newOracle1.account
         }
       });
       expect(result.status).to.not.equal('OK');
@@ -2201,7 +2710,7 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
         data: {
           amount: wrapAmt,
           fio_address: user1.address,
-          actor: newOracle1.account
+          // actor: newOracle1.account
         }
       });
       expect(result.status).to.not.equal('OK');
@@ -2219,7 +2728,7 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
           amount: wrapAmt,
           obt_id: OBT_ID_1, //wfio.address,
           fio_address: "",
-          actor: newOracle1.account
+          // actor: newOracle1.account
         }
       });
       expect(result.status).to.not.equal('OK');
@@ -2236,7 +2745,7 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
         data: {
           amount: wrapAmt,
           obt_id: OBT_ID_1, //wfio.address,
-          actor: newOracle1.account
+          // actor: newOracle1.account
         }
       });
       expect(result.status).to.not.equal('OK');
@@ -2254,7 +2763,7 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
           amount: wrapAmt,
           obt_id: OBT_ID_1, //wfio.address,
           fio_address: "!invalid@$",
-          actor: newOracle1.account
+          // actor: newOracle1.account
         }
       });
       expect(result.status).to.not.equal('OK');
@@ -2272,7 +2781,7 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
           amount: wrapAmt,
           obt_id: OBT_ID_1, //wfio.address,
           fio_address: 1234500000000,
-          actor: newOracle1.account
+          // actor: newOracle1.account
         }
       });
       expect(result.status).to.not.equal('OK');
@@ -2290,7 +2799,7 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
           amount: wrapAmt,
           obt_id: OBT_ID_1, //wfio.address,
           fio_address: -12345,
-          actor: newOracle1.account
+          // actor: newOracle1.account
         }
       });
       expect(result.status).to.not.equal('OK');
@@ -2299,63 +2808,7 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
     }
   });
 
-  it(`(invalid actor) try to unwrap ${wrapAmt} FIO tokens`, async function () {
-    try {
-      const result = await newOracle1.sdk.genericAction('pushTransaction', {
-        action: 'unwraptokens',
-        account: 'fio.oracle',
-        data: {
-          amount: wrapAmt,
-          obt_id: OBT_ID_1, //wfio.address,
-          fio_address: user1.address,
-          actor: "!invalid@$"
-        }
-      });
-      expect(result.status).to.not.equal('OK');
-    } catch (err) {
-      expect(err.json.error.details[0].message).to.equal('missing authority of .invalid');
-    }
-  });
-
-  it(`(int actor) try to unwrap ${wrapAmt} FIO tokens`, async function () {
-    try {
-      const result = await newOracle1.sdk.genericAction('pushTransaction', {
-        action: 'unwraptokens',
-        account: 'fio.oracle',
-        data: {
-          amount: wrapAmt,
-          obt_id: OBT_ID_1, //wfio.address,
-          fio_address: user1.address,
-          actor: 1234500000000
-        }
-      });
-      expect(result.status).to.not.equal('OK');
-    } catch (err) {
-      expect(err.message).to.equal('Expected string containing name');
-    }
-  });
-
-  it(`(negative actor) try to unwrap ${wrapAmt} FIO tokens`, async function () {
-    try {
-      const result = await newOracle1.sdk.genericAction('pushTransaction', {
-        action: 'unwraptokens',
-        account: 'fio.oracle',
-        data: {
-          amount: wrapAmt,
-          obt_id: OBT_ID_1, //wfio.address,
-          fio_address: user1.address,
-          actor: -12345
-        }
-      });
-      expect(result.status).to.not.equal('OK');
-    } catch (err) {
-      expect(err.message).to.equal('Expected string containing name');
-    }
-  });
-
   it(`(token amount mismatch) try to unwrap ${unwrapAmt} FIO tokens`, async function () {
-    let preWrapBal = await newOracle1.sdk.genericAction('getFioBalance', {});
-    let wrappingFee, wrappingOracleFee, postWrapBal, postWrapBalDiff, postWrapAvailDiff;
     try {
       const result = await newOracle1.sdk.genericAction('pushTransaction', {
         action: 'unwraptokens',
@@ -2364,26 +2817,16 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
           amount: unwrapAmt,
           obt_id: OBT_ID_1, //wfio.address,
           fio_address: user1.address,
-          actor: newOracle1.account
+          // actor: newOracle1.account
         }
       });
-      expect(result.status).to.equal('OK');
-      wrappingFee = result.fee_collected;
-      wrappingOracleFee = parseInt(result.oracle_fee_collected);
-
-      postWrapBal = await newOracle1.sdk.genericAction('getFioBalance', {});
-      postWrapBalDiff = preWrapBal.balance - postWrapBal.balance;
-      postWrapAvailDiff = preWrapBal.available - postWrapBal.available;
-      let expValue = wrapAmt + wrappingFee + wrappingOracleFee;
-      expect(postWrapBalDiff).to.equal(expValue); //(preWrapBal.balance - wrappingFee - parseInt(wrappingOracleFee));
-      expect(postWrapAvailDiff).to.equal(expValue); //(preWrapBal.balance - wrappingFee - parseInt(wrappingOracleFee));
-
+      expect(result.status).to.not.equal('OK');
     } catch (err) {
       expect(err.json.fields[0].error).to.equal('Token amount mismatch.');
     }
   });
 
-  it(`query the oracless table, expect 6 records`, async function () {
+  it(`query the oracless table, expect 3 records`, async function () {
     try {
       const oracleRecords = await getOracleRecords();
       expect(oracleRecords.rows.length).to.equal(3);
@@ -2392,33 +2835,25 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
     }
   });
 
-  it(`query for oracle1 in oravotes table`, async function () {
-    const result = await getOracleVotes(); //(oracle1.account);
-    console.log(`[dbg] votes: ${result}`);
-    for (let row in result.rows) {
-      row = result.rows[row];
-      if (row.voters.length > 0) {
-        // if (oracle1.)
-        console.log(`voter: ${row.voters[0]}`);
-      }
-    }
-  });
-
-  it(`(happy path) first oracle tries to unwrap ${wrapAmt} FIO tokens`, async function () {
+  it.skip(`(happy path) first oracle tries to unwrap ${wrapAmt} FIO tokens`, async function () {
     // let preWrapBal = await newOracle1.sdk.genericAction('getFioBalance', {});
     // let wrappingFee, wrappingOracleFee, postWrapBal, postWrapBalDiff, postWrapAvailDiff;
     try {
       const result = await newOracle1.sdk.genericAction('pushTransaction', {
+        // const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
         account: 'fio.oracle',
+        // actor: newOracle1.account,
+        // privKey: newOracle1.privateKey,
         data: {
-          amount: wrapAmt,
+          amount: wrapAmt + 666,
           // obt_id: wfio.address,
-          obt_id: OBT_ID_1,
-          fio_address: user1.address,
-          actor: newOracle1.account
+          obt_id: OBT_ID_2,
+          fio_address: user2.address,
+          // actor: newOracle1.account
         }
       });
+      expect(result).to.have.all.keys('transaction_id', 'status', 'block_num');
       expect(result.status).to.equal('OK');
       // wrappingFee = result.fee_collected;
       // wrappingOracleFee = parseInt(result.oracle_fee_collected);
@@ -2435,15 +2870,7 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
     }
   });
 
-
-  it(`query for oracle1 in oravotes table`, async function () {
-    const votes = await getOracleVotes(oracle1.account);
-    console.log(`[dbg] votes: ${votes}`);
-
-    foreach(let )
-  });
-
-  it(`(happy path) second oracle tries to unwrap ${wrapAmt} FIO tokens`, async function () {
+  it.skip(`(happy path) second oracle tries to unwrap ${wrapAmt} FIO tokens`, async function () {
     // let preWrapBal = await newOracle2.sdk.genericAction('getFioBalance', {});
     // let wrappingFee, wrappingOracleFee, postWrapBal, postWrapBalDiff, postWrapAvailDiff;
     try {
@@ -2451,13 +2878,14 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
         action: 'unwraptokens',
         account: 'fio.oracle',
         data: {
-          amount: wrapAmt,
+          amount: wrapAmt + 666,
           // obt_id: wfio.address,
-          obt_id: OBT_ID_1,
-          fio_address: user1.address,
-          actor: newOracle2.account
+          obt_id: OBT_ID_2,
+          fio_address: user2.address,
+          // actor: newOracle2.account
         }
       });
+      expect(result).to.have.all.keys('transaction_id', 'status', 'block_num');
       expect(result.status).to.equal('OK');
       // wrappingFee = result.fee_collected;
       // wrappingOracleFee = parseInt(result.oracle_fee_collected);
@@ -2474,7 +2902,7 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
     }
   });
 
-  it(`(happy path) third oracle tries to unwrap ${wrapAmt} FIO tokens`, async function () {
+  it.skip(`(happy path) third oracle tries to unwrap ${wrapAmt} FIO tokens`, async function () {
     // let preWrapBal = await newOracle3.sdk.genericAction('getFioBalance', {});
     // let wrappingFee, wrappingOracleFee, postWrapBal, postWrapBalDiff, postWrapAvailDiff;
     try {
@@ -2482,13 +2910,14 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
         action: 'unwraptokens',
         account: 'fio.oracle',
         data: {
-          amount: wrapAmt,
+          amount: wrapAmt + 666,
           // obt_id: wfio.address,
-          obt_id: OBT_ID_1,
-          fio_address: user1.address,
-          actor: newOracle3.account
+          obt_id: OBT_ID_2,
+          fio_address: user2.address,
+          // actor: newOracle3.account
         }
       });
+      expect(result).to.have.all.keys('transaction_id', 'status', 'block_num');
       expect(result.status).to.equal('OK');
       // wrappingFee = result.fee_collected;
       // wrappingOracleFee = parseInt(result.oracle_fee_collected);
@@ -2505,3 +2934,181 @@ describe.skip(`F. [FIO] Unwrap FIO tokens`, function () {
     }
   });
 });
+describe.skip(`G1. PROBLEM TESTS (unwraptokens)`, function () {
+  let wrapAmt = 1000000000000;
+  let unwrapAmt = 500000000000;
+  let oracle1, oracle2, oracle3, newOracle1, newOracle2, newOracle3,
+    user1, user2, user3, factory, owner, wfio, wfioAccts;
+
+  let OBT_ID_1, OBT_ID_2;
+
+  before(async function () {
+    oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+    // oracle2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+    // oracle3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+    user1 = await newUser(faucet);
+    user2 = await newUser(faucet);
+    user3 = await newUser(faucet);
+    newOracle1 = await newUser(faucet);
+    newOracle2 = await newUser(faucet);
+    newOracle3 = await newUser(faucet);
+
+    // register new oracles as bps
+    await registerNewBp(newOracle1);
+    await registerNewBp(newOracle2);
+    await registerNewBp(newOracle3);
+
+    // await newOracles
+    await registerNewOracle(newOracle1);
+    await registerNewOracle(newOracle2);
+    await registerNewOracle(newOracle3);
+
+    // set oracle fees
+    await setTestOracleFees(newOracle1, 10000000000, 11000000000);
+    await setTestOracleFees(newOracle2, 11000000000, 20000000000);
+    await setTestOracleFees(newOracle3, 20000000000, 21000000000);
+
+    await faucet.genericAction('transferTokens', {
+      payeeFioPublicKey: user1.publicKey,
+      amount: 10000000000000,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    });
+
+    [owner, wfioAccts, wfio] = await setupWFIOontract(ethers, INIT_SUPPLY);
+    await registerWfioOracles(wfio, wfioAccts);
+
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'wraptokens',
+        account: 'fio.oracle',
+        actor: user1.account,
+        privKey: user1.privateKey,
+        data: {
+          amount: wrapAmt + 333,
+          chain_code: "ETH",
+          public_address: wfio.address,
+          max_oracle_fee: config.maxFee,
+          max_fee: config.maxFee,
+          tpid: "",
+          actor: user1.account
+        }
+      });
+      OBT_ID_1 = result.transaction_id;
+    } catch (err) {
+      console.log('error wrapping test tokens: ', err);
+      throw err;
+    }
+
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'wraptokens',
+        account: 'fio.oracle',
+        actor: user2.account,
+        privKey: user2.privateKey,
+        data: {
+          amount: wrapAmt + 666,
+          chain_code: "ETH",
+          public_address: wfio.address,
+          max_oracle_fee: config.maxFee,
+          max_fee: config.maxFee,
+          tpid: "",
+          actor: user2.account
+        }
+      });
+      OBT_ID_2 = result.transaction_id;
+    } catch (err) {
+      console.log('error wrapping test tokens: ', err);
+      throw err;
+    }
+
+    // call wfio.wrap
+    let fromStartingBal = await wfioAccts[14].getBalance();
+    let toStartingWfioBal = await wfio.balanceOf(wfioAccts[0].address);
+
+    await wfio.connect(wfioAccts[12]).wrap(wfioAccts[0].address, 100, OBT_ID_1);
+    await wfio.connect(wfioAccts[13]).wrap(wfioAccts[0].address, 100, OBT_ID_1);
+    try {
+      let result = await wfio.connect(wfioAccts[14]).wrap(wfioAccts[0].address, 100, OBT_ID_1);
+      let fromEndingBal = await wfioAccts[14].getBalance();
+      let toEndingWfioBal = await wfio.balanceOf(wfioAccts[0].address);
+      expect(result.from).to.equal(wfioAccts[14].address);
+      expect(result.to).to.equal(wfio.address);
+      expect(fromStartingBal.gt(fromEndingBal)).to.be.true;
+      expect(toStartingWfioBal.lt(toEndingWfioBal)).to.be.true;
+      expect(toEndingWfioBal.sub(toStartingWfioBal).toNumber()).to.equal(100)
+    } catch (err) {
+      throw err;
+    }
+
+    await wfio.connect(wfioAccts[12]).wrap(wfioAccts[1].address, 100, OBT_ID_2);
+    await wfio.connect(wfioAccts[13]).wrap(wfioAccts[1].address, 100, OBT_ID_2);
+    try {
+      let result = await wfio.connect(wfioAccts[14]).wrap(wfioAccts[1].address, 100, OBT_ID_2);
+      let fromEndingBal = await wfioAccts[14].getBalance();
+      let toEndingWfioBal = await wfio.balanceOf(wfioAccts[1].address);
+      expect(result.from).to.equal(wfioAccts[14].address);
+      expect(result.to).to.equal(wfio.address);
+      expect(fromStartingBal.gt(fromEndingBal)).to.be.true;
+      expect(toStartingWfioBal.lt(toEndingWfioBal)).to.be.true;
+      expect(toEndingWfioBal.sub(toStartingWfioBal).toNumber()).to.equal(100)
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`(BD-3409)(invalid obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
+    try {
+      const result = await newOracle1.sdk.genericAction('pushTransaction', {
+        action: 'unwraptokens',
+        account: 'fio.oracle',
+        data: {
+          amount: wrapAmt,
+          obt_id: "!invalid@#$",
+          fio_address: user1.address,
+          actor: newOracle1.account
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`(BD-3409)(int obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
+    try {
+      const result = await newOracle1.sdk.genericAction('pushTransaction', {
+        action: 'unwraptokens',
+        account: 'fio.oracle',
+        data: {
+          amount: wrapAmt,
+          obt_id: 1000000000000,
+          fio_address: user1.address,
+          actor: newOracle1.account
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`(BD-3409)(negative obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
+    try {
+      const result = await newOracle1.sdk.genericAction('pushTransaction', {
+        action: 'unwraptokens',
+        account: 'fio.oracle',
+        data: {
+          amount: wrapAmt,
+          obt_id: -12345,
+          fio_address: user1.address,
+          actor: newOracle1.account
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      throw err;
+    }
+  });
+});
+

@@ -177,7 +177,13 @@ async function cleanUpOraclessTable (faucetAcct, originals = false) {
   }
 }
 
-async function calculateOracleFee(feeType = 'token') {
+async function getOracleFeeFromApi(account, feeType = 'token') {
+  if (feeType !== 'token' && feeType !== 'domain') throw new Error('unknown feeType');
+  let result = await callFioApi('get_oracle_fees', {});
+  console.log(result);
+}
+
+async function calculateOracleFeeFromOraclessTable(feeType = 'token') {
   if (feeType !== 'token' && feeType !== 'domain') throw new Error('unknown feeType');
   const oracleRecords = await getOracleRecords();
   let totalFee = 0, medianFee = 0;
@@ -195,18 +201,16 @@ async function calculateOracleFee(feeType = 'token') {
       fees.push(_fee);
     }
   }
-  // medianFee = median(fees);
-  // const rezzz = medianFee * oracleRecords.rows.length;
-  let rezzz;
+  let result;
   fees.sort((a, b) => {
     return a - b;
   });
   let half = Math.floor(fees.length / 2);
   if (fees.length % 2)
-    rezzz = fees[half];
+    result = fees[half];
   else
-    rezzz = (fees[half -1] + fees[half]) / 2.0;
-  return rezzz * oracleRecords.rows.length;
+    result = (fees[half -1] + fees[half]) / 2.0;
+  return result * oracleRecords.rows.length;
 }
 
 async function getOracleVotes(account = null) {
@@ -239,6 +243,11 @@ module.exports = {
   setupFIONFTcontract,
   registerFioNftOracles,
   cleanUpOraclessTable,
-  calculateOracleFee,
+  getOracleFeeFromApi,
+  calculateOracleFeeFromOraclessTable,
   getOracleVotes
 }
+
+/**
+ * TODO: Consider consolidating these into utils.js
+ */

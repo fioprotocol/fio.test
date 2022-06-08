@@ -10,7 +10,7 @@
  const {FIOSDK } = require('@fioprotocol/fiosdk')
  const config = require('../config.js');
 
-describe.only(`************************** eosio-updateauth.js ************************** \n    A. Create a new account permission`, () => {
+describe(`************************** eosio-updateauth.js ************************** \n    A. Create a new account permission`, () => {
 
   let user1, user2
   const   permissionName = 'regaddress',
