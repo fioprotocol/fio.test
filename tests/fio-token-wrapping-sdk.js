@@ -2553,7 +2553,7 @@ describe(`G. [FIO] Unwrap FIO tokens`, function () {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.json.fields[0].name).to.equal('obt_it');
+      expect(err.json.fields[0].name).to.equal('obt_id');
       expect(err.json.fields[0].value).to.equal('');
       expect(err.json.fields[0].error).to.equal('Invalid obt_id');
     }
