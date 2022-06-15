@@ -1745,7 +1745,7 @@ describe('H. Transfer Address with NFTs, confirm cannot add new NFT', () => {
     })
 })
 
-describe('E. transfer FIO Address with existing FIO Requests, test getters ', () => {
+describe('I. transfer FIO Address with existing FIO Requests, test getters ', () => {
     let user1, user2, user3, requestId
     const payment = 5000000000 // 5 FIO
     const requestMemo = 'Memo in the initial request'
