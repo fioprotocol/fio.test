@@ -37,11 +37,16 @@ describe(`************************** BD-3853-dev-tests.js **********************
     }
   })
 
+
+
+
   it(`Create staker sdk for further tests`, async () => {
 
     sdkStaker = new FIOSDK(keysStaker.privateKey, keysStaker.publicKey, config.BASE_URL, fetchJson);
     console.log ("keysStaker is ",keysStaker);
   })
+
+
 
   //now voteproducers 18 times
 
@@ -121,7 +126,7 @@ describe(`************************** BD-3853-dev-tests.js **********************
     }
   })
 
-  it(`sdkstaker un stakes 5 FIO )`, async () => {
+  it(`ERROR -- sdkstaker un stakes 5 FIO, they dont have fio for the fee )`, async () => {
     try {
       const result = await sdkStaker.genericAction('pushTransaction', {
         action: 'unstakefio',
@@ -134,10 +139,10 @@ describe(`************************** BD-3853-dev-tests.js **********************
           tpid: proxy1.address
         }
       })
-      expect(result.status).to.equal('OK')
+      expect(result.status).to.not.equal('OK')
     } catch (err) {
       console.log("Error : ", err.json);
-      expect(err).to.equal(null);
+      expect(err.json.fields[0].error).to.equal("Insufficient funds to cover fee");
     }
   })
 
