@@ -818,51 +818,53 @@ describe(`D. [FIO][api] Oracles (setoraclefee)`, function () {
   });
 
   //unhappy tests
-  // it(`(BD-3406)(negative wrap_fio_domain) try to set oracle fees, expect Error`, async function () {
-  //   try {
-  //     const result = await callFioApiSigned('push_transaction', {
-  //       action: 'setoraclefee',
-  //       account: 'fio.oracle',
-  //       actor: newOracle.account,
-  //       privKey: newOracle.privateKey,
-  //       data: {
-  //         wrap_fio_domain:  -1234500000000,
-  //         wrap_fio_tokens: 1,
-  //         actor: newOracle.account
-  //       }
-  //     });
-  //     expect(result).to.not.have.all.keys('transaction_id', 'processed');
-  //   } catch (err) {
-  //     const oracleRecords = await getOracleRecords(newOracle.account);
-  //     console.log(`${oracleRecords.rows[0].fees[0].fee_name}: ${oracleRecords.rows[0].fees[0].fee_amount}`);
-  //     console.log(`${oracleRecords.rows[0].fees[1].fee_name}: ${oracleRecords.rows[0].fees[1].fee_amount}`);
-  //     expect(err.message).to.equal('invalid number');
-  //   }
-  // });
-  // it(`(BD-3406)(negative wrap_fio_tokens) try to set oracle fees, expect Error`, async function () {
-  //   try{
-  //     const result = await callFioApiSigned('push_transaction', {
-  //       action: 'setoraclefee',
-  //       account: 'fio.oracle',
-  //       actor: newOracle1.account,
-  //       privKey: newOracle1.privateKey,
-  //       data: {
-  //         wrap_fio_domain: 1,
-  //         wrap_fio_tokens: -1234500000000,
-  //         actor: newOracle1.account
-  //       }
-  //     });
-  //
-  //     expect(result).to.not.have.all.keys('transaction_id', 'processed');
-  //   } catch (err) {
-  //     let oracleRecords = await getOracleRecords(newOracle1.account);
-  //     console.log(`${oracleRecords.rows[0].fees[0].fee_name}: ${oracleRecords.rows[0].fees[0].fee_amount}`);
-  //     console.log(`${oracleRecords.rows[0].fees[1].fee_name}: ${oracleRecords.rows[0].fees[1].fee_amount}`);
-  //     expect(oracleRecords.rows[0].fees[0].fee_amount).to.equal(1);
-  //     expect(oracleRecords.rows[0].fees[1].fee_amount).to.equal(0);
-  //     expect(err.message).to.equal('invalid number');
-  //   }
-  // });
+  it(`(BD-3406)(negative wrap_fio_domain) try to set oracle fees, expect Error`, async function () {
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'setoraclefee',
+        account: 'fio.oracle',
+        actor: newOracle5.account,
+        privKey: newOracle5.privateKey,
+        data: {
+          wrap_fio_domain:  -1234500000000,
+          wrap_fio_tokens: 1,
+          actor: newOracle5.account
+        }
+      });
+      expect(result).to.have.all.keys('type', 'message', 'fields');
+      expect(result.fields[0].name).to.equal('wrap_fio_domain');
+      expect(result.fields[0].value).to.equal('-1234500000000');
+      expect(result.fields[0].error).to.equal('Invalid fee value');
+      const oracleRecords = await getOracleRecords(newOracle5.account);
+      expect(oracleRecords.rows[0].fees).to.be.empty;
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`(BD-3406)(negative wrap_fio_tokens) try to set oracle fees, expect Error`, async function () {
+    try{
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'setoraclefee',
+        account: 'fio.oracle',
+        actor: newOracle5.account,
+        privKey: newOracle5.privateKey,
+        data: {
+          wrap_fio_domain: 1,
+          wrap_fio_tokens: -1234500000000,
+          actor: newOracle5.account
+        }
+      });
+      expect(result).to.have.all.keys('type', 'message', 'fields');
+      expect(result.fields[0].name).to.equal('wrap_fio_tokens');
+      expect(result.fields[0].value).to.equal('-1234500000000');
+      expect(result.fields[0].error).to.equal('Invalid fee value');
+      const oracleRecords = await getOracleRecords(newOracle5.account);
+      expect(oracleRecords.rows[0].fees).to.be.empty;
+    } catch (err) {
+      throw err;
+    }
+  });
 
   it(`(empty wrap_fio_domain) try to set oracle fees, expect "" to be converted to 0`, async function () {
     try {
@@ -1117,87 +1119,6 @@ describe(`D. [FIO][api] Oracles (setoraclefee)`, function () {
       expect(result).to.not.have.all.keys('transaction_id', 'processed');
     } catch (err) {
       expect(err.message).to.equal('Expected string containing name');
-    }
-  });
-});
-describe(`D1. [FIO][api] PROBLEM TESTS (setoraclefee)`, function () {
-
-  let oracle1, newOracle, newOracle1, newOracle2, newOracle3, newOracle4, newOracle5, user1;
-
-  before(async function () {
-    oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
-    // oracle2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
-    // oracle3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
-    user1 = await newUser(faucet);
-    // user2 = await newUser(faucet);
-    // user3 = await newUser(faucet);
-    newOracle = await newUser(faucet);
-    newOracle1 = await newUser(faucet);
-    newOracle2 = await newUser(faucet);
-    newOracle3 = await newUser(faucet);
-    newOracle4 = await newUser(faucet);
-    newOracle5 = await newUser(faucet);
-
-    // register new oracles
-    await registerNewBp(newOracle);
-    await registerNewBp(newOracle1);
-    await registerNewBp(newOracle2);
-    await registerNewBp(newOracle3);
-    await registerNewBp(newOracle4);
-    await registerNewBp(newOracle5);
-
-    await registerNewOracle(newOracle);
-    await registerNewOracle(newOracle1);
-    await registerNewOracle(newOracle2);
-    await registerNewOracle(newOracle3);
-    await registerNewOracle(newOracle4);
-    await registerNewOracle(newOracle5);
-  });
-
-  //unhappy tests
-  it(`(BD-3406)(negative wrap_fio_domain) try to set oracle fees, expect Error`, async function () {
-    try {
-      const result = await callFioApiSigned('push_transaction', {
-        action: 'setoraclefee',
-        account: 'fio.oracle',
-        actor: newOracle.account,
-        privKey: newOracle.privateKey,
-        data: {
-          wrap_fio_domain:  -1234500000000,
-          wrap_fio_tokens: 1,
-          actor: newOracle.account
-        }
-      });
-      expect(result).to.not.have.all.keys('transaction_id', 'processed');
-    } catch (err) {
-      const oracleRecords = await getOracleRecords(newOracle.account);
-      console.log(`${oracleRecords.rows[0].fees[0].fee_name}: ${oracleRecords.rows[0].fees[0].fee_amount}`);
-      console.log(`${oracleRecords.rows[0].fees[1].fee_name}: ${oracleRecords.rows[0].fees[1].fee_amount}`);
-      expect(err.message).to.equal('invalid number');
-    }
-  });
-  it(`(BD-3406)(negative wrap_fio_tokens) try to set oracle fees, expect Error`, async function () {
-    try{
-      const result = await callFioApiSigned('push_transaction', {
-        action: 'setoraclefee',
-        account: 'fio.oracle',
-        actor: newOracle1.account,
-        privKey: newOracle1.privateKey,
-        data: {
-          wrap_fio_domain: 1,
-          wrap_fio_tokens: -1234500000000,
-          actor: newOracle1.account
-        }
-      });
-
-      expect(result).to.not.have.all.keys('transaction_id', 'processed');
-    } catch (err) {
-      let oracleRecords = await getOracleRecords(newOracle1.account);
-      console.log(`${oracleRecords.rows[0].fees[0].fee_name}: ${oracleRecords.rows[0].fees[0].fee_amount}`);
-      console.log(`${oracleRecords.rows[0].fees[1].fee_name}: ${oracleRecords.rows[0].fees[1].fee_amount}`);
-      expect(oracleRecords.rows[0].fees[0].fee_amount).to.equal(1);
-      expect(oracleRecords.rows[0].fees[1].fee_amount).to.equal(0);
-      expect(err.message).to.equal('invalid number');
     }
   });
 });
