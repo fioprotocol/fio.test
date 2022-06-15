@@ -3513,7 +3513,7 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
     }
   });
 
-  let newKeyPair2; 
+  let newKeyPair2;
 
   it(`Create a new keypair`, async () => {
     newKeyPair2 = await createKeypair();
@@ -4512,7 +4512,7 @@ describe(`H. redundant test - transfer restricted voting locks, then non-restric
     test6 = await newUser(faucet);
   });
 
-  let newKeyPair, newUserAcct;
+  let newKeyPair, newKeyPair2, newUserAcct;
 
   it(`Create a new keypair`, async () => {
     newKeyPair = await createKeypair();
@@ -4835,7 +4835,7 @@ describe(`J. Test trnsloctoks effect on total_voted_fio for a user with non-rest
 
 describe(`K.1 -  BD-3809 - Test trnsloctoks effect on total_voted_fio for a user with restricted locks`, () => {
 
-  let user1, totalVotedFio, newKeyPairSDK;
+  let user1, totalVotedFio, newKeyPair, newKeyPairSDK;
 
   before(async () => {
     user1 = await newUser(faucet);
@@ -5041,7 +5041,7 @@ describe(`K.1 -  BD-3809 - Test trnsloctoks effect on total_voted_fio for a user
 
 describe(`K.2 - BD-3808 - Test trnsloctoks effect on last_vote_weight for a user with restricted locks`, () => {
 
-  let user1, voteWeight, newKeyPairSDK, totalVotesBP1;
+  let user1, voteWeight, newKeyPair, newKeyPairSDK, totalVotesBP1;
 
   before(async () => {
     user1 = await newUser(faucet);
@@ -5272,12 +5272,12 @@ describe(`K.2 - BD-3808 - Test trnsloctoks effect on last_vote_weight for a user
       throw err;
     }
   });
-  
+
 });
 
 describe(`Test trnsloctoks effect on total_voted_fio for a user with restricted locks`, () => {
 
-  let user1, user2, total_voted_fio, totalVotesBP1, totalVotesBP2, totalVotesBP3
+  let user1, user2, total_voted_fio, totalVotesBP1, totalVotesBP2, totalVotesBP3, newKeyPair, newKeyPairSDK;
 
   before(async () => {
     user1 = await newUser(faucet);
@@ -5508,6 +5508,8 @@ describe(`Test trnsloctoks effect on total_voted_fio for a user with restricted 
 });
 
 describe(`L. Transfer locked tokens canvote=0 to existing account with no locks`, () => {
+
+  let user1, user2;
 
   before(async () => {
     user1 = await newUser(faucet);
