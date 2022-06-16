@@ -93,6 +93,7 @@ describe(`************************** fio-token-wrapping-sdk.js *****************
       });
       expect(result.status).to.equal('OK');
     } catch (err) {
+      console.log('err: ', err);
       expect(err.json.error.what).to.equal('could not insert object, most likely a uniqueness constraint was violated');
     }
   });
@@ -146,6 +147,7 @@ describe(`************************** fio-token-wrapping-sdk.js *****************
       throw err;
     }
   });
+  
 });
 
 describe(`B. [FIO] Oracles (register)`, function () {
@@ -961,6 +963,7 @@ describe(`** ORACLE TABLE CLEANUP **`, async function () {
       let records = await getOracleRecords();
       expect(records.rows.length).to.equal(0);
     } catch (err) {
+      console.log('Error: ', err)
       throw err;
     }
   });
@@ -1006,7 +1009,7 @@ describe(`** ORACLE TABLE CLEANUP **`, async function () {
   });
 });
 
-describe(`E. (BD-3788)[FIO] Oracles (getoraclefees)`, function () {
+describe.skip(`E. (BD-3788) Server crash: Register 3 oracles, only have 2 oracles set fees, call get_oracle_fees.`, function () {
 
   let oracle1, newOracle, newOracle2, newOracle3,  user1;
   let ORACLE_FEE;
@@ -1017,38 +1020,49 @@ describe(`E. (BD-3788)[FIO] Oracles (getoraclefees)`, function () {
 
   it('try to get the wrapping fees from the API, expect no registered oracles', async function () {
     try {
-      await callFioApi('get_oracle_fees', {});
+      result = await callFioApi('get_oracle_fees', {});
     } catch (err) {
+      //console.log('Error: ', err);
       expect(err.error.message).to.equal('Not enough registered oracles.');
     }
   });
 
   it(`register new oracles for testing`, async function () {
-    newOracle = await newUser(faucet);
-    newOracle2 = await newUser(faucet);
-    newOracle3 = await newUser(faucet);
+    try {
+      newOracle = await newUser(faucet);
+      newOracle2 = await newUser(faucet);
+      newOracle3 = await newUser(faucet);
 
-    // register a new oracle
-    await registerNewBp(newOracle);
-    await registerNewOracle(newOracle);
-    await setTestOracleFees(newOracle, 1000000000, 1200000000);
+      // register a new oracle
+      await registerNewBp(newOracle);
+      await registerNewOracle(newOracle);
+      await setTestOracleFees(newOracle, 1000000000, 1200000000);
 
-    await registerNewBp(newOracle2);
-    await registerNewOracle(newOracle2);
-    await setTestOracleFees(newOracle2, 1000000000, 1200000000);
+      await registerNewBp(newOracle2);
+      await registerNewOracle(newOracle2);
+      await setTestOracleFees(newOracle2, 1000000000, 1200000000);
 
-    await registerNewBp(newOracle3);
-    await registerNewOracle(newOracle3);
-    await setTestOracleFees(newOracle3, 3000000000, 3200000000);
+      await registerNewBp(newOracle3);
+      await registerNewOracle(newOracle3);
+      //await setTestOracleFees(newOracle3, 3000000000, 3200000000);  // Comment out this line to cause crash
+    } catch (err) {
+      console.log('Error: ', err);
+      throw err;
+    }
+  });
+  it('get oracles', async function () {
+    const oracleRecords = await getOracleRecords();
+    //console.log('Oracles: ', oracleRecords);
   });
 
   it('get the wrapping fees from the API', async function () {
     const result = await callFioApi('get_oracle_fees', {});
+    //console.log('Result: ', result);
     expect(result.oracle_fees.length).to.equal(2);
     expect(result.oracle_fees[0].fee_name).to.equal('wrap_fio_domain');
-    expect(result.oracle_fees[0].fee_amount).to.equal(36000000000);//(3000000000);
+    expect(result.oracle_fees[0].fee_amount).to.equal(3000000000);  // Should be median * 3 = 3000000000
     expect(result.oracle_fees[1].fee_name).to.equal('wrap_fio_tokens');
-    expect(result.oracle_fees[1].fee_amount).to.equal(3600000000);
+    expect(result.oracle_fees[1].fee_amount).to.equal(3600000000);  // Should be median * 3 = 3600000000
   });
 });
 
@@ -1958,6 +1972,7 @@ describe(`F. [FIO] Wrap FIO tokens`, function () {
     }
   });
 });
+
 describe(`F1. PROBLEM TESTS (wraptokens)`, function () {
 
   let wrapAmt = 1000000000000;
@@ -2805,6 +2820,7 @@ describe(`G. [FIO] Unwrap FIO tokens`, function () {
     }
   });
 });
+
 describe(`G1. PROBLEM TESTS (unwraptokens)`, function () {
   let wrapAmt = 1000000000000;
   let unwrapAmt = 500000000000;
