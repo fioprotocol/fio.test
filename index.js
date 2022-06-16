@@ -13,7 +13,7 @@ describe('TEST SUITE', () => {
    * FIO token wrapping and unwrapping (FIP-17a)
    * FIO domain wrapping and unwrapping (FIP-17b)
    */
-  describe.only(`** FIP-17a and b - WRAPPING TESTS **`, function () {
+  describe.skip(`** FIP-17a and b - WRAPPING TESTS **`, function () {
     /**
     require('./tests/testnet-smoketest.js');
     require('./tests/FIP-41-devtest-transfer-locked-tokens.js');
@@ -76,7 +76,7 @@ describe('TEST SUITE', () => {
     require('./tests/stake-BD-3552-dev-tests.js');
   });
 
-  describe('** GENERAL TESTS **', () => {
+  describe.only('** GENERAL TESTS **', () => {
 
     /**
      * General Tests. Should work against all builds. Do not require additional configuration.
@@ -128,7 +128,8 @@ describe('TEST SUITE', () => {
     /**
      * Bugs
      */
-     require('./tests/BD-3835-autoproxy.js');
+    require('./tests/BD-3835-autoproxy.js');
+    require('./tests/BD-3853-dev-tests.js');
 
     /**
      * Testnet smoketest. By default runs against local build.
