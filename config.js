@@ -30,6 +30,7 @@ const config = {
     FUNDS: 3000000000000,
     BILLION: 1000000000,
     maxFee: 800000000000,
+    maxOracleFee: 600000000000,
     defaultBundleCount: 100,
 
     // lock duration periods for local testing
