@@ -1981,7 +1981,7 @@ describe(`F. [FIO] Wrap FIO tokens`, function () {
     //console.log(preWrapBal);
   });
 
-  it.skip(`(happy w/ tpid) try to wrap 1000 FIO tokens`, async function () {
+  it(`(Bug BD-3869) (happy w/ tpid) try to wrap 1000 FIO tokens`, async function () {
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
         action: 'wraptokens',
@@ -1995,15 +1995,17 @@ describe(`F. [FIO] Wrap FIO tokens`, function () {
           tpid: oracle1.address,
         }
       });
+      console.log('Result: ', result);
       expect(result.status).to.equal('OK');
       expect(result.fee_collected).to.equal(ORACLE_FEE);
       expect(parseInt(result.oracle_fee_collected)).to.equal(60000000000);
     } catch (err) {
+      //console.log('Error: ', err.json.error);
       throw err;
     }
   });
 
-  it.skip(`(happy w/ tpid v2) try to wrap 1000 FIO tokens`, async function () {
+  it.skip(`(happy w/o tpid) try to wrap 1000 FIO tokens`, async function () {
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
         action: 'wraptokens',
@@ -2014,14 +2016,16 @@ describe(`F. [FIO] Wrap FIO tokens`, function () {
           public_address: wfio.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
-          tpid: [newOracle.address]
+          tpid: ''
         }
       });
+      console.log('Result: ', result);
       expect(result.status).to.equal('OK');
       expect(result.fee_collected).to.equal(ORACLE_FEE);
       expect(parseInt(result.oracle_fee_collected)).to.equal(60000000000);
     } catch (err) {
       // expect(err.json.error.details[0].message).to.equal('assertion failure with message: must transfer positive quantity');
+      console.log('Error: ', err.json.error);
       throw err;
     }
   });
@@ -2041,6 +2045,7 @@ describe(`F. [FIO] Wrap FIO tokens`, function () {
           tpid: "",
         }
       });
+      //console.log('Result: ', result);
       expect(result.status).to.equal('OK');
       expect(result.fee_collected).to.equal(WRAP_FEE);
       expect(parseInt(result.oracle_fee_collected)).to.equal(ORACLE_FEE);
@@ -2057,6 +2062,7 @@ describe(`F. [FIO] Wrap FIO tokens`, function () {
       // expect(postWrapBalDiff).to.equal(expValue); //(preWrapBal.balance - wrappingFee - parseInt(wrappingOracleFee));
       // expect(postWrapAvailDiff).to.equal(expValue); //(preWrapBal.balance - wrappingFee - parseInt(wrappingOracleFee));
     } catch (err) {
+      console.log('Error: ', err.json.error);
       throw err;
     }
   });
