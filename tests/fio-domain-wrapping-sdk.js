@@ -42,6 +42,7 @@ before(async function () {
 
 after(async function () {
   try{
+    console.log("          cleanup...");
     const fAcct = await getAccountFromKey(faucet.publicKey);
     const oracleRecords = await getOracleRecords();
     for (let row in oracleRecords.rows) {
@@ -59,7 +60,7 @@ after(async function () {
           actor: fAcct
         }
       });
-      console.log("deleted: ", row, result);
+      //console.log("deleted: ", row, result);
     }
   } catch (err){
     throw err;
@@ -160,8 +161,12 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
 
   let oracle1, oracle2, oracle3, newOracle1, newOracle2, newOracle3, newOracle4,
       user1, user2, user3, user4, user5, user6, user7, user8, user9, user10, user11, user12, user13, user14,
-      custodians, factory, owner, fioNft, fioNftAccts,
+      custodians, factory, owner, fioNftAccts,
       OBT_ID, ORACLE_FEE, WRAP_FEE;
+
+  let fioNft = {
+    address: '0xpolygonaddress' + randStr(20)
+  }
 
   before(async function () {
     // oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
@@ -209,8 +214,8 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
       technologyProviderId: ''
     });
 
-    [owner, fioNftAccts, fioNft] = await setupFIONFTcontract(ethers);
-    await registerFioNftOracles(fioNft, fioNftAccts);
+    //[owner, fioNftAccts, fioNft] = await setupFIONFTcontract(ethers);
+    //await registerFioNftOracles(fioNft, fioNftAccts);
 
     // try {
     //   const result = await callFioApiSigned('push_transaction', {
@@ -1064,12 +1069,17 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
     }
   });
 });
+
 describe(`B1. PROBLEM TESTS (wrapdomains)`, function () {
 
   let oracle1, oracle2, oracle3, newOracle1, newOracle2, newOracle3, newOracle4,
     user1, user2, user3, user4, user5, user6, user7, user8, user9, user10, user11, user12, user13, user14,
-    custodians, factory, owner, fioNft, fioNftAccts,
+    custodians, factory, owner, fioNftAccts,
     OBT_ID, ORACLE_FEE, WRAP_FEE;
+
+  let fioNft = {
+    address: '0xpolygonaddress' + randStr(20)
+  }
 
   before(async function () {
     // oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
@@ -1117,8 +1127,8 @@ describe(`B1. PROBLEM TESTS (wrapdomains)`, function () {
       technologyProviderId: ''
     });
 
-    [owner, fioNftAccts, fioNft] = await setupFIONFTcontract(ethers);
-    await registerFioNftOracles(fioNft, fioNftAccts);
+    //[owner, fioNftAccts, fioNft] = await setupFIONFTcontract(ethers);
+    //await registerFioNftOracles(fioNft, fioNftAccts);
 
     // try {
     //   const result = await callFioApiSigned('push_transaction', {
@@ -1198,7 +1208,7 @@ describe(`B1. PROBLEM TESTS (wrapdomains)`, function () {
     WRAP_FEE = result.fee;
   });
 
-  it(`(BUG?)(int chain_code) try to wrap a FIO domain`, async function () {
+  it(`(BUG BD-3876)(int chain_code) try to wrap a FIO domain`, async function () {
     let domain = user2.domain;
     try {
       const result = await user2.sdk.genericAction('pushTransaction', {
@@ -1214,6 +1224,7 @@ describe(`B1. PROBLEM TESTS (wrapdomains)`, function () {
           actor: user2.account
         }
       });
+      //console.log('Result: ', result)
       expect(result.status).to.not.equal('OK');
     } catch (err) {
       // expect(err.message).to.equal('Invalid chain code format');
@@ -1221,7 +1232,7 @@ describe(`B1. PROBLEM TESTS (wrapdomains)`, function () {
     }
   });
 
-  it(`(BUG?)(invalid public_address) try to wrap a FIO domain`, async function () {
+  it.skip(`(Not a bug: We are not currently validating ETH addresses. It accepts any string.) (invalid public_address) try to wrap a FIO domain`, async function () {
     // todo: test with the API, verify whether SDK is using default values
     let domain = user3.domain;
     try {
@@ -1245,7 +1256,7 @@ describe(`B1. PROBLEM TESTS (wrapdomains)`, function () {
     }
   });
 
-  it(`(BUG?)(int public_address) try to wrap a FIO domain`, async function () {
+  it(`(BUG BD-3877)(int public_address) try to wrap a FIO domain`, async function () {
     // todo: test with the API, verify whether SDK is using default values
     let domain = user4.domain;
     try {
@@ -1262,6 +1273,7 @@ describe(`B1. PROBLEM TESTS (wrapdomains)`, function () {
           actor: user4.account
         }
       });
+      //console.log('Result: ', result)
       expect(result.status).to.not.equal('OK');
     } catch (err) {
       // expect(err.message).to.equal('Invalid public address');
@@ -1269,7 +1281,7 @@ describe(`B1. PROBLEM TESTS (wrapdomains)`, function () {
     }
   });
 
-  it(`(BUG?)(negative public_address) try to wrap a FIO domain`, async function () {
+  it(`(BUG BD-3877)(negative public_address) try to wrap a FIO domain`, async function () {
     // todo: test with the API, verify whether SDK is using default values
     let domain = user5.domain;
     try {
@@ -1286,6 +1298,7 @@ describe(`B1. PROBLEM TESTS (wrapdomains)`, function () {
           actor: user5.account
         }
       });
+      //console.log('Result: ', result)
       expect(result.status).to.not.equal('OK');
     } catch (err) {
       // expect(err.message).to.equal('Invalid public address');
@@ -1293,7 +1306,7 @@ describe(`B1. PROBLEM TESTS (wrapdomains)`, function () {
     }
   });
 
-  it(`(BUG?)(int tpid) try to wrap a FIO domain`, async function () {
+  it(`(BUG BD-3878)(int tpid) try to wrap a FIO domain`, async function () {
     let domain = user12.domain;
     try {
       const result = await user12.sdk.genericAction('pushTransaction', {
@@ -1309,6 +1322,7 @@ describe(`B1. PROBLEM TESTS (wrapdomains)`, function () {
           actor: user12.account
         }
       });
+      //console.log('Result: ', result)
       expect(result.status).to.not.equal('OK');
     } catch (err) {
       expect(err.json.fields[0].error).to.equal('TPID must be empty or valid FIO address');
@@ -1334,21 +1348,15 @@ describe(`C. [FIO] Unwrap FIO domains`, function () {
   let // oracle1, oracle2, oracle3,
     user1, newOracle1, newOracle2, newOracle3,
     user2,
-    user3,
-    user4,
-    user5,
-    user6,
-    user7,
-    user8,
-    user9,
-    user10,
-    user11,
-    user12,
-    user13,
-    user14;
+    user3;
 
-  let fioNftOwner, fioNftAccts, custodians, factory, fioNft;
+  let fioNftOwner, fioNftAccts, custodians, factory;
   let OBT_ID, ORACLE_FEE, WRAP_FEE;
+
+  let fioNft = {
+    address: '0xpolygonaddress' + randStr(20),
+    address2: '0xpolygonaddress2' + randStr(18)
+  }
 
   before(async function () {
     // oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
@@ -1359,17 +1367,6 @@ describe(`C. [FIO] Unwrap FIO domains`, function () {
     user1 = await newUser(faucet);
     user2 = await newUser(faucet);
     user3 = await newUser(faucet);
-    user4 = await newUser(faucet);
-    user5 = await newUser(faucet);
-    user6 = await newUser(faucet);
-    user7 = await newUser(faucet);
-    user8 = await newUser(faucet);
-    user9 = await newUser(faucet);
-    user10 = await newUser(faucet);
-    user11 = await newUser(faucet);
-    user12 = await newUser(faucet);
-    user13 = await newUser(faucet);
-    user14 = await newUser(faucet);
     newOracle1 = await newUser(faucet);
     newOracle2 = await newUser(faucet);
     newOracle3 = await newUser(faucet);
@@ -1396,8 +1393,8 @@ describe(`C. [FIO] Unwrap FIO domains`, function () {
       technologyProviderId: ''
     });
 
-    [owner, fioNftAccts, fioNft] = await setupFIONFTcontract(ethers);
-    await registerFioNftOracles(fioNft, fioNftAccts);
+    //[owner, fioNftAccts, fioNft] = await setupFIONFTcontract(ethers);
+    //await registerFioNftOracles(fioNft, fioNftAccts);
 
     let feeObj = await callFioApi('get_oracle_fees', {});
     if (feeObj.oracle_fees[0].fee_name === 'wrap_fio_domain')
@@ -1421,7 +1418,7 @@ describe(`C. [FIO] Unwrap FIO domains`, function () {
         data: {
           fio_domain: domain1,
           chain_code: "ETH",
-          public_address: fioNftAccts[1].address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "", //oracle1.address,
@@ -1444,7 +1441,7 @@ describe(`C. [FIO] Unwrap FIO domains`, function () {
         data: {
           fio_domain: domain2,
           chain_code: "ETH",
-          public_address: fioNftAccts[2].address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "", //oracle1.address,
@@ -1719,7 +1716,7 @@ describe(`C. [FIO] Unwrap FIO domains`, function () {
         data: {
           fio_domain: domain3,
           chain_code: "ETH",
-          public_address: fioNftAccts[3].address,
+          public_address: fioNft.address2,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "", //oracle1.address,
@@ -1730,6 +1727,7 @@ describe(`C. [FIO] Unwrap FIO domains`, function () {
       expect(result.fee_collected).to.equal(WRAP_FEE);
       expect(parseInt(result.oracle_fee_collected)).to.equal(ORACLE_FEE);
     } catch (err) {
+      console.log('Error: ', err);
       throw err;
     }
   });
@@ -1873,26 +1871,18 @@ describe(`C. [FIO] Unwrap FIO domains`, function () {
     }
   });
 });
+
 describe(`C1. PROBLEM TESTS (unwrapdomains)`, function () {
   let wrapAmt = 1000000000000;
   let // oracle1, oracle2, oracle3,
-    user1, newOracle1, newOracle2, newOracle3, newOracle4,
-    user2,
-    user3,
-    user4,
-    user5,
-    user6,
-    user7,
-    user8,
-    user9,
-    user10,
-    user11,
-    user12,
-    user13,
-    user14;
+    user1, newOracle1, newOracle2, newOracle3, newOracle4;
 
-  let fioNftOwner, fioNftAccts, custodians, factory, fioNft;
+  let fioNftOwner, fioNftAccts, custodians, factory;
   let OBT_ID, ORACLE_FEE, WRAP_FEE;
+
+  let fioNft = {
+    address: '0xpolygonaddress' + randStr(20)
+  }
 
   before(async function () {
     // oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
@@ -1902,18 +1892,6 @@ describe(`C1. PROBLEM TESTS (unwrapdomains)`, function () {
     // oracle1 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
     user1 = await newUser(faucet);
     user2 = await newUser(faucet);
-    user3 = await newUser(faucet);
-    user4 = await newUser(faucet);
-    user5 = await newUser(faucet);
-    user6 = await newUser(faucet);
-    user7 = await newUser(faucet);
-    user8 = await newUser(faucet);
-    user9 = await newUser(faucet);
-    user10 = await newUser(faucet);
-    user11 = await newUser(faucet);
-    user12 = await newUser(faucet);
-    user13 = await newUser(faucet);
-    user14 = await newUser(faucet);
     newOracle1 = await newUser(faucet);
     newOracle2 = await newUser(faucet);
     newOracle3 = await newUser(faucet);
@@ -1940,8 +1918,8 @@ describe(`C1. PROBLEM TESTS (unwrapdomains)`, function () {
       technologyProviderId: ''
     });
 
-    [owner, fioNftAccts, fioNft] = await setupFIONFTcontract(ethers);
-    await registerFioNftOracles(fioNft, fioNftAccts);
+    //[owner, fioNftAccts, fioNft] = await setupFIONFTcontract(ethers);
+    //await registerFioNftOracles(fioNft, fioNftAccts);
 
     let feeObj = await callFioApi('get_oracle_fees', {});
     if (feeObj.oracle_fees[0].fee_name === 'wrap_fio_domain')
@@ -1963,7 +1941,7 @@ describe(`C1. PROBLEM TESTS (unwrapdomains)`, function () {
         data: {
           fio_domain: domain1,
           chain_code: "ETH",
-          public_address: fioNftAccts[1].address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "", //oracle1.address,
@@ -1986,7 +1964,7 @@ describe(`C1. PROBLEM TESTS (unwrapdomains)`, function () {
         data: {
           fio_domain: domain2,
           chain_code: "ETH",
-          public_address: fioNftAccts[2].address,
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "", //oracle1.address,
@@ -2002,7 +1980,7 @@ describe(`C1. PROBLEM TESTS (unwrapdomains)`, function () {
     }
   });
 
-  it(`(invalid obt_id) try to unwrap a FIO domain`, async function () {
+  it.skip(`(Not a bug: We are not currently validating ETH addresses. It accepts any string.) (invalid obt_id) try to unwrap a FIO domain`, async function () {
     try {
       const result = await newOracle1.sdk.genericAction('pushTransaction', {
         action: 'unwrapdomain',
@@ -2014,15 +1992,17 @@ describe(`C1. PROBLEM TESTS (unwrapdomains)`, function () {
           actor: newOracle1.account
         }
       });
+      //console.log('Result: ', result);
       expect(result.status).to.not.equal('OK');
     } catch (err) {
+      //console.log('Error: ', err.json.fields[0]);
       expect(err.json.fields[0].name).to.equal('fio_domain');
       expect(err.json.fields[0].value).to.equal(user1.domain);
       expect(err.json.fields[0].error).to.equal('FIO domain not owned by Oracle contract.');//('FIO domain not found');
     }
   });
 
-  it(`(int obt_id) try to unwrap a FIO domain`, async function () {
+  it(`(BUG BD-3879) (int obt_id) try to unwrap a FIO domain`, async function () {
     try {
       const result = await newOracle1.sdk.genericAction('pushTransaction', {
         action: 'unwrapdomain',
@@ -2034,15 +2014,17 @@ describe(`C1. PROBLEM TESTS (unwrapdomains)`, function () {
           actor: newOracle1.account
         }
       });
+      //console.log('Result: ', result);
       expect(result.status).to.not.equal('OK');
     } catch (err) {
+      //console.log('Error: ', err.json.fields[0]);
       expect(err.json.fields[0].name).to.equal('fio_domain');
       expect(err.json.fields[0].value).to.equal(user1.domain);
       expect(err.json.fields[0].error).to.equal('FIO domain not owned by Oracle contract.');//('FIO domain not found');
     }
   });
 
-  it(`(negative obt_id) try to unwrap a FIO domain`, async function () {
+  it(`(BUG BD-3879) (negative obt_id) try to unwrap a FIO domain`, async function () {
     try {
       const result = await newOracle1.sdk.genericAction('pushTransaction', {
         action: 'unwrapdomain',
@@ -2054,8 +2036,10 @@ describe(`C1. PROBLEM TESTS (unwrapdomains)`, function () {
           actor: newOracle1.account
         }
       });
+      //console.log('Result: ', result);
       expect(result.status).to.not.equal('OK');
     } catch (err) {
+      //console.log('Error: ', err.json.fields[0]);
       expect(err.json.fields[0].name).to.equal('fio_domain');
       expect(err.json.fields[0].value).to.equal(user1.domain);
       expect(err.json.fields[0].error).to.equal('FIO domain not owned by Oracle contract.');//('FIO domain not found');
