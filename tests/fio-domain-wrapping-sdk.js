@@ -12,7 +12,8 @@ const {
   callFioApi,
   callFioApiSigned,
   getAccountFromKey,
-  randStr
+  randStr,
+  getRamForUser
 } = require("../utils.js");
 const {
   getOracleRecords,
@@ -1073,9 +1074,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
 describe(`B1. PROBLEM TESTS (wrapdomains)`, function () {
 
   let oracle1, oracle2, oracle3, newOracle1, newOracle2, newOracle3, newOracle4,
-    user1, user2, user3, user4, user5, user6, user7, user8, user9, user10, user11, user12, user13, user14,
-    custodians, factory, owner, fioNftAccts,
-    OBT_ID, ORACLE_FEE, WRAP_FEE;
+    user1, user2, user3, user4, user5, user6, ORACLE_FEE, WRAP_FEE;
 
   let fioNft = {
     address: '0xpolygonaddress' + randStr(20)
@@ -1093,14 +1092,6 @@ describe(`B1. PROBLEM TESTS (wrapdomains)`, function () {
     user4 = await newUser(faucet);
     user5 = await newUser(faucet);
     user6 = await newUser(faucet);
-    user7 = await newUser(faucet);
-    user8 = await newUser(faucet);
-    user9 = await newUser(faucet);
-    user10 = await newUser(faucet);
-    user11 = await newUser(faucet);
-    user12 = await newUser(faucet);
-    user13 = await newUser(faucet);
-    user14 = await newUser(faucet);
     newOracle1 = await newUser(faucet);
     newOracle2 = await newUser(faucet);
     newOracle3 = await newUser(faucet);
@@ -1126,50 +1117,6 @@ describe(`B1. PROBLEM TESTS (wrapdomains)`, function () {
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     });
-
-    //[owner, fioNftAccts, fioNft] = await setupFIONFTcontract(ethers);
-    //await registerFioNftOracles(fioNft, fioNftAccts);
-
-    // try {
-    //   const result = await callFioApiSigned('push_transaction', {
-    //     action: 'wraptokens',
-    //     account: 'fio.oracle',
-    //     actor: user1.account,
-    //     privKey: user1.privateKey,
-    //     data: {
-    //       amount: wrapAmt,
-    //       chain_code: "ETH",
-    //       public_address: fioNft.address,
-    //       max_oracle_fee: config.maxFee,
-    //       max_fee: config.maxFee,
-    //       tpid: "",
-    //       actor: user1.account
-    //     }
-    //   });
-    //   OBT_ID = result.transaction_id;
-    // } catch (err) {
-    //   console.log('error wrapping test tokens: ', err);
-    //   throw err;
-    // }
-    //
-    // // call fioNft.wrap
-    // let fromStartingBal = await fioNftAccts[14].getBalance();
-    // let toStartingWfioBal = await fioNft.balanceOf(fioNftAccts[0].address);
-    //
-    // await fioNft.connect(fioNftAccts[12]).wrap(fioNftAccts[0].address, 100, OBT_ID);
-    // await fioNft.connect(fioNftAccts[13]).wrap(fioNftAccts[0].address, 100, OBT_ID);
-    // try {
-    //   let result = await fioNft.connect(fioNftAccts[14]).wrap(fioNftAccts[0].address, 100, OBT_ID);
-    //   let fromEndingBal = await fioNftAccts[14].getBalance();
-    //   let toEndingWfioBal = await fioNft.balanceOf(fioNftAccts[0].address);
-    //   expect(result.from).to.equal(fioNftAccts[14].address);
-    //   expect(result.to).to.equal(fioNft.address);
-    //   expect(fromStartingBal.gt(fromEndingBal)).to.be.true;
-    //   expect(toStartingWfioBal.lt(toEndingWfioBal)).to.be.true;
-    //   expect(toEndingWfioBal.sub(toStartingWfioBal).toNumber()).to.equal(100)
-    // } catch (err) {
-    //   throw err;
-    // }
   });
 
   it(`query the oracless table, expects the three original new records`, async function () {
@@ -1208,7 +1155,7 @@ describe(`B1. PROBLEM TESTS (wrapdomains)`, function () {
     WRAP_FEE = result.fee;
   });
 
-  it(`(BUG BD-3876)(int chain_code) try to wrap a FIO domain`, async function () {
+  it(`(11 digit int chain_code) try to wrap a FIO domain. Expect error.`, async function () {
     let domain = user2.domain;
     try {
       const result = await user2.sdk.genericAction('pushTransaction', {
@@ -1216,7 +1163,7 @@ describe(`B1. PROBLEM TESTS (wrapdomains)`, function () {
         account: 'fio.oracle',
         data: {
           fio_domain: domain,
-          chain_code: 12345,
+          chain_code: 12345678901,
           public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
@@ -1227,89 +1174,37 @@ describe(`B1. PROBLEM TESTS (wrapdomains)`, function () {
       //console.log('Result: ', result)
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      // expect(err.message).to.equal('Invalid chain code format');
       expect(err.json.fields[0].error).to.equal('Invalid chain code format');
     }
   });
 
-  it.skip(`(Not a bug: We are not currently validating ETH addresses. It accepts any string.) (invalid public_address) try to wrap a FIO domain`, async function () {
-    // todo: test with the API, verify whether SDK is using default values
-    let domain = user3.domain;
+  it(`(11 digit string chain_code) try to wrap a FIO domain. Expect error.`, async function () {
+    let domain = user2.domain;
     try {
-      const result = await user3.sdk.genericAction('pushTransaction', {
+      const result = await user2.sdk.genericAction('pushTransaction', {
         action: 'wrapdomain',
         account: 'fio.oracle',
         data: {
           fio_domain: domain,
-          chain_code: "ETH",
-          public_address: "!invalid@%^",
+          chain_code: '12345678901',
+          public_address: fioNft.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: "",
-          actor: user3.account
-        }
-      });
-      expect(result.status).to.not.equal('OK');
-    } catch (err) {
-      // expect(err.message).to.equal('Invalid public address');
-      expect(err.json.fields[0].error).to.equal('Invalid public address');
-    }
-  });
-
-  it(`(BUG BD-3877)(int public_address) try to wrap a FIO domain`, async function () {
-    // todo: test with the API, verify whether SDK is using default values
-    let domain = user4.domain;
-    try {
-      const result = await user4.sdk.genericAction('pushTransaction', {
-        action: 'wrapdomain',
-        account: 'fio.oracle',
-        data: {
-          fio_domain: domain,
-          chain_code: "ETH",
-          public_address: 12345,
-          max_oracle_fee: config.maxFee,
-          max_fee: config.maxFee,
-          tpid: "",
-          actor: user4.account
+          actor: user2.account
         }
       });
       //console.log('Result: ', result)
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      // expect(err.message).to.equal('Invalid public address');
-      expect(err.json.fields[0].error).to.equal('Invalid public address');
+      expect(err.json.fields[0].error).to.equal('Invalid chain code format');
     }
   });
 
-  it(`(BUG BD-3877)(negative public_address) try to wrap a FIO domain`, async function () {
-    // todo: test with the API, verify whether SDK is using default values
-    let domain = user5.domain;
+   it(`(BUG BD-3878)(int tpid) try to wrap a FIO domain. Expect invalid format error since it is not a valid crypto handle.`, async function () {
+    let domain = user6.domain;
     try {
-      const result = await user5.sdk.genericAction('pushTransaction', {
-        action: 'wrapdomain',
-        account: 'fio.oracle',
-        data: {
-          fio_domain: domain,
-          chain_code: "ETH",
-          public_address: -12345,
-          max_oracle_fee: config.maxFee,
-          max_fee: config.maxFee,
-          tpid: "",
-          actor: user5.account
-        }
-      });
-      //console.log('Result: ', result)
-      expect(result.status).to.not.equal('OK');
-    } catch (err) {
-      // expect(err.message).to.equal('Invalid public address');
-      expect(err.json.fields[0].error).to.equal('Invalid public address');
-    }
-  });
-
-  it(`(BUG BD-3878)(int tpid) try to wrap a FIO domain`, async function () {
-    let domain = user12.domain;
-    try {
-      const result = await user12.sdk.genericAction('pushTransaction', {
+      const result = await user6.sdk.genericAction('pushTransaction', {
         action: 'wrapdomain',
         account: 'fio.oracle',
         data: {
@@ -1319,7 +1214,7 @@ describe(`B1. PROBLEM TESTS (wrapdomains)`, function () {
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
           tpid: 12345,
-          actor: user12.account
+          actor: user6.account
         }
       });
       //console.log('Result: ', result)
@@ -2002,6 +1897,9 @@ describe(`C1. PROBLEM TESTS (unwrapdomains)`, function () {
     }
   });
 
+  /*
+  // Talked with casey, integers are converted to strings for the obt_id so only string validation is done. Not a bug.
+
   it(`(BUG BD-3879) (int obt_id) try to unwrap a FIO domain`, async function () {
     try {
       const result = await newOracle1.sdk.genericAction('pushTransaction', {
@@ -2045,4 +1943,311 @@ describe(`C1. PROBLEM TESTS (unwrapdomains)`, function () {
       expect(err.json.fields[0].error).to.equal('FIO domain not owned by Oracle contract.');//('FIO domain not found');
     }
   });
+  */
+});
+
+describe(`D. setoraclefees and simple wrap - confirm ram bump on wrap and validate fee distribution`, function () {
+  let user1, newOracle1, oracle1Balance, oracle2Balance, oracle3Balance, user1Balance, newOracle2, newOracle3, wrapFee, userRam;
+  const chainCode = "MATIC";
+  const ethAddress = '0xblahblahblah' + randStr(20);
+  const obtID = '0xobtidetcetcetc' + randStr(20);
+  const oracle1DomainFee = 2000000000;
+  const oracle2DomainFee = 5000000000;
+  const oracle3DomainFee = 9000000000;
+  const oracleFeeTotal = oracle2DomainFee * 3;
+  const tokenFee = 1000000000;
+
+  it(`clean out oracless fees table with helper function`, async function () {
+    try {
+      await cleanUpOraclessTable(faucet, true);
+    } catch (err) {
+      console.log('Error: ', err)
+      throw err;
+    }
+  });
+
+  it(`confirm oracles table is empty`, async function () {
+    try {
+      let records = await getOracleRecords();
+      //console.log('Records: ', records);
+      expect(records.rows.length).to.equal(0);
+    } catch (err) {
+      console.log('Error: ', err)
+      throw err;
+    }
+  });
+
+  it(`Register users and oracles`, async function () {
+    try {
+      user1 = await newUser(faucet);
+      newOracle1 = await newUser(faucet);
+      newOracle2 = await newUser(faucet);
+      newOracle3 = await newUser(faucet);
+      await registerNewBp(newOracle1);
+      await registerNewBp(newOracle2);
+      await registerNewBp(newOracle3);
+      await registerNewOracle(newOracle1);
+      await registerNewOracle(newOracle2);
+      await registerNewOracle(newOracle3);
+    } catch (err) {
+      console.log('Error: ', err.json);
+      throw err;
+    }
+  });
+
+  //
+  //Begin wrapdomain
+  //
+
+  it(`newOracle1 sets wraptokens fee`, async function () {
+    try {
+      await setTestOracleFees(newOracle1, oracle1DomainFee, tokenFee);
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`(Bug BD-3874) (Failure) Try to wrap FIO domain, expect: "All registered oracles have not set fees"`, async function () {
+    let postWrapBalDiff, postWrapAvailDiff;
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'wrapdomain',
+        account: 'fio.oracle',
+        data: {
+          fio_domain: user1.domain,
+          chain_code: chainCode,
+          public_address: ethAddress,
+          max_oracle_fee: config.maxOracleFee,
+          max_fee: config.maxFee,
+          tpid: "",
+        }
+      });
+      //console.log('Result: ', result);
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      //console.log('Error: ', err.json.error);
+      expect(err.json.error.details[0].message).to.equal('All registered oracles have not set fees')
+    }
+  });
+
+  it(`newOracle2 sets wrapdomain fee`, async function () {
+    try {
+      await setTestOracleFees(newOracle2, oracle2DomainFee, tokenFee);
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`newOracle3 sets wraptokens fee`, async function () {
+    try {
+      await setTestOracleFees(newOracle3, oracle3DomainFee, tokenFee);
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it('Confirm oracle fee is median * 3`', async function () {
+    try {
+      result = await callFioApi('get_oracle_fees', {});
+      //console.log('Result: ', result);
+      expect(result.oracle_fees[0].fee_name).to.equal('wrap_fio_domain');
+      expect(result.oracle_fees[0].fee_amount).to.equal(oracleFeeTotal);
+    } catch (err) {
+      console.log('Error: ', err);
+      throw err;
+    }
+  });
+
+  it(`get wrapdomain fee`, async function () {
+    let result = await callFioApi('get_fee', {
+      end_point: "wrap_fio_domain",
+      fio_address: newOracle1.address //"vote1@dapixdev"
+    });
+    wrapFee = result.fee;
+  });
+
+  it(`Get original balances for user1 and oracles`, async () => {
+    try {
+      let result;
+      result = await user1.sdk.genericAction('getFioBalance', { fioPublicKey: user1.publicKey });
+      user1Balance = result.balance;
+      result = await newOracle1.sdk.genericAction('getFioBalance', { fioPublicKey: newOracle1.publicKey });
+      oracle1Balance = result.balance;
+      result = await newOracle2.sdk.genericAction('getFioBalance', { fioPublicKey: newOracle2.publicKey });
+      oracle2Balance = result.balance;
+      result = await newOracle3.sdk.genericAction('getFioBalance', { fioPublicKey: newOracle3.publicKey });
+      oracle3Balance = result.balance;
+      //console.log('user1 fio balance', result)
+    } catch (err) {
+        //console.log('Error', err)
+        expect(err).to.equal(null)
+    }
+  });
+
+  it(`get user1 RAM before wrap`, async function () {
+    userRam = await getRamForUser(user1);
+  });
+
+  it(`(Success) Try to wrap FIO tokens after all oracles have set fees. Expect OK`, async function () {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'wrapdomain',
+        account: 'fio.oracle',
+        data: {
+          fio_domain: user1.domain,
+          chain_code: chainCode,
+          public_address: ethAddress,
+          max_oracle_fee: config.maxOracleFee,
+          max_fee: config.maxFee,
+          tpid: "",
+        }
+      });
+      //console.log('Result: ', result);
+      expect(result.status).to.equal('OK');
+      expect(result.fee_collected).to.equal(wrapFee);
+      expect(parseInt(result.oracle_fee_collected)).to.equal(oracleFeeTotal);
+    } catch (err) {
+      console.log('Error: ', err);
+      throw err;
+    }
+  });
+
+  it(`get user1 RAM after wrap. Confirm RAM bump.`, async function () {
+    const userRamPrev = userRam;
+    userRam = await getRamForUser(user1);
+    expect(userRam).to.equal(userRamPrev + config.RAM.WRAPDOMAINRAM);  // wraptoken and wrapdomain are the same RAM
+  });
+
+  it(`Get balances for user1 and oracles after wrap: Confirm fee distribution`, async () => {
+    try {
+      const user1BalancePrev = user1Balance;
+      const oracle1BalancePrev = oracle1Balance;
+      const oracle2BalancePrev = oracle2Balance;
+      const oracle3BalancePrev = oracle3Balance;
+      let result;
+      result = await user1.sdk.genericAction('getFioBalance', { fioPublicKey: user1.publicKey });
+      user1Balance = result.balance;
+      result = await newOracle1.sdk.genericAction('getFioBalance', { fioPublicKey: newOracle1.publicKey });
+      oracle1Balance = result.balance;
+      result = await newOracle2.sdk.genericAction('getFioBalance', { fioPublicKey: newOracle2.publicKey });
+      oracle2Balance = result.balance;
+      result = await newOracle3.sdk.genericAction('getFioBalance', { fioPublicKey: newOracle3.publicKey });
+      oracle3Balance = result.balance;
+      expect(user1Balance).to.equal(user1BalancePrev - wrapFee - oracleFeeTotal);
+      expect(oracle1Balance).to.equal(oracle1BalancePrev + oracleFeeTotal / 3);
+      expect(oracle2Balance).to.equal(oracle2BalancePrev + oracleFeeTotal / 3);
+      expect(oracle3Balance).to.equal(oracle3BalancePrev + oracleFeeTotal / 3);
+      //console.log('user1 fio balance', result)
+    } catch (err) {
+        //console.log('Error', err)
+        expect(err).to.equal(null)
+    }
+  });
+
+  //
+  // Begin unwrapdomain
+  //
+
+  it(`(Success) newOracle1 calls unwrapdomain after all oracles have set fees. Expect OK`, async function () {
+    try {
+      const result = await newOracle1.sdk.genericAction('pushTransaction', {
+        action: 'unwrapdomain',
+        account: 'fio.oracle',
+        data: {
+          fio_domain: user1.domain,
+          obt_id: obtID,
+          fio_address: user1.address,
+        }
+      });
+      //console.log('Result: ', result);
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log('Error: ', err);
+      throw err;
+    }
+  });
+
+  it(`(Failure) get_fio_domains for user1 after 1 oracle has called unwrapdomain. Expect: `, async () => {
+    try {
+      const json = {
+        "fio_public_key": user1.publicKey
+      }
+      result = await callFioApi("get_fio_domains", json);
+      console.log('Result: ', result);
+      expect(result.fio_domains.length).to.equal(0)
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err.error.message).to.equal(config.error.noFioDomains);
+      expect(err.statusCode).to.equal(404);
+    }
+  })
+
+  it(`(Success) newOracle2 calls unwrapdomain. Expect OK`, async function () {
+    try {
+      const result = await newOracle2.sdk.genericAction('pushTransaction', {
+        action: 'unwrapdomain',
+        account: 'fio.oracle',
+        data: {
+          fio_domain: user1.domain,
+          obt_id: obtID,
+          fio_address: user1.address,
+        }
+      });
+      //console.log('Result: ', result);
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log('Error: ', err);
+      throw err;
+    }
+  });
+
+  it(`(Failure) get_fio_domains for user1 after 2 oracles has called unwrapdomain: Confirm NO domain transfer`, async () => {
+    try {
+      const json = {
+        "fio_public_key": user1.publicKey
+      }
+      result = await callFioApi("get_fio_domains", json);
+      console.log('Result: ', result);
+      expect(result.fio_domains.length).to.equal(0)
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err.error.message).to.equal(config.error.noFioDomains);
+      expect(err.statusCode).to.equal(404);
+    }
+  })
+
+  it(`(Success) newOracle3 calls unwrapdomain. Expect OK`, async function () {
+    try {
+      const result = await newOracle3.sdk.genericAction('pushTransaction', {
+        action: 'unwrapdomain',
+        account: 'fio.oracle',
+        data: {
+          fio_domain: user1.domain,
+          obt_id: obtID,
+          fio_address: user1.address,
+        }
+      });
+      //console.log('Result: ', result);
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log('Error: ', err);
+      throw err;
+    }
+  });
+
+  it(`get_fio_domains for user1 after all 3 oracles have called unwrap: Confirm domain was transferred`, async () => {
+    try {
+      const json = {
+        "fio_public_key": user1.publicKey
+      }
+      result = await callFioApi("get_fio_domains", json);
+      //console.log('Result: ', result);
+      expect(result.fio_domains[0].fio_domain).to.equal(user1.domain);
+      expect(result.fio_domains.length).to.equal(1);
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
 });

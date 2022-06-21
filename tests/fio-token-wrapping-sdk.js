@@ -1014,7 +1014,7 @@ describe.skip(`E. (BD-3788) Server crash: Register 3 oracles, only have 2 oracle
   });
 });
 
-describe.only(`** ORACLE TABLE CLEANUP **`, async function () {
+describe(`** ORACLE TABLE CLEANUP **`, async function () {
   it(`clean out oracless record with helper function`, async function () {
     try {
       await cleanUpOraclessTable(faucet, true);
@@ -1026,7 +1026,7 @@ describe.only(`** ORACLE TABLE CLEANUP **`, async function () {
   });
 });
 
-describe.only(`F. [FIO] Wrap FIO tokens`, function () {
+describe(`F. [FIO] Wrap FIO tokens`, function () {
 
   let wrapAmt = 1000000000000;
   let oracle1, oracle2, oracle3, user1, user2, newOracle, newOracle1, newOracle2, custodians, factory, owner, wfioAccts;
@@ -1291,7 +1291,7 @@ describe.only(`F. [FIO] Wrap FIO tokens`, function () {
     }
   });
 
-  it(`(BD-3408)(negative max_fee) try to wrap 1000 FIO tokens`, async function () {
+  it(`(BD-3408 fixed)(negative max_fee) try to wrap 1000 FIO tokens`, async function () {
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
         action: 'wraptokens',
@@ -1305,7 +1305,7 @@ describe.only(`F. [FIO] Wrap FIO tokens`, function () {
           tpid: "",
         }
       });
-      expect(result.status).to.not.equal('OK');
+      expect(result.status).to.equal(null);
     } catch (err) {
       expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
       expect(err.json.fields[0].name).to.equal('max_fee');
@@ -1314,7 +1314,7 @@ describe.only(`F. [FIO] Wrap FIO tokens`, function () {
     }
   });
 
-  it(`(BD-3408)(negative max_oracle_fee) try to wrap 1000 FIO tokens`, async function () {
+  it(`(BD-3408 fixed)(negative max_oracle_fee) try to wrap 1000 FIO tokens`, async function () {
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
         action: 'wraptokens',
@@ -1328,7 +1328,7 @@ describe.only(`F. [FIO] Wrap FIO tokens`, function () {
           tpid: "",
         }
       });
-      expect(result.status).to.not.equal('OK');
+      expect(result.status).to.equal(null);
     } catch (err) {
       expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
       expect(err.json.fields[0].name).to.equal('max_oracle_fee');
@@ -1336,7 +1336,7 @@ describe.only(`F. [FIO] Wrap FIO tokens`, function () {
       expect(err.json.fields[0].error).to.equal('Invalid oracle fee value');    }
   });
 
-  it(`(BD-3408)(int tpid) try to wrap 1000 FIO tokens`, async function () {
+  it(`(BD-3878)(int tpid) try to wrap 1000 FIO tokens`, async function () {
     try {
       const result = await user2.sdk.genericAction('pushTransaction', {
         action: 'wraptokens',
@@ -1354,7 +1354,7 @@ describe.only(`F. [FIO] Wrap FIO tokens`, function () {
       // expect(result.fee_collected).to.equal(400000000);
       // expect(parseInt(result.oracle_fee_collected)).to.equal(60000000000);
     } catch (err) {
-      console.log(err);
+      //console.log(err);
       expect(err.json.error.details[0].message).to.equal('TPID must be empty or valid FIO address');
     }
   });

@@ -8,7 +8,8 @@ const {
   existingUser,
   callFioApi,
   callFioApiSigned,
-  getAccountFromKey
+  getAccountFromKey,
+  randStr
 } = require("../utils.js");
 const {
   getOracleRecords,
@@ -1174,7 +1175,7 @@ describe.skip(`E. (BD-3788)[FIO] Oracles (getoraclefees)`, function () {
   });
 });
 
-describe.only(`** ORACLE TABLE CLEANUP **`, async function () {
+describe(`** ORACLE TABLE CLEANUP **`, async function () {
   it(`clean out oracless record with helper function`, async function () {
     try {
       await cleanUpOraclessTable(faucet, true);
@@ -1186,7 +1187,7 @@ describe.only(`** ORACLE TABLE CLEANUP **`, async function () {
   });
 });
 
-describe.only(`F. [FIO][api] Wrap FIO tokens`, function () {
+describe(`F. [FIO][api] Wrap FIO tokens`, function () {
 
   let wrapAmt = 1000000000000;
   let oracle1, oracle2, oracle3, user1, user2, newOracle, newOracle1, newOracle2, custodians, factory, owner, wfio, wfioAccts;
@@ -1376,7 +1377,7 @@ describe.only(`F. [FIO][api] Wrap FIO tokens`, function () {
   });
 
   // issues
-  it(`(BD-3408)(int tpid) try to wrap 1000 FIO tokens`, async function () {
+  it(`(BD-3878)(int tpid) try to wrap 1000 FIO tokens. Expect invalid tpid since it is not a valid Crypto Handle`, async function () {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'wraptokens',
@@ -1389,7 +1390,7 @@ describe.only(`F. [FIO][api] Wrap FIO tokens`, function () {
           public_address: wfio.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
-          tpid: 1234500000000,
+          tpid: 123450000,
           // tpid: "donkey 123",    // does not replicate - space seems to trigger expected error
           // tpid: "donkey123",
           // tpid: "donkey-123",
@@ -2079,7 +2080,7 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
   let OBT_ID_1, OBT_ID_2;
 
   wfio = {
-    address: '0xblahblahblah'
+    address: '0xblahblahblah' + randStr(20)
   }
 
   before(async function () {
@@ -2204,87 +2205,27 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
     }
   });
 
-  it(`(BD-3409?)(invalid obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
-    try {
-      const result = await callFioApiSigned('push_transaction', {
-        action: 'unwraptokens',
-        account: 'fio.oracle',
-        actor: newOracle1.account,
-        privKey: newOracle1.privateKey,
-        data: {
-          amount: wrapAmt,
-          obt_id: "!invalid@#$",
-          fio_address: user1.address,
-          actor: newOracle1.account
-        }
-      });
-      expect(result).to.not.have.all.keys('transaction_id', 'processed');
-    } catch (err) {
-      throw err;
-    }
-  });
-
-  it(`(BD-3409?)(int obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
-    try {
-      const result = await callFioApiSigned('push_transaction', {
-        action: 'unwraptokens',
-        account: 'fio.oracle',
-        actor: newOracle1.account,
-        privKey: newOracle1.privateKey,
-        data: {
-          amount: wrapAmt,
-          obt_id: 1000000000000,
-          fio_address: user1.address,
-          actor: newOracle1.account
-        }
-      });
-      expect(result).to.not.have.all.keys('transaction_id', 'processed');
-    } catch (err) {
-      throw err;
-    }
-  });
-
-  it(`(BD-3409?)(negative obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
-    try {
-      const result = await callFioApiSigned('push_transaction', {
-        action: 'unwraptokens',
-        account: 'fio.oracle',
-        actor: newOracle1.account,
-        privKey: newOracle1.privateKey,
-        data: {
-          amount: wrapAmt,
-          obt_id: -12345,
-          fio_address: user1.address,
-          actor: newOracle1.account
-        }
-      });
-      expect(result).to.not.have.all.keys('transaction_id', 'processed');
-    } catch (err) {
-      throw err;
-    }
-  });
-
   // Need to skip unitl bug is fixed or it messes up future happy pay unwraps
 
-  // it(`(BUG BD-3866) (empty amount) try to unwrap FIO tokens, Expect failure`, async function () {
-  //   try {
-  //     const result = await callFioApiSigned('push_transaction', {
-  //       action: 'unwraptokens',
-  //       account: 'fio.oracle',
-  //       actor: newOracle1.account,
-  //       privKey: newOracle1.privateKey,
-  //       data: {
-  //         amount: "",
-  //         obt_id: OBT_ID_1,
-  //         fio_address: user3.address,
-  //         actor: newOracle1.account
-  //       }
-  //     });
-  //     expect(result).to.have.all.keys('transaction_id', 'processed');
-  //   } catch (err) {
-  //     expect(err.message).to.equal('missing unwraptokens.amount (type=int64)');
-  //   }
-  // });
+  it.skip(`(BUG BD-3866) (empty amount) try to unwrap FIO tokens, Expect failure`, async function () {
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'unwraptokens',
+        account: 'fio.oracle',
+        actor: newOracle1.account,
+        privKey: newOracle1.privateKey,
+        data: {
+          amount: "",
+          obt_id: OBT_ID_1,
+          fio_address: user3.address,
+          actor: newOracle1.account
+        }
+      });
+      expect(result).to.have.all.keys('transaction_id', 'processed');
+    } catch (err) {
+      expect(err.message).to.equal('missing unwraptokens.amount (type=int64)');
+    }
+  });
 
   it(`(missing amount) try to unwrap FIO tokens`, async function () {
     try {
