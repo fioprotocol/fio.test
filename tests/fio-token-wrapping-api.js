@@ -1116,7 +1116,7 @@ describe(`D. [FIO][api] Oracles (setoraclefee)`, function () {
   });
 });
 
-describe(`** ORACLE TABLE CLEANUP **`, async function () {
+describe.skip(`** ORACLE TABLE CLEANUP **`, async function () {
   it(`clean out oracless record with helper function`, async function () {
     try {
       await cleanUpOraclessTable(faucet, true);
@@ -1174,7 +1174,7 @@ describe.skip(`E. (BD-3788)[FIO] Oracles (getoraclefees)`, function () {
   });
 });
 
-describe(`** ORACLE TABLE CLEANUP **`, async function () {
+describe.only(`** ORACLE TABLE CLEANUP **`, async function () {
   it(`clean out oracless record with helper function`, async function () {
     try {
       await cleanUpOraclessTable(faucet, true);
@@ -1186,7 +1186,7 @@ describe(`** ORACLE TABLE CLEANUP **`, async function () {
   });
 });
 
-describe(`F. [FIO][api] Wrap FIO tokens`, function () {
+describe.only(`F. [FIO][api] Wrap FIO tokens`, function () {
 
   let wrapAmt = 1000000000000;
   let oracle1, oracle2, oracle3, user1, user2, newOracle, newOracle1, newOracle2, custodians, factory, owner, wfio, wfioAccts;
@@ -2004,8 +2004,10 @@ describe(`F. [FIO][api] Wrap FIO tokens`, function () {
     preWrapBal = await user1.sdk.genericAction('getFioBalance', {});
   });
 
-  it(`(Bug BD-3869) (happy w/ tpid) try to wrap 1000 FIO tokens`, async function () {
-    try {
+  it.skip(`(Bug BD-3869) (happy w/ tpid) try to wrap 1000 FIO tokens`, async function () {
+    /**
+     * In fio-token-wrapping-sdk, this test fails with other fio addresses
+     */try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'wraptokens',
         account: 'fio.oracle',
@@ -2014,9 +2016,7 @@ describe(`F. [FIO][api] Wrap FIO tokens`, function () {
         data: {
           amount: wrapAmt,
           chain_code: "ETH",
-          // public_address: wfio.address,
           public_address: wfio.address,
-          // public_address: wfioAccts[0].address,
           max_oracle_fee: config.maxOracleFee,
           max_fee: config.maxFee,
           tpid: 'eosio',

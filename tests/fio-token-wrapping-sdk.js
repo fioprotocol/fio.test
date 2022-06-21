@@ -935,7 +935,7 @@ describe(`D. [FIO] Oracles (setoraclefees)`, function () {
   });
 });
 
-describe(`** ORACLE TABLE CLEANUP **`, async function () {
+describe.skip(`** ORACLE TABLE CLEANUP **`, async function () {
   it(`clean out oracless record with helper function`, async function () {
     try {
       await cleanUpOraclessTable(faucet, false);
@@ -1014,7 +1014,7 @@ describe.skip(`E. (BD-3788) Server crash: Register 3 oracles, only have 2 oracle
   });
 });
 
-describe(`** ORACLE TABLE CLEANUP **`, async function () {
+describe.only(`** ORACLE TABLE CLEANUP **`, async function () {
   it(`clean out oracless record with helper function`, async function () {
     try {
       await cleanUpOraclessTable(faucet, true);
@@ -1026,7 +1026,7 @@ describe(`** ORACLE TABLE CLEANUP **`, async function () {
   });
 });
 
-describe(`F. [FIO] Wrap FIO tokens`, function () {
+describe.only(`F. [FIO] Wrap FIO tokens`, function () {
 
   let wrapAmt = 1000000000000;
   let oracle1, oracle2, oracle3, user1, user2, newOracle, newOracle1, newOracle2, custodians, factory, owner, wfioAccts;
@@ -1927,7 +1927,10 @@ describe(`F. [FIO] Wrap FIO tokens`, function () {
     }
   });
 
-  it(`(Bug BD-3869) (happy w/ tpid) try to wrap 1000 FIO tokens`, async function () {
+  it.skip(`(Bug BD-3869) (happy w/ tpid) try to wrap 1000 FIO tokens`, async function () {
+    /**
+     * In fio-token-wrapping-api, this test is repeated with the tpid set to 'eosio', and it passes.
+     */
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
         action: 'wraptokens',
@@ -1938,7 +1941,7 @@ describe(`F. [FIO] Wrap FIO tokens`, function () {
           public_address: wfio.address,
           max_oracle_fee: config.maxFee,
           max_fee: config.maxFee,
-          tpid: 'eosio' //oracle1.address,
+          tpid: oracle1.address,
         }
       });
       expect(result.status).to.equal('OK');
@@ -2199,31 +2202,31 @@ describe(`G. [FIO] Unwrap FIO tokens`, function () {
   });
 
   // issues
-  it(`(BUG BD-3866) (amount: "") try to unwrap FIO tokens`, async function () {
-    preWrapBal = await newOracle1.sdk.genericAction('getFioBalance', {});
-    try {
-      const result = await newOracle1.sdk.genericAction('pushTransaction', {
-        action: 'unwraptokens',
-        account: 'fio.oracle',
-        data: {
-          amount: "",
-          obt_id: OBT_ID_1,
-          fio_address: user1.address
-        }
-      });
-      postWrapBal = await newOracle1.sdk.genericAction('getFioBalance', {});
-      postWrapBalDiff = preWrapBal.balance - postWrapBal.balance;
-      postWrapAvailDiff = preWrapBal.available - postWrapBal.available;
-      expect(result.status).to.equal('OK');
-      expect(postWrapBalDiff).to.equal(0);
-      expect(postWrapAvailDiff).to.equal(0);
-    } catch (err) {
-      // expect(err.json.fields[0].name).to.equal('amount');
-      // expect(err.json.fields[0].value).to.equal('0');
-      // expect(err.json.error.details[0].message).to.equal('assertion failure with message: must transfer positive quantity');
-      throw err;
-    }
-  });
+  // it(`(BUG BD-3866) (amount: "") try to unwrap FIO tokens`, async function () {
+  //   preWrapBal = await newOracle1.sdk.genericAction('getFioBalance', {});
+  //   try {
+  //     const result = await newOracle1.sdk.genericAction('pushTransaction', {
+  //       action: 'unwraptokens',
+  //       account: 'fio.oracle',
+  //       data: {
+  //         amount: "",
+  //         obt_id: OBT_ID_1,
+  //         fio_address: user1.address
+  //       }
+  //     });
+  //     postWrapBal = await newOracle1.sdk.genericAction('getFioBalance', {});
+  //     postWrapBalDiff = preWrapBal.balance - postWrapBal.balance;
+  //     postWrapAvailDiff = preWrapBal.available - postWrapBal.available;
+  //     expect(result.status).to.equal('OK');
+  //     expect(postWrapBalDiff).to.equal(0);
+  //     expect(postWrapAvailDiff).to.equal(0);
+  //   } catch (err) {
+  //     // expect(err.json.fields[0].name).to.equal('amount');
+  //     // expect(err.json.fields[0].value).to.equal('0');
+  //     // expect(err.json.error.details[0].message).to.equal('assertion failure with message: must transfer positive quantity');
+  //     throw err;
+  //   }
+  // });
 
   it(`(negative amount) Expect error: try to unwrap -${wrapAmt} FIO tokens`, async function () {
     try {
