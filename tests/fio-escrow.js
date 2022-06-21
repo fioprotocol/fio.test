@@ -446,6 +446,7 @@ describe.only(`************************** fio-escrow.js ************************
 				}
 			})
 
+			// TODO remove .skip when modexpire is added to contract
 			it.skip(`burn domain that is in domainsales table`, async () => {
 				let offset = 0;
 				let limit  = 15;
@@ -456,7 +457,8 @@ describe.only(`************************** fio-escrow.js ************************
 					// register domain
 					await registerDomain(userA1, domain);
 					// list for sale
-					await listDomain(userA1, domain);
+					let listDomainResult = await listDomain(userA1, domain);
+
 					// expire domain
 					const result = await callFioApiSigned('push_transaction', {
 						action : 'modexpire',
@@ -496,8 +498,9 @@ describe.only(`************************** fio-escrow.js ************************
 						reverse       : true,
 						show_payer    : false
 					});
-					// Listing for burned domain set to cancelled
-					expect(domainSaleRow.rows[0].status).to.equal(3);
+					// Listing for burned domain removed
+					expect(domainSaleRow.rows.length).to.equal(0);
+
 				} catch (err) {
 					if (err.errorCode == 400 && err.json.fields[0].error == 'No work.') {
 						retryCount = 0;
@@ -506,10 +509,13 @@ describe.only(`************************** fio-escrow.js ************************
 						expect(err.json.fields[0].error).to.equal('No work.');
 					} else {
 						console.log('UNEXPECTED ERROR: ', err);
+						console.log(err.json.fields)
+						expect(err).to.equal(null)
 					}
 				}
 			})
 
+			// TODO remove .skip when modexpire is added to contract
 			it.skip(`list 2 domains, purchase 1, expire both and burnexpired`, async () => {
 				try {
 
@@ -522,9 +528,41 @@ describe.only(`************************** fio-escrow.js ************************
 					await registerDomain(userA1, domain);
 					await registerDomain(userA1, domain2);
 
+					// Observe (via table lookup)
+					const domainHash1 = stringToHash(domain);
+					const domainHash2 = stringToHash(domain2);
+
 					// list for sale
 					let listDomainResult  = await listDomain(userA1, domain, 2000000000000);
 					let listDomainResult2 = await listDomain(userA1, domain2);
+
+					const listDomainResultDomainSaleRow = await callFioApi("get_table_rows", {
+						json          : true,
+						code          : 'fio.escrow',
+						scope         : 'fio.escrow',
+						table         : 'domainsales',
+						upper_bound   : domainHash1.toString(),
+						lower_bound   : domainHash1.toString(),
+						key_type      : 'i128',
+						index_position: 2,
+						reverse       : true,
+						show_payer    : false
+					});
+					expect(listDomainResultDomainSaleRow.rows.length).to.equal(1);
+
+					const listDomainResultDomainSaleRow2 = await callFioApi("get_table_rows", {
+						json          : true,
+						code          : 'fio.escrow',
+						scope         : 'fio.escrow',
+						table         : 'domainsales',
+						upper_bound   : domainHash2.toString(),
+						lower_bound   : domainHash2.toString(),
+						key_type      : 'i128',
+						index_position: 2,
+						reverse       : true,
+						show_payer    : false
+					});
+					expect(listDomainResultDomainSaleRow2.rows.length).to.equal(1);
 
 					// purchase 1 of the domains
 					await buyDomain(userA2, domain, listDomainResult.domainsale_id, 2000000000000);
@@ -566,9 +604,6 @@ describe.only(`************************** fio-escrow.js ************************
 						}
 					})
 
-					// Observe (via table lookup)
-					const domainHash1 = stringToHash(domain);
-					const domainHash2 = stringToHash(domain2);
 
 					const domainSaleRow = await callFioApi("get_table_rows", {
 						json          : true,
@@ -582,7 +617,7 @@ describe.only(`************************** fio-escrow.js ************************
 						reverse       : true,
 						show_payer    : false
 					});
-					expect(domainSaleRow.rows[0].status).to.equal(2);
+					expect(domainSaleRow.rows.length).to.equal(0);
 
 					const domainSaleRow2 = await callFioApi("get_table_rows", {
 						json          : true,
@@ -596,9 +631,11 @@ describe.only(`************************** fio-escrow.js ************************
 						reverse       : true,
 						show_payer    : false
 					});
-					expect(domainSaleRow2.rows[0].status).to.equal(3);
+
+					expect(domainSaleRow2.rows.length).to.equal(0);
+
 				} catch (err) {
-					console.log(err.json)
+					console.log(err)
 					expect(err).to.equal(null)
 				}
 			})
@@ -616,11 +653,56 @@ describe.only(`************************** fio-escrow.js ************************
 					let buyDomain1 = await buyDomain(userA2, domain, listDomainResult.domainsale_id, salePrice);
 					expect(buyDomain1.status).to.equal('OK')
 
+					const domainHash = stringToHash(domain);
+
+					let domainSaleRow = await callFioApi("get_table_rows", {
+						json          : true,
+						code          : 'fio.escrow',
+						scope         : 'fio.escrow',
+						table         : 'domainsales',
+						upper_bound   : domainHash.toString(),
+						lower_bound   : domainHash.toString(),
+						key_type      : 'i128',
+						index_position: 2,
+						reverse       : true,
+						show_payer    : false
+					});
+
+					expect(domainSaleRow.rows.length).to.equal(0);
+
 					const resultA2ListDomain = await listDomain(userA2, domain, salePrice);
+					domainSaleRow            = await callFioApi("get_table_rows", {
+						json          : true,
+						code          : 'fio.escrow',
+						scope         : 'fio.escrow',
+						table         : 'domainsales',
+						upper_bound   : domainHash.toString(),
+						lower_bound   : domainHash.toString(),
+						key_type      : 'i128',
+						index_position: 2,
+						reverse       : true,
+						show_payer    : false
+					});
+
+					expect(domainSaleRow.rows.length).to.equal(1);
 
 					let buyDomain2 = await buyDomain(userA3, domain, resultA2ListDomain.domainsale_id, salePrice);
 					expect(buyDomain2.status).to.equal('OK')
 
+					domainSaleRow = await callFioApi("get_table_rows", {
+						json          : true,
+						code          : 'fio.escrow',
+						scope         : 'fio.escrow',
+						table         : 'domainsales',
+						upper_bound   : domainHash.toString(),
+						lower_bound   : domainHash.toString(),
+						key_type      : 'i128',
+						index_position: 2,
+						reverse       : true,
+						show_payer    : false
+					});
+
+					expect(domainSaleRow.rows.length).to.equal(0);
 				} catch (err) {
 					// console.log(err);
 					console.log(err.json);
@@ -789,6 +871,7 @@ describe.only(`************************** fio-escrow.js ************************
 				}
 			})
 
+			// TODO remove .skip when modexpire is added to contract
 			it.skip(`listdomain: expired domain`, async () => {
 				let domain;
 				try {
@@ -1042,7 +1125,9 @@ describe.only(`************************** fio-escrow.js ************************
 					// Getting marketplace configurations
 					const commissionFeePct = configs.rows[0].commission_fee / 100;
 
-					let userA2ListDomainResult = await listDomain(userA2, userA2.domain, 300000000000)
+					const domainSalePrice = 300000000000;
+
+					let userA2ListDomainResult = await listDomain(userA2, userA2.domain, domainSalePrice)
 					await timeout(2000); // have to wait a few seconds after listing the domain to buy the domain so the date_updated is changed
 
 					const marketplaceBalanceResult = await marketplaceUser.sdk.genericAction('getFioBalance', {
@@ -1091,8 +1176,7 @@ describe.only(`************************** fio-escrow.js ************************
 						show_payer    : false
 					});
 
-					expect(domainSaleRow.rows[0].status).to.equal(2); // sold listing
-					expect(domainSaleRow.rows[0].date_listed).to.not.equal(domainSaleRow.rows[0].date_updated); // date_updated updated
+					expect(domainSaleRow.rows.length).to.equal(0);
 
 					const userBalanceResultAfter = await userA1.sdk.genericAction('getFioBalance', {
 						fioPublicKey: userA1.publicKey
@@ -1110,9 +1194,9 @@ describe.only(`************************** fio-escrow.js ************************
 					await timeout(500);
 
 					// check balance of userA1 (buyer)
-					expect(userBalanceResultAfter.balance).to.equal(userA1Balance - config.api.buy_domain.fee - domainSaleRow.rows[0].sale_price)
+					expect(userBalanceResultAfter.balance).to.equal(userA1Balance - config.api.buy_domain.fee - domainSalePrice)
 					// check balance of userA2 (seller)
-					expect(userA2BalanceResultAfter.balance).to.equal(userA2Balance + domainSaleRow.rows[0].sale_price - marketplaceCommission)
+					expect(userA2BalanceResultAfter.balance).to.equal(userA2Balance + domainSalePrice - marketplaceCommission)
 					// check balance of marketplace
 					expect(marketplaceBalanceResultAfter.balance).to.equal(marketplaceBalanceResult.balance + marketplaceCommission)
 
@@ -1440,67 +1524,6 @@ describe.only(`************************** fio-escrow.js ************************
 					expect(result.rows[0].e_break).to.equal(0);
 				}
 			})
-
-			it(`userA2 tries to buy userA1's cancelled domain listing`, async () => {
-				try {
-					// generate domain
-
-					domain = generateFioDomain(10);
-					// console.log(`generate domain: ${domain}`)
-
-					//register domain
-					await registerDomain(userA1, domain);
-					// console.log(`registered domain`)
-
-					// userA1 list domain for sale
-					let listResult = await listDomain(userA1, domain);
-					// console.log(`listResult`);
-					// console.log(listResult);
-
-					// cancel domain listing and get saleID
-					let cancelData = {
-						"actor"     : userA1.account,
-						"fio_domain": domain,
-						"max_fee"   : config.api.cancel_list_domain.fee,
-						"sale_id"   : listResult.domainsale_id,
-						"tpid"      : TPID_ACCOUNT
-					};
-					// console.log(`cancelData`);
-					// console.log(cancelData);
-
-					let cancelResult = await userA1.sdk.genericAction('pushTransaction', {
-						action : 'cxlistdomain',
-						account: 'fio.escrow',
-						data   : cancelData
-					})
-					// console.log(`cancelResult`)
-					// console.log(cancelResult)
-
-					let data = {
-						"actor"        : userA1.account,
-						"fio_domain"   : domain,
-						"sale_id"      : listResult.domainsale_id,
-						"max_buy_price": 300000000000,
-						"max_fee"      : 5000000000,
-						"tpid"         : TPID_ACCOUNT
-					};
-
-					let buyResult = await userA1.sdk.genericAction('pushTransaction', {
-						action : 'buydomain',
-						account: 'fio.escrow',
-						data   : data
-					})
-
-					// console.log(buyResult);
-
-				} catch (err) {
-					// console.log(err.json.error.details);
-					expect(err.errorCode).to.equal(400)
-					expect(err.json.fields[0].name).to.equal('status')
-					expect(err.json.fields[0].value).to.equal('3')
-					expect(err.json.fields[0].error).to.equal('Domain has already been bought or cancelled')
-				}
-			});
 		});
 	});
 
@@ -1561,8 +1584,9 @@ describe.only(`************************** fio-escrow.js ************************
 						show_payer    : false
 					});
 
-					expect(domainSaleRow.rows[0].status).to.equal(3); // cancelled listing
-					expect(domainSaleRow.rows[0].date_listed).to.not.equal(domainSaleRow.rows[0].date_updated);
+					expect(domainSaleRow.rows.length).to.equal(0); // cancelled listing
+					// expect(domainSaleRow.rows[0].status).to.equal(3); // cancelled listing
+					// expect(domainSaleRow.rows[0].date_listed).to.not.equal(domainSaleRow.rows[0].date_updated);
 
 					const userBalanceResultAfter = await userA1.sdk.genericAction('getFioBalance', {
 						fioPublicKey: userA1.publicKey
@@ -1624,8 +1648,7 @@ describe.only(`************************** fio-escrow.js ************************
 						show_payer    : false
 					});
 
-					expect(domainSaleRow.rows[0].status).to.equal(3); // cancelled listing
-					expect(domainSaleRow.rows[0].date_listed).to.not.equal(domainSaleRow.rows[0].date_updated);
+					// TODO test that record doesnt exist
 
 					const userBalanceResultAfter = await userA1.sdk.genericAction('getFioBalance', {
 						fioPublicKey: userA1.publicKey
@@ -1707,6 +1730,20 @@ describe.only(`************************** fio-escrow.js ************************
 							data   : cancelPayload
 						})
 						await timeout(500)
+
+						const domainSaleRow = await callFioApi("get_table_rows", {
+							json          : true,
+							code          : 'fio.escrow',
+							scope         : 'fio.escrow',
+							table         : 'domainsales',
+							upper_bound   : domainHash1.toString(),
+							lower_bound   : domainHash1.toString(),
+							key_type      : 'i128',
+							index_position: 2,
+							reverse       : true,
+							show_payer    : false
+						});
+						expect(domainSaleRow.rows.length).to.equal(0);
 
 						expect(cancelResult.status).to.equal('OK');
 					}
