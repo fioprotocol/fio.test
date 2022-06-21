@@ -2313,6 +2313,13 @@ describe(`F1. PROBLEM TESTS (wraptokens)`, function () {
   });
 
   // issues
+
+  
+  /**
+   * 
+  
+  // Not a bug: We are not currently validating ETH addresses. It accepts any string.)(invalid public_address
+
   it.skip(`(Not a bug: We are not currently validating ETH addresses. It accepts any string.)(invalid public_address) try to wrap 1000 FIO tokens`, async function () {
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
@@ -2333,7 +2340,9 @@ describe(`F1. PROBLEM TESTS (wraptokens)`, function () {
     }
   });
 
-  it(`(BD-3408)(int public_address) try to wrap 1000 FIO tokens`, async function () {
+  // The following are not bugs: integers get converted to strings when passed in.
+
+  it.skip(`(Not a bug: integers get converted to strings when passed in) (BD-3408)(int public_address) try to wrap 1000 FIO tokens`, async function () {
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
         action: 'wraptokens',
@@ -2355,7 +2364,7 @@ describe(`F1. PROBLEM TESTS (wraptokens)`, function () {
     }
   });
 
-  it(`(BD-3408)(negative public_address) try to wrap 1000 FIO tokens`, async function () {
+  it.skip(`(Not a bug: integers get converted to strings when passed in) (BD-3408)(negative public_address) try to wrap 1000 FIO tokens`, async function () {
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
         action: 'wraptokens',
@@ -2375,6 +2384,30 @@ describe(`F1. PROBLEM TESTS (wraptokens)`, function () {
       expect(err.json.error.details[0].message).to.equal('assertion failure with message: must transfer positive quantity');
     }
   });
+
+  it.skip(`(Not a bug: integers get converted to strings when passed in) (BD-3408)(int tpid) try to wrap 1000 FIO tokens`, async function () {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'wraptokens',
+        account: 'fio.oracle',
+        data: {
+          amount: wrapAmt,
+          chain_code: "ETH",
+          public_address: wfio.address,
+          max_oracle_fee: config.maxFee,
+          max_fee: config.maxFee,
+          tpid: 1234500000000,
+        }
+      });
+      expect(result.status).to.not.equal('OK');
+      // expect(result.fee_collected).to.equal(400000000);
+      // expect(parseInt(result.oracle_fee_collected)).to.equal(60000000000);
+    } catch (err) {
+      //console.log(err);
+      expect(err.json.error.details[0].message).to.equal('TPID must be empty or valid FIO address');
+    }
+  });
+  */
 
   it(`(BD-3408)(negative max_fee) try to wrap 1000 FIO tokens`, async function () {
     try {
@@ -2420,29 +2453,6 @@ describe(`F1. PROBLEM TESTS (wraptokens)`, function () {
       expect(parseInt(result.oracle_fee_collected)).to.equal(60000000000);
     } catch (err) {
       expect(err.json.error.details[0].message).to.equal('assertion failure with message: must transfer positive quantity');
-    }
-  });
-
-  it(`(BD-3408)(int tpid) try to wrap 1000 FIO tokens`, async function () {
-    try {
-      const result = await user1.sdk.genericAction('pushTransaction', {
-        action: 'wraptokens',
-        account: 'fio.oracle',
-        data: {
-          amount: wrapAmt,
-          chain_code: "ETH",
-          public_address: wfio.address,
-          max_oracle_fee: config.maxFee,
-          max_fee: config.maxFee,
-          tpid: 1234500000000,
-        }
-      });
-      expect(result.status).to.not.equal('OK');
-      // expect(result.fee_collected).to.equal(400000000);
-      // expect(parseInt(result.oracle_fee_collected)).to.equal(60000000000);
-    } catch (err) {
-      //console.log(err);
-      expect(err.json.error.details[0].message).to.equal('TPID must be empty or valid FIO address');
     }
   });
 });
@@ -2656,60 +2666,6 @@ describe(`G. [FIO] Unwrap FIO tokens`, function () {
       expect(err.json.fields[0].error).to.equal('Invalid obt_id');
     }
   });
-
-  // it(`(BD-3409)(invalid obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
-  //   try {
-  //     const result = await newOracle1.sdk.genericAction('pushTransaction', {
-  //       action: 'unwraptokens',
-  //       account: 'fio.oracle',
-  //       data: {
-  //         amount: wrapAmt,
-  //         obt_id: "!invalid@#$",
-  //         fio_address: user1.address,
-  //         actor: newOracle1.account
-  //       }
-  //     });
-  //     expect(result.status).to.not.equal('OK');
-  //   } catch (err) {
-  //     throw err;
-  //   }
-  // });
-  //
-  // it(`(BD-3409)(int obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
-  //   try {
-  //     const result = await newOracle1.sdk.genericAction('pushTransaction', {
-  //       action: 'unwraptokens',
-  //       account: 'fio.oracle',
-  //       data: {
-  //         amount: wrapAmt,
-  //         obt_id: 1000000000000,
-  //         fio_address: user1.address,
-  //         actor: newOracle1.account
-  //       }
-  //     });
-  //     expect(result.status).to.not.equal('OK');
-  //   } catch (err) {
-  //     throw err;
-  //   }
-  // });
-  //
-  // it(`(BD-3409)(negative obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
-  //   try {
-  //     const result = await newOracle1.sdk.genericAction('pushTransaction', {
-  //       action: 'unwraptokens',
-  //       account: 'fio.oracle',
-  //       data: {
-  //         amount: wrapAmt,
-  //         obt_id: -12345,
-  //         fio_address: user1.address,
-  //         actor: newOracle1.account
-  //       }
-  //     });
-  //     expect(result.status).to.not.equal('OK');
-  //   } catch (err) {
-  //     throw err;
-  //   }
-  // });
 
   // unhappy tests
 
@@ -3411,7 +3367,10 @@ describe(`G1. PROBLEM TESTS (unwraptokens)`, function () {
     }
   });
 
-  it(`(BD-3409)(int obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
+  /*
+  // The following are not bugs: integers get converted to strings when passed in.
+
+  it.skip(`(Not a bug: integers get converted to strings when passed in) (BD-3409)(int obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
     try {
       const result = await newOracle1.sdk.genericAction('pushTransaction', {
         action: 'unwraptokens',
@@ -3431,7 +3390,7 @@ describe(`G1. PROBLEM TESTS (unwraptokens)`, function () {
     }
   });
 
-  it(`(BD-3409)(negative obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
+  it.skip(`(Not a bug: integers get converted to strings when passed in) (BD-3409)(negative obt_id) try to unwrap ${wrapAmt} FIO tokens`, async function () {
     try {
       const result = await newOracle1.sdk.genericAction('pushTransaction', {
         action: 'unwraptokens',
@@ -3450,6 +3409,8 @@ describe(`G1. PROBLEM TESTS (unwraptokens)`, function () {
       throw err;
     }
   });
+  */
+
   it(`(> 128 char string) try to unwrap ${wrapAmt} FIO tokens`, async function () {
     try {
       const result = await newOracle1.sdk.genericAction('pushTransaction', {

@@ -12,7 +12,8 @@ const {
   callFioApi,
   callFioApiSigned,
   getAccountFromKey,
-  randStr
+  randStr,
+  getRamForUser
 } = require("../utils.js");
 const {
   getOracleRecords,
@@ -2045,4 +2046,312 @@ describe(`C1. PROBLEM TESTS (unwrapdomains)`, function () {
       expect(err.json.fields[0].error).to.equal('FIO domain not owned by Oracle contract.');//('FIO domain not found');
     }
   });
+});
+
+
+
+describe.only(`H. setoraclefees and simple wrap - confirm ram bump on wrap and validate fee distribution`, function () {
+  let user1, newOracle1, oracle1Balance, oracle2Balance, oracle3Balance, user1Balance, newOracle2, newOracle3, wrapFee, userRam;
+  const chainCode = "MATIC";
+  const ethAddress = '0xblahblahblah' + randStr(20);
+  const obtID = '0xobtidetcetcetc' + randStr(20);
+  const oracle1DomainFee = 2000000000;
+  const oracle2DomainFee = 5000000000;
+  const oracle3DomainFee = 9000000000;
+  const oracleFeeTotal = oracle2DomainFee * 3;
+  const tokenFee = 1000000000;
+
+  it(`clean out oracless fees table with helper function`, async function () {
+    try {
+      await cleanUpOraclessTable(faucet, true);
+    } catch (err) {
+      console.log('Error: ', err)
+      throw err;
+    }
+  });
+
+  it(`confirm oracles table is empty`, async function () {
+    try {
+      let records = await getOracleRecords();
+      //console.log('Records: ', records);
+      expect(records.rows.length).to.equal(0);
+    } catch (err) {
+      console.log('Error: ', err)
+      throw err;
+    }
+  });
+
+  it(`Register users and oracles`, async function () {
+    try {
+      user1 = await newUser(faucet);
+      newOracle1 = await newUser(faucet);
+      newOracle2 = await newUser(faucet);
+      newOracle3 = await newUser(faucet);
+      await registerNewBp(newOracle1);
+      await registerNewBp(newOracle2);
+      await registerNewBp(newOracle3);
+      await registerNewOracle(newOracle1);
+      await registerNewOracle(newOracle2);
+      await registerNewOracle(newOracle3);
+    } catch (err) {
+      console.log('Error: ', err.json);
+      throw err;
+    }
+  });
+
+  //
+  //Begin wrapdomain
+  //
+
+  it(`newOracle1 sets wraptokens fee`, async function () {
+    try {
+      await setTestOracleFees(newOracle1, oracle1DomainFee, tokenFee);
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`(Bug BD-3874) (Failure) Try to wrap FIO domain, expect: "All registered oracles have not set fees"`, async function () {
+    let postWrapBalDiff, postWrapAvailDiff;
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'wrapdomain',
+        account: 'fio.oracle',
+        data: {
+          fio_domain: user1.domain,
+          chain_code: chainCode,
+          public_address: ethAddress,
+          max_oracle_fee: config.maxOracleFee,
+          max_fee: config.maxFee,
+          tpid: "",
+        }
+      });
+      //console.log('Result: ', result);
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      //console.log('Error: ', err.json.error);
+      expect(err.json.error.details[0].message).to.equal('All registered oracles have not set fees')
+    }
+  });
+
+  it(`newOracle2 sets wrapdomain fee`, async function () {
+    try {
+      await setTestOracleFees(newOracle2, oracle2DomainFee, tokenFee);
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`newOracle3 sets wraptokens fee`, async function () {
+    try {
+      await setTestOracleFees(newOracle3, oracle3DomainFee, tokenFee);
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it('Confirm oracle fee is median * 3`', async function () {
+    try {
+      result = await callFioApi('get_oracle_fees', {});
+      //console.log('Result: ', result);
+      expect(result.oracle_fees[0].fee_name).to.equal('wrap_fio_domain');
+      expect(result.oracle_fees[0].fee_amount).to.equal(oracleFeeTotal);
+    } catch (err) {
+      console.log('Error: ', err);
+      throw err;
+    }
+  });
+
+  it(`get wrapdomain fee`, async function () {
+    let result = await callFioApi('get_fee', {
+      end_point: "wrap_fio_domain",
+      fio_address: newOracle1.address //"vote1@dapixdev"
+    });
+    wrapFee = result.fee;
+  });
+
+  it(`Get original balances for user1 and oracles`, async () => {
+    try {
+      let result;
+      result = await user1.sdk.genericAction('getFioBalance', { fioPublicKey: user1.publicKey });
+      user1Balance = result.balance;
+      result = await newOracle1.sdk.genericAction('getFioBalance', { fioPublicKey: newOracle1.publicKey });
+      oracle1Balance = result.balance;
+      result = await newOracle2.sdk.genericAction('getFioBalance', { fioPublicKey: newOracle2.publicKey });
+      oracle2Balance = result.balance;
+      result = await newOracle3.sdk.genericAction('getFioBalance', { fioPublicKey: newOracle3.publicKey });
+      oracle3Balance = result.balance;
+      //console.log('user1 fio balance', result)
+    } catch (err) {
+        //console.log('Error', err)
+        expect(err).to.equal(null)
+    }
+  });
+
+  it(`get user1 RAM before wrap`, async function () {
+    userRam = await getRamForUser(user1);
+  });
+
+  it(`(Success) Try to wrap FIO tokens after all oracles have set fees. Expect OK`, async function () {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'wrapdomain',
+        account: 'fio.oracle',
+        data: {
+          fio_domain: user1.domain,
+          chain_code: chainCode,
+          public_address: ethAddress,
+          max_oracle_fee: config.maxOracleFee,
+          max_fee: config.maxFee,
+          tpid: "",
+        }
+      });
+      //console.log('Result: ', result);
+      expect(result.status).to.equal('OK');
+      expect(result.fee_collected).to.equal(wrapFee);
+      expect(parseInt(result.oracle_fee_collected)).to.equal(oracleFeeTotal);
+    } catch (err) {
+      console.log('Error: ', err);
+      throw err;
+    }
+  });
+
+  it(`get user1 RAM after wrap. Confirm RAM bump.`, async function () {
+    const userRamPrev = userRam;
+    userRam = await getRamForUser(user1);
+    expect(userRam).to.equal(userRamPrev + config.RAM.WRAPDOMAINRAM);  // wraptoken and wrapdomain are the same RAM
+  });
+
+  it(`Get balances for user1 and oracles after wrap: Confirm fee distribution`, async () => {
+    try {
+      const user1BalancePrev = user1Balance;
+      const oracle1BalancePrev = oracle1Balance;
+      const oracle2BalancePrev = oracle2Balance;
+      const oracle3BalancePrev = oracle3Balance;
+      let result;
+      result = await user1.sdk.genericAction('getFioBalance', { fioPublicKey: user1.publicKey });
+      user1Balance = result.balance;
+      result = await newOracle1.sdk.genericAction('getFioBalance', { fioPublicKey: newOracle1.publicKey });
+      oracle1Balance = result.balance;
+      result = await newOracle2.sdk.genericAction('getFioBalance', { fioPublicKey: newOracle2.publicKey });
+      oracle2Balance = result.balance;
+      result = await newOracle3.sdk.genericAction('getFioBalance', { fioPublicKey: newOracle3.publicKey });
+      oracle3Balance = result.balance;
+      expect(user1Balance).to.equal(user1BalancePrev - wrapFee - oracleFeeTotal);
+      expect(oracle1Balance).to.equal(oracle1BalancePrev + oracleFeeTotal / 3);
+      expect(oracle2Balance).to.equal(oracle2BalancePrev + oracleFeeTotal / 3);
+      expect(oracle3Balance).to.equal(oracle3BalancePrev + oracleFeeTotal / 3);
+      //console.log('user1 fio balance', result)
+    } catch (err) {
+        //console.log('Error', err)
+        expect(err).to.equal(null)
+    }
+  });
+
+  //
+  // Begin unwrapdomain
+  //
+
+  it(`(Success) newOracle1 calls unwrapdomain after all oracles have set fees. Expect OK`, async function () {
+    try {
+      const result = await newOracle1.sdk.genericAction('pushTransaction', {
+        action: 'unwrapdomain',
+        account: 'fio.oracle',
+        data: {
+          fio_domain: user1.domain,
+          obt_id: obtID,
+          fio_address: user1.address,
+        }
+      });
+      //console.log('Result: ', result);
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log('Error: ', err);
+      throw err;
+    }
+  });
+
+  it(`(Failure) get_fio_domains for user1 after 1 oracle has called unwrapdomain. Expect: `, async () => {
+    try {
+      const json = {
+        "fio_public_key": user1.publicKey
+      }
+      result = await callFioApi("get_fio_domains", json);
+      console.log('Result: ', result);
+      expect(result.fio_domains.length).to.equal(0)
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err.error.message).to.equal(config.error.noFioDomains);
+      expect(err.statusCode).to.equal(404);
+    }
+  })
+
+  it(`(Success) newOracle2 calls unwrapdomain. Expect OK`, async function () {
+    try {
+      const result = await newOracle2.sdk.genericAction('pushTransaction', {
+        action: 'unwrapdomain',
+        account: 'fio.oracle',
+        data: {
+          fio_domain: user1.domain,
+          obt_id: obtID,
+          fio_address: user1.address,
+        }
+      });
+      //console.log('Result: ', result);
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log('Error: ', err);
+      throw err;
+    }
+  });
+
+  it(`(Failure) get_fio_domains for user1 after 2 oracles has called unwrapdomain: Confirm NO domain transfer`, async () => {
+    try {
+      const json = {
+        "fio_public_key": user1.publicKey
+      }
+      result = await callFioApi("get_fio_domains", json);
+      console.log('Result: ', result);
+      expect(result.fio_domains.length).to.equal(0)
+    } catch (err) {
+      //console.log('Error', err)
+      expect(err.error.message).to.equal(config.error.noFioDomains);
+      expect(err.statusCode).to.equal(404);
+    }
+  })
+
+  it(`(Success) newOracle3 calls unwrapdomain. Expect OK`, async function () {
+    try {
+      const result = await newOracle3.sdk.genericAction('pushTransaction', {
+        action: 'unwrapdomain',
+        account: 'fio.oracle',
+        data: {
+          fio_domain: user1.domain,
+          obt_id: obtID,
+          fio_address: user1.address,
+        }
+      });
+      //console.log('Result: ', result);
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log('Error: ', err);
+      throw err;
+    }
+  });
+
+  it(`get_fio_domains for user1 after all 3 oracles have called unwrap: Confirm domain was transferred`, async () => {
+    try {
+      const json = {
+        "fio_public_key": user1.publicKey
+      }
+      result = await callFioApi("get_fio_domains", json);
+      //console.log('Result: ', result);
+      expect(result.fio_domains[0].fio_domain).to.equal(user1.domain);
+      expect(result.fio_domains.length).to.equal(1);
+    } catch (err) {
+      console.log('Error', err)
+      expect(err).to.equal(null)
+    }
+  })
+
 });

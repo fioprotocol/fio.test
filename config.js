@@ -384,7 +384,8 @@ const config = {
         ADDNFTRAM: 2048,
         STAKEFIOTOKENSRAM: 512,
         UNSTAKEFIOTOKENSRAM: 512,
-        WRAPTOKENRAM: 512
+        WRAPTOKENRAM: 512,
+        WRAPDOMAINRAM: 512
     },
 
     public_addresses: [
