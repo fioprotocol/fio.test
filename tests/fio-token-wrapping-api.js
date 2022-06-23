@@ -2005,7 +2005,7 @@ describe(`F. [FIO][api] Wrap FIO tokens`, function () {
     preWrapBal = await user1.sdk.genericAction('getFioBalance', {});
   });
 
-  it.skip(`(Bug BD-3869) (happy w/ tpid) try to wrap 1000 FIO tokens`, async function () {
+  it(`(happy w/ tpid) try to wrap 1000 FIO tokens (Bug BD-3869 fixed)`, async function () {
     /**
      * In fio-token-wrapping-sdk, this test fails with other fio addresses
      */try {
@@ -2207,7 +2207,7 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
 
   // Need to skip unitl bug is fixed or it messes up future happy pay unwraps
 
-  it.skip(`(BUG BD-3866) (empty amount) try to unwrap FIO tokens, Expect failure`, async function () {
+  it(`(empty amount) try to unwrap FIO tokens, Expect failure (BUG BD-3866 fixed)`, async function () {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'unwraptokens',
@@ -2221,9 +2221,10 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
           actor: newOracle1.account
         }
       });
-      expect(result).to.have.all.keys('transaction_id', 'processed');
+      expect(result.fields[0].error).to.equal('Invalid amount');
     } catch (err) {
-      expect(err.message).to.equal('missing unwraptokens.amount (type=int64)');
+      console.log('Error: ', err);
+      throw err;
     }
   });
 
