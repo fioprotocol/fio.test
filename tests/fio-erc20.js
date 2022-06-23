@@ -50,7 +50,7 @@ describe(`************************** fio-erc20.js ************************** \n 
   });
 });
 
-describe(`A1. [ETH] Custodians (get)`, function () {
+describe(`B. [ETH] Custodians (get)`, function () {
 
   let accounts;
   let custodians;
@@ -115,7 +115,7 @@ describe(`A1. [ETH] Custodians (get)`, function () {
   });
 });
 
-describe(`A2. [ETH] Custodians (register)`, function () {
+describe(`C. [ETH] Custodians (register)`, function () {
 
   let accounts;
   let custodians;
@@ -199,7 +199,7 @@ describe(`A2. [ETH] Custodians (register)`, function () {
   });
 });
 
-describe(`A3. [ETH] Custodians (unregister)`, function () {
+describe(`D. [ETH] Custodians (unregister)`, function () {
 
   let accounts;
   let custodians;
@@ -271,7 +271,7 @@ describe(`A3. [ETH] Custodians (unregister)`, function () {
   });
 });
 
-describe(`B1. [ETH] Oracles (get)`, function () {
+describe(`E. [ETH] Oracles (get)`, function () {
 
   let accounts;
   let custodians;
@@ -371,7 +371,7 @@ describe(`B1. [ETH] Oracles (get)`, function () {
   });
 });
 
-describe(`B2. [ETH] Oracles (register)`, function () {
+describe(`F. [ETH] Oracles (register)`, function () {
 
   let accounts;
   let custodians;
@@ -454,7 +454,7 @@ describe(`B2. [ETH] Oracles (register)`, function () {
   });
 });
 
-describe(`B3. [ETH] Oracles (unregister)`, function () {
+describe(`G. [ETH] Oracles (unregister)`, function () {
   let accounts;
   let custodians;
   let owner;
@@ -534,7 +534,7 @@ describe(`B3. [ETH] Oracles (unregister)`, function () {
   });
 });
 
-describe(`C1. [ETH] wFIO wrapping`, function () {
+describe(`H. [ETH] wFIO wrapping`, function () {
 
   let fioAccount;
   let fioBalance;
@@ -934,7 +934,7 @@ describe(`C1. [ETH] wFIO wrapping`, function () {
   });
 });
 
-describe(`C2. [ETH] wFIO unwrapping`, function () {
+describe(`I. [ETH] wFIO unwrapping`, function () {
 
   let fioAccount;
   let fioTransaction;
@@ -1089,7 +1089,7 @@ describe(`C2. [ETH] wFIO unwrapping`, function () {
   });
 });
 
-describe(`D. [ETH] Approval`, function () {
+describe(`J. [ETH] Approval`, function () {
 
   let fioAccount;
   let fioTransaction;
@@ -1193,7 +1193,7 @@ describe(`D. [ETH] Approval`, function () {
   });
 });
 
-describe(`E. [ETH] Pausing`, function () {
+describe(`K. [ETH] Pausing`, function () {
 
   let fioAccount;
   let fioTransaction;
@@ -1290,7 +1290,7 @@ describe(`E. [ETH] Pausing`, function () {
   });
 });
 
-describe(`F. [ETH] Unpausing`, function () {
+describe(`L. [ETH] Unpausing`, function () {
 
   let fioAccount;
   let fioTransaction;
