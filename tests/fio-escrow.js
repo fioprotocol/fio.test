@@ -1,5 +1,9 @@
 /**
- * This test requires the "modexpire" action
+ * This test can be run WITHOUT the contract updates as is.
+ * 
+ * Some items in this test require the "modexpire" action. They are marked with a .skip so you need to remove the 
+ * .skip if you want to run the full test with expiring domains.
+ * 
  *
  * In fio.address.abi:
  *
@@ -104,7 +108,7 @@ before(async () => {
 	await setup();
 })
 
-describe.only(`************************** fio-escrow.js **************************`, async () => {
+describe(`************************** fio-escrow.js **************************`, async () => {
 	before(async () => {
 		await setup();
 	})
