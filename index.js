@@ -15,9 +15,8 @@ describe('TEST SUITE', () => {
    */
   describe.skip(`** FIP-17a and b - WRAPPING TESTS **`, function () {
     /**
-    require('./tests/testnet-smoketest.js');
-    require('./tests/FIP-41-devtest-transfer-locked-tokens.js');
-    */
+     * These tests require modifications to the contracts
+     */
 
     /**
      * ERC20 and ERC721 contract tests
