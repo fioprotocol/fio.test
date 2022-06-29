@@ -2123,7 +2123,7 @@ describe(`E. (sdk)(unhappy) Try to remove more NFTs than minted`, () => {
   });
 });
 
-describe.only(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
+describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
   let user1, user2, user3;
 
   const fundsAmount = 10000000000000;
