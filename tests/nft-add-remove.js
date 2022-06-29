@@ -409,11 +409,9 @@ describe(`************************** nft-add-remove.js *************************
       //console.log('Error', err)
       expect(err).to.equal(null);
     }
-  });
 
-  it('Wait 2 seconds. (Slower test systems)', async () => {
-    await timeout(2000);
-  })
+
+    });
 
   it(`verify user3 has NFT with get_nfts_hash endpoint`, async () => {
       try {
@@ -426,7 +424,7 @@ describe(`************************** nft-add-remove.js *************************
         expect(result.nfts[0].contract_address).to.equal("0x123456789ABCDEF")
         expect(result.nfts[0].token_id).to.equal("999")
       } catch (err) {
-        console.log('Error', err)
+        //console.log('Error', err)
         expect(err).to.equal(null);
       }
   });
@@ -2125,7 +2123,7 @@ describe(`E. (sdk)(unhappy) Try to remove more NFTs than minted`, () => {
   });
 });
 
-describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
+describe.only(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
   let user1, user2, user3;
 
   const fundsAmount = 10000000000000;
@@ -2585,7 +2583,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.errorCode).to.equal(400);
       expect(err.json.fields[0].value).to.equal(user1.address);
-      expect(err.json.fields[0].error).to.equal('NFT not found');
+      expect(err.json.fields[0].error).to.equal('No NFTs');
     }
   });
 
@@ -4515,202 +4513,3 @@ describe(`M. (BD-3034) Blank token ID acts as wild card in get_nfts_contract`, (
     }
   });
 })
-
-
-describe(`N. (BD-3826) Removing NFT with empty token_id causes NFT Not Found Error`, () => {
-  let user1
-
-  before(async () => {
-    user1 = await newUser(faucet);
-  })
-
-  it(`Add NFT to user1 FIO Address with empty ID`, async () => {
-    try {
-      const result = await user1.sdk.genericAction('pushTransaction', {
-        action: 'addnft',
-        account: 'fio.address',
-        data: {
-          fio_address: user1.address,
-          nfts: [{
-              "chain_code":"ETH",
-              "contract_address":"0x123456789ABCDEF",
-              "token_id":"",
-              "url":"https://getaurox.com", 
-              "hash":"",
-              "metadata":""
-            }],
-          max_fee: config.maxFee,
-          actor: user1.account,
-          tpid: ""
-        }
-      })
-      //console.log(`Result: `, result)
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-     //console.log(err.message)
-     expect(err).to.equal(null);
-    }
-  })
-
-  it('Wait 5 seconds. (Slower test systems)', async () => {
-    await timeout(5000);
-  })
-
-  it(`verify user1 NFT is present in table`, async () => {
-    try {
-        const json = {
-            "fio_address": user1.address
-        }
-        result = await callFioApi("get_nfts_fio_address", json);
-        //console.log(`Result: `, result)
-        expect(result.nfts.length).to.not.equal(0)
-        expect(result.nfts[0].chain_code).to.equal("ETH")
-        expect(result.nfts[0].contract_address).to.equal("0x123456789ABCDEF")
-        expect(result.nfts[0].token_id).to.equal("")
-    } catch (err) {
-        console.log('Error', err)
-        expect(err).to.equal(null);
-    }
-  })
-
-  it(`Remove NFT from user1 FIO Address`, async () => {
-    try {
-      const result = await user1.sdk.genericAction('pushTransaction', {
-        action: 'remnft',
-        account: 'fio.address',
-        data: {
-          fio_address: user1.address,
-          nfts: [{
-              "chain_code":"ETH",
-              "contract_address":"0x123456789ABCDEF", 
-              "token_id":""
-            }],
-          max_fee: config.maxFee,
-          actor: user1.account,
-          tpid: ""
-        }
-      })
-      //console.log(`Result: `, result)
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-     console.log('Error: ', err.json);
-     expect(err).to.equal(null);
-    }
-  })
-})
-
-
-describe(`N.1. (BD-3826)  Removing NFT when two users have same NFT with empty token_id causes NFT Not Found Error`, () => {
-  let user1, user2;
-
-  it(`create users`, async () => {
-    user1 = await newUser(faucet);
-    user2 = await newUser(faucet);
-  });
-
-  it(`addnft for user1 with empty token_id`, async () => {
-    const nft = await user1.sdk.genericAction('pushTransaction', {
-      action: 'addnft',
-      account: 'fio.address',
-      data: {
-        fio_address: user1.address,
-        nfts: [
-          {
-            chain_code: 'ETH',
-            contract_address: '0x123456789ABCDEF',
-            token_id: '',
-            url: '',
-            hash: '',
-            metadata: ''
-          }
-        ],
-        max_fee: 5000000000,
-        actor: user1.account,
-        tpid: ""
-      }
-    })
-    expect(nft.status).to.equal('OK');
-  });
-
-  it(`verify user1 NFT is present in table and only has one nft`, async () => {
-    try {
-      const result = await callFioApi("get_nfts_fio_address", {
-        "fio_address": user1.address
-      });
-      console.log('user1 NFTs: ', result);
-      expect(result.nfts.length).to.equal(1);
-      expect(result.nfts[0].chain_code).to.equal("ETH");
-      expect(result.nfts[0].contract_address).to.equal("0x123456789ABCDEF");
-      expect(result.nfts[0].token_id).to.equal("");
-    } catch (err) {
-      expect(err).to.equal(null);
-    }
-  });
-
-  it(`addnft for user2 with empty token_id`, async () => {
-    const nft = await user2.sdk.genericAction('pushTransaction', {
-      action: 'addnft',
-      account: 'fio.address',
-      data: {
-        fio_address: user2.address,
-        nfts: [
-          {
-            chain_code: 'ETH',
-            contract_address: '0x123456789ABCDEF',
-            token_id: '',
-            url: '',
-            hash: '',
-            metadata: ''
-          }
-        ],
-        max_fee: 5000000000,
-        actor: user2.account,
-        tpid: ""
-      }
-    })
-    expect(nft.status).to.equal('OK');
-  });
-
-  it(`verify user2 NFT is present in table and only has one nft`, async () => {
-    try {
-      const result = await callFioApi("get_nfts_fio_address", {
-        "fio_address": user2.address
-      });
-      console.log('user2 NFTs: ', result);
-      expect(result.nfts.length).to.equal(1);
-      expect(result.nfts[0].chain_code).to.equal("ETH");
-      expect(result.nfts[0].contract_address).to.equal("0x123456789ABCDEF");
-      expect(result.nfts[0].token_id).to.equal("");
-    } catch (err) {
-      expect(err).to.equal(null);
-    }
-  });
-
-  it(`(empty token_id) try to remove user2 NFT, expect success`, async () => {
-    try {
-      const result = await user2.sdk.genericAction('pushTransaction', {
-        action: 'remnft',
-        account: 'fio.address',
-        data: {
-          fio_address: user2.address,
-          nfts: [{
-            chain_code: 'ETH',
-            contract_address: '0x123456789ABCDEF',
-            token_id: '',
-            url: '',
-            hash: '',
-            metadata: ''
-          }],
-          max_fee: 5000000000,
-          actor: user2.account,
-          tpid: ""
-        }
-      });
-      console.log('Result: ', result);
-      expect(result.status).to.equal('OK');
-    } catch (err) {
-      console.log('Error: ', err.json);
-      expect(err).to.equal(null);
-    }
-  });
-});
