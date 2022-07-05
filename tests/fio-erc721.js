@@ -1155,7 +1155,7 @@ describe(`L. [MATIC] Pause`, function () {
       expect(err.message).to.contain('Pausable: paused');
     } finally {
       await fioNft.connect(ercAccts[1]).unpause();
-      await fioNft.connect(ercAccts[12]).wrapnft(ercAccts[0].address, fioAccount.domain, TRANSACTIION_ID);
+      await fioNft.connect(ercAccts[12]).wrapnft(ercAccts[0].address, fioAccount.domain, transactionId);
     }
   });
 });
