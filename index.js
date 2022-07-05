@@ -13,7 +13,7 @@ describe('TEST SUITE', () => {
    * FIO token wrapping and unwrapping (FIP-17a)
    * FIO domain wrapping and unwrapping (FIP-17b)
    */
-  describe.only(`** FIP-17a and b - WRAPPING TESTS **`, function () {
+  describe(`** FIP-17a and b - WRAPPING TESTS **`, function () {
     /**
      * These tests require modifications to the contracts
      */
