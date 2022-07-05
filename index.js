@@ -13,7 +13,7 @@ describe('TEST SUITE', () => {
    * FIO token wrapping and unwrapping (FIP-17a)
    * FIO domain wrapping and unwrapping (FIP-17b)
    */
-  describe.skip(`** FIP-17a and b - WRAPPING TESTS **`, function () {
+  describe.only(`** FIP-17a and b - WRAPPING TESTS **`, function () {
     /**
      * These tests require modifications to the contracts
      */
@@ -75,7 +75,7 @@ describe('TEST SUITE', () => {
     require('./tests/stake-BD-3552-dev-tests.js');
   });
 
-  describe.only('** GENERAL TESTS **', () => {
+  describe('** GENERAL TESTS **', () => {
 
     /**
      * General Tests. Should work against all builds. Do not require additional configuration.
