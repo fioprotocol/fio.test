@@ -2223,7 +2223,6 @@ describe(`G. [FIO][api] Unwrap FIO tokens`, function () {
       });
       expect(result.fields[0].error).to.equal('Invalid amount');
     } catch (err) {
-      console.log('Error: ', err);
       throw err;
     }
   });
