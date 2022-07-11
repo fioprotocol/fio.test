@@ -312,11 +312,13 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
           actor: user1.account
         }
       });
+      //console.log('Result: ', result);
       expect(result).to.have.all.keys('block_num', 'transaction_id', 'status', 'oracle_fee_collected', 'fee_collected');
       expect(result.status).to.equal('OK');
       expect(result.fee_collected).to.equal(WRAP_FEE);
       expect(parseInt(result.oracle_fee_collected)).to.equal(ORACLE_FEE);
     } catch (err) {
+      console.log('Error: ', err.json.error);
       throw err;
     }
   });
@@ -1089,9 +1091,6 @@ describe(`B1. PROBLEM TESTS (wrapdomains)`, function () {
     user1 = await newUser(faucet);
     user2 = await newUser(faucet);
     user3 = await newUser(faucet);
-    user4 = await newUser(faucet);
-    user5 = await newUser(faucet);
-    user6 = await newUser(faucet);
     newOracle1 = await newUser(faucet);
     newOracle2 = await newUser(faucet);
     newOracle3 = await newUser(faucet);
@@ -1165,7 +1164,7 @@ describe(`B1. PROBLEM TESTS (wrapdomains)`, function () {
           fio_domain: domain,
           chain_code: 12345678901,
           public_address: fioNft.address,
-          max_oracle_fee: config.maxFee,
+          max_oracle_fee: config.maxOracleFee,
           max_fee: config.maxFee,
           tpid: "",
           actor: user2.account
@@ -1188,7 +1187,7 @@ describe(`B1. PROBLEM TESTS (wrapdomains)`, function () {
           fio_domain: domain,
           chain_code: '12345678901',
           public_address: fioNft.address,
-          max_oracle_fee: config.maxFee,
+          max_oracle_fee: config.maxOracleFee,
           max_fee: config.maxFee,
           tpid: "",
           actor: user2.account
@@ -1201,23 +1200,22 @@ describe(`B1. PROBLEM TESTS (wrapdomains)`, function () {
     }
   });
 
-   it(`(BUG BD-3878)(int tpid) try to wrap a FIO domain. Expect invalid format error since it is not a valid crypto handle.`, async function () {
-    let domain = user6.domain;
+   it.skip(`(BUG BD-3878)(int tpid) try to wrap a FIO domain. Expect invalid format error since it is not a valid crypto handle.`, async function () {
+    let domain = user3.domain;
     try {
-      const result = await user6.sdk.genericAction('pushTransaction', {
+      const result = await user3.sdk.genericAction('pushTransaction', {
         action: 'wrapdomain',
         account: 'fio.oracle',
         data: {
           fio_domain: domain,
           chain_code: "ETH",
           public_address: fioNft.address,
-          max_oracle_fee: config.maxFee,
+          max_oracle_fee: config.maxOracleFee,
           max_fee: config.maxFee,
-          tpid: 12345,
-          actor: user6.account
+          tpid: 12345
         }
       });
-      //console.log('Result: ', result)
+      console.log('Result: ', result)
       expect(result.status).to.not.equal('OK');
     } catch (err) {
       expect(err.json.fields[0].error).to.equal('TPID must be empty or valid FIO address');
@@ -1767,6 +1765,10 @@ describe(`C. [FIO] Unwrap FIO domains`, function () {
   });
 });
 
+/*
+ * See notes below,  none of these are bugs. Keeping in tests as reference.
+ * 
+ 
 describe(`C1. PROBLEM TESTS (unwrapdomains)`, function () {
   let wrapAmt = 1000000000000;
   let // oracle1, oracle2, oracle3,
@@ -1897,7 +1899,7 @@ describe(`C1. PROBLEM TESTS (unwrapdomains)`, function () {
     }
   });
 
-  /*
+  
   // Talked with casey, integers are converted to strings for the obt_id so only string validation is done. Not a bug.
 
   it(`(BUG BD-3879) (int obt_id) try to unwrap a FIO domain`, async function () {
@@ -1943,8 +1945,10 @@ describe(`C1. PROBLEM TESTS (unwrapdomains)`, function () {
       expect(err.json.fields[0].error).to.equal('FIO domain not owned by Oracle contract.');//('FIO domain not found');
     }
   });
-  */
+  
 });
+*/
+
 
 describe(`D. setoraclefees and simple wrap - confirm ram bump on wrap and validate fee distribution`, function () {
   let user1, newOracle1, oracle1Balance, oracle2Balance, oracle3Balance, user1Balance, newOracle2, newOracle3, wrapFee, userRam;
@@ -1999,7 +2003,7 @@ describe(`D. setoraclefees and simple wrap - confirm ram bump on wrap and valida
   //Begin wrapdomain
   //
 
-  it(`newOracle1 sets wraptokens fee`, async function () {
+  it(`newOracle1 sets wrapdomain fee`, async function () {
     try {
       await setTestOracleFees(newOracle1, oracle1DomainFee, tokenFee);
     } catch (err) {
@@ -2007,7 +2011,7 @@ describe(`D. setoraclefees and simple wrap - confirm ram bump on wrap and valida
     }
   });
 
-  it(`(Bug BD-3874) (Failure) Try to wrap FIO domain, expect: "All registered oracles have not set fees"`, async function () {
+  it(`(Failure) Try to wrap FIO domain, expect: "All registered oracles have not set fees" (Fixed Bug BD-3874)`, async function () {
     let postWrapBalDiff, postWrapAvailDiff;
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
@@ -2022,11 +2026,11 @@ describe(`D. setoraclefees and simple wrap - confirm ram bump on wrap and valida
           tpid: "",
         }
       });
-      //console.log('Result: ', result);
+      console.log('Result: ', result);
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      //console.log('Error: ', err.json.error);
-      expect(err.json.error.details[0].message).to.equal('All registered oracles have not set fees')
+      //console.log('Error: ', err.json);
+      expect(err.json.fields[0].error).to.equal('All registered oracles have not set fees')
     }
   });
 
@@ -2107,7 +2111,7 @@ describe(`D. setoraclefees and simple wrap - confirm ram bump on wrap and valida
       expect(result.fee_collected).to.equal(wrapFee);
       expect(parseInt(result.oracle_fee_collected)).to.equal(oracleFeeTotal);
     } catch (err) {
-      console.log('Error: ', err);
+      console.log('Error: ', err.json.error);
       throw err;
     }
   });

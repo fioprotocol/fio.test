@@ -1063,7 +1063,7 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
 
   it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
-  it(`Fixed in Gemini: Get voterG1 last_vote_weight`, async () => {
+  it(`Get voterG1 last_vote_weight (Fixed in Gemini)`, async () => {
     try {
       voterG1.last_vote_weight = await getAccountVoteWeight(voterG1.account);
       //console.log('voterG1.last_vote_weight:', voterG1.last_vote_weight)
@@ -1072,7 +1072,7 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
     }
   })
 
-  it(`Fixed in Gemini: proxyG1 last_vote_weight increased by voterG1 vote weight`, async () => {
+  it(`proxyG1 last_vote_weight increased by voterG1 vote weight (Fixed in Gemini)`, async () => {
     try {
       prev_last_vote_weight = proxyG1.last_vote_weight
       proxyG1.last_vote_weight = await getAccountVoteWeight(proxyG1.account);
@@ -1083,7 +1083,7 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
     }
   })
 
-  it(`Fixed in Gemini: bp1@dapixdev total_votes increased by voterG1 last_vote_weight`, async () => {
+  it(`bp1@dapixdev total_votes increased by voterG1 last_vote_weight (Fixed in Gemini)`, async () => {
     try {
       prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
@@ -1124,7 +1124,7 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
     }
   })
 
-  it(`Fixed in Gemini: proxyG1 last_vote_weight increased by voterG2 vote weight`, async () => {
+  it(`proxyG1 last_vote_weight increased by voterG2 vote weight (Fixed in Gemini)`, async () => {
     try {
       prev_last_vote_weight = proxyG1.last_vote_weight
       proxyG1.last_vote_weight = await getAccountVoteWeight(proxyG1.account);
@@ -1135,7 +1135,7 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
     }
   })
 
-  it(`Fixed in Gemini: bp1@dapixdev total_votes increased by voterG2 last_vote_weight`, async () => {
+  it(`bp1@dapixdev total_votes increased by voterG2 last_vote_weight (Fixed in Gemini)`, async () => {
     try {
       prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
@@ -1176,7 +1176,7 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
     }
   })
 
-  it(`Fixed in Gemini: proxyG1 last_vote_weight increased by voterG3 vote weight`, async () => {
+  it(`proxyG1 last_vote_weight increased by voterG3 vote weight (Fixed in Gemini)`, async () => {
     try {
       prev_last_vote_weight = proxyG1.last_vote_weight
       proxyG1.last_vote_weight = await getAccountVoteWeight(proxyG1.account);
@@ -1187,7 +1187,7 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
     }
   })
 
-  it(`Fixed in Gemini: bp1@dapixdev total_votes increased by voterG3 last_vote_weight`, async () => {
+  it(`bp1@dapixdev total_votes increased by voterG3 last_vote_weight (Fixed in Gemini)`, async () => {
     try {
       prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
@@ -1221,7 +1221,7 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
 
   it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
-  it(`Fixed in Gemini: bp1@dapixdev does not change`, async () => {
+  it(`bp1@dapixdev does not change (Fixed in Gemini)`, async () => {
     try {
       prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
@@ -1232,7 +1232,7 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
     }
   })
 
-  it(`Fixed in Gemini: proxyG1 last_vote_weight decreased by voterG1 vote weight`, async () => {
+  it(`proxyG1 last_vote_weight decreased by voterG1 vote weight (Fixed in Gemini)`, async () => {
     try {
       prev_last_vote_weight = proxyG1.last_vote_weight
       proxyG1.last_vote_weight = await getAccountVoteWeight(proxyG1.account);

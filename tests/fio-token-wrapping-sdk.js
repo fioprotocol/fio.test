@@ -63,6 +63,7 @@ after(async function () {
   }
 });
 
+
 describe(`************************** fio-token-wrapping-sdk.js ************************** \n   A. [FIO] Oracles (get_table_rows)`, function () {
   let userA, oracle1, oracle2, oracle3;
 
@@ -734,7 +735,7 @@ describe(`D. [FIO] Oracles (setoraclefees)`, function () {
   });
 
   // issues
-  it(`(BD-3406 Fixed)(negative wrap_fio_domain) try to set oracle fees, expect Error`, async function () {
+  it(`(negative wrap_fio_domain) try to set oracle fees, expect Error(BD-3406 Fixed)`, async function () {
     try {
       const result = await newOracle5.sdk.genericAction('pushTransaction', {
         action: 'setoraclefee',
@@ -756,7 +757,7 @@ describe(`D. [FIO] Oracles (setoraclefees)`, function () {
     }
   });
 
-  it(`(BD-3406 fixed)(negative wrap_fio_tokens) try to set oracle fees, expect Error`, async function () {
+  it(`(negative wrap_fio_tokens) try to set oracle fees, expect Error (BD-3406 fixed)`, async function () {
     try{
       const result = await newOracle5.sdk.genericAction('pushTransaction', {
         action: 'setoraclefee',
@@ -935,7 +936,27 @@ describe(`D. [FIO] Oracles (setoraclefees)`, function () {
   });
 });
 
-describe.skip(`** ORACLE TABLE CLEANUP **`, async function () {
+describe(`** ORACLE TABLE CLEANUP **`, async function () {
+  it(`clean out oracless record with helper function`, async function () {
+    try {
+      await cleanUpOraclessTable(faucet, true);
+      let records = await getOracleRecords();
+      expect(records.rows.length).to.be.oneOf([3, 0]);
+    } catch (err) {
+      throw err;
+    }
+  });
+});
+
+describe(`E. Register 3 oracles, only have 2 oracles set fees, call get_oracle_fees (BD-3788 - fixed)`, function () {
+
+  let oracle1, newOracle, newOracle2, newOracle3,  user1;
+  let ORACLE_FEE;
+
+  before(async function () {
+    user1 = await newUser(faucet);
+  });
+
   it(`clean out oracless record with helper function`, async function () {
     try {
       await cleanUpOraclessTable(faucet, false);
@@ -955,18 +976,8 @@ describe.skip(`** ORACLE TABLE CLEANUP **`, async function () {
       throw err;
     }
   });
-});
 
-describe.skip(`E. (BD-3788) Server crash: Register 3 oracles, only have 2 oracles set fees, call get_oracle_fees.`, function () {
-
-  let oracle1, newOracle, newOracle2, newOracle3,  user1;
-  let ORACLE_FEE;
-
-  before(async function () {
-    user1 = await newUser(faucet);
-  });
-
-  it('try to get the wrapping fees from the API, expect no registered oracles', async function () {
+  it('try to get the wrapping fees from the API, expect:Not enough registered oracles.', async function () {
     try {
       ORACLE_FEE = await callFioApi('get_oracle_fees', {});
     } catch (err) {
@@ -998,6 +1009,85 @@ describe.skip(`E. (BD-3788) Server crash: Register 3 oracles, only have 2 oracle
       throw err;
     }
   });
+
+  it('get oracles', async function () {
+    const oracleRecords = await getOracleRecords();
+    //console.log('Oracles: ', oracleRecords);
+  });
+
+  it('try to get the wrapping fees from the API, expect 404 error: Not enough oracle fee votes.', async function () {
+    try {
+      ORACLE_FEE = await callFioApi('get_oracle_fees', {});
+    } catch (err) {
+      //console.log('Error: ', err);
+      expect(err.error.message).to.equal('Not enough oracle fee votes.');
+      expect(err.statusCode).to.equal(404);
+    }
+  });
+});
+
+describe(`E.2 Register 3 oracles, set all fees, call get_oracle_fees.`, function () {
+
+  let oracle1, newOracle, newOracle2, newOracle3,  user1;
+  let ORACLE_FEE;
+
+  before(async function () {
+    user1 = await newUser(faucet);
+  });
+
+  it(`clean out oracless record with helper function`, async function () {
+    try {
+      await cleanUpOraclessTable(faucet, false);
+    } catch (err) {
+      console.log('Error: ', err)
+      throw err;
+    }
+  });
+
+  it(`confirm oracles table is empty or has 3 default bp accounts`, async function () {
+    try {
+      let records = await getOracleRecords();
+      //console.log('Records: ', records);
+      expect(records.rows.length).to.be.oneOf([0,3]);
+    } catch (err) {
+      console.log('Error: ', err)
+      throw err;
+    }
+  });
+
+  it('try to get the wrapping fees from the API, expect no registered oracles', async function () {
+    try {
+      ORACLE_FEE = await callFioApi('get_oracle_fees', {});
+    } catch (err) {
+      //console.log('Error: ', err);
+      expect(err.error.message).to.equal('Not enough registered oracles.');
+    }
+  });
+
+  it(`register new oracles for testing`, async function () {
+    try {
+      newOracle = await newUser(faucet);
+      newOracle2 = await newUser(faucet);
+      newOracle3 = await newUser(faucet);
+
+      // register a new oracle
+      await registerNewBp(newOracle);
+      await registerNewOracle(newOracle);
+      await setTestOracleFees(newOracle, 500000000, 1000000000);
+
+      await registerNewBp(newOracle2);
+      await registerNewOracle(newOracle2);
+      await setTestOracleFees(newOracle2, 1000000000, 1200000000);
+
+      await registerNewBp(newOracle3);
+      await registerNewOracle(newOracle3);
+      await setTestOracleFees(newOracle3, 3000000000, 3200000000);  // Comment out this line to cause crash
+    } catch (err) {
+      console.log('Error: ', err);
+      throw err;
+    }
+  });
+
   it('get oracles', async function () {
     const oracleRecords = await getOracleRecords();
     //console.log('Oracles: ', oracleRecords);
@@ -1012,6 +1102,7 @@ describe.skip(`E. (BD-3788) Server crash: Register 3 oracles, only have 2 oracle
     expect(result.oracle_fees[1].fee_name).to.equal('wrap_fio_tokens');
     expect(result.oracle_fees[1].fee_amount).to.equal(3600000000);  // Should be median * 3 = 3600000000
   });
+
 });
 
 describe(`** ORACLE TABLE CLEANUP **`, async function () {
@@ -1336,7 +1427,7 @@ describe(`F. [FIO] Wrap FIO tokens`, function () {
       expect(err.json.fields[0].error).to.equal('Invalid oracle fee value');    }
   });
 
-  it(`(BD-3878)(int tpid) try to wrap 1000 FIO tokens`, async function () {
+  it.skip(`(BD-3878)(int tpid) try to wrap 1000 FIO tokens`, async function () {
     try {
       const result = await user2.sdk.genericAction('pushTransaction', {
         action: 'wraptokens',
@@ -2216,7 +2307,7 @@ describe(`G. [FIO] Unwrap FIO tokens`, function () {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      console.log('Error: ', err.json.fields[0])
+      //console.log('Error: ', err.json.fields[0])
       expect(err.json.fields[0].name).to.equal('amount');
       expect(err.json.fields[0].error).to.equal('Invalid amount');
     }
@@ -2419,29 +2510,6 @@ describe(`G. [FIO] Unwrap FIO tokens`, function () {
       expect(result.status).to.not.equal('OK');
     } catch (err) {
       expect(err.json.fields[0].error).to.equal('Not a registered Oracle');
-    }
-  });
-
-  // This call succeeds because it is the first unwrap by the oracle. A token amount mismatch only occurs
-  //   when one oracle calls unwrap with one amount for an OBT ID, and the 2nd oracle calls it with
-  //   a different amount. I added a test below for this.
-  it.skip(`(token amount mismatch) try to unwrap ${unwrapAmt} FIO tokens`, async function () {
-    try {
-      const result = await newOracle1.sdk.genericAction('pushTransaction', {
-        action: 'unwraptokens',
-        account: 'fio.oracle',
-        data: {
-          amount: unwrapAmt,
-          obt_id: OBT_ID_1,
-          fio_address: user1.address,
-          // actor: newOracle1.account
-        }
-      });
-      console.log('Result: ', result);
-      expect(result.status).to.not.equal('OK');
-    } catch (err) {
-      console.log('err: ', err);
-      expect(err.json.fields[0].error).to.equal('Token amount mismatch.');
     }
   });
 
@@ -2673,12 +2741,18 @@ describe(`H. setoraclefees and simple wrap - confirm ram bump on wrap and valida
   it(`newOracle1 sets wraptokens fee`, async function () {
     try {
       await setTestOracleFees(newOracle1, 1000000000, oracle1Fee);
+      //await setTestOracleFees(newOracle2, 1000000000, oracle2Fee);
     } catch (err) {
       throw err;
     }
   });
 
-  it(`(Bug BD-3874) (Failure) Try to wrap FIO tokens, expect: "All registered oracles have not set fees"`, async function () {
+  it('get oracles', async function () {
+    const oracleRecords = await getOracleRecords();
+    //console.log('Oracles: ', oracleRecords);
+  });
+
+  it(`(Bug BD-3874) (Failure) Try to wrap FIO tokens, expect: All registered oracles have not set fees`, async function () {
     let postWrapBalDiff, postWrapAvailDiff;
     try {
       const result = await user2.sdk.genericAction('pushTransaction', {
@@ -2693,11 +2767,11 @@ describe(`H. setoraclefees and simple wrap - confirm ram bump on wrap and valida
           tpid: "",
         }
       });
-      //console.log('Result: ', result);
+      console.log('Result: ', result);
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      //console.log('Error: ', err.json.error);
-      expect(err.json.error.details[0].message).to.equal('All registered oracles have not set fees')
+      //console.log('Error: ', err);
+      expect(err.json.fields[0].error).to.equal('All registered oracles have not set fees')
     }
   });
 

@@ -2559,35 +2559,6 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       expect(err.json.fields[0].error).to.equal('Invalid Contract Address');
     }
   });
-  it(`(empty token_id) try to remove an NFT for user1, expect error`, async () => {
-    try {
-      const result = await user1.sdk.genericAction('pushTransaction', {
-        action: 'remnft',
-        account: 'fio.address',
-        data: {
-          fio_address: user1.address,
-          nfts: [{
-            "chain_code":"ETH",
-            "contract_address":"0x123456789ABCDEF",
-            "token_id":"",
-            "url":"",
-            "hash":"",
-            "metadata":""
-          }],
-          max_fee: 5000000000,
-          actor: user1.account,
-          tpid: ""
-        }
-      });
-      expect(result.status).to.not.equal('OK');
-    } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.json).to.have.all.keys('type', 'message', 'fields');
-      expect(err.errorCode).to.equal(400);
-      expect(err.json.fields[0].value).to.equal(user1.address);
-      expect(err.json.fields[0].error).to.equal('NFT not found');
-    }
-  });
 
   it(`(negative chain_code) try to remove an NFT for user1, expect error`, async () => {
     try {
@@ -4516,8 +4487,7 @@ describe(`M. (BD-3034) Blank token ID acts as wild card in get_nfts_contract`, (
   });
 })
 
-
-describe(`N. (BD-3826) Removing NFT with empty token_id causes NFT Not Found Error`, () => {
+describe(`N.Removing NFT with empty token_id causes NFT Not Found Error (BD-3826 fixed)`, () => {
   let user1
 
   before(async () => {
@@ -4599,13 +4569,13 @@ describe(`N. (BD-3826) Removing NFT with empty token_id causes NFT Not Found Err
   })
 })
 
-
-describe(`N.1. (BD-3826)  Removing NFT when two users have same NFT with empty token_id causes NFT Not Found Error`, () => {
-  let user1, user2;
+describe(`N.1. Removing NFT when two users have same NFT with empty token_id causes NFT Not Found Error (BD-3826 fixed)`, () => {
+  let user1, user2, user3;
 
   it(`create users`, async () => {
     user1 = await newUser(faucet);
     user2 = await newUser(faucet);
+    user3 = await newUser(faucet);
   });
 
   it(`addnft for user1 with empty token_id`, async () => {
@@ -4637,7 +4607,7 @@ describe(`N.1. (BD-3826)  Removing NFT when two users have same NFT with empty t
       const result = await callFioApi("get_nfts_fio_address", {
         "fio_address": user1.address
       });
-      console.log('user1 NFTs: ', result);
+      //console.log('user1 NFTs: ', result);
       expect(result.nfts.length).to.equal(1);
       expect(result.nfts[0].chain_code).to.equal("ETH");
       expect(result.nfts[0].contract_address).to.equal("0x123456789ABCDEF");
@@ -4676,7 +4646,7 @@ describe(`N.1. (BD-3826)  Removing NFT when two users have same NFT with empty t
       const result = await callFioApi("get_nfts_fio_address", {
         "fio_address": user2.address
       });
-      console.log('user2 NFTs: ', result);
+      //console.log('user2 NFTs: ', result);
       expect(result.nfts.length).to.equal(1);
       expect(result.nfts[0].chain_code).to.equal("ETH");
       expect(result.nfts[0].contract_address).to.equal("0x123456789ABCDEF");
@@ -4684,6 +4654,30 @@ describe(`N.1. (BD-3826)  Removing NFT when two users have same NFT with empty t
     } catch (err) {
       expect(err).to.equal(null);
     }
+  });
+
+  it(`addnft for user3 with empty token_id`, async () => {
+    const nft = await user3.sdk.genericAction('pushTransaction', {
+      action: 'addnft',
+      account: 'fio.address',
+      data: {
+        fio_address: user3.address,
+        nfts: [
+          {
+            chain_code: 'ETH',
+            contract_address: '0x123456789ABCDEF',
+            token_id: '',
+            url: '',
+            hash: '',
+            metadata: ''
+          }
+        ],
+        max_fee: 5000000000,
+        actor: user3.account,
+        tpid: ""
+      }
+    })
+    expect(nft.status).to.equal('OK');
   });
 
   it(`(empty token_id) try to remove user2 NFT, expect success`, async () => {
@@ -4706,7 +4700,7 @@ describe(`N.1. (BD-3826)  Removing NFT when two users have same NFT with empty t
           tpid: ""
         }
       });
-      console.log('Result: ', result);
+      //console.log('Result: ', result);
       expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error: ', err.json);
