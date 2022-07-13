@@ -1,3 +1,31 @@
+/**
+ * These tests require modifications to fio.contracts
+ * 
+ * In fio.oracle.cpp:
+* 
+* First, change to "1 <= oracle_size"
+* Lines 65, 186, 374, 520
+* Change:
+* 
+*             fio_400_assert(3 <= oracle_size, "actor", actor.to_string(), "Not enough registered oracles.",
+*                            ErrorMaxFeeInvalid);
+* to:
+* 
+*             fio_400_assert(1 <= oracle_size, "actor", actor.to_string(), "Not enough registered oracles.",
+*                            ErrorMaxFeeInvalid);
+* 
+* Next, comment out require_auth
+* Lines 263, 296 
+* Change:
+* 
+*             require_auth(SYSTEMACCOUNT);
+*             
+* to: 
+* 
+*             //require_auth(SYSTEMACCOUNT);
+*/
+
+const fs = require('fs');
 require("mocha");
 const {expect} = require("chai");
 const {FIOSDK} = require('@fioprotocol/fiosdk');
@@ -9,8 +37,7 @@ const {
     existingUser,
     callFioApi,
     callFioApiSigned,
-    stringToHash,
-    randStr
+    stringToHash
   } = require("../utils.js");
 const {
     getOracleRecords,
@@ -25,13 +52,15 @@ const Web3 = require('web3');
 const fioABI = require("./Contracts/FIO.json");
 
 const web3 = new Web3('http://127.0.0.1:8545');
-const wfioContract = new web3.eth.Contract(fioABI, '0x7cb75279365153a383D7C8e2AE3821AD1eDC4FA5');
+const wfioContract = new web3.eth.Contract(fioABI, '0x4ecf6a5C2Da5425e31d93F161d1f1daFb58177f0');
 
 // Use to test against the erc20 Testnet contract at https://rinkeby.etherscan.io/address/0x39e55E8Fcc19ACA3606Ed3CFe7177442185a14F9
-const etherscan = new Web3('https://rinkeby.infura.io/v3/2ca52b84d74f46efb23d1730e4e215cf');
-//console.log('etherscan: ', etherscan)
-const wfioEtherscanContract = new etherscan.eth.Contract(fioABI, '0x39e55E8Fcc19ACA3606Ed3CFe7177442185a14F9');
-//console.log('wfioEtherscanContract: ', wfioEtherscanContract)
+//const etherscan = new Web3('https://rinkeby.infura.io/v3/2ca52b84d74f46efb23d1730e4e215cf');
+//const wfioEtherscanContract = new etherscan.eth.Contract(fioABI, '0x39e55E8Fcc19ACA3606Ed3CFe7177442185a14F9');
+
+const domainWrapFee = 50000000000;  // 50 FIO
+const tokenWrapFee = 40000000000; // 40 FIO
+const logDir = '/Users/ericbutz/git/fio.oracle/controller/api/logs/';
 
 let faucet, owner;
 let accounts = [], custodians = [], oracles = [], users = [];
@@ -61,17 +90,15 @@ before(async function () {
         //console.log('All accounts: ', accounts)
         //console.log('Custodians: ', custodians);
         //console.log('Oracles: ', oracles);
-        console.log('Users: ', users);
+        //console.log('Users: ', users);
 
-        const result = await wfioContract.methods.getOracles().call(function () {  })
-        if (JSON.stringify(result) == JSON.stringify(oracles)) {
-            console.log('     Oracles already registered on wfio contract');
-            return;
-        } else {
-            console.log('TODO: register oracles');
-        }
+        // This test requires that ONLY one oracle is registered
+        await cleanUpOraclessTable(faucet, true);
+        await registerNewOracle(oracle1);
+        await setTestOracleFees(oracle1, domainWrapFee, tokenWrapFee);
+
     } catch (err) {
-        console.log('Error: ', err.json.fields);
+        console.log('Error: ', err);
         throw(err);
     }
 });
@@ -79,7 +106,7 @@ before(async function () {
 describe(`************************** fio-wrapping-system.js ************************** \n   A. Wrap/unwrap FIO`, function () {
 
     let user0;
-    const wrapAmt = 100000000000;  // 100 fIO
+    const wrapAmt = 20000000000;  // 20 fIO
     const unwrapAmt = 5000000000;  // 5 wfIO
     const chainCode = "ETH";
 
@@ -93,60 +120,13 @@ describe(`************************** fio-wrapping-system.js ********************
         }
     });
 
-    describe.skip(`Reg oracles and set fees`, function () {
-        
-        const domainWrapFee = 50000000000;  // 50 FIO
-        const tokenWrapFee = 40000000000; // 40 FIO
-           
-        it(`clean out oracless record with helper function`, async function () {
-          try {
-            await cleanUpOraclessTable(faucet, true);
-          } catch (err) {
-            console.log('Error: ', err)
-            throw err;
-          }
-        });
-      
-        it(`confirm oracles table is empty`, async function () {
-          try {
-            let records = await getOracleRecords();
-            //console.log('Records: ', records);
-            expect(records.rows.length).to.equal(0);
-          } catch (err) {
-            console.log('Error: ', err)
-            throw err;
-          }
-        });
-      
-        it(`reg oracles`, async function () {
-          try {
-            await registerNewOracle(oracle1);
-            await registerNewOracle(oracle2);
-            await registerNewOracle(oracle3);
-          } catch (err) {
-            console.log('Error: ', err.json);
-          }
-        });
-      
-        it(`set fees`, async function () {
-          try {
-            await setTestOracleFees(oracle1, domainWrapFee, tokenWrapFee);
-            await setTestOracleFees(oracle2, domainWrapFee, tokenWrapFee);
-            await setTestOracleFees(oracle3, domainWrapFee, tokenWrapFee);
-          } catch (err) {
-            console.log('Error: ', err.json);
-          }
-        });
-        
-      });
-
     describe(`Wrap FIO`, function () {
+        let wrap_fio_tokens_fee;
 
         it(`Get user0 wfio balanceOf from ETH chain`, async function () {
             result = await wfioContract.methods.balanceOf(user0.ethAddress).call(function (err, result) { });
             user0.wfioBalance = result;
-
-            console.log('Balance: ', result)
+            //console.log('wfio balance: ', result)
         });
 
         it(`Get user0 FIO balance from FIO chain`, async () => {
@@ -155,12 +135,25 @@ describe(`************************** fio-wrapping-system.js ********************
                     fioPublicKey: user0.publicKey
                 })
                 user0.fioBalance = result.balance;
-                console.log('user0 fio balance', result);
+                //console.log('user0 fio balance', result);
             } catch (err) {
                 //console.log('Error', err)
                 expect(err).to.equal(null)
             }
         });
+
+        it('Get fee for wrap_fio_tokens', async () => {
+            try {
+                result = await user0.sdk.getFee('wrap_fio_tokens', user0.address);
+                wrap_fio_tokens_fee = result.fee;
+
+                //oracleFee = await callFioApi('get_oracle_fees', {});
+                //wrap_fio_tokens_oracle_fee = oracleFee.oracle_fees[1].fee_amount;  // 1 is wrap_fio_tokens              
+            } catch (err) {
+                console.log('Error', err);
+                expect(err).to.equal(null);
+            }
+        })
 
         it(`Wrap tokens`, async function () {
             try {
@@ -177,11 +170,11 @@ describe(`************************** fio-wrapping-system.js ********************
                     }
                 });
                 user0.transaction_id = result.transaction_id;
-                console.log('Result: ', result);
+                //console.log('transaction_id: ', user0.transaction_id);
                 expect(result.status).to.equal('OK');
             } catch (err) {
-                console.log('Error: ', err.json.fields);
-                expect(err).to.equal(null);;
+                console.log('Error: ', err.json);
+                expect(err).to.equal(null);
             }
         });
 
@@ -190,16 +183,37 @@ describe(`************************** fio-wrapping-system.js ********************
                 const result = await user0.sdk.genericAction('getFioBalance', {
                     fioPublicKey: user0.publicKey
                 });
-                console.log('Balance', result);
-                expect(result.balance).to.equal(user0.fioBalance - wrapAmt);
+                //console.log('Balance', result);
+                expect(result.balance).to.equal(user0.fioBalance - wrapAmt - wrap_fio_tokens_fee - tokenWrapFee);
             } catch (err) {
                 //console.log('Error', err)
                 expect(err).to.equal(null)
             }
         });
 
-        it(`Check Oracle Logs`, async function () {
+        it(`Wait 8 seconds for fio.oracle to execute`, async () => { await timeout(8000) });
 
+        it(`Check FIO.log`, async function () {
+            try {
+                let logItem;
+                
+                let logFile = logDir + 'FIO.log';
+
+                const array = fs.readFileSync(logFile).toString().split("\n");
+
+                for(i in array) {
+                    if (array[i].search(user0.transaction_id) > 0) {
+                        //console.log('Found item: ', array[i]);
+                        logItem = JSON.parse(array[i]);
+                        break
+                    }
+                }
+                expect(logItem.transaction.action_trace.act.name).to.equal('wraptokens');
+                expect(logItem.transaction.action_trace.act.data.amount).to.equal(wrapAmt);
+            } catch (err) {
+                console.log('Error', err)
+                expect(err).to.equal(null)
+            }
         });
 
         it(`getPastEvents for 'wrapped' events on ETH chain. Expect to find wrap.`, async function () {
@@ -209,15 +223,16 @@ describe(`************************** fio-wrapping-system.js ********************
                     fromBlock: 500,
                     toBlock: 'latest'
                 })
-                console.log('Result: ', transactions);
+                //console.log('Result: ', transactions);
+                //console.log('user0.transaction_id: ', user0.transaction_id);
                 for (txn in transactions) {
                     if (transactions[txn].returnValues.obtid === user0.transaction_id) {
-                        console.log('found');
+                        //console.log('Found txn: ', transactions[txn].returnValues.obtid);
                         txnEvent = transactions[txn];
                         break;
                     }
                 }
-                expect(txnEvent.returnValues.amount).to.equal(wrapAmt);
+                expect(txnEvent.returnValues.amount).to.equal(wrapAmt.toString());
                 expect(txnEvent.returnValues.account).to.equal(user0.ethAddress);
             } catch (err) {
                 console.log('Error: ', err);
@@ -228,10 +243,12 @@ describe(`************************** fio-wrapping-system.js ********************
         it(`Get user0 wfio balance. Expect increase.`, async function () {
             try {
                 result = await wfioContract.methods.balanceOf(user0.ethAddress).call(function (err, result) { });
-                console.log('Balance: ', result);
-                expect(result).to.equal(user0.wfioBalance - wrapAmt);
+                //console.log('Prev wfio balance: ', user0.wfioBalance);
+                //console.log('wrapAmt: ', wrapAmt);
+                //console.log('New wfio balance: ', result);               
+                expect(parseInt(result)).to.equal(parseInt(user0.wfioBalance) + wrapAmt);
             } catch (err) {
-                //console.log('Error', err)
+                console.log('Error', err)
                 expect(err).to.equal(null)
             }
         });
@@ -243,7 +260,7 @@ describe(`************************** fio-wrapping-system.js ********************
         it(`Get user0 wfio balanceOf from ETH chain`, async function () {
             result = await wfioContract.methods.balanceOf(user0.ethAddress).call(function (err, result) { });
             user0.wfioBalance = result;
-            console.log('Balance: ', result)
+            //console.log('Balance: ', result)
         });
 
         it(`Get user0 FIO balance from FIO chain`, async () => {
@@ -252,14 +269,14 @@ describe(`************************** fio-wrapping-system.js ********************
                     fioPublicKey: user0.publicKey
                 })
                 user0.fioBalance = result.balance;
-                console.log('user0 fio balance', result);
+                //console.log('user0 fio balance', result);
             } catch (err) {
                 //console.log('Error', err)
                 expect(err).to.equal(null)
             }
         });
 
-        it.skip(`wfio unwrap`, async function () {  
+        it(`wfio unwrap`, async function () {  
             try {
                 wfioContract.methods
                     .unwrap(user0.address, unwrapAmt)
@@ -268,7 +285,7 @@ describe(`************************** fio-wrapping-system.js ********************
                             console.log("An error occured", err)
                             return
                         }   
-                        console.log("Hash of the transaction: " + res);
+                        //console.log("Hash of the transaction: " + res);
                         unwrapTxnId = res;
                     })
             } catch (err) {
@@ -277,21 +294,38 @@ describe(`************************** fio-wrapping-system.js ********************
             }
         });
 
-        it(`Wait a few seconds.`, async () => { await timeout(3000) })
+        it(`Wait 8 seconds for fio.oracle to execute`, async () => { await timeout(8000) });
 
         it(`Get user0 wfio balance. Expect reduced.`, async function () {
             try {
                 result = await wfioContract.methods.balanceOf(user0.ethAddress).call(function (err, result) { });
-                console.log('Balance: ', result);
-                expect(result).to.equal(user0.wfioBalance - unwrapAmt);
+                //console.log('Balance: ', result);
+                expect(parseInt(result)).to.equal(parseInt(user0.wfioBalance) - unwrapAmt);
             } catch (err) {
                 //console.log('Error', err)
                 expect(err).to.equal(null)
             }
         });
 
-        it(`Check Oracle Logs`, async function () {
+        it(`Check FIO.log`, async function () {
+            try {
+                let logItem;
+                let logFile = logDir + 'FIO.log';
+                const array = fs.readFileSync(logFile).toString().split("\n");
 
+                for(i in array) {
+                    if (array[i].search(unwrapTxnId) > 0) {
+                        //console.log('Found item: ', array[i]);
+                        logItem = JSON.parse(array[i]);
+                        break
+                    }
+                }
+                expect(logItem.transaction.processed.action_traces[0].act.name).to.equal('unwraptokens');
+                expect(logItem.transaction.processed.action_traces[0].act.data.amount).to.equal(unwrapAmt);
+            } catch (err) {
+                console.log('Error', err)
+                expect(err).to.equal(null)
+            }
         });
 
         it(`Confirm entry in FIO oravotes table`, async function () {
@@ -309,8 +343,10 @@ describe(`************************** fio-wrapping-system.js ********************
                     index_position: '2',
                 }
                 const unwrapVotes = await callFioApi("get_table_rows", json);
-                console.log('voterInfo: ', unwrapVotes);
-                expect(unwrapVotes.rows.length).to.equal(3);
+                //console.log('voterInfo: ', unwrapVotes);
+                expect(unwrapVotes.rows.length).to.equal(1);
+                expect(unwrapVotes.rows[0].obt_id).to.equal(unwrapTxnId);
+                expect(unwrapVotes.rows[0].amount).to.equal(unwrapAmt);
             } catch (err) {
                 console.log('Error', err);
                 expect(err).to.equal(null);
@@ -322,7 +358,7 @@ describe(`************************** fio-wrapping-system.js ********************
                 const result = await user0.sdk.genericAction('getFioBalance', {
                     fioPublicKey: user0.publicKey
                 });
-                console.log('Balance', result);
+                //console.log('Balance', result);
                 expect(result.balance).to.equal(user0.fioBalance + unwrapAmt);
             } catch (err) {
                 //console.log('Error', err)
@@ -336,7 +372,7 @@ describe(`************************** fio-wrapping-system.js ********************
 
 });
 
-describe.only(`web3 examples`, function () {
+describe.skip(`web3 examples`, function () {
 
     let user1;
     
@@ -358,7 +394,7 @@ describe.only(`web3 examples`, function () {
         }
     });
 
-    it.only(`etherscan testnet getPastEvents`, async function () {
+    it(`etherscan testnet getPastEvents`, async function () {
         try {
             const result = await wfioEtherscanContract.getPastEvents('unwrapped', {
                 fromBlock: 11012398,
@@ -519,7 +555,7 @@ describe.only(`web3 examples`, function () {
     });
 });
 
-describe(`utils`, function () {
+describe.skip(`utils`, function () {
     let OBT_ID_1 = "0x134213413421343";
 
     let user0;
@@ -611,3 +647,56 @@ describe(`utils`, function () {
 
     });
 });
+
+describe(`Reg 1 oracle and set fees`, function () {
+              
+    it(`clean out oracless record with helper function`, async function () {
+      try {
+        await cleanUpOraclessTable(faucet, true);
+      } catch (err) {
+        console.log('Error: ', err)
+        throw err;
+      }
+    });
+  
+    it(`confirm oracles table is empty`, async function () {
+      try {
+        let records = await getOracleRecords();
+        //console.log('Records: ', records);
+        expect(records.rows.length).to.equal(0);
+      } catch (err) {
+        console.log('Error: ', err)
+        throw err;
+      }
+    });
+
+    it('try to get the wrapping fees from the API, expect: Not enough registered oracles. ', async function () {
+        try {
+          await callFioApi('get_oracle_fees', {});
+        } catch (err) {
+          //console.log('Error: ', err);
+          expect(err.error.message).to.equal('Not enough registered oracles.');
+        }
+      });
+  
+    it(`reg oracles`, async function () {
+      try {
+        await registerNewOracle(oracle1);
+        //await registerNewOracle(oracle2);
+        //await registerNewOracle(oracle3);
+      } catch (err) {
+        console.log('Error: ', err.json);
+      }
+    });
+  
+    it(`set fees`, async function () {
+      try {
+        await setTestOracleFees(oracle1, domainWrapFee, tokenWrapFee);
+        //await setTestOracleFees(oracle2, domainWrapFee, tokenWrapFee);
+        //await setTestOracleFees(oracle3, domainWrapFee, tokenWrapFee);
+      } catch (err) {
+        console.log('Error: ', err.json);
+      }
+    });
+    
+  });
