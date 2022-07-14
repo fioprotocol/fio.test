@@ -19,6 +19,11 @@ describe('TEST SUITE', () => {
      */
 
     /**
+     * Full system tests for wrapping
+     */
+    require('./tests/fio-wrapping-system');
+
+    /**
      * ERC20 and ERC721 contract tests
      */
     require('./tests/fio-erc20');

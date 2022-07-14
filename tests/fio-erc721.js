@@ -1314,3 +1314,137 @@ describe(`N. [MATIC] Burn an NFT`, function () {
     }
   });
 });
+
+describe(`O. [MATIC] get domain names by owner using listDomainsOfOwner`, function () {
+  let accounts;
+  let custodians;
+  let owner;
+  let factory;
+  let fioNft;
+  let transactionId = '5efdf70d4338b6ae60e3241ce9fb646f55306434c3ed070601bde98a75f4418f';
+  let transactionId2 = '6efdf70d4338b6ae60e3241ce9fb646f55306434c3ed070601bde98a75f4418f';
+  let testDomain = 'test-domain';
+  let testDomain2 = 'test-domain-2';
+
+  before(async function () {
+    [owner, ...accounts] = await ethers.getSigners();
+    custodians = [];
+    for (let i = 1; i < 11; i++) {
+      custodians.push(accounts[i].address);
+    }
+    factory = await ethers.getContractFactory('FIONFT', owner);
+    fioNft = await factory.deploy(custodians);
+    await fioNft.deployTransaction.wait();
+    // register 3 oracles for testing
+    await fioNft.connect(accounts[1]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[2]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[3]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[4]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[5]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[6]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[7]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[1]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[2]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[3]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[4]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[5]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[6]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[7]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[1]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[2]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[3]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[4]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[5]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[6]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[7]).regoracle(accounts[14].address);
+
+
+    // wrap a domain for testing
+    await fioNft.connect(accounts[12]).wrapnft(accounts[0].address, testDomain, transactionId);
+    await fioNft.connect(accounts[13]).wrapnft(accounts[0].address, testDomain, transactionId);
+    try {
+      let result = await fioNft.connect(accounts[14]).wrapnft(accounts[0].address, testDomain, transactionId);
+      expect(result.from).to.equal(accounts[14].address);
+      expect(result.to).to.equal(fioNft.address);
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`(no domains wrapped) try to call listDomainsOfOwner on account with no domains`, async function () {
+    try {
+      let result = await fioNft.listDomainsOfOwner(accounts[1].address);
+      expect(result).to.be.an('array').and.be.empty;
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`(invalid owner) try to call listDomainsOfOwner`, async function () {
+    try {
+      let result = await fioNft.listDomainsOfOwner('invalid!@#');
+      expect(result).to.be.an('array').and.be.empty;
+    } catch (err) {
+      expect(err).to.have.all.keys('reason', 'code', 'operation', 'network');
+      expect(err.reason).to.equal('network does not support ENS');
+    }
+  });
+
+  it(`(empty owner) try to call listDomainsOfOwner`, async function () {
+    try {
+      let result = await fioNft.listDomainsOfOwner('');
+      expect(result).to.be.an('array').and.be.empty;
+    } catch (err) {
+      expect(err.reason).to.equal('resolver or addr is not configured for ENS name');
+    }
+  });
+
+  it(`(missing owner) try to call listDomainsOfOwner`, async function () {
+    try {
+      let result = await fioNft.listDomainsOfOwner();
+      expect(result).to.be.an('array').and.be.empty;
+    } catch (err) {
+      expect(err.reason).to.equal('missing argument: passed to contract');
+    }
+  });
+
+  it(`call listDomainsOfOwner on wrapped token holder, expect 1 wrapped domain with value of ${testDomain}`, async function () {
+    try {
+      let result = await fioNft.listDomainsOfOwner(accounts[0].address);
+      expect(result.length).to.equal(1);
+      expect(result[0]).to.equal(testDomain);
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`Wrap another test domain`, async function () {
+    let fromStartingBal = await accounts[14].getBalance();
+    let toStartingfioNftBal = await fioNft.balanceOf(accounts[0].address);
+
+    await fioNft.connect(accounts[12]).wrapnft(accounts[0].address, testDomain2, transactionId2);
+    await fioNft.connect(accounts[13]).wrapnft(accounts[0].address, testDomain2, transactionId2);
+    try {
+      let result = await fioNft.connect(accounts[14]).wrapnft(accounts[0].address, testDomain2, transactionId2);
+      let fromEndingBal = await accounts[14].getBalance();
+      let toEndingfioNftBal = await fioNft.balanceOf(accounts[0].address);
+      expect(result.from).to.equal(accounts[14].address);
+      expect(result.to).to.equal(fioNft.address);
+      expect(fromStartingBal.gt(fromEndingBal)).to.be.true;
+      expect(toStartingfioNftBal.lt(toEndingfioNftBal)).to.be.true;
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`call listDomainsOfOwner on wrapped token holder, expect 2 wrapped domains with value of ${testDomain} and ${testDomain2}`, async function () {
+    try {
+      let result = await fioNft.listDomainsOfOwner(accounts[0].address);
+      expect(result.length).to.equal(2);
+      expect(result[0]).to.equal(testDomain);
+      expect(result[1]).to.equal(testDomain2);
+    } catch (err) {
+      throw err;
+    }
+  });
+});
