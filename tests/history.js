@@ -130,9 +130,8 @@ describe('B. trnsfiopubky to existing account', () => {
     }
     result = await callFioHistoryApi("get_transaction", json);
     //console.log('Result: ', result);
-
-    expect(result.traces.length).to.equal(13);
-
+    //console.log('Result Traces: ', result.traces);
+    expect(result.traces.length).to.equal(14);
   });
 
 })
@@ -235,9 +234,8 @@ describe('C. trnsloctoks - confirm transactions available from history', () => {
     }
     result = await callFioHistoryApi("get_transaction", json);
     //console.log('Result: ', result);
-
-    expect(result.traces.length).to.equal(14);
-
+    //console.log('Result Traces: ', result.traces);
+    expect(result.traces.length).to.equal(16);
   });
 
 })
