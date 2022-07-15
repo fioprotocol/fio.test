@@ -1,11 +1,16 @@
 require('mocha');
 const { expect } = require('chai');
-const { newUser} = require('../utils.js');
+const { newUser, fetchJson} = require('../utils.js');
 const { FIOSDK } = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
+let faucet;
 
 const createHash = require('create-hash');
 const { arrayToHex } = require('@fioprotocol/fiojs/dist/chain-numeric');
+
+before(async () => {
+    faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
+  })
 
 describe(`************************** serialize-deserialize.js ************************** \n    A. Test for incremental serialization and signing`, () => {
 
