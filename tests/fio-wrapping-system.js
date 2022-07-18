@@ -64,7 +64,7 @@ const nftContract = new web3.eth.Contract(fionftABI, '0x068C9650EE573D52C76e9AFc
 
 const domainWrapFee = 50000000000;  // 50 FIO
 const tokenWrapFee = 40000000000; // 40 FIO
-const logDir = '/Users/ericbutz/git/fio.oracle/controller/api/logs/';
+const logDir = '/Users/ericbutz/tmp/fio.oracle/controller/api/logs/';
 
 let faucet, owner;
 let accounts = [], custodians = [], oracles = [], users = [];
