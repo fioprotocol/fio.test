@@ -52,11 +52,11 @@ const Web3 = require('web3');
 const web3 = new Web3('http://127.0.0.1:8545');
 
 const fioABI = require("./Contracts/FIO.json");
-const wfioContract = new web3.eth.Contract(fioABI, '0x84B932133B1F45A1E8054083a67D76c9fD5C2fAC');
+const wfioContract = new web3.eth.Contract(fioABI, '0x7F256BACDA60E31Db3eE12d1ed4939954BdA4F8f');
 
 const fionftABI = require("./Contracts/FIOMATICNFT.json");
 const { resolve } = require('dns');
-const nftContract = new web3.eth.Contract(fionftABI, '0x4917f96442F859a10Dbfe2b1c3a06BcE42867e7F');
+const nftContract = new web3.eth.Contract(fionftABI, '0x068C9650EE573D52C76e9AFc3EF8e8C197c5D489');
 
 // Use to test against the erc20 Testnet contract at https://rinkeby.etherscan.io/address/0x39e55E8Fcc19ACA3606Ed3CFe7177442185a14F9
 //const etherscan = new Web3('https://rinkeby.infura.io/v3/2ca52b84d74f46efb23d1730e4e215cf');
@@ -96,18 +96,29 @@ before(async function () {
         //console.log('Oracles: ', oracles);
         //console.log('Users: ', users);
 
-        // This test requires that ONLY one oracle is registered
-        //await cleanUpOraclessTable(faucet, true);
-        //await registerNewOracle(oracle1);
-        //await setTestOracleFees(oracle1, domainWrapFee, tokenWrapFee);
+    } catch (err) {
+        console.log('Error: ', err);
+        throw(err);
+    }
 
+    try { 
+        // This test requires that ONLY one FIO oracle is registered
+        await cleanUpOraclessTable(faucet, true);
+        await registerNewOracle(oracle1);
+        await setTestOracleFees(oracle1, domainWrapFee, tokenWrapFee);
+
+        let records = await getOracleRecords();
+        //console.log('Records: ', records.rows[0]);
+        expect(records.rows.length).to.equal(1);
+        expect(records.rows[0].actor).to.equal(oracle1.account);
+        expect(records.rows[0].fees.length).to.equal(2);
     } catch (err) {
         console.log('Error: ', err);
         throw(err);
     }
 });
 
-describe(`************************** fio-wrapping-system.js ************************** \n   A. Token wrap/unwrap with oracle example`, function () {
+describe(`************************** fio-wrapping-system.js ************************** \n   A. Single token wrap/unwrap with oracle example`, function () {
 
     let user0;
     const wrapAmt = 20000000000;  // 20 fIO
@@ -376,7 +387,7 @@ describe(`************************** fio-wrapping-system.js ********************
 
 });
 
-describe(`B. Domain wrap/unwrap with oracle Example`, function () {
+describe(`B. Single domain wrap/unwrap with oracle Example`, function () {
 
     let user0;
     const chainCode = "MATIC";
@@ -639,6 +650,827 @@ describe(`B. Domain wrap/unwrap with oracle Example`, function () {
                 expect(err).to.equal(null)
             }
         });
+    });
+
+});
+
+describe(`C. Three token wraps in same oracle polltime, then three token unwraps in same oracle polltime`, function () {
+
+    let user0;
+    const wrapAmt = 20000000000;  // 20 fIO
+    const unwrapAmt = 5000000000;  // 5 wfIO
+    const chainCode = "ETH";
+
+    before(`Create users and connect to ETH chain`, async () => {
+        try {
+            user0 = await newUser(faucet);
+            user0.ethAddress = users[0];
+            user1 = await newUser(faucet);
+            user1.ethAddress = users[1];
+            user2 = await newUser(faucet);
+            user2.ethAddress = users[2];
+        } catch (err) {
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    describe(`Wrap FIO`, function () {
+        let wrap_fio_tokens_fee;
+
+        it(`Get user0 wfio balanceOf from ETH chain`, async function () {
+            result = await wfioContract.methods.balanceOf(user0.ethAddress).call(function (err, result) { });
+            user0.wfioBalance = result;
+            result1 = await wfioContract.methods.balanceOf(user1.ethAddress).call(function (err, result) { });
+            user1.wfioBalance = result1;
+            result2 = await wfioContract.methods.balanceOf(user2.ethAddress).call(function (err, result) { });
+            user2.wfioBalance = result2;
+            //console.log('wfio balance: ', result)
+        });
+
+        it(`Get FIO balances from FIO chain`, async () => {
+            try {
+                const result = await user0.sdk.genericAction('getFioBalance', {
+                    fioPublicKey: user0.publicKey
+                })
+                user0.fioBalance = result.balance;
+
+                const result1 = await user1.sdk.genericAction('getFioBalance', {
+                    fioPublicKey: user1.publicKey
+                })
+                user1.fioBalance = result1.balance;
+
+                const result2 = await user2.sdk.genericAction('getFioBalance', {
+                    fioPublicKey: user2.publicKey
+                })
+                user2.fioBalance = result2.balance;
+                //console.log('user0 fio balance', result);
+            } catch (err) {
+                //console.log('Error', err)
+                expect(err).to.equal(null)
+            }
+        });
+
+        it('Get fee for wrap_fio_tokens', async () => {
+            try {
+                result = await user0.sdk.getFee('wrap_fio_tokens', user0.address);
+                wrap_fio_tokens_fee = result.fee;
+
+                //oracleFee = await callFioApi('get_oracle_fees', {});
+                //wrap_fio_tokens_oracle_fee = oracleFee.oracle_fees[1].fee_amount;  // 1 is wrap_fio_tokens              
+            } catch (err) {
+                console.log('Error', err);
+                expect(err).to.equal(null);
+            }
+        })
+
+        it(`Wrap tokens - user0`, async function () {
+            try {
+                const result = await user0.sdk.genericAction('pushTransaction', {
+                    action: 'wraptokens',
+                    account: 'fio.oracle',
+                    data: {
+                    amount: wrapAmt,
+                    chain_code: chainCode,
+                    public_address: user0.ethAddress,
+                    max_oracle_fee: config.maxOracleFee,
+                    max_fee: config.maxFee,
+                    tpid: "",
+                    }
+                });
+                user0.transaction_id = result.transaction_id;
+                //console.log('transaction_id: ', user0.transaction_id);
+                expect(result.status).to.equal('OK');
+            } catch (err) {
+                console.log('Error: ', err.json);
+                expect(err).to.equal(null);
+            }
+        });
+
+        it(`Wrap tokens - user1`, async function () {
+            try {
+                const result = await user1.sdk.genericAction('pushTransaction', {
+                    action: 'wraptokens',
+                    account: 'fio.oracle',
+                    data: {
+                    amount: wrapAmt,
+                    chain_code: chainCode,
+                    public_address: user1.ethAddress,
+                    max_oracle_fee: config.maxOracleFee,
+                    max_fee: config.maxFee,
+                    tpid: "",
+                    }
+                });
+                user1.transaction_id = result.transaction_id;
+                //console.log('transaction_id: ', user1.transaction_id);
+                expect(result.status).to.equal('OK');
+            } catch (err) {
+                console.log('Error: ', err.json);
+                expect(err).to.equal(null);
+            }
+        });
+
+        it(`Wrap tokens - user2`, async function () {
+            try {
+                const result = await user2.sdk.genericAction('pushTransaction', {
+                    action: 'wraptokens',
+                    account: 'fio.oracle',
+                    data: {
+                    amount: wrapAmt,
+                    chain_code: chainCode,
+                    public_address: user2.ethAddress,
+                    max_oracle_fee: config.maxOracleFee,
+                    max_fee: config.maxFee,
+                    tpid: "",
+                    }
+                });
+                user2.transaction_id = result.transaction_id;
+                //console.log('transaction_id: ', user2.transaction_id);
+                expect(result.status).to.equal('OK');
+            } catch (err) {
+                console.log('Error: ', err.json);
+                expect(err).to.equal(null);
+            }
+        });
+
+        it(`Wait 8 seconds for fio.oracle to execute`, async () => { await timeout(8000) });
+
+        it(`Get FIO balance for user0 from FIO chain. Expect reduced.`, async () => {
+            try {
+                const result = await user0.sdk.genericAction('getFioBalance', {
+                    fioPublicKey: user0.publicKey
+                })
+                //console.log('Balance', result);
+                expect(result.balance).to.equal(user0.fioBalance - wrapAmt - wrap_fio_tokens_fee - tokenWrapFee);
+            } catch (err) {
+                //console.log('Error', err)
+                expect(err).to.equal(null)
+            }
+        });
+
+        it(`Get FIO balance for user1 from FIO chain. Expect reduced.`, async () => {
+            try {
+                const result = await user1.sdk.genericAction('getFioBalance', {
+                    fioPublicKey: user1.publicKey
+                })
+                //console.log('Balance', result);
+                expect(result.balance).to.equal(user1.fioBalance - wrapAmt - wrap_fio_tokens_fee - tokenWrapFee);
+            } catch (err) {
+                //console.log('Error', err)
+                expect(err).to.equal(null)
+            }
+        });
+
+        it(`Get FIO balance for user2 from FIO chain. Expect reduced.`, async () => {
+            try {
+                const result = await user2.sdk.genericAction('getFioBalance', {
+                    fioPublicKey: user2.publicKey
+                })
+                //console.log('Balance', result);
+                expect(result.balance).to.equal(user2.fioBalance - wrapAmt - wrap_fio_tokens_fee - tokenWrapFee);
+            } catch (err) {
+                //console.log('Error', err)
+                expect(err).to.equal(null)
+            }
+        });
+
+        it(`Check FIO.log for user0`, async function () {
+            try {
+                let logItem;
+                
+                let logFile = logDir + 'FIO.log';
+
+                const array = fs.readFileSync(logFile).toString().split("\n");
+
+                //console.log('array: ', array);
+
+                for(i in array) {
+                    if (array[i].search(user0.transaction_id) > 0) {
+                        //console.log('Found item: ', array[i]);
+                        logItem = JSON.parse(array[i]);
+                        break
+                    }
+                }
+                expect(logItem.transaction.action_trace.act.name).to.equal('wraptokens');
+                expect(logItem.transaction.action_trace.act.data.amount).to.equal(wrapAmt);
+            } catch (err) {
+                console.log('Error', err)
+                expect(err).to.equal(null)
+            }
+        });
+
+        it(`Check FIO.log for user1`, async function () {
+            try {
+                let logItem;
+                
+                let logFile = logDir + 'FIO.log';
+
+                const array = fs.readFileSync(logFile).toString().split("\n");
+
+                for(i in array) {
+                    if (array[i].search(user1.transaction_id) > 0) {
+                        //console.log('Found item: ', array[i]);
+                        logItem = JSON.parse(array[i]);
+                        break
+                    }
+                }
+                expect(logItem.transaction.action_trace.act.name).to.equal('wraptokens');
+                expect(logItem.transaction.action_trace.act.data.amount).to.equal(wrapAmt);
+            } catch (err) {
+                console.log('Error', err)
+                expect(err).to.equal(null)
+            }
+        });
+
+        it(`Check FIO.log for user2`, async function () {
+            try {
+                let logItem;
+                
+                let logFile = logDir + 'FIO.log';
+
+                const array = fs.readFileSync(logFile).toString().split("\n");
+
+                for(i in array) {
+                    if (array[i].search(user2.transaction_id) > 0) {
+                        //console.log('Found item: ', array[i]);
+                        logItem = JSON.parse(array[i]);
+                        break
+                    }
+                }
+                expect(logItem.transaction.action_trace.act.name).to.equal('wraptokens');
+                expect(logItem.transaction.action_trace.act.data.amount).to.equal(wrapAmt);
+            } catch (err) {
+                console.log('Error', err)
+                expect(err).to.equal(null)
+            }
+        });
+
+        it(`getPastEvents for'wrapped' events on ETH chain. Expect to find wrap.`, async function () {
+            try {
+                let txnEvent, txnEvent1, txnEvent2;
+                const transactions = await wfioContract.getPastEvents('wrapped', {
+                    fromBlock: 0,
+                    toBlock: 'latest'
+                })
+                //console.log('Result: ', transactions);
+                //console.log('user0.transaction_id: ', user0.transaction_id);
+                for (txn in transactions) {
+                    if (transactions[txn].returnValues.obtid === user0.transaction_id) {
+                        //console.log('Found txn: ', transactions[txn].returnValues.obtid);
+                        txnEvent = transactions[txn];
+                    }
+                    if (transactions[txn].returnValues.obtid === user1.transaction_id) {
+                        //console.log('Found txn: ', transactions[txn].returnValues.obtid);
+                        txnEvent1 = transactions[txn];
+                    }
+                    if (transactions[txn].returnValues.obtid === user2.transaction_id) {
+                        //console.log('Found txn: ', transactions[txn].returnValues.obtid);
+                        txnEvent2 = transactions[txn];
+                    }
+                }
+                expect(txnEvent.returnValues.amount).to.equal(wrapAmt.toString());
+                expect(txnEvent.returnValues.account).to.equal(user0.ethAddress);
+                expect(txnEvent1.returnValues.amount).to.equal(wrapAmt.toString());
+                expect(txnEvent1.returnValues.account).to.equal(user1.ethAddress);
+                expect(txnEvent2.returnValues.amount).to.equal(wrapAmt.toString());
+                expect(txnEvent2.returnValues.account).to.equal(user2.ethAddress);
+            } catch (err) {
+                console.log('Error: ', err);
+                expect(err).to.equal(null);;
+            }
+        });
+
+        it(`Get user0 wfio balance. Expect increase.`, async function () {
+            try {
+                const result = await wfioContract.methods.balanceOf(user0.ethAddress).call(function (err, result) { });
+                //console.log('Prev wfio balance: ', user0.wfioBalance);
+                //console.log('wrapAmt: ', wrapAmt);
+                //console.log('New wfio balance: ', result);               
+                expect(parseInt(result)).to.equal(parseInt(user0.wfioBalance) + wrapAmt);
+            } catch (err) {
+                console.log('Error', err)
+                expect(err).to.equal(null)
+            }
+        });
+
+        it(`Get user1 wfio balance. Expect increase.`, async function () {
+            try {
+                const result = await wfioContract.methods.balanceOf(user1.ethAddress).call(function (err, result) { });
+                //console.log('Prev wfio balance: ', user1.wfioBalance);
+                //console.log('wrapAmt: ', wrapAmt);
+                //console.log('New wfio balance: ', result);               
+                expect(parseInt(result)).to.equal(parseInt(user1.wfioBalance) + wrapAmt);
+            } catch (err) {
+                console.log('Error', err)
+                expect(err).to.equal(null)
+            }
+        });
+
+        it(`Get user2 wfio balance. Expect increase.`, async function () {
+            try {
+                const result = await wfioContract.methods.balanceOf(user2.ethAddress).call(function (err, result) { });
+                //console.log('Prev wfio balance: ', user2.wfioBalance);
+                //console.log('wrapAmt: ', wrapAmt);
+                //console.log('New wfio balance: ', result);               
+                expect(parseInt(result)).to.equal(parseInt(user2.wfioBalance) + wrapAmt);
+            } catch (err) {
+                console.log('Error', err)
+                expect(err).to.equal(null)
+            }
+        });
+    });
+
+    describe(`Unwrap WFIO`, function () {
+
+        it(`Get wfio balanceOf from ETH chain`, async function () {
+            result = await wfioContract.methods.balanceOf(user0.ethAddress).call(function (err, result) { });
+            user0.wfioBalance = result;
+            result1 = await wfioContract.methods.balanceOf(user1.ethAddress).call(function (err, result) { });
+            user1.wfioBalance = result1;
+            result2 = await wfioContract.methods.balanceOf(user2.ethAddress).call(function (err, result) { });
+            user2.wfioBalance = result2;
+            //console.log('Balance: ', result)
+        });
+
+        it(`Get FIO balances from FIO chain`, async () => {
+            try {
+                const result = await user0.sdk.genericAction('getFioBalance', {
+                    fioPublicKey: user0.publicKey
+                })
+                user0.fioBalance = result.balance;
+
+                const result1 = await user1.sdk.genericAction('getFioBalance', {
+                    fioPublicKey: user1.publicKey
+                })
+                user1.fioBalance = result1.balance;
+
+                const result2 = await user2.sdk.genericAction('getFioBalance', {
+                    fioPublicKey: user2.publicKey
+                })
+                user2.fioBalance = result2.balance;
+                //console.log('user0 fio balance', result);
+            } catch (err) {
+                //console.log('Error', err)
+                expect(err).to.equal(null)
+            }
+        });
+
+        it(`wfio unwrap`, async function () {  
+            try {
+                wfioContract.methods
+                    .unwrap(user0.address, unwrapAmt)
+                    .send({ from: user0.ethAddress }, function (err, res) {
+                        if (err) {
+                            console.log("An error occured", err)
+                            return
+                        }   
+                        //console.log("Hash of the transaction: " + res);
+                        user0.unwrapTxnId = res;
+                    })
+            } catch (err) {
+                console.log('Error: ', err);
+                expect(err).to.equal(null);;
+            }
+        });
+
+        it(`wfio unwrap`, async function () {  
+            try {
+                wfioContract.methods
+                    .unwrap(user1.address, unwrapAmt)
+                    .send({ from: user1.ethAddress }, function (err, res) {
+                        if (err) {
+                            console.log("An error occured", err)
+                            return
+                        }   
+                        //console.log("Hash of the transaction: " + res);
+                        user1.unwrapTxnId = res;
+                    })
+            } catch (err) {
+                console.log('Error: ', err);
+                expect(err).to.equal(null);;
+            }
+        });
+
+        it(`wfio unwrap`, async function () {  
+            try {
+                wfioContract.methods
+                    .unwrap(user2.address, unwrapAmt)
+                    .send({ from: user2.ethAddress }, function (err, res) {
+                        if (err) {
+                            console.log("An error occured", err)
+                            return
+                        }   
+                        //console.log("Hash of the transaction: " + res);
+                        user2.unwrapTxnId = res;
+                    })
+            } catch (err) {
+                console.log('Error: ', err);
+                expect(err).to.equal(null);;
+            }
+        });
+
+        it(`Wait 8 seconds for fio.oracle to execute`, async () => { await timeout(8000) });
+
+        it(`Get user0 wfio balance. Expect reduced.`, async function () {
+            try {
+                result = await wfioContract.methods.balanceOf(user0.ethAddress).call(function (err, result) { });
+                //console.log('Balance: ', result);
+                expect(parseInt(result)).to.equal(parseInt(user0.wfioBalance) - unwrapAmt);
+            } catch (err) {
+                //console.log('Error', err)
+                expect(err).to.equal(null)
+            }
+        });
+
+        it(`Get user1 wfio balance. Expect reduced.`, async function () {
+            try {
+                result = await wfioContract.methods.balanceOf(user1.ethAddress).call(function (err, result) { });
+                //console.log('Balance: ', result);
+                expect(parseInt(result)).to.equal(parseInt(user1.wfioBalance) - unwrapAmt);
+            } catch (err) {
+                //console.log('Error', err)
+                expect(err).to.equal(null)
+            }
+        });
+
+        it(`Get user0 wfio balance. Expect reduced.`, async function () {
+            try {
+                result = await wfioContract.methods.balanceOf(user2.ethAddress).call(function (err, result) { });
+                //console.log('Balance: ', result);
+                expect(parseInt(result)).to.equal(parseInt(user2.wfioBalance) - unwrapAmt);
+            } catch (err) {
+                //console.log('Error', err)
+                expect(err).to.equal(null)
+            }
+        });
+
+        it(`Check FIO.log for user0`, async function () {
+            try {
+                let logItem;
+                let logFile = logDir + 'FIO.log';
+                const array = fs.readFileSync(logFile).toString().split("\n");
+
+                for(i in array) {
+                    if (array[i].search(user0.unwrapTxnId) > 0) {
+                        //console.log('Found item: ', array[i]);
+                        logItem = JSON.parse(array[i]);
+                        break
+                    }
+                }
+                expect(logItem.transaction.processed.action_traces[0].act.name).to.equal('unwraptokens');
+                expect(logItem.transaction.processed.action_traces[0].act.data.amount).to.equal(unwrapAmt);
+            } catch (err) {
+                console.log('Error', err)
+                expect(err).to.equal(null)
+            }
+        });
+
+        it(`Check FIO.log for user1`, async function () {
+            try {
+                let logItem;
+                let logFile = logDir + 'FIO.log';
+                const array = fs.readFileSync(logFile).toString().split("\n");
+
+                for(i in array) {
+                    if (array[i].search(user1.unwrapTxnId) > 0) {
+                        //console.log('Found item: ', array[i]);
+                        logItem = JSON.parse(array[i]);
+                        break
+                    }
+                }
+                expect(logItem.transaction.processed.action_traces[0].act.name).to.equal('unwraptokens');
+                expect(logItem.transaction.processed.action_traces[0].act.data.amount).to.equal(unwrapAmt);
+            } catch (err) {
+                console.log('Error', err)
+                expect(err).to.equal(null)
+            }
+        });
+
+        it(`Check FIO.log for user2`, async function () {
+            try {
+                let logItem;
+                let logFile = logDir + 'FIO.log';
+                const array = fs.readFileSync(logFile).toString().split("\n");
+
+                for(i in array) {
+                    if (array[i].search(user2.unwrapTxnId) > 0) {
+                        //console.log('Found item: ', array[i]);
+                        logItem = JSON.parse(array[i]);
+                        break
+                    }
+                }
+                expect(logItem.transaction.processed.action_traces[0].act.name).to.equal('unwraptokens');
+                expect(logItem.transaction.processed.action_traces[0].act.data.amount).to.equal(unwrapAmt);
+            } catch (err) {
+                console.log('Error', err)
+                expect(err).to.equal(null)
+            }
+        });
+
+        it(`Confirm user0 entry in FIO oravotes table`, async function () {
+            try {
+                const obtidHash = stringToHash(user0.unwrapTxnId);
+
+                const json = {
+                    json: true,
+                    code: 'fio.oracle',
+                    scope: 'fio.oracle',
+                    table: 'oravotes',
+                    lower_bound: obtidHash.toString(), //"0xc5eae74c669130ff533b98394f0b7a2e",
+                    upper_bound: obtidHash.toString(), //"0xc5eae74c669130ff533b98394f0b7a2e",
+                    key_type: "i128",
+                    index_position: '2',
+                }
+                const unwrapVotes = await callFioApi("get_table_rows", json);
+                //console.log('voterInfo: ', unwrapVotes);
+                expect(unwrapVotes.rows.length).to.equal(1);
+                expect(unwrapVotes.rows[0].obt_id).to.equal(user0.unwrapTxnId);
+                expect(unwrapVotes.rows[0].amount).to.equal(unwrapAmt);
+            } catch (err) {
+                console.log('Error', err);
+                expect(err).to.equal(null);
+            }
+        });
+
+        it(`Confirm user1 entry in FIO oravotes table`, async function () {
+            try {
+                const obtidHash = stringToHash(user1.unwrapTxnId);
+
+                const json = {
+                    json: true,
+                    code: 'fio.oracle',
+                    scope: 'fio.oracle',
+                    table: 'oravotes',
+                    lower_bound: obtidHash.toString(), //"0xc5eae74c669130ff533b98394f0b7a2e",
+                    upper_bound: obtidHash.toString(), //"0xc5eae74c669130ff533b98394f0b7a2e",
+                    key_type: "i128",
+                    index_position: '2',
+                }
+                const unwrapVotes = await callFioApi("get_table_rows", json);
+                //console.log('voterInfo: ', unwrapVotes);
+                expect(unwrapVotes.rows.length).to.equal(1);
+                expect(unwrapVotes.rows[0].obt_id).to.equal(user1.unwrapTxnId);
+                expect(unwrapVotes.rows[0].amount).to.equal(unwrapAmt);
+            } catch (err) {
+                console.log('Error', err);
+                expect(err).to.equal(null);
+            }
+        });
+
+        it(`Confirm user2 entry in FIO oravotes table`, async function () {
+            try {
+                const obtidHash = stringToHash(user2.unwrapTxnId);
+
+                const json = {
+                    json: true,
+                    code: 'fio.oracle',
+                    scope: 'fio.oracle',
+                    table: 'oravotes',
+                    lower_bound: obtidHash.toString(), //"0xc5eae74c669130ff533b98394f0b7a2e",
+                    upper_bound: obtidHash.toString(), //"0xc5eae74c669130ff533b98394f0b7a2e",
+                    key_type: "i128",
+                    index_position: '2',
+                }
+                const unwrapVotes = await callFioApi("get_table_rows", json);
+                //console.log('voterInfo: ', unwrapVotes);
+                expect(unwrapVotes.rows.length).to.equal(1);
+                expect(unwrapVotes.rows[0].obt_id).to.equal(user2.unwrapTxnId);
+                expect(unwrapVotes.rows[0].amount).to.equal(unwrapAmt);
+            } catch (err) {
+                console.log('Error', err);
+                expect(err).to.equal(null);
+            }
+        });
+
+        it(`Get user0 FIO balance from FIO chain. Expect increase.`, async () => {
+            try {
+                const result = await user0.sdk.genericAction('getFioBalance', {
+                    fioPublicKey: user0.publicKey
+                });
+                //console.log('Balance', result);
+                expect(result.balance).to.equal(user0.fioBalance + unwrapAmt);
+            } catch (err) {
+                //console.log('Error', err)
+                expect(err).to.equal(null)
+            }
+        });
+
+        it(`Get user1 FIO balance from FIO chain. Expect increase.`, async () => {
+            try {
+                const result = await user1.sdk.genericAction('getFioBalance', {
+                    fioPublicKey: user1.publicKey
+                });
+                //console.log('Balance', result);
+                expect(result.balance).to.equal(user1.fioBalance + unwrapAmt);
+            } catch (err) {
+                //console.log('Error', err)
+                expect(err).to.equal(null)
+            }
+        });
+
+        it(`Get user2 FIO balance from FIO chain. Expect increase.`, async () => {
+            try {
+                const result = await user2.sdk.genericAction('getFioBalance', {
+                    fioPublicKey: user2.publicKey
+                });
+                //console.log('Balance', result);
+                expect(result.balance).to.equal(user2.fioBalance + unwrapAmt);
+            } catch (err) {
+                //console.log('Error', err)
+                expect(err).to.equal(null)
+            }
+        });
+
+    });
+
+});
+
+describe(`D. Single token wrap/unwrap in same oracle poll time`, function () {
+
+    let user0;
+    let wrap_fio_tokens_fee;
+    const wrapAmt = 20000000000;  // 20 fIO
+    const unwrapAmt = 5000000000;  // 5 wfIO
+    const chainCode = "ETH";
+
+    before(`Create users and connect to ETH chain`, async () => {
+        try {
+            user0 = await newUser(faucet);
+            user0.ethAddress = users[0];
+        } catch (err) {
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
+        }
+    });
+
+
+    it(`Get user0 wfio balanceOf from ETH chain`, async function () {
+        result = await wfioContract.methods.balanceOf(user0.ethAddress).call(function (err, result) { });
+        user0.wfioBalance = result;
+        //console.log('wfio balance: ', result)
+    });
+
+    it(`Get user0 FIO balance from FIO chain`, async () => {
+        try {
+            const result = await user0.sdk.genericAction('getFioBalance', {
+                fioPublicKey: user0.publicKey
+            })
+            user0.fioBalance = result.balance;
+            //console.log('user0 fio balance', result);
+        } catch (err) {
+            //console.log('Error', err)
+            expect(err).to.equal(null)
+        }
+    });
+
+    it('Get fee for wrap_fio_tokens', async () => {
+        try {
+            result = await user0.sdk.getFee('wrap_fio_tokens', user0.address);
+            wrap_fio_tokens_fee = result.fee;
+
+            //oracleFee = await callFioApi('get_oracle_fees', {});
+            //wrap_fio_tokens_oracle_fee = oracleFee.oracle_fees[1].fee_amount;  // 1 is wrap_fio_tokens              
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`Wrap wfio tokens`, async function () {
+        try {
+            const result = await user0.sdk.genericAction('pushTransaction', {
+                action: 'wraptokens',
+                account: 'fio.oracle',
+                data: {
+                amount: wrapAmt,
+                chain_code: chainCode,
+                public_address: user0.ethAddress,
+                max_oracle_fee: config.maxOracleFee,
+                max_fee: config.maxFee,
+                tpid: "",
+                }
+            });
+            user0.transaction_id = result.transaction_id;
+            //console.log('transaction_id: ', user0.transaction_id);
+            expect(result.status).to.equal('OK');
+        } catch (err) {
+            console.log('Error: ', err.json);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`unwrap wfio tokens`, async function () {  
+        try {
+            wfioContract.methods
+                .unwrap(user0.address, unwrapAmt)
+                .send({ from: user0.ethAddress }, function (err, res) {
+                    if (err) {
+                        console.log("An error occured", err)
+                        return
+                    }   
+                    //console.log("Hash of the transaction: " + res);
+                    user0.unwrapTxnId = res;
+                })
+        } catch (err) {
+            console.log('Error: ', err);
+            expect(err).to.equal(null);;
+        }
+    });
+
+    it(`Wait 8 seconds for fio.oracle to execute`, async () => { await timeout(8000) });
+
+    it(`Check FIO.log for wrap`, async function () {
+        try {
+            let logItem;
+            
+            let logFile = logDir + 'FIO.log';
+
+            const array = fs.readFileSync(logFile).toString().split("\n");
+
+            for(i in array) {
+                if (array[i].search(user0.transaction_id) > 0) {
+                    //console.log('Found item: ', array[i]);
+                    logItem = JSON.parse(array[i]);
+                    break
+                }
+            }
+            expect(logItem.transaction.action_trace.act.name).to.equal('wraptokens');
+            expect(logItem.transaction.action_trace.act.data.amount).to.equal(wrapAmt);
+        } catch (err) {
+            console.log('Error', err)
+            expect(err).to.equal(null)
+        }
+    });
+
+    it(`Check FIO.log`, async function () {
+        try {
+            let logItem;
+            let logFile = logDir + 'FIO.log';
+            const array = fs.readFileSync(logFile).toString().split("\n");
+
+            for(i in array) {
+                if (array[i].search(user0.unwrapTxnId) > 0) {
+                    //console.log('Found item: ', array[i]);
+                    logItem = JSON.parse(array[i]);
+                    break
+                }
+            }
+            expect(logItem.transaction.processed.action_traces[0].act.name).to.equal('unwraptokens');
+            expect(logItem.transaction.processed.action_traces[0].act.data.amount).to.equal(unwrapAmt);
+        } catch (err) {
+            console.log('Error', err)
+            expect(err).to.equal(null)
+        }
+    });
+
+    it(`getPastEvents for 'wrapped' events on ETH chain. Expect to find wrap.`, async function () {
+        try {
+            let txnEvent;
+            const transactions = await wfioContract.getPastEvents('wrapped', {
+                fromBlock: 0,
+                toBlock: 'latest'
+            })
+            //console.log('Result: ', transactions);
+            //console.log('user0.transaction_id: ', user0.transaction_id);
+            for (txn in transactions) {
+                if (transactions[txn].returnValues.obtid === user0.transaction_id) {
+                    //console.log('Found txn: ', transactions[txn].returnValues.obtid);
+                    txnEvent = transactions[txn];
+                    break;
+                }
+            }
+            expect(txnEvent.returnValues.amount).to.equal(wrapAmt.toString());
+            expect(txnEvent.returnValues.account).to.equal(user0.ethAddress);
+        } catch (err) {
+            console.log('Error: ', err);
+            expect(err).to.equal(null);;
+        }
+    });
+
+    it(`Get user0 FIO balance from FIO chain. Expect decrease of (unwrap - wrap).`, async () => {
+        try {
+            const result = await user0.sdk.genericAction('getFioBalance', {
+                fioPublicKey: user0.publicKey
+            });
+            //console.log('Balance', result);
+            expect(result.balance).to.equal(user0.fioBalance - wrapAmt - wrap_fio_tokens_fee - tokenWrapFee + unwrapAmt);
+        } catch (err) {
+            //console.log('Error', err)
+            expect(err).to.equal(null)
+        }
+    });
+
+    it(`Get user0 wfio balance. Expect increase of (wrap - unwrap).`, async function () {
+        try {
+            result = await wfioContract.methods.balanceOf(user0.ethAddress).call(function (err, result) { });
+            //console.log('Prev wfio balance: ', user0.wfioBalance);
+            //console.log('wrapAmt: ', wrapAmt);
+            //console.log('New wfio balance: ', result);               
+            expect(parseInt(result)).to.equal(parseInt(user0.wfioBalance) + wrapAmt - unwrapAmt);
+        } catch (err) {
+            console.log('Error', err)
+            expect(err).to.equal(null)
+        }
     });
 
 });

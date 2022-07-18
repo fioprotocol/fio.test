@@ -516,7 +516,10 @@ describe('C. burnFioAddress Error testing', () => {
                 technologyProviderId: ''
             })
             //console.log('Result: ', result)
-            expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+            expect(result).to.have.any.keys('status');
+            expect(result).to.have.any.keys('fee_collected');
+            expect(result).to.have.any.keys('block_num');
+            expect(result).to.have.any.keys('transaction_id');
         } catch (err) {
             console.log('Error: ', err);
             expect(err).to.equal(null);

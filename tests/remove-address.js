@@ -984,7 +984,10 @@ describe(`E-2. Add and remove addresses with NO bundles remaining`, () => {
           tpid: ''
         })
         //console.log('Result:', result)
-        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+        expect(result).to.have.any.keys('status');
+        expect(result).to.have.any.keys('fee_collected');
+        expect(result).to.have.any.keys('block_num');
+        expect(result).to.have.any.keys('transaction_id');
         expect(result.fee_collected).to.equal(remove_all_pub_addresses_fee);
       } catch (err) {
         console.log('Error', err)
@@ -1064,7 +1067,10 @@ describe(`E-2. Add and remove addresses with NO bundles remaining`, () => {
           tpid: ''
         })
         //console.log('Result:', result)
-        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+        expect(result).to.have.any.keys('status');
+        expect(result).to.have.any.keys('fee_collected');
+        expect(result).to.have.any.keys('block_num');
+        expect(result).to.have.any.keys('transaction_id');
         expect(result.fee_collected).to.equal(remove_pub_address_fee);
       } catch (err) {
         console.log('Error', err)
@@ -1268,7 +1274,7 @@ describe(`F. Sad - result in error`, () => {
     }
   })
 
-  it(`userA2 tries to remove userA1s public addresses. Expect error: missing authority`, async () => {
+  it(`userA2 tries to remove userA1s public addresses. Expect error`, async () => {
     try{
       const result = await userA2.sdk.genericAction('pushTransaction', {
         action: 'remaddress',
@@ -1283,8 +1289,9 @@ describe(`F. Sad - result in error`, () => {
       })
       expect(result.status).to.equal(null);
     } catch (err) {
-      //console.log('Error', err.json.error)
-      expect(err.json.error.details[0].message).to.contain('missing authority ');
+      //console.log('Error', err)
+      expect(err.json.message).to.contain('Request signature is not valid or this user is not allowed to sign this transaction.');
+      expect(err.errorCode).to.equal(403);
     }
   })
 
@@ -1361,7 +1368,10 @@ describe(`F. Sad - result in error`, () => {
         technologyProviderId: ''
       })
       //console.log('Result: ', result)
-      expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);

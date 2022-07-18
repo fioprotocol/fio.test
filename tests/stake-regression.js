@@ -106,7 +106,10 @@ describe(`************************** stake-regression.js ***********************
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     })
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
 
     console.log('userA1.publicKey: ', userA1.publicKey)
 

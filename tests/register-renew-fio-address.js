@@ -70,7 +70,11 @@ describe(`************************** register-renew-fio-address.js *************
         })
         //console.log('Result: ', result)
         expect(parseInt(result.expiration.split('-',1))).to.equal(expirationYear)
-        expect(result).to.have.all.keys('block_num', 'status', 'expiration', 'fee_collected','transaction_id')
+        expect(result).to.have.any.keys('status');
+        expect(result).to.have.any.keys('fee_collected');
+        expect(result).to.have.any.keys('block_num');
+        expect(result).to.have.any.keys('transaction_id');
+        expect(result).to.have.any.keys('expiration');
         expect(result.status).to.be.a('string')
         expect(result.expiration).to.be.a('string')
         expect(result.fee_collected).to.be.a('number')
@@ -96,7 +100,11 @@ describe(`B. Renew address`, () => {
                 })
             //console.log('Result: ', result)
             expect(result.status).to.equal('OK');
-            expect(result).to.have.all.keys('block_num', 'status', 'expiration', 'fee_collected','transaction_id')
+            expect(result).to.have.any.keys('status');
+            expect(result).to.have.any.keys('fee_collected');
+            expect(result).to.have.any.keys('block_num');
+            expect(result).to.have.any.keys('transaction_id');
+            expect(result).to.have.any.keys('expiration');
             expect(result.status).to.be.a('string')
             expect(result.expiration).to.be.a('string')
             expect(result.fee_collected).to.be.a('number')
