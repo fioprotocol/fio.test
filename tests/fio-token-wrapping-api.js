@@ -86,7 +86,8 @@ describe(`************************** fio-token-wrapping-api.js *****************
       if (result.code === 500) {
         expect(result.error.what).to.equal('could not insert object, most likely a uniqueness constraint was violated');
       } else {
-        expect(result).to.have.all.keys('transaction_id', 'processed');
+        expect(result).to.have.any.keys('transaction_id');
+        expect(result).to.have.any.keys('processed');
       }
     } catch (err) {
       throw err;
@@ -107,7 +108,8 @@ describe(`************************** fio-token-wrapping-api.js *****************
       if (result.code === 500) {
         expect(result.error.what).to.equal('could not insert object, most likely a uniqueness constraint was violated');
       } else {
-        expect(result).to.have.all.keys('transaction_id', 'processed');
+        expect(result).to.have.any.keys('transaction_id');
+        expect(result).to.have.any.keys('processed');
       }
     } catch (err) {
       throw err;
@@ -128,7 +130,8 @@ describe(`************************** fio-token-wrapping-api.js *****************
       if (result.code === 500) {
         expect(result.error.what).to.equal('could not insert object, most likely a uniqueness constraint was violated');
       } else {
-        expect(result).to.have.all.keys('transaction_id', 'processed');
+        expect(result).to.have.any.keys('transaction_id');
+        expect(result).to.have.any.keys('processed');
       }
     } catch (err) {
       throw err;
@@ -192,7 +195,8 @@ describe(`B. [FIO][api] Oracles (register)`, function () {
         }
       });
 
-      expect(result).to.have.all.keys('transaction_id', 'processed');
+      expect(result).to.have.any.keys('transaction_id');
+      expect(result).to.have.any.keys('processed');
       expect(result.processed).to.have.all.keys('id', 'block_num', 'block_time', 'producer_block_id', 'receipt', 'elapsed', 'net_usage', 'scheduled', 'action_traces', 'account_ram_delta', 'except', 'error_code');
       expect(result.processed.receipt.status).to.equal('executed');
       expect(result.processed.action_traces.length).to.equal(8);
@@ -220,7 +224,8 @@ describe(`B. [FIO][api] Oracles (register)`, function () {
           actor: user2.account
         }
       });
-      expect(result).to.have.all.keys('transaction_id', 'processed');
+      expect(result).to.have.any.keys('transaction_id');
+      expect(result).to.have.any.keys('processed');
       expect(result.processed).to.have.all.keys('id', 'block_num', 'block_time', 'producer_block_id', 'receipt', 'elapsed', 'net_usage', 'scheduled', 'action_traces', 'account_ram_delta', 'except', 'error_code');
       expect(result.processed.receipt.status).to.equal('executed');
       expect(result.processed.action_traces.length).to.equal(1);
@@ -275,7 +280,8 @@ describe(`B. [FIO][api] Oracles (register)`, function () {
           actor: user2.account
         }
       });
-      expect(result).to.not.have.all.keys('transaction_id', 'processed');
+      expect(result).to.have.any.keys('transaction_id');
+      expect(result).to.have.any.keys('processed');
     } catch (err) {
       expect(err.message).to.equal('missing regoracle.oracle_actor (type=name)');
     }
@@ -313,7 +319,8 @@ describe(`B. [FIO][api] Oracles (register)`, function () {
           actor: user2.account
         }
       });
-      expect(result).to.not.have.all.keys('transaction_id', 'processed');
+      expect(result).to.have.any.keys('transaction_id');
+      expect(result).to.have.any.keys('processed');
     } catch (err) {
       expect(err.message).to.equal('Expected string containing name');
     }
@@ -331,7 +338,8 @@ describe(`B. [FIO][api] Oracles (register)`, function () {
           actor: user3.account
         }
       });
-      expect(result).to.not.have.all.keys('transaction_id', 'processed');
+      expect(result).to.have.any.keys('transaction_id');
+      expect(result).to.have.any.keys('processed');
     } catch (err) {
       expect(err.message).to.equal('Expected string containing name');
     }
@@ -367,7 +375,8 @@ describe(`B. [FIO][api] Oracles (register)`, function () {
           oracle_actor: user1.account,
         }
       });
-      expect(result).to.not.have.all.keys('transaction_id', 'processed');
+      expect(result).to.have.any.keys('transaction_id');
+      expect(result).to.have.any.keys('processed');
     } catch (err) {
       expect(err.message).to.equal('missing regoracle.actor (type=name)');
     }
@@ -426,7 +435,8 @@ describe(`B. [FIO][api] Oracles (register)`, function () {
             max_fee: config.api.register_producer.fee
           }
         });
-      expect(result).to.have.all.keys('transaction_id', 'processed');
+      expect(result).to.have.any.keys('transaction_id');
+      expect(result).to.have.any.keys('processed');
       expect(result.processed).to.have.all.keys('id', 'block_num', 'block_time', 'producer_block_id', 'receipt', 'elapsed', 'net_usage', 'scheduled', 'action_traces', 'account_ram_delta', 'except', 'error_code');
       expect(result.processed.receipt.status).to.equal('executed');
       expect(result.processed.action_traces.length).to.equal(8);
@@ -473,7 +483,8 @@ describe(`B. [FIO][api] Oracles (register)`, function () {
           actor: 1234500000000 //user3.account
         }
       });
-      expect(result).to.not.have.all.keys('transaction_id', 'processed');
+      expect(result).to.have.any.keys('transaction_id');
+      expect(result).to.have.any.keys('processed');
     } catch (err) {
       expect(err.message).to.equal('Expected string containing name');
     }
@@ -491,7 +502,8 @@ describe(`B. [FIO][api] Oracles (register)`, function () {
           actor: -1234500000000 //user3.account
         }
       });
-      expect(result).to.not.have.all.keys('transaction_id', 'processed');
+      expect(result).to.have.any.keys('transaction_id');
+      expect(result).to.have.any.keys('processed');
     } catch (err) {
       expect(err.message).to.equal('Expected string containing name');
     }
@@ -743,7 +755,8 @@ describe(`C. [FIO][api] Oracles (unregister)`, function () {
           oracle_actor: newOracle3.account,
         }
       });
-      expect(result).to.have.all.keys('transaction_id', 'processed');
+      expect(result).to.have.any.keys('transaction_id');
+      expect(result).to.have.any.keys('processed');
       expect(result.processed).to.have.all.keys('id', 'block_num', 'block_time', 'producer_block_id', 'receipt', 'elapsed', 'net_usage', 'scheduled', 'action_traces', 'account_ram_delta', 'except', 'error_code');
       expect(result.processed.receipt.status).to.equal('executed');
       expect(result.processed.action_traces.length).to.equal(1);
@@ -802,7 +815,8 @@ describe(`D. [FIO][api] Oracles (setoraclefee)`, function () {
           actor: newOracle.account
         }
       });
-      expect(result).to.have.all.keys('transaction_id', 'processed');
+      expect(result).to.have.any.keys('transaction_id');
+      expect(result).to.have.any.keys('processed');
       expect(result.processed.receipt.status).to.equal('executed');
       expect(result.processed.action_traces[0].act.data.actor).to.equal(newOracle.account);
       expect(result.processed.action_traces[0].receipt.response).to.equal('{"status": "OK"}');
@@ -874,7 +888,8 @@ describe(`D. [FIO][api] Oracles (setoraclefee)`, function () {
         }
       });
 
-      expect(result).to.have.all.keys('transaction_id', 'processed');
+      expect(result).to.have.any.keys('transaction_id');
+      expect(result).to.have.any.keys('processed');
       expect(result.processed.action_traces[0].act.data.wrap_fio_domain).to.equal(0);
       expect(result.processed.action_traces[0].act.data.wrap_fio_tokens).to.equal(1);
     } catch (err) {
@@ -916,7 +931,8 @@ describe(`D. [FIO][api] Oracles (setoraclefee)`, function () {
           actor: newOracle.account
         }
       });
-      expect(result).to.not.have.all.keys('transaction_id', 'processed');
+      expect(result).to.have.any.keys('transaction_id');
+      expect(result).to.have.any.keys('processed');
     } catch (err) {
       expect(err.message).to.equal('invalid number');
     }

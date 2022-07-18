@@ -957,7 +957,10 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
 
       })
       expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys( 'status', 'fee_collected', 'block_num', 'transaction_id')
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -973,7 +976,10 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
       technologyProviderId: ''
     })
    // console.log('Result: ', result)
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+   expect(result).to.have.any.keys('status');
+   expect(result).to.have.any.keys('fee_collected');
+   expect(result).to.have.any.keys('block_num');
+   expect(result).to.have.any.keys('transaction_id');
   })
 
   it(`Get balance for the locked token holder, should have 1500 balance`, async () => {
@@ -1000,7 +1006,10 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
       technologyProviderId: ''
     })
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected', 'block_num', 'transaction_id')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
     expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error: ', err);
@@ -1119,7 +1128,6 @@ describe.skip(`FUTURE FEATURE (commented out) C. staking incentives, canvote = f
           }
         })
         expect(result.status).to.equal('OK')
-        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
       } catch (err) {
         console.log('edededed Error', err)
       }
@@ -1186,7 +1194,6 @@ describe.skip(`FUTURE FEATURE (commented out) C. staking incentives, canvote = f
 
         })
         expect(result.status).to.equal('OK')
-        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
       } catch (err) {
         console.log('edeeedeeedeed 1 Error', err)
       }
@@ -1275,7 +1282,6 @@ describe.skip(`FUTURE FEATURE (commented out) C. staking incentives, canvote = f
 
         })
         expect(result.status).to.equal('OK')
-        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
       } catch (err) {
         console.log('Error', err)
       }
@@ -1363,7 +1369,6 @@ describe.skip(`FUTURE FEATURE (commented out) C. staking incentives, canvote = f
 
         })
         expect(result.status).to.equal('OK')
-        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
       } catch (err) {
         console.log('Error', err)
       }
@@ -1451,7 +1456,6 @@ describe.skip(`FUTURE FEATURE (commented out) C. staking incentives, canvote = f
 
         })
         expect(result.status).to.equal('OK')
-        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
       } catch (err) {
         console.log('Error', err)
       }
@@ -1539,7 +1543,6 @@ describe.skip(`FUTURE FEATURE (commented out) C. staking incentives, canvote = f
 
         })
         expect(result.status).to.equal('OK')
-        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
       } catch (err) {
         console.log('Error', err)
       }
@@ -1659,7 +1662,6 @@ describe.skip(`FUTURE FEATURE (commented out) C. staking incentives, canvote = f
 
         })
         expect(result.status).to.equal('OK')
-        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
       } catch (err) {
         console.log('Error', err)
       }
@@ -1727,7 +1729,6 @@ describe.skip(`FUTURE FEATURE (commented out) C. staking incentives, canvote = f
 
         })
         expect(result.status).to.equal('OK')
-        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
       } catch (err) {
         console.log('Error', err)
       }
@@ -1787,7 +1788,10 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
 
       })
       expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys( 'status', 'fee_collected', 'block_num', 'transaction_id')
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -2117,7 +2121,10 @@ describe(`E. Token unlocking tests`, () => {
 
       })
       expect(result.status).to.equal('OK')
-      expect(result).to.have.all.keys( 'status', 'fee_collected', 'block_num', 'transaction_id')
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
   })
 
 
@@ -2151,7 +2158,10 @@ describe(`E. Token unlocking tests`, () => {
       maxFee: config.maxFee,
       technologyProviderId: ''
     })
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
   });
 
   it(`Waiting 20 seconds`, async () => {
@@ -2168,7 +2178,10 @@ describe(`E. Token unlocking tests`, () => {
       maxFee: config.maxFee,
       technologyProviderId: ''
     })
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
   });
 
   it(`Waiting 20 seconds`, async () => {
@@ -2185,7 +2198,10 @@ describe(`E. Token unlocking tests`, () => {
       technologyProviderId: ''
     })
 
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
   });
 
 })
@@ -2235,7 +2251,10 @@ describe(`F. Test 50 (max number) lock periods`, () => {
           actor: config.FAUCET_ACCOUNT,
         }
       })
-      expect(result).to.have.all.keys('status', 'fee_collected', 'block_num', 'transaction_id')
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
       expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error', err)

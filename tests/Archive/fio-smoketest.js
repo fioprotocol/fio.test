@@ -40,7 +40,10 @@ describe('A. Transferring tokens to Happy', () => {
       walletFioAddress: ''
     })
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
   })
 
   it(`Happy's FIO public key has ${fundsAmount} FIO`, async () => {
@@ -57,7 +60,10 @@ describe('A. Transferring tokens to Happy', () => {
       walletFioAddress: ''
     })
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
   })
 
   it(`Happy's FIO public key has ${1.5*fundsAmount} FIO`, async () => {

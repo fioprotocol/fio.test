@@ -191,7 +191,10 @@ describe(`B. Get locks success tests. `, () => {
 
         });
         expect(result.status).to.equal('OK');
-        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+        expect(result).to.have.any.keys('status');
+        expect(result).to.have.any.keys('fee_collected');
+        expect(result).to.have.any.keys('block_num');
+        expect(result).to.have.any.keys('transaction_id');
       } catch (err) {
         console.log(' Error', err)
       }
@@ -221,7 +224,10 @@ describe(`B. Get locks success tests. `, () => {
 
         });
         expect(result.status).to.equal('OK');
-        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+        expect(result).to.have.any.keys('status');
+        expect(result).to.have.any.keys('fee_collected');
+        expect(result).to.have.any.keys('block_num');
+        expect(result).to.have.any.keys('transaction_id');
       } catch (err) {
         console.log(' Error', err)
       }
@@ -267,7 +273,10 @@ describe(`B. Get locks success tests. `, () => {
 
         });
         expect(result.status).to.equal('OK');
-        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+        expect(result).to.have.any.keys('status');
+        expect(result).to.have.any.keys('fee_collected');
+        expect(result).to.have.any.keys('block_num');
+        expect(result).to.have.any.keys('transaction_id');
     } else {
         const result = await userA1.sdk.genericAction('pushTransaction', {
           action: 'trnsloctoks',
@@ -293,7 +302,10 @@ describe(`B. Get locks success tests. `, () => {
 
         });
         expect(result.status).to.equal('OK');
-        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+        expect(result).to.have.any.keys('status');
+        expect(result).to.have.any.keys('fee_collected');
+        expect(result).to.have.any.keys('block_num');
+        expect(result).to.have.any.keys('transaction_id');
     }
   });
   it(`Verify locks were set with get_locks`, async () => {

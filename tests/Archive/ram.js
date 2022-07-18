@@ -41,7 +41,10 @@ describe('Test RAM Consumption', () => {
       maxFee: config.api.transfer_tokens_pub_key.fee,
     })
     //console.log('Result', result)
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
   })
 
   it(`Set RAM info`, async () => {
@@ -56,7 +59,9 @@ describe('Test RAM Consumption', () => {
       walletFioAddress: ''
     })
     //console.log('Result', result)
-    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('expiration');
+    expect(result).to.have.any.keys('fee_collected');
   })
 
   it(`Set RAM info`, async () => {
@@ -97,7 +102,8 @@ describe('Test RAM Consumption', () => {
       maxFee: config.api.add_pub_address.fee,
       walletFioAddress: ''
     })
-    expect(result).to.have.all.keys('status', 'fee_collected')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
   })
 
   it(`Set RAM info`, async () => {
@@ -146,7 +152,9 @@ describe('Test RAM Consumption', () => {
         offlineUrl: randStr(10)
       })
       //console.log('Result: ', result)
-      expect(result).to.have.all.keys('status', 'fio_request_id', 'fee_collected')
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('fio_request_id');
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -241,7 +249,9 @@ describe('Test add_pub_address RAM Consumption', () => {
       walletFioAddress: ''
     })
     //console.log('Result', result)
-    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('expiration');
+    expect(result).to.have.any.keys('fee_collected');
   })
 
   it(`Register address: user2Address`, async () => {
@@ -283,7 +293,9 @@ describe('Test add_pub_address RAM Consumption', () => {
         //console.log('Result: ', result)
         const result2 = await user2Ram.setRamData('NEWFUNDSREQUESTRAM', result.fee_collected, user2)
         //console.log(i + '. fee collected: ', result.fee_collected)
-        expect(result).to.have.all.keys('status', 'fio_request_id', 'fee_collected')
+        expect(result).to.have.any.keys('status');
+        expect(result).to.have.any.keys('fee_collected');
+        expect(result).to.have.any.keys('fio_request_id');
       } catch (err) {
         console.log('Error: ', err.json)
       }
@@ -354,7 +366,9 @@ describe('Test add_pub_address RAM Consumption', () => {
         //console.log('Result: ', result)
         const result2 = await user2Ram.setRamData('NEWFUNDSREQUESTRAM', result.fee_collected, user2)
         //console.log(i + '. fee collected: ', result.fee_collected)
-        expect(result).to.have.all.keys('status', 'fio_request_id', 'fee_collected')
+        expect(result).to.have.any.keys('status');
+        expect(result).to.have.any.keys('fee_collected');
+        expect(result).to.have.any.keys('fio_request_id');
       } catch (err) {
         console.log('Error: ', err.json)
       }
@@ -425,7 +439,9 @@ describe('Test add_pub_address RAM Consumption', () => {
         //console.log('Result: ', result)
         const result2 = await user2Ram.setRamData('NEWFUNDSREQUESTRAM', result.fee_collected, user2)
         //console.log(i + '. fee collected: ', result.fee_collected)
-        expect(result).to.have.all.keys('status', 'fio_request_id', 'fee_collected')
+        expect(result).to.have.any.keys('status');
+        expect(result).to.have.any.keys('fee_collected');
+        expect(result).to.have.any.keys('fio_request_id');
       } catch (err) {
         console.log('Error: ', err.json)
       }
