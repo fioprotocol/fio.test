@@ -291,7 +291,10 @@ describe(`B. Add and remove a huge number of NFTs for a single user`, () => {
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     });
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected');
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
   });
 
   it(`getFioBalance for user1`, async () => {
@@ -485,7 +488,10 @@ describe(`B. Add and remove a huge number of NFTs for a single user`, () => {
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     })
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
   });
 
   it(`remove all NFTs with remallnfts`, async () => {
@@ -713,7 +719,10 @@ describe(`C. Try to individually remove a large number of NFTs`, () => {
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     });
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected');
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
   });
 
   it(`getFioBalance for user1`, async () => {
@@ -796,7 +805,10 @@ describe(`C. Try to individually remove a large number of NFTs`, () => {
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     })
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
   });
 
   it(`user1 individually removes all NFTs`, async () => {

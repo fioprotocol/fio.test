@@ -1510,7 +1510,10 @@ describe(`D. Try to retire from accounts with staked tokens`, function () {
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     });
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
     userABal = await userA.sdk.genericAction('getFioBalance', {});
   });
 
@@ -1531,7 +1534,10 @@ describe(`D. Try to retire from accounts with staked tokens`, function () {
         }
       });
       newUserBal = await userA.sdk.genericAction('getFioBalance', {});
-      expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
       expect(result.status).to.equal('OK');
       expect(result.fee_collected).to.equal(config.api.stake_fio_tokens.fee);
       expect(newUserBal.staked).to.equal(userABal.staked + stakeAmt);
@@ -1594,7 +1600,10 @@ describe(`D. Try to retire from accounts with staked tokens`, function () {
         }
       });
       newUserBal = await userA1.sdk.genericAction('getFioBalance', {});
-      expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
       expect(result.status).to.equal('OK');
       expect(result.fee_collected).to.equal(config.api.stake_fio_tokens.fee);
       expect(newUserBal.staked).to.equal(stake);

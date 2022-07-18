@@ -313,7 +313,11 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
         }
       });
       //console.log('Result: ', result);
-      expect(result).to.have.all.keys('block_num', 'transaction_id', 'status', 'oracle_fee_collected', 'fee_collected');
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
+      expect(result).to.have.any.keys('oracle_fee_collected');
       expect(result.status).to.equal('OK');
       expect(result.fee_collected).to.equal(WRAP_FEE);
       expect(parseInt(result.oracle_fee_collected)).to.equal(ORACLE_FEE);
@@ -340,7 +344,11 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
           actor: user10.account
         }
       });
-      expect(result).to.have.all.keys('block_num', 'transaction_id', 'status', 'oracle_fee_collected', 'fee_collected');
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
+      expect(result).to.have.any.keys('oracle_fee_collected');
       expect(result.status).to.equal('OK');
       expect(result.fee_collected).to.equal(WRAP_FEE);
       expect(parseInt(result.oracle_fee_collected)).to.equal(ORACLE_FEE);
@@ -1318,7 +1326,11 @@ describe(`C. [FIO] Unwrap FIO domains`, function () {
           actor: user1.account
         }
       });
-      expect(result).to.have.all.keys('block_num', 'transaction_id', 'status', 'oracle_fee_collected', 'fee_collected');
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
+      expect(result).to.have.any.keys('oracle_fee_collected');
       expect(result.status).to.equal('OK');
       expect(result.fee_collected).to.equal(WRAP_FEE);
       expect(parseInt(result.oracle_fee_collected)).to.equal(ORACLE_FEE);
@@ -1341,7 +1353,11 @@ describe(`C. [FIO] Unwrap FIO domains`, function () {
           actor: user2.account
         }
       });
-      expect(result).to.have.all.keys('block_num', 'transaction_id', 'status', 'oracle_fee_collected', 'fee_collected');
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
+      expect(result).to.have.any.keys('oracle_fee_collected');
       expect(result.status).to.equal('OK');
       expect(result.fee_collected).to.equal(WRAP_FEE);
       expect(parseInt(result.oracle_fee_collected)).to.equal(ORACLE_FEE);
@@ -1362,7 +1378,9 @@ describe(`C. [FIO] Unwrap FIO domains`, function () {
           fio_address: user1.address,
         }
       });
-      expect(result).to.have.all.keys('block_num', 'transaction_id', 'status');
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
       expect(result.status).to.equal('OK');
     } catch (err) {
       throw err;
@@ -1380,7 +1398,9 @@ describe(`C. [FIO] Unwrap FIO domains`, function () {
           fio_address: user1.address,
         }
       });
-      expect(result).to.have.all.keys('block_num', 'transaction_id', 'status');
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
       expect(result.status).to.equal('OK');
     } catch (err) {
       throw err;
@@ -1398,7 +1418,9 @@ describe(`C. [FIO] Unwrap FIO domains`, function () {
           fio_address: user1.address,
         }
       });
-      expect(result).to.have.all.keys('block_num', 'transaction_id', 'status');
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
       expect(result.status).to.equal('OK');
     } catch (err) {
       throw err;
@@ -1615,7 +1637,11 @@ describe(`C. [FIO] Unwrap FIO domains`, function () {
           tpid: "", //oracle1.address,
         }
       });
-      expect(result).to.have.all.keys('block_num', 'transaction_id', 'status', 'oracle_fee_collected', 'fee_collected');
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
+      expect(result).to.have.any.keys('oracle_fee_collected');
       expect(result.status).to.equal('OK');
       expect(result.fee_collected).to.equal(WRAP_FEE);
       expect(parseInt(result.oracle_fee_collected)).to.equal(ORACLE_FEE);

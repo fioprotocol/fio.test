@@ -1715,7 +1715,10 @@ describe(`C. (sdk)(unhappy) Try to add NFTs with invalid user input`, () => {
       tpid: '',
     });
     let newBal = await user1.sdk.genericAction('getFioBalance', {});
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected');
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(config.api.transfer_tokens_pub_key.fee);
     expect(newBal.available).to.equal(0);

@@ -264,7 +264,6 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
             })
             expect(result.status).to.equal('OK')
-            expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
             numlocks = numlocks + 1
             console.log(" max test iteration: ", curstep," of ", maxits * maxstep)
           } catch (err1) {

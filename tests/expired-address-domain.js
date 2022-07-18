@@ -670,7 +670,10 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
         technologyProviderId: ''
       })
       //console.log('Result: ', result);
-      expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
       expect(result.status).to.equal('cancelled');
       expect(result.fee_collected).to.equal(0);
     } catch (err) {
@@ -734,7 +737,10 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
         technologyProviderId: ''
       })
       //console.log('Result: ', result);
-      expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
       expect(result.status).to.equal('request_rejected');
       expect(result.fee_collected).to.equal(0);
     } catch (err) {

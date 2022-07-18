@@ -259,7 +259,10 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -503,7 +506,10 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -747,7 +753,10 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -991,7 +1000,10 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -1235,7 +1247,10 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -1479,7 +1494,10 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -1723,7 +1741,10 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -1967,7 +1988,10 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -2211,7 +2235,10 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -2455,7 +2482,10 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -2699,7 +2729,10 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -2943,7 +2976,10 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -3187,7 +3223,10 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -3431,7 +3470,10 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -3675,7 +3717,10 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -3919,7 +3964,10 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -4163,7 +4211,10 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -4407,7 +4458,10 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -4651,7 +4705,10 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -4895,7 +4952,10 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -5139,7 +5199,10 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -5383,7 +5446,10 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -5627,7 +5693,10 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -5871,7 +5940,10 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -6115,7 +6187,6 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -6359,7 +6430,6 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -6603,7 +6673,6 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -6847,7 +6916,6 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -7091,7 +7159,6 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){
@@ -7335,7 +7402,6 @@ describe(`************************** locks-transfer-locked-tokens-max-load.js **
 
           })
           expect(result.status).to.equal('OK')
-          expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
           numlocks = numlocks + 1
           console.log(" max test iteration: ", numlocks)
         }catch(err1){

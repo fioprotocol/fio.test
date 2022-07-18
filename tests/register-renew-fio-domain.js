@@ -294,7 +294,11 @@ describe('D. Try to re-register the same domain using different case', () => {
       technologyProviderId: ''
     })
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('block_num', 'status', 'expiration', 'fee_collected', 'transaction_id')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
+    expect(result).to.have.any.keys('expiration');
   })
 
 
@@ -373,7 +377,11 @@ describe('E. Test set_fio_domain_public', () => {
       technologyProviderId: ''
     })
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('block_num', 'status', 'expiration', 'fee_collected','transaction_id')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
+    expect(result).to.have.any.keys('expiration');
   })
 
   it(`Verify balance for user1 = prev_balance - reg_domain_fee`, async () => {

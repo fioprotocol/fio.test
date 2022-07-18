@@ -2212,7 +2212,9 @@ describe(`G. [FIO] Unwrap FIO tokens`, function () {
         fio_address: user2.address,
       }
     });
-    expect(result).to.have.all.keys('transaction_id', 'status', 'block_num');
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
     expect(result.status).to.equal('OK');
   });
 
@@ -2241,7 +2243,9 @@ describe(`G. [FIO] Unwrap FIO tokens`, function () {
         fio_address: user2.address,
       }
     });
-    expect(result).to.have.all.keys('transaction_id', 'status', 'block_num');
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
     expect(result.status).to.equal('OK');
   });
 
@@ -2271,7 +2275,9 @@ describe(`G. [FIO] Unwrap FIO tokens`, function () {
         fio_address: user2.address,
       }
     });
-    expect(result).to.have.all.keys('transaction_id', 'status', 'block_num');
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
     expect(result.status).to.equal('OK');
   });
 
