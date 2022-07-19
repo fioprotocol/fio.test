@@ -65,8 +65,8 @@ describe(`************************** stake-rapid-unstake-with-mainnet-locks.js *
     userA1 = await newUser(faucet);
 
     keys = await createKeypair();
-    console.log("priv key ", keys.privateKey);
-    console.log("pub key ", keys.publicKey);
+    //console.log("priv key ", keys.privateKey);
+    //console.log("pub key ", keys.publicKey);
     accountnm =  await getAccountFromKey(keys.publicKey);
 
 

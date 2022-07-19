@@ -86,7 +86,7 @@ describe(`************************** fio-domain-wrapping-sdk.js ****************
         actor: 'eosio',
         data: {
           oracle_actor: oracle1.account,
-          actor: oracle1.account
+          actor: userA.account
         }
       });
       expect(result.status).to.equal('OK');
@@ -102,7 +102,7 @@ describe(`************************** fio-domain-wrapping-sdk.js ****************
         actor: 'eosio',
         data: {
           oracle_actor: oracle2.account,
-          actor: oracle2.account
+          actor: userA.account
         }
       });
       expect(result.status).to.equal('OK');
@@ -118,7 +118,7 @@ describe(`************************** fio-domain-wrapping-sdk.js ****************
         actor: 'eosio',
         data: {
           oracle_actor: oracle3.account,
-          actor: oracle3.account
+          actor: userA.account
         }
       });
       expect(result.status).to.equal('OK');
@@ -1032,7 +1032,7 @@ describe(`B. [FIO] Wrap FIO domains`, function () {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.json.error.details[0].message).to.equal('missing authority of .invalid');
+      expect(err.json.error.details[0].message).to.equal(`action's authorizing actor '.invalid' does not exist`);
     }
   });
 
@@ -1750,7 +1750,7 @@ describe(`C. [FIO] Unwrap FIO domains`, function () {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.json.error.details[0].message).to.equal('missing authority of .invalid');
+      expect(err.json.error.details[0].message).to.equal(`action's authorizing actor '.invalid' does not exist`);
     }
   });
 

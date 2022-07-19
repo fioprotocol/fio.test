@@ -14,7 +14,7 @@
  *   expiration_time = now() + 20;
  *
  * 
- * To enable an expired address, in fio_address_updated change:
+ * To enable an expired address, in fio_address_update change:
  * 
  *   const uint32_t expiration_time = 4294967295;
  * to
@@ -446,7 +446,8 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
     }
   })
 
-  it('Wait a few seconds...', async () => {
+  // Adding this in can cause the test to fail due to expiring domain timing
+  it.skip('Wait a few seconds...', async () => {
     await timeout(1000);
   })
 
