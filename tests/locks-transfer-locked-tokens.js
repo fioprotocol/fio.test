@@ -684,6 +684,24 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
 
   let rambefore, ramafter, balancebefore, balanceafter, feetransferlocked, domainFee, addressFee
 
+  it(`Create users`, async () => {
+    userA1 = await newUser(faucet);
+    // userA2 = await newUser(faucet);
+    userA3 = await newUser(faucet);
+    // userA4 = await newUser(faucet);
+
+    keys = await createKeypair();
+    locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+    // keys1 = await createKeypair();
+    // locksdk1 = new FIOSDK(keys1.privateKey, keys1.publicKey, config.BASE_URL, fetchJson);
+    // keys2 = await createKeypair();
+    // locksdk2 = new FIOSDK(keys2.privateKey, keys2.publicKey, config.BASE_URL, fetchJson);
+    // keys3 = await createKeypair();
+    // locksdk3 = new FIOSDK(keys3.privateKey, keys3.publicKey, config.BASE_URL, fetchJson);
+    // keys4 = await createKeypair();
+    // locksdk4 = new FIOSDK(keys4.privateKey, keys4.publicKey, config.BASE_URL, fetchJson);
+  })
+
   it(`get account ram before `, async () => {
     try {
       let accountnm = await FIOSDK.accountHash(userA1.sdk.publicKey)
@@ -755,7 +773,6 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
 
         })
         expect(result.status).to.equal('OK')
-        expect(result).to.have.all.keys('status', 'fee_collected', 'block_num', 'transaction_id')
       } catch (err) {
         console.log(' Error', err);
         expect(err).to.equal(null);

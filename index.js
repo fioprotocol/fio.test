@@ -59,11 +59,9 @@ describe('TEST SUITE', () => {
      */
     require('./tests/stake-tokens.js');
     require('./tests/stake-timing.js');
-    require('./tests/locks-mainnet-locked-tokens.js');
-    require('./tests/locks-mainnet-locked-tokens-lock1hotfix.js');
-    require('./tests/locks-transfer-locked-tokens-testnet-smoke-tests.js');
-    require('./tests/locks-get-locks.js');
+    require('./tests/locks-get-locks-with-staking.js');
 
+    // These have a similar setup
     require('./tests/stake-rapid-unstake-with-mainnet-locks.js'); //FIP-21 tests for rapid fire unstaking in succession
     require('./tests/stake-mainnet-locked-tokens-with-staking.js'); //FIP-21 tests for genesis lock accounts performing staking
   });
@@ -116,40 +114,45 @@ describe('TEST SUITE', () => {
     require('./tests/nft-sdk-tests.js');
     require('./tests/nft-uniqueness.js'); //FIP-27
     require('./tests/nft-remove-burn.js'); //FIP-27
-    //require('./tests/nft-performance-tests.js'); //FIP-27 - Take a long time and require monitoring
+    //require('./tests/nft-performance-tests.js'); //FIP-27 - Takes a long time and requires monitoring
 
     /**
-     * Lock tests - do NOT require additional configuration.
+     * Lock/staking tests -Do NOT require additional configuration.
      */
     require('./tests/locks-transfer-locked-tokens-account-tests.js');  // FIP-6 tests of generic account functionality
     require('./tests/locks-transfer-locked-tokens.js');  //FIP-21 locking tests for general locks
     require('./tests/stake-general-locked-tokens.js'); //FIP-21 tests for general lock accounts performing staking
     require('./tests/stake-BD-3552-dev-tests.js');
-
-    /**
-     * Staking tests - do NOT require additional configuration.
-     */
-     require('./tests/stake-general-locked-tokens.js');
   
   });
 
   describe.skip('** GENERAL TESTS - REQUIRE SETUP **', () => {
 
     /**
-     * Locked token tests (FIP-6,21). Tests require additional configuration.
+     * FIP-26 (marketplace) FIO Escrow Test. Requires configuration to enable modexpire
      */
-    //require('./tests/locks-transfer-locked-tokens-max-load.js');  // OPTIONAL PERFORMANCE TEST. Loads the chain with lots of general locks. Run this before other general locks tests when its desirable to test a loaded chain.
+    //require('./tests/fio-escrow.js'); // FIP-26 (marketplace). Requires additional configuration to add the modexpire action
 
     /**
-     * Lock tests - May require a new chain to have enough FIO?
+     * Expired Address and Domain Testing. Requires manual updates to contracts to shorten expiration timing
      */
-    //require('./tests/locks-transfer-locked-tokens-large-grants.js'); //FIP-21 tests for FIO genesis locks functionality.
-    
+    //require('./tests/expired-address-domain.js');
+    //require('./tests/expired-address-domain-modexpire.js'); // Requires modexpire action which allows expiring of domains
+
     /**
      * Retire Tokens. Requires additional configuration
      */
     //require('./tests/retire-tokens.js');  // FIP-22 Retire tokens. Requires setup to run.
-
+    
+    /**
+     * Lock tests - May require a new chain to have enough FIO?
+     */
+    //require('./tests/locks-transfer-locked-tokens-large-grants.js'); //FIP-21 tests for FIO genesis locks functionality.
+    //require('./tests/locks-mainnet-locked-tokens.js');
+    //require('./tests/locks-mainnet-locked-tokens-lock1hotfix.js');
+    // not sure this test requires test modifications?
+    //require('./tests/locks-transfer-locked-tokens-testnet-smoke-tests.js');
+    
     /**
      * clio tests. Only works with local testing since it accesses the fio.devtools/bin directory
      */
@@ -162,23 +165,18 @@ describe('TEST SUITE', () => {
     //require('./tests/producer-fee-setting.js');  // FIP-10
 
     /**
-     * FIO Escrow Test. Requires configuration to enable modexpire
-     */
-    //require('./tests/fio-escrow'); // FIP-26 (marketplace). Requires additional configuration to add the modexpire action
-
-    /**
-     * Expired Address and Domain Testing. Requires manual updates to contracts to shorten expiration timing
-     */
-    //require('./tests/expired-address-domain.js');
-    //require('./tests/expired-address-domain-modexpire.js'); // Requires modexpire action which allows expiring of domains
-
-    /**
      * History Node tests. Only run against history node.
      */
     //require('./tests/history.js');
 
     /**
-     * Performance tests. May require additional configuration. See notes in tests
+     * Performance Test: Locked token tests (FIP-6,21) erformance test. Tests require additional configuration.
+     * Loads the chain with lots of general locks. Run this before other general locks tests when its desirable to test a loaded chain.
+     */
+    //require('./tests/locks-transfer-locked-tokens-max-load.js');  
+
+    /**
+     * Performance tests. Request OBT. Requires additional configuration. See notes in tests.
      */
     //require('./tests/performance-request-obt.js');
 
@@ -186,10 +184,5 @@ describe('TEST SUITE', () => {
      * Archived tests
      */
     //require('./tests/bravo-migr-test.js'); //This is required when testing 2.3.0 (bravo) with fio bahamas (need to do the full table migration).
-
-    /**
-     * FIP-26 (marketplace)
-     */
-    // require('./tests/fio-escrow.js');
   });
 });

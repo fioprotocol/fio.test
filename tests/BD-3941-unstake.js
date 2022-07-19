@@ -153,7 +153,7 @@ describe(`************************** BD-3941-unstake.js ************************
     it(`get userA1 FIP-6 locks and verify the staking unlock period has been added`, async function () {
         try {
         const result = await userA1.getLocks(userA1Keys.publicKey);
-        console.log('Result: ', result);
+        //console.log('Result: ', result);
         expect(result.remaining_lock_amount).to.equal(unstakeAmt);
         expect(result.unlock_periods.length).to.equal(1);
         expect(result.unlock_periods[0].amount).to.equal(unstakeAmt);
@@ -169,7 +169,7 @@ describe(`************************** BD-3941-unstake.js ************************
     it(`get userA1 FIP-6 locks and verify the staking unlock period has been added`, async function () {
         try {
         const result = await userA1.getLocks(userA1Keys.publicKey);
-        console.log('Result: ', result);
+        //console.log('Result: ', result);
         expect(result.remaining_lock_amount).to.equal(0);
         expect(result.unlock_periods.length).to.equal(0);
         } catch (err) {
@@ -178,7 +178,7 @@ describe(`************************** BD-3941-unstake.js ************************
         }
     });
   
-    it(`BUG BD-XXXX: Getting "error looking up lock owner" instead of: unstake remaining ${unstakeAmt} staked FIO tokens from userA1`, async function () {
+    it(`BUG BD-3941: Getting "error looking up lock owner" instead of: unstake remaining ${unstakeAmt} staked FIO tokens from userA1`, async function () {
       try {
         const result = await userA1.genericAction('pushTransaction', {
           action: 'unstakefio',

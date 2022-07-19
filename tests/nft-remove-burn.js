@@ -529,7 +529,7 @@ describe(`B. (sdk)(unhappy) Try to add all NFTs to nftburnq with invalid user in
       expect(result.status).to.not.equal('OK');
     } catch (err) {
       expect(err.json.code).to.equal(500);
-      expect(err.json.error.what).to.equal('Missing required authority');
+      expect(err.json.error.details[0].message).to.equal(`action's authorizing actor 'invalid..tor1' does not exist`);
     }
   });
   it(`verify user1 NFTs are still present in table`, async () => {
