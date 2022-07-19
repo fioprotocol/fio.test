@@ -145,9 +145,8 @@ describe(`************************** locks-transfer-locked-tokens-testnet-smoke-
       expect(result.status).to.not.equal('OK')
 
     } catch (err) {
-      var expected = `Error 400`
-      console.log('Error: ', err.json.error)
-      expect(err.message).to.include(expected)
+      expect(err.errorCode).to.equal(400);
+      expect(err.json.fields[0].error).to.equal('Invalid total amount for unlock periods');
     }
   })
 
@@ -205,7 +204,7 @@ describe(`************************** locks-transfer-locked-tokens-testnet-smoke-
           amount: fundsAmount,
           max_fee: 400000000000,
           tpid: '',
-          actor: '3lv2dsu2oavw',
+          actor: userA1.account,
         }
 
       })
@@ -237,7 +236,7 @@ describe(`************************** locks-transfer-locked-tokens-testnet-smoke-
           amount: fundsAmount,
           max_fee: 400000000000,
           tpid: '',
-          actor: '3lv2dsu2oavw'
+          actor: userA1.account,
         }
 
       })
@@ -247,7 +246,7 @@ describe(`************************** locks-transfer-locked-tokens-testnet-smoke-
     }
   });
 
-  it(`Failute test, Transfer locked tokens, pub key account pre exists`, async () => {
+  it(`Failure test, Transfer locked tokens, pub key account pre exists`, async () => {
     try {
       const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'trnsloctoks',
@@ -274,11 +273,11 @@ describe(`************************** locks-transfer-locked-tokens-testnet-smoke-
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.json.fields[0].error).to.equal('Locked tokens can only be transferred to new account');
+      expect(err.json.fields[0].error).to.equal('can_vote:0 locked tokens cannot be transferred to an account that already exists');
     }
   });
 
-  it(`Failute test, Too many lock periods`, async () => {
+  it(`Failure test, Too many lock periods`, async () => {
     try {
       const result = await userA1.sdk.genericAction('pushTransaction', {
         action: 'trnsloctoks',
@@ -531,7 +530,7 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
 
   it(`get account ram before `, async () => {
     try {
-      const result = await userA1.sdk.genericAction('getAccount', {account:'3lv2dsu2oavw'})
+      const result = await userA1.sdk.genericAction('getAccount', {account: userA1.account})
       expect(result.ram_quota).to.be.a('number')
       rambefore = result.ram_quota
     } catch (err) {
@@ -570,7 +569,6 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
         }
 
       })
-      expect(result).to.have.all.keys( 'status', 'fee_collected');
       expect(result.status).to.equal('OK');
       expect(result.fee_collected).to.equal(config.api.transfer_tokens_pub_key.fee);
     } catch (err) {
@@ -616,11 +614,11 @@ describe(`B. transfer with 2 unlock periods, canvote = false`, () => {
 
   it(`get account ram after, verify RAM bump `, async () => {
     try {
-      const result = await userA1.sdk.genericAction('getAccount', {account:'3lv2dsu2oavw'})
+      const result = await userA1.sdk.genericAction('getAccount', {account: userA1.account})
       expect(result.ram_quota).to.be.a('number')
       ramafter = result.ram_quota
       let diffram = ramafter-rambefore
-      expect(diffram).to.equal(1152)
+      expect(diffram).to.equal(config.RAM.TRANSLOCTOKSRAM);
   } catch (err) {
     console.log('Error', err)
   }

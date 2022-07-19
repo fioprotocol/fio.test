@@ -266,7 +266,7 @@ describe(`************************** stake-tokens.js ************************** 
       maxFee: config.api.transfer_tokens_pub_key.fee,
       tpid: '',
     });
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected');
+    expect(result).to.have.any.keys('fee_collected');;
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(config.api.transfer_tokens_pub_key.fee);
   });
@@ -285,7 +285,7 @@ describe(`************************** stake-tokens.js ************************** 
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     });
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.transaction_id).to.be.a('string');
     expect(result.block_num).to.be.a('number');
     expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
@@ -302,7 +302,7 @@ describe(`************************** stake-tokens.js ************************** 
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     });
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.transaction_id).to.be.a('string');
     expect(result.block_num).to.be.a('number');
     expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
@@ -326,7 +326,7 @@ describe(`************************** stake-tokens.js ************************** 
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     });
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.transaction_id).to.be.a('string');
     expect(result.block_num).to.be.a('number');
     expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
@@ -341,18 +341,22 @@ describe(`************************** stake-tokens.js ************************** 
   });
 
   it(`Register domain for voting for userC `, async () => {
-    newFioDomain1 = generateFioDomain(15);
-    let bal = await userC.sdk.genericAction('getFioBalance', {});
-    const result = await userC.sdk.genericAction('registerFioDomain', {
-      fioDomain: newFioDomain1,
-      maxFee: config.api.register_fio_domain.fee,
-      tpid: '',
-    });
-    let newBal = await userC.sdk.genericAction('getFioBalance', {});
-    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected');
-    expect(result.status).to.equal('OK');
-    expect(result.fee_collected).to.equal(config.api.register_fio_domain.fee);
-    expect(bal.available - newBal.available).to.equal(config.api.register_fio_domain.fee);
+    try {
+      newFioDomain1 = generateFioDomain(15);
+      let bal = await userC.sdk.genericAction('getFioBalance', {});
+      const result = await userC.sdk.genericAction('registerFioDomain', {
+        fioDomain: newFioDomain1,
+        maxFee: config.api.register_fio_domain.fee,
+        tpid: '',
+      });
+      let newBal = await userC.sdk.genericAction('getFioBalance', {});
+      expect(result.status).to.equal('OK');
+      expect(result.fee_collected).to.equal(config.api.register_fio_domain.fee);
+      expect(bal.available - newBal.available).to.equal(config.api.register_fio_domain.fee);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
   });
 
   it(`Register address for voting for userC`, async () => {
@@ -364,7 +368,6 @@ describe(`************************** stake-tokens.js ************************** 
       tpid: '',
     });
     let newBal = await userC.sdk.genericAction('getFioBalance', {});
-    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(config.api.register_fio_address.fee);
     expect(bal.available - newBal.available).to.equal(config.api.register_fio_address.fee);
@@ -382,7 +385,6 @@ describe(`************************** stake-tokens.js ************************** 
         max_fee: config.api.vote_producer.fee
       }
     });
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(0);
     // after vote
@@ -400,7 +402,6 @@ describe(`************************** stake-tokens.js ************************** 
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     });
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
     expect(result.transaction_id).to.be.a('string');
     expect(result.block_num).to.be.a('number');
     expect(result.fee_collected).to.be.a('number').and.equal(config.api.transfer_tokens_pub_key.fee);
@@ -427,7 +428,7 @@ describe(`************************** stake-tokens.js ************************** 
       maxFee: config.api.register_fio_address.fee,
       tpid: '',
     });
-    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected');
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(config.api.register_fio_address.fee);
 
@@ -438,7 +439,6 @@ describe(`************************** stake-tokens.js ************************** 
       maxFee: config.api.set_fio_domain_public.fee,
       technologyProviderId: ''
     });
-    expect(result2).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
     expect(result2.status).to.be.a('string').and.equal('OK');
     expect(result2.fee_collected).to.be.a('number').and.equal(config.api.set_fio_domain_public.fee);
   });
@@ -455,7 +455,7 @@ describe(`************************** stake-tokens.js ************************** 
       }
     });
     let newBal = await userP.sdk.genericAction('getFioBalance', {});
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(config.api.register_proxy.fee);
     expect(bal.available - newBal.available).to.equal(config.api.register_proxy.fee);
@@ -481,8 +481,14 @@ describe(`************************** stake-tokens.js ************************** 
       technologyProviderId: userP.address,
       maxFee: config.api.add_pub_address.fee,
     });
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
-    expect(result2).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
+    expect(result2).to.have.any.keys('status');
+    expect(result2).to.have.any.keys('fee_collected');
+    expect(result2).to.have.any.keys('block_num');
+    expect(result2).to.have.any.keys('transaction_id');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(0);
     expect(result2.status).to.equal('OK');
@@ -649,7 +655,10 @@ describe(`A2. Stake some FIO from userA`, () => {
     newStakedTokenPool = await getStakedTokenPool();
     newCombinedTokenPool = await getCombinedTokenPool();
     newGlobalSrpCount = await getGlobalSrpCount();
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(0);
     expect(newBalA.staked - balA.staked).to.equal(stakeAmt);
@@ -682,7 +691,10 @@ describe(`A2. Stake some FIO from userA`, () => {
     newStakedTokenPool = await getStakedTokenPool();
     newCombinedTokenPool = await getCombinedTokenPool();
     newGlobalSrpCount = await getGlobalSrpCount();
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(config.api.stake_fio_tokens.fee);
     expect(newBalA.staked - balA.staked).to.equal(stakeAmt);
@@ -1130,7 +1142,7 @@ describe(`A5. Stake some FIO from userB, observe staking reward changes`, () => 
     newStakedTokenPool = await getStakedTokenPool();
     newCombinedTokenPool = await getCombinedTokenPool();
     newGlobalSrpCount = await getGlobalSrpCount();
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(0);
     let newBal = await userB.sdk.genericAction('getFioBalance', { });
@@ -1708,7 +1720,7 @@ describe(`A11. Stake some FIO from userC, observe staking reward changes`, () =>
     newCombinedTokenPool = await getCombinedTokenPool();
     newGlobalSrpCount = await getGlobalSrpCount();
     let newBal = await userC.sdk.genericAction('getFioBalance', { });
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(0);
     expect(newBal.staked - bal.staked).to.equal(stakeAmt);
@@ -1797,7 +1809,7 @@ describe('B. Test stakefio Bundled transactions', () => {
         max_fee: config.api.register_proxy.fee
       }
     });
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(config.api.register_proxy.fee);
   });
@@ -1853,7 +1865,7 @@ describe('B. Test stakefio Bundled transactions', () => {
     newStakedTokenPool = await getStakedTokenPool();
     newCombinedTokenPool = await getCombinedTokenPool();
     newGlobalSrpCount = await getGlobalSrpCount();
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(config.api.stake_fio_tokens.fee);
     expect(newBal.staked - bal.staked).to.equal(stakeAmt);
@@ -1897,7 +1909,7 @@ describe('B. Test stakefio Bundled transactions', () => {
     newCombinedTokenPool = await getCombinedTokenPool();
     newGlobalSrpCount = await getGlobalSrpCount();
     let newBal = await user1.sdk.genericAction('getFioBalance', { });
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(0);
     expect(newBal.staked - bal.staked).to.equal(stakeAmt);
@@ -1974,7 +1986,7 @@ describe('B. Test stakefio Bundled transactions', () => {
     newCombinedTokenPool = await getCombinedTokenPool();
     newGlobalSrpCount = await getGlobalSrpCount();
     let newBal = await user1.sdk.genericAction('getFioBalance', {});
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(config.api.stake_fio_tokens.fee);
     expect(newBal.staked - bal.staked).to.equal(stakeAmt);
@@ -2055,7 +2067,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
         max_fee: config.api.register_proxy.fee
       }
     });
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(config.api.register_proxy.fee);
   });
@@ -2095,7 +2107,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
     newCombinedTokenPool = await getCombinedTokenPool();
     newGlobalSrpCount = await getGlobalSrpCount();
     let newBal = await user1.sdk.genericAction('getFioBalance', { });
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(0);
     expect(newBal.staked - bal.staked).to.equal(stakeAmt);
@@ -2362,7 +2374,7 @@ describe(`D. Stake tokens using auto proxy without voting first, \n Then do a fu
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     });
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected');
+    expect(result).to.have.any.keys('fee_collected');;
   });
 
   it('confirm proxy1: not in the voters table', async () => {
@@ -2661,7 +2673,6 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
       maxFee: config.api.register_fio_domain.fee,
       tpid: '',
     });
-    expect(domainRegistered).to.have.all.keys('status', 'expiration', 'fee_collected');
     expect(domainRegistered.status).to.equal('OK');
     expect(domainRegistered.fee_collected).to.equal(config.api.register_fio_domain.fee);
 
@@ -2671,7 +2682,6 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
       maxFee: config.api.register_fio_address.fee,
       tpid: '',
     });
-    expect(addressRegistered).to.have.all.keys('status', 'expiration', 'fee_collected');
     expect(addressRegistered.status).to.equal('OK');
     expect(addressRegistered.fee_collected).to.equal(config.api.register_fio_address.fee);
 
@@ -2684,7 +2694,6 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
         max_fee: config.api.register_proxy.fee
       }
     });
-    expect(regproxy).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
     expect(regproxy.status).to.equal('OK');
     expect(regproxy.fee_collected).to.equal(config.api.register_proxy.fee);
   });
@@ -2722,7 +2731,6 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
         max_fee: config.api.vote_producer.fee
       }
     });
-    expect(vote).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
     expect(vote.status).to.equal('OK');
 
     try {
@@ -2758,7 +2766,6 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
           max_fee: config.api.vote_producer.fee
         }
       });
-      expect(vote).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
       expect(vote.status).to.equal('OK');
     } catch (err) {
       expect(err).to.equal(null);
@@ -2844,7 +2851,7 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
       expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
       expect(err.errorCode).to.equal(400);
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
-      expect(err.json.fields[0].error).to.equal('TPID must be empty or valid FIO address');
+      expect(err.json.fields[0].error).to.equal('FIO Address not registered');
     }
   });
 
@@ -2902,7 +2909,6 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
         tpid:''
       }
     });
-    expect(stake).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
     expect(stake.status).to.equal('OK');
     expect(stake.fee_collected).to.equal(config.api.stake_fio_tokens.fee);
     let bal = await userC.sdk.genericAction('getFioBalance', {});
@@ -2975,7 +2981,7 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
       //     tpid: ''
       //   }
       // });
-      // expect(stake).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+      // expect(result).to.have.any.keys('fee_collected');
       // expect(stake.status).to.equal('OK');
       // expect(stake.fee_collected).to.equal(3000000000);
       // userDBal = await userD.sdk.genericAction('getFioBalance', {});
@@ -3046,7 +3052,7 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
           tpid: ''
         }
       });
-      expect(stake).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+      expect(result).to.have.any.keys('fee_collected');
       expect(stake.status).to.equal('OK');
       expect(stake.fee_collected).to.equal(3000000000);
       userDBal = await userD.sdk.genericAction('getFioBalance', {});
@@ -3329,7 +3335,6 @@ describe(`F. (unhappy tests) Stake and unstake some FIO with no bundles tx remai
         tpid: ''
       }
     });
-    expect(stake).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
     expect(stake.status).to.equal('OK');
     expect(stake.fee_collected).to.equal(3000000000);
   });
@@ -3350,7 +3355,7 @@ describe(`F. (unhappy tests) Stake and unstake some FIO with no bundles tx remai
         tpid:'casey@dapixdev'
       }
     });
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.status).to.equal('OK');
     let newBal = await userA.sdk.genericAction('getFioBalance', {});
     let newBundles = await getBundleCount(userA.sdk);
@@ -3499,7 +3504,7 @@ describe(`G1. Stake and unstake a single FIO`, () => {
     newCombinedTokenPool = await getCombinedTokenPool();
     newGlobalSrpCount = await getGlobalSrpCount();
 
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(0);
     expect(newBal.staked - bal.staked).to.equal(stakeAmt);
@@ -3618,7 +3623,7 @@ describe(`G1. Stake and unstake a single FIO`, () => {
     newCombinedTokenPool = await getCombinedTokenPool();
     newGlobalSrpCount = await getGlobalSrpCount();
 
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(config.api.stake_fio_tokens.fee);
     expect(newBal.staked - bal.staked).to.equal(stakeAmt);
@@ -3798,7 +3803,7 @@ describe(`G2. Stake and unstake an unreasonably samll (sub-FIO) denomination of 
     newCombinedTokenPool = await getCombinedTokenPool();
     newGlobalSrpCount = await getGlobalSrpCount();
 
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(0);
     expect(newBal.staked - bal.staked).to.equal(stakeAmt);
@@ -3914,7 +3919,7 @@ describe(`G2. Stake and unstake an unreasonably samll (sub-FIO) denomination of 
     newStakedTokenPool = await getStakedTokenPool();
     newCombinedTokenPool = await getCombinedTokenPool();
     newGlobalSrpCount = await getGlobalSrpCount();
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(config.api.stake_fio_tokens.fee);
     expect(newBal.staked - bal.staked).to.equal(stakeAmt);
@@ -3989,7 +3994,7 @@ describe(`G2. Stake and unstake an unreasonably samll (sub-FIO) denomination of 
     newCombinedTokenPool = await getCombinedTokenPool();
     newGlobalSrpCount = await getGlobalSrpCount();
 
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(0);
     expect(newBal.staked - bal.staked).to.equal(stakeB);
@@ -4263,7 +4268,7 @@ describe(`G3. Stake some FIO, then try to unstake an unreasonably small amount (
     newCombinedTokenPool = await getCombinedTokenPool();
     newGlobalSrpCount = await getGlobalSrpCount();
 
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(0);
     expect(newBal.staked - bal.staked).to.equal(stakeAmt);
@@ -4504,7 +4509,7 @@ describe(`G4. Stake some FIO, then try to unstake an unreasonably small amount (
     newStakedTokenPool = await getStakedTokenPool();
     newCombinedTokenPool = await getCombinedTokenPool();
     newGlobalSrpCount = await getGlobalSrpCount();
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(0);
     expect(newBal.staked - bal.staked).to.equal(stakeAmt);
@@ -4527,7 +4532,7 @@ describe(`G4. Stake some FIO, then try to unstake an unreasonably small amount (
         index_position: '2'
       }
       const result = await callFioApi("get_table_rows", json);
-      console.log('Result: ', result);
+      //console.log('Result: ', result);
       //console.log('periods : ', result.rows[0].periods)
       expect(result.rows.length).to.equal(0)
       // expect(result.rows[0].remaining_lock_amount).to.equal(unstakeAmt)
@@ -4646,7 +4651,7 @@ describe(`G4. Stake some FIO, then try to unstake an unreasonably small amount (
     newStakedTokenPool = await getStakedTokenPool();
     newCombinedTokenPool = await getCombinedTokenPool();
     newGlobalSrpCount = await getGlobalSrpCount();
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(config.api.stake_fio_tokens.fee);
     expect(newBal.staked - bal.staked).to.equal(1000000000);
@@ -4805,7 +4810,7 @@ describe(`G5. Stake some FIO, then try to unstake an unreasonably small amount (
     newCombinedTokenPool = await getCombinedTokenPool();
     newGlobalSrpCount = await getGlobalSrpCount();
 
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(0);
     expect(newBal.staked - bal.staked).to.equal(stakeAmt);
@@ -5069,7 +5074,7 @@ describe(`G6. Stake some FIO, then try to unstake an unreasonably small amount (
     newCombinedTokenPool = await getCombinedTokenPool();
     newGlobalSrpCount = await getGlobalSrpCount();
 
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(0);
     expect(newBal.staked - bal.staked).to.equal(stakeAmt);
@@ -5321,9 +5326,8 @@ describe(`H. Malicious staking actions`, () => {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(500);
-      expect(err.json.error.what).to.equal('Missing required authority');
-      expect(err.json.error.details[0].message).to.equal(`missing authority of ${userA.account}`);
+      expect(err.errorCode).to.equal(403);
+      expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
     }
   });
 
@@ -5353,9 +5357,8 @@ describe(`H. Malicious staking actions`, () => {
         }
       });
     } catch (err) {
-      expect(err.errorCode).to.equal(500);
-      expect(err.json.error.what).to.equal('Missing required authority');
-      expect(err.json.error.details[0].message).to.equal(`missing authority of ${userA.account}`);
+      expect(err.errorCode).to.equal(403);
+      expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
     }
   });
 });
@@ -5474,9 +5477,8 @@ describe(`I. Malicious unstaking actions`, () => {
         }
       });
     } catch (err) {
-      expect(err.errorCode).to.equal(500);
-      expect(err.json.error.what).to.equal('Missing required authority');
-      expect(err.json.error.details[0].message).to.equal(`missing authority of ${userA.account}`);
+      expect(err.errorCode).to.equal(403);
+      expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
     }
   })
 
@@ -5506,9 +5508,8 @@ describe(`I. Malicious unstaking actions`, () => {
         }
       });
     } catch (err) {
-      expect(err.errorCode).to.equal(500);
-      expect(err.json.error.what).to.equal('Missing required authority');
-      expect(err.json.error.details[0].message).to.equal(`missing authority of ${userA.account}`);
+      expect(err.errorCode).to.equal(403);
+      expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
     }
   })
 });
@@ -5626,7 +5627,7 @@ describe(`J. (BD-2991) Verify staking rewards when unstaking with TPID vs withou
     newCombinedTokenPool = await getCombinedTokenPool();
     newGlobalSrpCount = await getGlobalSrpCount();
 
-    expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(0);
     expect(newBalA.staked).to.equal(balA.staked + stakeAmt);
@@ -5675,7 +5676,7 @@ describe(`J. (BD-2991) Verify staking rewards when unstaking with TPID vs withou
 
   it(`getFioBalance for bp1`, async () => {
     const result = await bp1.sdk.genericAction('getFioBalance', {});
-    console.log(result);
+    //console.log(result);
   });
 
   it(`unstake 100 tokens (unstake_fio_tokens) with NO valid TPID from userA`, async () => {
@@ -5713,6 +5714,6 @@ describe(`J. (BD-2991) Verify staking rewards when unstaking with TPID vs withou
 
   it(`getFioBalance for bp1`, async () => {
     const result = await bp1.sdk.genericAction('getFioBalance', {});
-    console.log(result);
+    //console.log(result);
   });
 });

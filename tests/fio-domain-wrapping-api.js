@@ -86,7 +86,7 @@ describe(`************************** fio-domain-wrapping-api.js ****************
         privKey: userA.privateKey,
         data: {
           oracle_actor: oracle1.account,
-          actor: oracle1.account
+          actor: userA.account
         }
       });
       if (result.code === 500) {
@@ -108,7 +108,7 @@ describe(`************************** fio-domain-wrapping-api.js ****************
         privKey: userA.privateKey,
         data: {
           oracle_actor: oracle2.account,
-          actor: oracle2.account
+          actor: userA.account
         }
       });
       if (result.code === 500) {
@@ -130,7 +130,7 @@ describe(`************************** fio-domain-wrapping-api.js ****************
         privKey: userA.privateKey,
         data: {
           oracle_actor: oracle3.account,
-          actor: oracle3.account
+          actor: userA.account
         }
       });
       if (result.code === 500) {
@@ -313,8 +313,6 @@ describe(`B. [FIO][api] Wrap FIO domains`, function () {
           actor: newOracle1.account
         }
       });
-      expect(result).to.have.any.keys('transaction_id');
-      expect(result).to.have.any.keys('processed');
       expect(result.fields[0].name).to.equal('fio_domain');
       expect(result.fields[0].value).to.equal(domain);
       expect(result.fields[0].error).to.equal('Actor and domain owner mismatch.');
@@ -341,8 +339,6 @@ describe(`B. [FIO][api] Wrap FIO domains`, function () {
           actor: user2.account
         }
       });
-      expect(result).to.have.any.keys('transaction_id');
-      expect(result).to.have.any.keys('processed');
       expect(result.fields[0].name).to.equal('chain_code');
       expect(result.fields[0].value).to.equal('');
       expect(result.fields[0].error).to.equal('Invalid chain code format');
@@ -393,8 +389,6 @@ describe(`B. [FIO][api] Wrap FIO domains`, function () {
           actor: user7.account
         }
       });
-      expect(result).to.have.any.keys('transaction_id');
-      expect(result).to.have.any.keys('processed');
       expect(result.fields[0].error).to.equal('Invalid oracle fee value');
     } catch (err) {
       throw err;
@@ -419,8 +413,6 @@ describe(`B. [FIO][api] Wrap FIO domains`, function () {
           actor: user2.account
         }
       });
-      expect(result).to.have.any.keys('transaction_id');
-      expect(result).to.have.any.keys('processed');
       expect(result.fields[0].name).to.equal('max_fee');
       expect(result.fields[0].value).to.equal('0');
       // because supplied maximum empty string becomes 0 // ('Invalid fee value');
@@ -448,8 +440,6 @@ describe(`B. [FIO][api] Wrap FIO domains`, function () {
           actor: user8.account
         }
       });
-      expect(result).to.have.any.keys('transaction_id');
-      expect(result).to.have.any.keys('processed');
       expect(result.fields[0].name).to.equal('max_fee');
       expect(result.fields[0].value).to.equal(`${-config.maxFee}`);
       expect(result.fields[0].error).to.equal('Invalid fee value');
@@ -476,8 +466,6 @@ describe(`B. [FIO][api] Wrap FIO domains`, function () {
           actor: user2.account
         }
       });
-      expect(result).to.have.any.keys('transaction_id');
-      expect(result).to.have.any.keys('processed');
       expect(result.fields[0].name).to.equal('chain_code');
       expect(result.fields[0].value).to.equal('-12345');
       expect(result.fields[0].error).to.equal('Invalid chain code format');
@@ -504,8 +492,6 @@ describe(`B. [FIO][api] Wrap FIO domains`, function () {
           actor: user2.account
         }
       });
-      expect(result).to.have.any.keys('transaction_id');
-      expect(result).to.have.any.keys('processed');
       expect(result.fields[0].name).to.equal('chain_code');
       expect(result.fields[0].value).to.equal('!invalid@$');
       expect(result.fields[0].error).to.equal('Invalid chain code format');
@@ -532,8 +518,6 @@ describe(`B. [FIO][api] Wrap FIO domains`, function () {
           actor: user2.account
         }
       });
-      expect(result).to.have.any.keys('transaction_id');
-      expect(result).to.have.any.keys('processed');
       expect(result.fields[0].name).to.equal('max_oracle_fee');
       expect(result.fields[0].value).to.equal('0');
       expect(result.fields[0].error).to.equal('Invalid oracle fee value');
@@ -954,12 +938,10 @@ describe(`C. [FIO][api] Unwrap FIO domains`, function () {
           actor: newOracle2.account
         }
       });
-      expect(result).to.have.any.keys('transaction_id');
-      expect(result).to.have.any.keys('processed');
+      expect(result.type).to.equal('invalid_input');
+      expect(result.fields[0].error).to.equal('Invalid obt_id');
     } catch (err) {
-      expect(err.json.fields[0].name).to.equal('obt_id');
-      expect(err.json.fields[0].value).to.equal('');
-      expect(err.json.fields[0].error).to.equal('Invalid obt_id');
+      throw err;
     }
   });
 
@@ -1125,10 +1107,10 @@ describe(`C. [FIO][api] Unwrap FIO domains`, function () {
           actor: "!invalid@$"
         }
       });
-      expect(result).to.have.any.keys('transaction_id');
-      expect(result).to.have.any.keys('processed');
+      expect(result.code).to.equal(500);
+      expect(result.error.what).to.equal('Missing required authority');
     } catch (err) {
-      expect(err.json.error.details[0].message).to.equal('missing authority of .invalid');
+      throw err;
     }
   });
 

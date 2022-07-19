@@ -270,7 +270,7 @@ describe(`************************** retire-tokens.js **************************
       throw err;
     }
   });
-  it(`confirm that locktokensv2 remaining_lock_amount is 0`, async function () {
+  it(`confirm that locktokensv2 table is empty`, async function () {
     // shows that lock table has been updated
     const json = {
       json: true,
@@ -286,8 +286,10 @@ describe(`************************** retire-tokens.js **************************
 
     try {
       const lockedtokens = await callFioApi("get_table_rows", json);
-      expect(lockedtokens.rows[0].remaining_lock_amount).to.equal(0);
+      //console.log('lockedtokens: ', lockedtokens);
+      expect(lockedtokens.rows.length).to.equal(0);
     } catch (err) {
+      console.log('Error: ', err);
       throw err;
     }
   });
@@ -712,7 +714,7 @@ describe(`C. Retire locked FIO Tokens`, function () {
       throw err;
     }
   });
-  it(`confirm that locktokensv2 remaining_lock_amount is 0`, async function () {
+  it(`confirm that locktokensv2 is empty`, async function () {
     // shows that lock table has been updated
     const json = {
       json: true,
@@ -728,7 +730,7 @@ describe(`C. Retire locked FIO Tokens`, function () {
 
     try {
       const lockedtokens = await callFioApi("get_table_rows", json);
-      expect(lockedtokens.rows[0].remaining_lock_amount).to.equal(0);
+      expect(lockedtokens.rows.length).to.equal(0);
     } catch (err) {
       throw err;
     }
@@ -1350,7 +1352,7 @@ describe(`C. Retire locked FIO Tokens`, function () {
       throw err;
     }
   });
-  it(`confirm that locktokensv2 remaining_lock_amount is 0`, async function () {
+  it(`confirm that locktokensv2 table is empty`, async function () {
     // shows that lock table has been updated
     const json = {
       json: true,
@@ -1367,7 +1369,7 @@ describe(`C. Retire locked FIO Tokens`, function () {
 
     try {
       const lockedtokens = await callFioApi("get_table_rows", json);
-      expect(lockedtokens.rows[0].remaining_lock_amount).to.equal(0);
+      expect(lockedtokens.rows.length).to.equal(0);
     } catch (err) {
       throw err;
     }
@@ -1397,7 +1399,7 @@ describe(`C. Retire locked FIO Tokens`, function () {
   });
 });
 
-describe(`D. Try to retire from accounts with staked tokens`, function () {
+describe.skip(`D. Try to retire from accounts with staked tokens`, function () {
   let bp1, bp2, bp3, userA, userA1, userP, userAKeys, userA1Keys;
   let userABal, userA1Bal;
 
@@ -1550,7 +1552,7 @@ describe(`D. Try to retire from accounts with staked tokens`, function () {
     }
   });
 
-  it(`Retire ${fundsAmount} SUFs from userA, expect Error: Account staking cannot retire (Fixed BD-3133)`, async function () {
+  it(`Failure test: Retire ${fundsAmount} SUFs from userA, expect Error: Account staking cannot retire (Fixed BD-3133)`, async function () {
     let newUserBal;
     try {
       const result = await userA.sdk.genericAction('pushTransaction', {
@@ -1638,13 +1640,13 @@ describe(`D. Try to retire from accounts with staked tokens`, function () {
       expect(userA1Bal.staked - newUserBal.staked).to.equal(stakeAmt);
       userA1Bal = newUserBal;
     } catch (err) {
+      console.log('Error: ', err);
       newUserBal = await userA1.sdk.genericAction('getFioBalance', {});
       console.log(err, newUserBal);
       userA1Bal = newUserBal;
       throw err;
     }
 
-    // await timeout(72000);
   });
 
   it(`get userA1 FIP-6 locks and verify the staking unlock period has been added`, async function () {
@@ -1653,8 +1655,9 @@ describe(`D. Try to retire from accounts with staked tokens`, function () {
     expect(result.unlock_periods.length).to.equal(1);
     expect(result.unlock_periods[0].amount).to.equal(1000000000000);
     expect(result.unlock_periods[0].duration).to.equal(70);
-    await timeout(72000);
   });
+
+  it(`Wait 72 seconds.`, async () => { await timeout(72000) })
 
   it(`try to retire 1000 tokens from userA1, expect Error: Account staking cannot retire`, async function () {
     let newUserBal;
@@ -1700,6 +1703,7 @@ describe(`D. Try to retire from accounts with staked tokens`, function () {
       expect(userA1Bal.staked - newUserBal.staked).to.equal(stakeAmt);
       userA1Bal = newUserBal;
     } catch (err) {
+      console.log('Error: ', err.json.error);
       newUserBal = await userA1.sdk.genericAction('getFioBalance', {});
       console.log(err, newUserBal);
       userA1Bal = newUserBal;
@@ -1916,7 +1920,7 @@ describe(`E. Unhappy tests. Try to retire FIO tokens with invalid input`, functi
     }
   });
 
-  it(`confirm that locktokensv2 remaining_lock_amount is 0`, async function () {
+  it(`confirm that locktokensv2 is empty`, async function () {
     // shows that lock table has been updated
     const json = {
       json: true,
@@ -1933,7 +1937,7 @@ describe(`E. Unhappy tests. Try to retire FIO tokens with invalid input`, functi
 
     try {
       const lockedtokens = await callFioApi("get_table_rows", json);
-      expect(lockedtokens.rows[0].remaining_lock_amount).to.equal(0);
+      expect(lockedtokens.rows.length).to.equal(0);
     } catch (err) {
       throw err;
     }
@@ -2179,8 +2183,8 @@ describe(`E. Unhappy tests. Try to retire FIO tokens with invalid input`, functi
       });
       expect(result).to.equal(null);
     } catch (err) {
-
-      expect(err.json.error.details[0].message).to.equal('missing authority of invalid');
+      //console.log('Error: ', err.json.error);
+      expect(err.json.error.details[0].message).to.equal(`action's authorizing actor 'invalid' does not exist`);
     }
   });
 
@@ -2197,9 +2201,10 @@ describe(`E. Unhappy tests. Try to retire FIO tokens with invalid input`, functi
       });
       expect(result).to.equal(null);
     } catch (err) {
+      //console.log('Error: ', err.json.error);
       // different verbiage, same error condition
       // expect(err.json.error.details[0].message).to.equal('Signer not actor')
-      expect(err.json.error.details[0].message).to.equal('missing authority of bp1.dapixdev');
+      expect(err.json.error.details[0].message).to.equal(`action's authorizing actor 'bp1.dapixdev' does not exist`);
     }
   });
 });
