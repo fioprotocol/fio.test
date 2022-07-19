@@ -80,7 +80,7 @@ describe(`************************** fio-token-wrapping-api.js *****************
         privKey: userA.privateKey,
         data: {
           oracle_actor: oracle1.account,
-          actor: oracle1.account
+          actor: userA.account
         }
       });
       if (result.code === 500) {
@@ -102,7 +102,7 @@ describe(`************************** fio-token-wrapping-api.js *****************
         privKey: userA.privateKey,
         data: {
           oracle_actor: oracle2.account,
-          actor: oracle2.account
+          actor: userA.account
         }
       });
       if (result.code === 500) {
@@ -124,7 +124,7 @@ describe(`************************** fio-token-wrapping-api.js *****************
         privKey: userA.privateKey,
         data: {
           oracle_actor: oracle3.account,
-          actor: oracle3.account
+          actor: userA.account
         }
       });
       if (result.code === 500) {

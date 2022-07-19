@@ -949,7 +949,8 @@ describe(`************************** fio-escrow.js **************************`, 
 						data   : dataA1
 					})
 				} catch (err) {
-					expect(err.errorCode).to.equal(500)
+					expect(err.errorCode).to.equal(403);
+					expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
 				}
 			})
 

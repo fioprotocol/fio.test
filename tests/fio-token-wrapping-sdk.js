@@ -87,7 +87,7 @@ describe(`************************** fio-token-wrapping-sdk.js *****************
     }
   });
 
-  it('Add new oracles', async function () {
+  it('Add new oracle users', async function () {
     oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
     oracle2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
     oracle3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
@@ -102,13 +102,13 @@ describe(`************************** fio-token-wrapping-sdk.js *****************
         actor: 'eosio',
         data: {
           oracle_actor: oracle1.account,
-          actor: oracle1.account
+          actor: userA.account
         }
       });
       //console.log('Result: ', result);
       expect(result.status).to.equal('OK');
     } catch (err) {
-      console.log('err: ', err.json.error);
+      console.log('err: ', err);
       expect(err.json.error.what).to.equal('could not insert object, most likely a uniqueness constraint was violated');
     }
   });
@@ -120,7 +120,7 @@ describe(`************************** fio-token-wrapping-sdk.js *****************
         actor: 'eosio',
         data: {
           oracle_actor: oracle2.account,
-          actor: oracle2.account
+          actor: userA.account
         }
       });
       expect(result.status).to.equal('OK');
@@ -136,7 +136,7 @@ describe(`************************** fio-token-wrapping-sdk.js *****************
         actor: 'eosio',
         data: {
           oracle_actor: oracle3.account,
-          actor: oracle3.account
+          actor: userA.account
         }
       });
       expect(result.status).to.equal('OK');
@@ -314,14 +314,12 @@ describe(`B. [FIO] Oracles (register)`, function () {
         actor: 'eosio',
         data: {
           oracle_actor: "!invalid!@$",
-          actor: user2.account
+          actor: user1.account
         }
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
       expect(err.errorCode).to.equal(400);
-      expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.json.fields[0].error).to.equal('Account is not bound on the fio chain');
     }
   });
@@ -394,9 +392,8 @@ describe(`B. [FIO] Oracles (register)`, function () {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.json).to.have.all.keys('code', 'message', 'error');
-      expect(err.json.error.what).to.equal('unknown key (eosio::chain::name): .invalid');
+      //console.log('Error: ', err.json.error);
+      expect(err.json.error.details[0].message).to.equal(`action's authorizing actor '.invalid' does not exist`);
     }
   });
 
@@ -534,9 +531,7 @@ describe(`C. [FIO] Oracles (unregister)`, function () {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
       expect(err.errorCode).to.equal(400);
-      expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.json.fields[0].error).to.equal('Oracle is not registered');
     }
   });
@@ -895,7 +890,7 @@ describe(`D. [FIO] Oracles (setoraclefees)`, function () {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.json.error.details[0].message).to.equal('missing authority of .invalid');
+      expect(err.json.error.details[0].message).to.equal(`action's authorizing actor '.invalid' does not exist`);
     }
   });
 
@@ -1886,7 +1881,7 @@ describe(`F. [FIO] Wrap FIO tokens`, function () {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.json.error.details[0].message).to.equal('missing authority of .invalid');
+      expect(err.json.error.details[0].message).to.equal(`action's authorizing actor '.invalid' does not exist`);
     }
   });
 
