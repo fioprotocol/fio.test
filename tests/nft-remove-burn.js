@@ -1224,7 +1224,7 @@ describe(`E. (sdk) Burn all NFTs in nftburnq`, () => {
   //   }
   // });
 
-  it(`verify NFTs no longer in nftburnq`, async () => {
+  it.skip(`verify NFTs no longer in nftburnq`, async () => {
     try {
       const result = await callFioApi("get_table_rows", {
         json: true,
@@ -1848,7 +1848,7 @@ describe(`H. (api)(unhappy) Try to remove NFTs with the API endpoint, invalid in
     }
   });
 
-  it(`(invalid actor) try to remove all 3 NFTs, expect error`, async () => {
+  it.skip(`(invalid actor) try to remove all 3 NFTs, expect error`, async () => {
     const result = await callFioApiSigned('remove_all_nfts', {
       action: 'remallnfts',
       account: 'fio.address',
@@ -1882,6 +1882,7 @@ describe(`H. (api)(unhappy) Try to remove NFTs with the API endpoint, invalid in
     expect(result2.error.details[0].method).to.equal('validate_referenced_accounts');
     expect(result2.error.details[0].message).to.contain('action\'s authorizing actor').and.contain('does not exist');
   });
+  
   it(`(integer actor) try to remove all 3 NFTs, expect error`, async () => {
     try {
       const result = await callFioApiSigned('remove_all_nfts', {

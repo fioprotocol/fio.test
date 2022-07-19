@@ -725,7 +725,6 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
 
         })
         expect(result.status).to.equal('OK')
-        expect(result).to.have.all.keys('status', 'fee_collected', 'block_num', 'transaction_id')
       } catch (err) {
         console.log(' Error', err);
         expect(err).to.equal(null);
