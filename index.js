@@ -45,6 +45,10 @@ describe('TEST SUITE', () => {
     require('./tests/fio-domain-wrapping-api');
   });
 
+  describe.only(`** FIPs36-40 development tests`, function () {
+    require('./tests/FIPs36-40-dev-testing');
+  });
+
   /**
    * Staking Tests (FIP-21)
    * These tests require additional configuration (see the notes in js files before running these tests)
@@ -66,7 +70,7 @@ describe('TEST SUITE', () => {
     require('./tests/stake-mainnet-locked-tokens-with-staking.js'); //FIP-21 tests for genesis lock accounts performing staking
   });
 
-  describe('** GENERAL TESTS - NO SETUP **', () => {
+  describe.skip('** GENERAL TESTS - NO SETUP **', () => {
 
     /**
      * General Tests. Should work against all builds. Do not require additional configuration.
