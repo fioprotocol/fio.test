@@ -1578,4 +1578,44 @@ describe(`M. [ETH] Prevent tokens from being sent to contract address`, function
     expect(fromSentBalPost).to.equal(fromSentBalPre);
     expect(wfioReceivedBalPost).to.equal(wfioReceivedBalPre);
   });
+
+
+
+
+  it(`[test 4] pre transfer attempt balance display`, async function () {
+    // fromSentBalPre =  await wfio.balanceOf(accounts[17].address);//await accounts[17].getBalance();
+    wfioReceivedBalPre = await wfio.balanceOf(wfio.address);
+    // fromSentBalPre = ethers.BigNumber.from(fromSentBalPre).toString();
+    wfioReceivedBalPre = ethers.BigNumber.from(wfioReceivedBalPre).toString();
+    console.log(`[DBG-pre-transfer-4] wfioBal: ${wfioReceivedBalPre}`);
+  });
+
+  it(`[test 4] wrap another 1000 wFIO tokens, this time to wfio.address directly`,async function () {
+    let _bal = await wfio.balanceOf(wfio.address);
+    do {
+      fioTransaction = await faucet.genericAction('transferTokens', {
+        payeeFioPublicKey: fioAccount.publicKey,
+        amount: 1000000000000,
+        maxFee: config.api.transfer_tokens_pub_key.fee,
+        technologyProviderId: ''
+      })
+      TRANSACTION_ID = fioTransaction.transaction_id;
+
+      await wfio.connect(accounts[12]).wrap(wfio.address, 1000000000000, TRANSACTION_ID);
+      await wfio.connect(accounts[13]).wrap(wfio.address, 1000000000000, TRANSACTION_ID);
+      await wfio.connect(accounts[14]).wrap(wfio.address, 1000000000000, TRANSACTION_ID);
+      _bal = await wfio.balanceOf(wfio.address);
+    } while ( _bal.lt(100000000000));
+    console.log(`[DBG-account-wfio] wFIO wrapped: ${ethers.BigNumber.from(_bal).toString()}`);
+  });
+
+  it(`[test 4] post transfer attempt balance display, wfioBal should stay the same`, async function () {
+    // fromSentBalPost =  await wfio.balanceOf(accounts[17].address);//await accounts[15].getBalance();
+    wfioReceivedBalPost = await wfio.balanceOf(wfio.address);
+    // fromSentBalPost = ethers.BigNumber.from(fromSentBalPost).toString();
+    wfioReceivedBalPost = ethers.BigNumber.from(wfioReceivedBalPost).toString();
+    console.log(`[DBG-post-transfer-4] wfioBal: ${wfioReceivedBalPost}`);
+    // expect(fromSentBalPost).to.equal(fromSentBalPre);
+    expect(wfioReceivedBalPost).to.equal(wfioReceivedBalPre);
+  });
 });
