@@ -1373,3 +1373,209 @@ describe(`L. [ETH] Unpausing`, function () {
     }
   });
 });
+
+describe(`M. [ETH] Prevent tokens from being sent to contract address`, function () {
+
+  let fioAccount;
+  let owner;
+  let accounts;
+  let custodians;
+  let factory;
+  let wfio;
+  let fioTransaction;
+  let TRANSACTION_ID;
+  let wfioReceivedBalPre, wfioReceivedBalPost, fromSentBalPre, fromSentBalPost;
+
+  before(async function () {
+    fioAccount = await newUser(faucet);
+    [owner, ...accounts] = await ethers.getSigners();
+    custodians = [];
+    for (let i = 1; i < 11; i++) {
+      custodians.push(accounts[i].address);
+    }
+  });
+
+  it("Should deploy the wFIO token successfully", async function() {
+    factory = await ethers.getContractFactory('WFIO', owner);
+    wfio = await factory.deploy(INIT_SUPPLY, custodians);
+    await wfio.deployed();
+    expect(wfio).to.be.a('object');
+    expect(wfio).to.have.property('address').which.is.a('string');
+    expect(wfio).to.have.property('functions').which.is.a('object');
+    expect(wfio.signer.address).to.equal(owner.address);
+  });
+
+  it(`register 3 oracles`, async function () {
+    // register 3 oracles for testing
+    await wfio.connect(accounts[1]).regoracle(accounts[12].address);
+    await wfio.connect(accounts[2]).regoracle(accounts[12].address);
+    await wfio.connect(accounts[3]).regoracle(accounts[12].address);
+    await wfio.connect(accounts[4]).regoracle(accounts[12].address);
+    await wfio.connect(accounts[5]).regoracle(accounts[12].address);
+    await wfio.connect(accounts[6]).regoracle(accounts[12].address);
+    await wfio.connect(accounts[7]).regoracle(accounts[12].address);
+    await wfio.connect(accounts[1]).regoracle(accounts[13].address);
+    await wfio.connect(accounts[2]).regoracle(accounts[13].address);
+    await wfio.connect(accounts[3]).regoracle(accounts[13].address);
+    await wfio.connect(accounts[4]).regoracle(accounts[13].address);
+    await wfio.connect(accounts[5]).regoracle(accounts[13].address);
+    await wfio.connect(accounts[6]).regoracle(accounts[13].address);
+    await wfio.connect(accounts[7]).regoracle(accounts[13].address);
+    await wfio.connect(accounts[1]).regoracle(accounts[14].address);
+    await wfio.connect(accounts[2]).regoracle(accounts[14].address);
+    await wfio.connect(accounts[3]).regoracle(accounts[14].address);
+    await wfio.connect(accounts[4]).regoracle(accounts[14].address);
+    await wfio.connect(accounts[5]).regoracle(accounts[14].address);
+    await wfio.connect(accounts[6]).regoracle(accounts[14].address);
+    await wfio.connect(accounts[7]).regoracle(accounts[14].address);
+  });
+
+  it(`wrap 1000 wFIO tokens for accounts[15]`,async function () {
+    let _bal = await wfio.balanceOf(accounts[15].address);
+    do {
+      fioTransaction = await faucet.genericAction('transferTokens', {
+        payeeFioPublicKey: fioAccount.publicKey,
+        amount: 1000000000000,
+        maxFee: config.api.transfer_tokens_pub_key.fee,
+        technologyProviderId: ''
+      })
+      TRANSACTION_ID = fioTransaction.transaction_id;
+
+      await wfio.connect(accounts[12]).wrap(accounts[15].address, 1000000000000, TRANSACTION_ID);
+      await wfio.connect(accounts[13]).wrap(accounts[15].address, 1000000000000, TRANSACTION_ID);
+      await wfio.connect(accounts[14]).wrap(accounts[15].address, 1000000000000, TRANSACTION_ID);
+      _bal = await wfio.balanceOf(accounts[15].address);
+    } while ( _bal.lt(100000000000));
+    console.log(`[DBG-account-15] wFIO wrapped: ${ethers.BigNumber.from(_bal).toString()}`);
+  });
+
+  it(`    wait`, async function () { await timeout(3000); });
+
+  it(`wrap another 1000 wFIO tokens, this time for accounts[16]`,async function () {
+    let _bal = await wfio.balanceOf(accounts[16].address);
+    do {
+      fioTransaction = await faucet.genericAction('transferTokens', {
+        payeeFioPublicKey: fioAccount.publicKey,
+        amount: 1000000000000,
+        maxFee: config.api.transfer_tokens_pub_key.fee,
+        technologyProviderId: ''
+      })
+      TRANSACTION_ID = fioTransaction.transaction_id;
+
+      await wfio.connect(accounts[12]).wrap(accounts[16].address, 1000000000000, TRANSACTION_ID);
+      await wfio.connect(accounts[13]).wrap(accounts[16].address, 1000000000000, TRANSACTION_ID);
+      await wfio.connect(accounts[14]).wrap(accounts[16].address, 1000000000000, TRANSACTION_ID);
+      _bal = await wfio.balanceOf(accounts[16].address);
+    } while ( _bal.lt(100000000000));
+    console.log(`[DBG-account-16] wFIO wrapped: ${ethers.BigNumber.from(_bal).toString()}`);
+  });
+
+  it(`[test 1] pre transfer attempt balance display`, async function () {
+    fromSentBalPre =  await accounts[15].getBalance();
+    wfioReceivedBalPre = await wfio.balanceOf(wfio.address);
+    fromSentBalPre = ethers.BigNumber.from(fromSentBalPre).toString();
+    wfioReceivedBalPre = ethers.BigNumber.from(wfioReceivedBalPre).toString();
+    console.log(`[DBG-pre-transfer] senderBal: ${fromSentBalPre} wfioBal: ${wfioReceivedBalPre}`);
+  });
+
+  it(`[test 1] (expect Error: Transaction reverted) try to send eth to the WFIO contract using the builtin Hardhat sendTransaction`, async function () {
+    try {
+      let result = await accounts[15].sendTransaction({
+        to: wfio.address,
+        value: ethers.utils.parseEther("1.0"), // Sends exactly 1.0 ether
+      });
+      expect(result).to.not.have.property('hash');
+    } catch (err) {
+      expect(err.message).to.contain('Transaction reverted');
+    }
+  });
+
+  it(`[test 1] post transfer attempt balance display, WFIO eth balance should stay the same`, async function () {
+    fromSentBalPost = await accounts[15].getBalance();
+    wfioReceivedBalPost = await wfio.balanceOf(wfio.address);
+    fromSentBalPost = ethers.BigNumber.from(fromSentBalPost).toString();
+    wfioReceivedBalPost = ethers.BigNumber.from(wfioReceivedBalPost).toString();
+    console.log(`[DBG-post-transfer] senderBal: ${fromSentBalPost} wfioBal: ${wfioReceivedBalPost}`);
+    expect(fromSentBalPost).to.equal(fromSentBalPre);
+    expect(wfioReceivedBalPost).to.equal(wfioReceivedBalPre);
+    fromSentBalPre = await wfio.balanceOf(accounts[15].address);
+    fromSentBalPre = ethers.BigNumber.from(fromSentBalPre).toString();
+    wfioReceivedBalPre = wfioReceivedBalPost;
+  });
+
+  it(`[test 2] (expect Error??? should not allow sending wFIO to the WFIO address) try to send wFIO to the WFIO contract using wfio.trasnsfer`, async function () {
+    try {
+      let result = await wfio.connect(accounts[15]).transfer(wfio.address, 630000000000);
+      expect(result).to.not.have.property('hash');
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`[test 2] post transfer attempt balance display, wfioBal should stay the same`, async function () {
+    fromSentBalPost =  await wfio.balanceOf(accounts[15].address);//await accounts[15].getBalance();
+    wfioReceivedBalPost = await wfio.balanceOf(wfio.address);
+    fromSentBalPost = ethers.BigNumber.from(fromSentBalPost).toString();
+    wfioReceivedBalPost = ethers.BigNumber.from(wfioReceivedBalPost).toString();
+    console.log(`[DBG-post-transfer-2] senderBal: ${fromSentBalPost} wfioBal: ${wfioReceivedBalPost}`);
+    expect(fromSentBalPost).to.equal(fromSentBalPre);
+    expect(wfioReceivedBalPost).to.equal(wfioReceivedBalPre);
+  });
+
+  it(`    wait`, async function () { await timeout(3000); });
+
+  it(`wrap another 1000 wFIO tokens, this time for accounts[17]`,async function () {
+    let _bal = await wfio.balanceOf(accounts[17].address);
+    do {
+      fioTransaction = await faucet.genericAction('transferTokens', {
+        payeeFioPublicKey: fioAccount.publicKey,
+        amount: 1000000000000,
+        maxFee: config.api.transfer_tokens_pub_key.fee,
+        technologyProviderId: ''
+      })
+      TRANSACTION_ID = fioTransaction.transaction_id;
+
+      await wfio.connect(accounts[12]).wrap(accounts[17].address, 1000000000000, TRANSACTION_ID);
+      await wfio.connect(accounts[13]).wrap(accounts[17].address, 1000000000000, TRANSACTION_ID);
+      await wfio.connect(accounts[14]).wrap(accounts[17].address, 1000000000000, TRANSACTION_ID);
+      _bal = await wfio.balanceOf(accounts[17].address);
+    } while ( _bal.lt(100000000000));
+    console.log(`[DBG-account-17] wFIO wrapped: ${ethers.BigNumber.from(_bal).toString()}`);
+  });
+
+  it(`approve transferFrom recipient`, async function () {
+    try {
+      await wfio.connect(accounts[17]).approve(accounts[17].address, 1000000000000);
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`[test 3] pre transfer attempt balance display`, async function () {
+    fromSentBalPre =  await wfio.balanceOf(accounts[17].address);//await accounts[17].getBalance();
+    wfioReceivedBalPre = await wfio.balanceOf(wfio.address);
+    fromSentBalPre = ethers.BigNumber.from(fromSentBalPre).toString();
+    wfioReceivedBalPre = ethers.BigNumber.from(wfioReceivedBalPre).toString();
+    console.log(`[DBG-pre-transfer-3] senderBal: ${fromSentBalPre} wfioBal: ${wfioReceivedBalPre}`);
+  });
+
+  it(`[test 3] (expect Error??? should not allow sending wFIO to the WFIO address) try to send wFIO to the WFIO contract using wfio.trasnsferFrom`, async function () {
+    try {
+      let result = await wfio.connect(accounts[17]).transferFrom(accounts[17].address, wfio.address, 260000000000);
+      expect(result).to.not.have.property('hash');
+    } catch (err) {
+      // expect(err.message).to.contain('Transaction reverted');
+      throw err;
+    }
+  });
+
+  it(`[test 3] post transfer attempt balance display, wfioBal should stay the same`, async function () {
+    fromSentBalPost =  await wfio.balanceOf(accounts[17].address);//await accounts[15].getBalance();
+    wfioReceivedBalPost = await wfio.balanceOf(wfio.address);
+    fromSentBalPost = ethers.BigNumber.from(fromSentBalPost).toString();
+    wfioReceivedBalPost = ethers.BigNumber.from(wfioReceivedBalPost).toString();
+    console.log(`[DBG-post-transfer-3] senderBal: ${fromSentBalPost} wfioBal: ${wfioReceivedBalPost}`);
+    expect(fromSentBalPost).to.equal(fromSentBalPre);
+    expect(wfioReceivedBalPost).to.equal(wfioReceivedBalPre);
+  });
+});
