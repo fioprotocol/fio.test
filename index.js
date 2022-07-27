@@ -66,6 +66,13 @@ describe('TEST SUITE', () => {
     require('./tests/stake-mainnet-locked-tokens-with-staking.js'); //FIP-21 tests for genesis lock accounts performing staking
   });
 
+  describe.skip('** HISTORY TESTS **', () => {
+    /**
+     * History Node tests. Only run against history node.
+     */
+    require('./tests/history.js');
+  });
+
   describe('** GENERAL TESTS - NO SETUP **', () => {
 
     /**
@@ -163,11 +170,6 @@ describe('TEST SUITE', () => {
      */
     //require('./tests/producer-fee-voting-fee-setting.js'); // FIP-10
     //require('./tests/producer-fee-setting.js');  // FIP-10
-
-    /**
-     * History Node tests. Only run against history node.
-     */
-    //require('./tests/history.js');
 
     /**
      * Performance Test: Locked token tests (FIP-6,21) erformance test. Tests require additional configuration.
