@@ -750,33 +750,38 @@ describe('C. Request funds, approve and send', () => {
   })
 
   it(`requestFunds`, async () => {
-    const result = await fioSdk2.sdk.genericAction('requestFunds', {
-      payerFioAddress: testFioAddressName,
-      payeeFioAddress: testFioAddressName2,
-      payeeTokenPublicAddress: publicKey2,
-      amount: fundsAmount,
-      chainCode: fioChainCode,
-      tokenCode: fioTokenCode,
-      memo: '',
-      maxFee: defaultFee,
-      payerFioPublicKey: publicKey,
-      technologyProviderId: '',
-      hash: '',
-      offLineUrl: ''
-    })
-    //console.log('requestFunds: ', result)
-    requestId = result.fio_request_id
-    expect(result).to.have.any.keys('status');
-    expect(result).to.have.any.keys('fee_collected');
-    expect(result).to.have.any.keys('block_num');
-    expect(result).to.have.any.keys('transaction_id');
-    expect(result).to.have.any.keys('fio_request_id');
-    expect(result.fio_request_id).to.be.a('number')
-    expect(result.status).to.be.a('string')
-    expect(result.fee_collected).to.be.a('number')
+    try {
+      const result = await fioSdk2.sdk.genericAction('requestFunds', {
+        payerFioAddress: testFioAddressName,
+        payeeFioAddress: testFioAddressName2,
+        payeeTokenPublicAddress: publicKey2,
+        amount: fundsAmount,
+        chainCode: fioChainCode,
+        tokenCode: fioTokenCode,
+        memo: '',
+        maxFee: defaultFee,
+        payerFioPublicKey: publicKey,
+        technologyProviderId: '',
+        hash: '',
+        offLineUrl: ''
+      })
+      //console.log('requestFunds: ', result)
+      requestId = result.fio_request_id
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
+      expect(result).to.have.any.keys('fio_request_id');
+      expect(result.fio_request_id).to.be.a('number')
+      expect(result.status).to.be.a('string')
+      expect(result.fee_collected).to.be.a('number')
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
+    }
   })
 
-  it(`Wait a few seconds.`, async () => { await timeout(5000) })
+  it(`Wait a few seconds.`, async () => { await timeout(10000) })
 
   it(`getPendingFioRequests`, async () => {
     try {

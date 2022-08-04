@@ -43,6 +43,13 @@ describe('TEST SUITE', () => {
     require('./tests/fio-token-wrapping-api');
     require('./tests/fio-domain-wrapping-sdk');
     require('./tests/fio-domain-wrapping-api');
+
+    /**
+     * Smoke tests can be run against Goerli or Mumbai
+     * These tests require your to add the keys for a user and the oracle accounts
+     */
+        //require('./tests/fio-erc20-smoketest');
+        //require('./tests/fio-erc721-smoketest');
   });
 
   /**
