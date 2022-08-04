@@ -654,7 +654,7 @@ describe(`B. Single domain wrap/unwrap with oracle Example`, function () {
 
 });
 
-describe.only(`C. Three token wraps in same oracle polltime, then three token unwraps in same oracle polltime`, function () {
+describe(`C. Three token wraps in same oracle polltime, then three token unwraps in same oracle polltime`, function () {
 
     let user0;
     const wrapAmt = 20000000000;  // 20 fIO
