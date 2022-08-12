@@ -24,6 +24,6 @@ module.exports = {
   },
   paths: {
     tests: "./tests/",
-    sources: "./ethContracts/"
+    sources: "./hardhat-contracts/"
   },
 };

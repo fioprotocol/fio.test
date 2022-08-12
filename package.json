@@ -41,9 +41,13 @@
     "scripts": {
         "test": "node node_modules/mocha/bin/_mocha -t 5000000 index.js",
         "testnet": "mocha -t 5000000 tests/testnet-smoketest.js",
-        "mkContractDir": "mkdir ethContracts/",
-        "copyERC20": "cp -R ../fio.erc20/contracts/wfio.sol ethContracts/",
-        "copyERC721": "cp -R ../fio.erc721/contracts/fionft.sol ethContracts/",
-        "compileERC": "npx hardhat compile"
+        "hardhat-contract-dir": "mkdir -p hardhat-contracts/",
+        "hardhat-copy-erc20": "cp -R ../fio.erc20/contracts/wfio.sol hardhat-contracts/",
+        "hardhat-copy-erc721": "cp -R ../fio.erc721/contracts/fionft.sol hardhat-contracts/",
+        "hardhat-compile": "npx hardhat compile",
+        "hardhat-init": "npm run hardhat-contract-dir && npm run hardhat-copy-erc20 && npm run hardhat-copy-erc721 && npm run hardhat-compile",
+        "hardhat-erc20-test": "mocha -t 5000000 tests/fio-erc20.js",
+        "hardhat-erc721-test": "mocha -t 5000000 tests/fio-erc721.js",
+        "hardhat-contracts-test": "npm run hardhat-erc20-test && npm run hardhat-erc721-test"
     }
 }
