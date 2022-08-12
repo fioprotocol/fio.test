@@ -389,16 +389,109 @@ describe(`F. [ETH] Oracles (register)`, function () {
     wfio = await factory.deploy(INIT_SUPPLY, custodians);
     await wfio.deployTransaction.wait();
     // register an oracle for testing
-    await wfio.connect(accounts[1]).regoracle(accounts[12].address);
-    await wfio.connect(accounts[2]).regoracle(accounts[12].address);
-    await wfio.connect(accounts[3]).regoracle(accounts[12].address);
-    await wfio.connect(accounts[4]).regoracle(accounts[12].address);
-    await wfio.connect(accounts[5]).regoracle(accounts[12].address);
-    await wfio.connect(accounts[6]).regoracle(accounts[12].address);
-    await wfio.connect(accounts[7]).regoracle(accounts[12].address);
+    // await wfio.connect(accounts[6]).regoracle(accounts[12].address);
+    // await wfio.connect(accounts[5]).regoracle(accounts[12].address);
+    // await wfio.connect(accounts[2]).regoracle(accounts[12].address);
+    // await wfio.connect(accounts[3]).regoracle(accounts[12].address);
+    // await wfio.connect(accounts[4]).regoracle(accounts[12].address);
+    // await wfio.connect(accounts[1]).regoracle(accounts[12].address);
+    // await wfio.connect(accounts[7]).regoracle(accounts[12].address);
   });
 
-  it(`register oracle`, async function () {
+
+  /**
+   * c1 > o1
+   * c1 > o2
+   * c1 > o3
+   * c3 > o1
+   * c3 > o2
+   * c3 > o3
+   * c4 > o1
+   * c5 > o1
+   * c6 > o1
+   * c7 > o1
+   * c8 > o1
+   * c4 > o2
+   * c5 > o2
+   * c6 > o2
+   * c7 > o2
+   * c8 > o2
+   * c4 > o3
+   * c5 > o3
+   * c6 > o3
+   * c7 > o3
+   * c8 > o3
+   */
+
+  it(`custodian 1 registers three new oracles`, async function () {
+    await wfio.connect(accounts[1]).regoracle(accounts[12].address);
+    await wfio.connect(accounts[1]).regoracle(accounts[13].address);
+    await wfio.connect(accounts[1]).regoracle(accounts[14].address);
+  });
+  it(`custodian 3 registers three new oracles`, async function () {
+    await wfio.connect(accounts[3]).regoracle(accounts[12].address);
+    await wfio.connect(accounts[3]).regoracle(accounts[13].address);
+    await wfio.connect(accounts[3]).regoracle(accounts[14].address);
+  });
+
+  it(`custodian 4 registers new oracle 1`, async function () {
+    await wfio.connect(accounts[4]).regoracle(accounts[12].address);
+  });
+  it(`custodian 5 registers new oracle 1`, async function () {
+    await wfio.connect(accounts[5]).regoracle(accounts[12].address);
+  });
+  it(`custodian 6 registers new oracle 1`, async function () {
+    await wfio.connect(accounts[6]).regoracle(accounts[12].address);
+  });
+  it(`custodian 7 registers new oracle 1`, async function () {
+    await wfio.connect(accounts[7]).regoracle(accounts[12].address);
+  });
+  it(`custodian 8 registers new oracle 1`, async function () {
+    await wfio.connect(accounts[8]).regoracle(accounts[12].address);
+  });
+
+  it(`custodian 4 registers new oracle 2`, async function () {
+    await wfio.connect(accounts[4]).regoracle(accounts[13].address);
+  });
+  it(`custodian 5 registers new oracle 2`, async function () {
+    await wfio.connect(accounts[5]).regoracle(accounts[13].address);
+  });
+  it(`custodian 6 registers new oracle 2`, async function () {
+    await wfio.connect(accounts[6]).regoracle(accounts[13].address);
+  });
+  it(`custodian 7 registers new oracle 2`, async function () {
+    await wfio.connect(accounts[7]).regoracle(accounts[13].address);
+  });
+  it(`custodian 8 registers new oracle 2`, async function () {
+    await wfio.connect(accounts[8]).regoracle(accounts[13].address);
+  });
+
+  it(`custodian 4 registers new oracle 3`, async function () {
+    await wfio.connect(accounts[4]).regoracle(accounts[14].address);
+  });
+  it(`custodian 5 registers new oracle 3`, async function () {
+    await wfio.connect(accounts[5]).regoracle(accounts[14].address);
+  });
+  it(`custodian 6 registers new oracle 3`, async function () {
+    await wfio.connect(accounts[6]).regoracle(accounts[14].address);
+  });
+  it(`custodian 7 registers new oracle 3`, async function () {
+    await wfio.connect(accounts[7]).regoracle(accounts[14].address);
+  });
+  it(`custodian 8 registers new oracle 3`, async function () {
+    await wfio.connect(accounts[8]).regoracle(accounts[14].address);
+  });
+
+  it(`(Bug - only accounds[12] was added as an oracle) call getOracles and expect to see all 3 new oracles`, async function () {
+    const result = await wfio.getOracles();
+    expect(result).to.be.a('array');
+    expect(result.length).to.equal(3);
+    expect(result).to.contain(accounts[12].address);
+    expect(result).to.contain(accounts[13].address);
+    expect(result).to.contain(accounts[14].address);
+  });
+
+  it.skip(`register oracle`, async function () {
     await wfio.connect(accounts[1]).regoracle(accounts[13].address);
     await wfio.connect(accounts[2]).regoracle(accounts[13].address);
     await wfio.connect(accounts[3]).regoracle(accounts[13].address);
@@ -413,7 +506,72 @@ describe(`F. [ETH] Oracles (register)`, function () {
     expect(result[1]).to.be.a('object').with.property('_isBigNumber');
   });
 
+  it.skip(`call getOracles and expect to see all 3 new oracles`, async function () {
+    const result = await wfio.getOracles();
+    expect(result).to.be.a('array');
+    expect(result.length).to.equal(3);
+    expect(result).to.contain(accounts[12].address);
+    expect(result).to.contain(accounts[13].address);
+    expect(result).to.contain(accounts[14].address);
+  });
+
+  it(`(Bug - accounts[14] should already be registered, but this test only throws the 'already registered' error after accounts[4] calls regoracle) register another oracle`, async function () {
+    await wfio.connect(accounts[1]).regoracle(accounts[14].address);
+    await wfio.connect(accounts[3]).regoracle(accounts[14].address);
+    await wfio.connect(accounts[4]).regoracle(accounts[14].address);
+    await wfio.connect(accounts[5]).regoracle(accounts[14].address);
+    await wfio.connect(accounts[6]).regoracle(accounts[14].address);
+    await wfio.connect(accounts[7]).regoracle(accounts[14].address);
+    await wfio.connect(accounts[8]).regoracle(accounts[14].address);
+    let result = await wfio.getOracle(accounts[14].address);
+    expect(result).to.be.a('array');
+    expect(result[0]).to.be.a('boolean').and.equal(true);
+    expect(result[1]).to.be.a('object').with.property('_hex');
+    expect(result[1]).to.be.a('object').with.property('_isBigNumber');
+  });
+
+  it(`(Bug - expect to have seen all 3 oracles in the first place, but only after accounts[1] and accounts[3] call regoracle on accounts[14] above is there a second oracle record) call getOracles and expect to see all 3 new oracles`, async function () {
+    const result = await wfio.getOracles();
+    expect(result).to.be.a('array');
+    expect(result.length).to.equal(3);
+    expect(result).to.contain(accounts[12].address);
+    expect(result).to.contain(accounts[13].address);
+    expect(result).to.contain(accounts[14].address);
+  });
+
   // unhappy paths
+  it(`register accounts[12] as an oracle a second time, expect Error`, async function () {
+    try {
+      await wfio.connect(accounts[2]).regoracle(accounts[12].address);
+      await wfio.connect(accounts[1]).regoracle(accounts[12].address);
+      await wfio.connect(accounts[3]).regoracle(accounts[12].address);
+      await wfio.connect(accounts[4]).regoracle(accounts[12].address);
+      await wfio.connect(accounts[5]).regoracle(accounts[12].address);
+      await wfio.connect(accounts[6]).regoracle(accounts[12].address);
+      await wfio.connect(accounts[7]).regoracle(accounts[12].address);
+      let result = await wfio.getOracle(accounts[12].address);
+      expect(result).to.be.a('array');
+    } catch (err) {
+      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Oracle is already registered\'');
+    }
+  });
+
+  it(`register accounts[13] as an oracle a second time, expect Error`, async function () {
+    try {
+      await wfio.connect(accounts[2]).regoracle(accounts[13].address);
+      await wfio.connect(accounts[1]).regoracle(accounts[13].address);
+      await wfio.connect(accounts[3]).regoracle(accounts[13].address);
+      await wfio.connect(accounts[4]).regoracle(accounts[13].address);
+      await wfio.connect(accounts[5]).regoracle(accounts[13].address);
+      await wfio.connect(accounts[6]).regoracle(accounts[13].address);
+      await wfio.connect(accounts[7]).regoracle(accounts[13].address);
+      let result = await wfio.getOracle(accounts[13].address);
+      expect(result).to.be.a('array');
+    } catch (err) {
+      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Oracle is already registered\'');
+    }
+  });
+
   it(`register oracle with an invalid eth address, expect Error 400`, async function () {
     try {
       let result = await wfio.regoracle('0x0');

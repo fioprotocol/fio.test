@@ -384,14 +384,109 @@ describe(`F. [MATIC] Oracles (register)`, function () {
     fioNft = await factory.deploy(custodians);
     await fioNft.deployTransaction.wait();
     // register an oracle for testing
+    // await fioNft.connect(accounts[1]).regoracle(accounts[12].address);
+    // await fioNft.connect(accounts[2]).regoracle(accounts[12].address);
+    // await fioNft.connect(accounts[3]).regoracle(accounts[12].address);
+    // await fioNft.connect(accounts[4]).regoracle(accounts[12].address);
+    // await fioNft.connect(accounts[5]).regoracle(accounts[12].address);
+    // await fioNft.connect(accounts[6]).regoracle(accounts[12].address);
+    // await fioNft.connect(accounts[7]).regoracle(accounts[12].address);
+  });
+
+  /**
+   * c1 > o1
+   * c1 > o2
+   * c1 > o3
+   * c3 > o1
+   * c3 > o2
+   * c3 > o3
+   * c4 > o1
+   * c5 > o1
+   * c6 > o1
+   * c7 > o1
+   * c8 > o1
+   * c4 > o2
+   * c5 > o2
+   * c6 > o2
+   * c7 > o2
+   * c8 > o2
+   * c4 > o3
+   * c5 > o3
+   * c6 > o3
+   * c7 > o3
+   * c8 > o3
+   */
+
+  it(`custodian 1 registers three new oracles`, async function () {
     await fioNft.connect(accounts[1]).regoracle(accounts[12].address);
-    await fioNft.connect(accounts[2]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[1]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[1]).regoracle(accounts[14].address);
+  });
+  it(`custodian 3 registers three new oracles`, async function () {
     await fioNft.connect(accounts[3]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[3]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[3]).regoracle(accounts[14].address);
+  });
+
+  it(`custodian 4 registers new oracle 1`, async function () {
     await fioNft.connect(accounts[4]).regoracle(accounts[12].address);
+  });
+  it(`custodian 5 registers new oracle 1`, async function () {
     await fioNft.connect(accounts[5]).regoracle(accounts[12].address);
+  });
+  it(`custodian 6 registers new oracle 1`, async function () {
     await fioNft.connect(accounts[6]).regoracle(accounts[12].address);
+  });
+  it(`custodian 7 registers new oracle 1`, async function () {
     await fioNft.connect(accounts[7]).regoracle(accounts[12].address);
   });
+  it(`custodian 8 registers new oracle 1`, async function () {
+    await fioNft.connect(accounts[8]).regoracle(accounts[12].address);
+  });
+
+  it(`custodian 4 registers new oracle 2`, async function () {
+    await fioNft.connect(accounts[4]).regoracle(accounts[13].address);
+  });
+  it(`custodian 5 registers new oracle 2`, async function () {
+    await fioNft.connect(accounts[5]).regoracle(accounts[13].address);
+  });
+  it(`custodian 6 registers new oracle 2`, async function () {
+    await fioNft.connect(accounts[6]).regoracle(accounts[13].address);
+  });
+  it(`custodian 7 registers new oracle 2`, async function () {
+    await fioNft.connect(accounts[7]).regoracle(accounts[13].address);
+  });
+  it(`custodian 8 registers new oracle 2`, async function () {
+    await fioNft.connect(accounts[8]).regoracle(accounts[13].address);
+  });
+
+  it(`custodian 4 registers new oracle 3`, async function () {
+    await fioNft.connect(accounts[4]).regoracle(accounts[14].address);
+  });
+  it(`custodian 5 registers new oracle 3`, async function () {
+    await fioNft.connect(accounts[5]).regoracle(accounts[14].address);
+  });
+  it(`custodian 6 registers new oracle 3`, async function () {
+    await fioNft.connect(accounts[6]).regoracle(accounts[14].address);
+  });
+  it(`custodian 7 registers new oracle 3`, async function () {
+    await fioNft.connect(accounts[7]).regoracle(accounts[14].address);
+  });
+  it(`custodian 8 registers new oracle 3`, async function () {
+    await fioNft.connect(accounts[8]).regoracle(accounts[14].address);
+  });
+
+  it(`call getOracles and expect to see all 3 new oracles`, async function () {
+    const result = await fioNft.getOracles();
+    expect(result).to.be.a('array');
+    expect(result.length).to.equal(3);
+    expect(result).to.contain(accounts[12].address);
+    expect(result).to.contain(accounts[13].address);
+    expect(result).to.contain(accounts[14].address);
+  });
+
+
+
 
   it(`register oracle`, async function () {
     await fioNft.connect(accounts[1]).regoracle(accounts[13].address);
@@ -409,6 +504,21 @@ describe(`F. [MATIC] Oracles (register)`, function () {
   });
 
   // unhappy paths
+  it(`reregister the same oracle a second time, expect Error`, async function () {
+    try {
+      await fioNft.connect(accounts[1]).regoracle(accounts[13].address);
+      await fioNft.connect(accounts[2]).regoracle(accounts[13].address);
+      await fioNft.connect(accounts[3]).regoracle(accounts[13].address);
+      await fioNft.connect(accounts[4]).regoracle(accounts[13].address);
+      await fioNft.connect(accounts[5]).regoracle(accounts[13].address);
+      await fioNft.connect(accounts[6]).regoracle(accounts[13].address);
+      await fioNft.connect(accounts[7]).regoracle(accounts[13].address);
+      let result = await fioNft.getOracle(accounts[13].address);
+    } catch (err) {
+      throw err;
+    }
+  });
+
   it(`register oracle with an invalid eth address, expect Error 400`, async function () {
     try {
       let result = await fioNft.regoracle('0x0');
