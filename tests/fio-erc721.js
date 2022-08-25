@@ -6,8 +6,17 @@ const {expect} = require("chai");
 const {FIOSDK} = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
 const {newUser, fetchJson, timeout, callFioApiSigned} = require("../utils");
-const {setupFIONFTcontract, registerFioNftOracles, registerNewBp, registerNewOracle, setTestOracleFees} = require("./Helpers/wrapping");
 let faucet;
+
+/**
+ * INSTRUCTIONS TO SET UP THESE TESTS
+ *
+ * 1) In fio.oracle.cpp, comment out the SYSTEMACCOUNT authentication in the regoracle and unregoracle methods
+ *
+ * e.g.
+ * // require_auth(SYSTEMACCOUNT);
+ *
+ */
 
 before(async function () {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
@@ -213,6 +222,22 @@ describe(`D. [MATIC] Custodians (unregister)`, function () {
   });
 
   it(`unregister a custodian`, async function () {
+    await fioNft.connect(accounts[1]).unregcust(accounts[10].address);
+    await fioNft.connect(accounts[2]).unregcust(accounts[10].address);
+    await fioNft.connect(accounts[3]).unregcust(accounts[10].address);
+    await fioNft.connect(accounts[4]).unregcust(accounts[10].address);
+    await fioNft.connect(accounts[5]).unregcust(accounts[10].address);
+    await fioNft.connect(accounts[6]).unregcust(accounts[10].address);
+    await fioNft.connect(accounts[7]).unregcust(accounts[10].address);
+    let result = await fioNft.getCustodian(accounts[10].address);
+    expect(result[0]).to.be.a('boolean').and.equal(false);
+  });
+
+  // unhappy paths
+  it(`(BD-4016) try to unregister 3 more custodians, expect minimum custodians required; Error`, async function () {
+    let result = await fioNft.getCustodian(accounts[9].address);
+    expect(result[0]).to.be.a('boolean').and.equal(true);
+
     await fioNft.connect(accounts[1]).unregcust(accounts[9].address);
     await fioNft.connect(accounts[2]).unregcust(accounts[9].address);
     await fioNft.connect(accounts[3]).unregcust(accounts[9].address);
@@ -220,11 +245,43 @@ describe(`D. [MATIC] Custodians (unregister)`, function () {
     await fioNft.connect(accounts[5]).unregcust(accounts[9].address);
     await fioNft.connect(accounts[6]).unregcust(accounts[9].address);
     await fioNft.connect(accounts[7]).unregcust(accounts[9].address);
-    let result = await fioNft.getCustodian(accounts[9].address);
+
+    result = await fioNft.getCustodian(accounts[9].address);
     expect(result[0]).to.be.a('boolean').and.equal(false);
+
+    result = await fioNft.getCustodian(accounts[8].address);
+    expect(result[0]).to.be.a('boolean').and.equal(true);
+
+    await fioNft.connect(accounts[1]).unregcust(accounts[8].address);
+    await fioNft.connect(accounts[2]).unregcust(accounts[8].address);
+    await fioNft.connect(accounts[3]).unregcust(accounts[8].address);
+    await fioNft.connect(accounts[4]).unregcust(accounts[8].address);
+    await fioNft.connect(accounts[5]).unregcust(accounts[8].address);
+    await fioNft.connect(accounts[6]).unregcust(accounts[8].address);
+
+    result = await fioNft.getCustodian(accounts[8].address);
+    expect(result[0]).to.be.a('boolean').and.equal(false);
+
+    result = await fioNft.getCustodian(accounts[7].address);
+    expect(result[0]).to.be.a('boolean').and.equal(true);
+
+    // error condition
+    try {
+      await fioNft.connect(accounts[1]).unregcust(accounts[7].address);
+      await fioNft.connect(accounts[2]).unregcust(accounts[7].address);
+      await fioNft.connect(accounts[3]).unregcust(accounts[7].address);
+      await fioNft.connect(accounts[4]).unregcust(accounts[7].address);
+      await fioNft.connect(accounts[5]).unregcust(accounts[7].address);
+      await fioNft.connect(accounts[6]).unregcust(accounts[7].address);
+      await fioNft.connect(accounts[7]).unregcust(accounts[7].address);
+
+      result = await fioNft.getCustodian(accounts[7].address);
+      expect(result[0]).to.be.a('boolean').and.equal(false);
+    } catch (err) {
+      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Must contain 7 custodians\'');
+    }
   });
 
-  // unhappy paths
   it(`unregister a missing ETH address, expect error`, async function () {
     try {
       let result = await fioNft.unregcust()
@@ -265,7 +322,183 @@ describe(`D. [MATIC] Custodians (unregister)`, function () {
   });
 });
 
-describe(`E. [MATIC] Oracles (get)`, function () {
+describe(`E. [MATIC] (BD-4016) Register and unregister an oracle with different numbers of custodians`, function () {
+
+  let accounts;
+  let custodians;
+  let owner;
+  let factory;
+  let fioNft;
+
+  before(async function () {
+    [owner, ...accounts] = await ethers.getSigners();
+    custodians = [];
+    for (let i = 1; i < 11; i++) {
+      custodians.push(accounts[i].address);
+    }
+    factory = await ethers.getContractFactory('FIONFT', owner);
+    fioNft = await factory.deploy(custodians);
+    await fioNft.deployTransaction.wait();
+  });
+
+  it(`unregister 3 of 10 custodians`, async function () {
+    let result = await fioNft.getCustodian(accounts[10].address);
+    expect(result[0]).to.be.a('boolean').and.equal(true);
+
+    await fioNft.connect(accounts[1]).unregcust(accounts[10].address);
+    await fioNft.connect(accounts[2]).unregcust(accounts[10].address);
+    await fioNft.connect(accounts[3]).unregcust(accounts[10].address);
+    await fioNft.connect(accounts[4]).unregcust(accounts[10].address);
+    await fioNft.connect(accounts[5]).unregcust(accounts[10].address);
+    await fioNft.connect(accounts[6]).unregcust(accounts[10].address);
+    await fioNft.connect(accounts[7]).unregcust(accounts[10].address);
+
+    result = await fioNft.getCustodian(accounts[10].address);
+    expect(result[0]).to.be.a('boolean').and.equal(false);
+
+    result = await fioNft.getCustodian(accounts[9].address);
+    expect(result[0]).to.be.a('boolean').and.equal(true);
+
+    await fioNft.connect(accounts[1]).unregcust(accounts[9].address);
+    await fioNft.connect(accounts[2]).unregcust(accounts[9].address);
+    await fioNft.connect(accounts[3]).unregcust(accounts[9].address);
+    await fioNft.connect(accounts[4]).unregcust(accounts[9].address);
+    await fioNft.connect(accounts[5]).unregcust(accounts[9].address);
+    await fioNft.connect(accounts[6]).unregcust(accounts[9].address);
+    await fioNft.connect(accounts[7]).unregcust(accounts[9].address);
+
+    result = await fioNft.getCustodian(accounts[9].address);
+    expect(result[0]).to.be.a('boolean').and.equal(false);
+
+    result = await fioNft.getCustodian(accounts[8].address);
+    expect(result[0]).to.be.a('boolean').and.equal(true);
+
+    await fioNft.connect(accounts[1]).unregcust(accounts[8].address);
+    await fioNft.connect(accounts[2]).unregcust(accounts[8].address);
+    await fioNft.connect(accounts[3]).unregcust(accounts[8].address);
+    await fioNft.connect(accounts[4]).unregcust(accounts[8].address);
+    await fioNft.connect(accounts[5]).unregcust(accounts[8].address);
+    await fioNft.connect(accounts[6]).unregcust(accounts[8].address);
+
+    result = await fioNft.getCustodian(accounts[8].address);
+    expect(result[0]).to.be.a('boolean').and.equal(false);
+  });
+
+  it(`verify only 7 of the original custodians remain`, async function () {
+    let count = 0;
+    let result;
+    for (let c=1; c<accounts.length; c++) {
+      // console.log(`[DBG] Custodian ${c}: ${accounts[c].address}`);
+      result = await fioNft.getCustodian(accounts[c].address);
+      if (result[0] === true) {
+        count++;
+      }
+    }
+    expect(count).to.equal(7);
+  });
+
+  it(`call getOracles, expect an empty list`, async function () {
+    let result = await fioNft.getOracles();
+    expect(result).to.be.a('array');
+    expect(result).to.be.empty;
+    // expect(result).to.contain(accounts[12].address);
+    // expect(result).to.contain(accounts[13].address);
+    // expect(result).to.contain(accounts[14].address);
+  });
+
+  it(`register a new oracle with three fewer custodians`, async function () {
+    await fioNft.connect(accounts[1]).regoracle(accounts[11].address);
+    await fioNft.connect(accounts[2]).regoracle(accounts[11].address);
+    await fioNft.connect(accounts[3]).regoracle(accounts[11].address);
+    await fioNft.connect(accounts[4]).regoracle(accounts[11].address);
+    await fioNft.connect(accounts[5]).regoracle(accounts[11].address);
+    // await fioNft.connect(accounts[6]).regoracle(accounts[11].address);
+    // await fioNft.connect(accounts[7]).regoracle(accounts[11].address);
+    let result = await fioNft.getOracle(accounts[11].address);
+    expect(result).to.be.a('array');
+    expect(result[0]).to.be.a('boolean').and.equal(true);
+    expect(result[1]).to.be.a('object').with.property('_hex');
+    expect(result[1]).to.be.a('object').with.property('_isBigNumber');
+  });
+
+  it(`call getOracles, expect a single oracle in the list`, async function () {
+    let result = await fioNft.getOracles();
+    expect(result).to.be.a('array');
+    expect(result.length).to.equal(1);
+    expect(result).to.contain(accounts[11].address);
+  });
+
+  it(`register three new custodians`, async function () {
+    let result;
+
+    result = await fioNft.getCustodian(accounts[18].address);
+    expect(result[0]).to.be.a('boolean').and.equal(false);
+
+    await fioNft.connect(accounts[1]).regcust(accounts[18].address);
+    await fioNft.connect(accounts[2]).regcust(accounts[18].address);
+    await fioNft.connect(accounts[3]).regcust(accounts[18].address);
+    await fioNft.connect(accounts[4]).regcust(accounts[18].address);
+    await fioNft.connect(accounts[5]).regcust(accounts[18].address);
+    // await fioNft.connect(accounts[6]).regcust(accounts[18].address);
+    // await fioNft.connect(accounts[7]).regcust(accounts[18].address);
+    result = await fioNft.getCustodian(accounts[18].address);
+    expect(result[0]).to.be.a('boolean').and.equal(true);
+
+    result = await fioNft.getCustodian(accounts[19].address);
+    expect(result[0]).to.be.a('boolean').and.equal(false);
+
+    await fioNft.connect(accounts[1]).regcust(accounts[19].address);
+    await fioNft.connect(accounts[2]).regcust(accounts[19].address);
+    await fioNft.connect(accounts[3]).regcust(accounts[19].address);
+    await fioNft.connect(accounts[4]).regcust(accounts[19].address);
+    await fioNft.connect(accounts[5]).regcust(accounts[19].address);
+    await fioNft.connect(accounts[6]).regcust(accounts[19].address);
+    // await fioNft.connect(accounts[7]).regcust(accounts[19].address);
+    result = await fioNft.getCustodian(accounts[19].address);
+    expect(result[0]).to.be.a('boolean').and.equal(true);
+
+    result = await fioNft.getCustodian(accounts[20].address);
+    expect(result[0]).to.be.a('boolean').and.equal(false);
+
+    await fioNft.connect(accounts[1]).regcust(accounts[20].address);
+    await fioNft.connect(accounts[2]).regcust(accounts[20].address);
+    await fioNft.connect(accounts[3]).regcust(accounts[20].address);
+    await fioNft.connect(accounts[4]).regcust(accounts[20].address);
+    await fioNft.connect(accounts[5]).regcust(accounts[20].address);
+    await fioNft.connect(accounts[6]).regcust(accounts[20].address);
+    await fioNft.connect(accounts[7]).regcust(accounts[20].address);
+    result = await fioNft.getCustodian(accounts[20].address);
+    expect(result[0]).to.be.a('boolean').and.equal(true);
+  });
+
+  it(`verify the 3 new custodians`, async function () {
+    let count = 0;
+    let result;
+    for (let c = 1; c < accounts.length; c++) {
+      // console.log(`[DBG] Custodian ${c}: ${accounts[c].address}`);
+      result = await fioNft.getCustodian(accounts[c].address);
+      if (result[0] === true) {
+        count++;
+      }
+    }
+    expect(count).to.equal(10);
+  });
+
+  it(`Unregister oracle`, async function () {
+    await fioNft.connect(accounts[1]).unregoracle(accounts[11].address);
+    await fioNft.connect(accounts[2]).unregoracle(accounts[11].address);
+    await fioNft.connect(accounts[3]).unregoracle(accounts[11].address);
+    await fioNft.connect(accounts[4]).unregoracle(accounts[11].address);
+    await fioNft.connect(accounts[5]).unregoracle(accounts[11].address);
+    await fioNft.connect(accounts[6]).unregoracle(accounts[11].address);
+    await fioNft.connect(accounts[7]).unregoracle(accounts[11].address);
+    let result = await fioNft.getOracle(accounts[11].address);
+    expect(result).to.be.a('array');
+    expect(result[0]).to.be.a('boolean').and.equal(false);
+  });
+});
+
+describe(`F. [MATIC] Oracles (get)`, function () {
 
   let accounts;
   let custodians;
@@ -366,7 +599,7 @@ describe(`E. [MATIC] Oracles (get)`, function () {
 
 });
 
-describe(`F. [MATIC] Oracles (register)`, function () {
+describe(`G. [MATIC] Oracles (register)`, function () {
 
   let accounts;
   let custodians;
@@ -476,7 +709,8 @@ describe(`F. [MATIC] Oracles (register)`, function () {
     await fioNft.connect(accounts[8]).regoracle(accounts[14].address);
   });
 
-  it(`call getOracles and expect to see all 3 new oracles`, async function () {
+
+  it(`(Bug - only accounds[12] was added as an oracle) call getOracles and expect to see all 3 new oracles`, async function () {
     const result = await fioNft.getOracles();
     expect(result).to.be.a('array');
     expect(result.length).to.equal(3);
@@ -485,37 +719,59 @@ describe(`F. [MATIC] Oracles (register)`, function () {
     expect(result).to.contain(accounts[14].address);
   });
 
-
-
-
-  it(`register oracle`, async function () {
-    await fioNft.connect(accounts[1]).regoracle(accounts[13].address);
-    await fioNft.connect(accounts[2]).regoracle(accounts[13].address);
-    await fioNft.connect(accounts[3]).regoracle(accounts[13].address);
-    await fioNft.connect(accounts[4]).regoracle(accounts[13].address);
-    await fioNft.connect(accounts[5]).regoracle(accounts[13].address);
-    await fioNft.connect(accounts[6]).regoracle(accounts[13].address);
-    await fioNft.connect(accounts[7]).regoracle(accounts[13].address);
-    let result = await fioNft.getOracle(accounts[13].address);
+  it(`(Bug - accounts[14] should already be registered, but this test only throws the 'already registered' error after accounts[4] calls regoracle) register another oracle`, async function () {
+    await fioNft.connect(accounts[1]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[3]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[4]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[5]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[6]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[7]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[8]).regoracle(accounts[14].address);
+    let result = await fioNft.getOracle(accounts[14].address);
     expect(result).to.be.a('array');
     expect(result[0]).to.be.a('boolean').and.equal(true);
     expect(result[1]).to.be.a('object').with.property('_hex');
     expect(result[1]).to.be.a('object').with.property('_isBigNumber');
   });
 
+  it(`(Bug - expect to have seen all 3 oracles in the first place, but only after accounts[1] and accounts[3] call regoracle on accounts[14] above is there a second oracle record) call getOracles and expect to see all 3 new oracles`, async function () {
+    const result = await fioNft.getOracles();
+    expect(result).to.be.a('array');
+    expect(result.length).to.equal(3);
+    expect(result).to.contain(accounts[12].address);
+    expect(result).to.contain(accounts[13].address);
+    expect(result).to.contain(accounts[14].address);
+  });
+
   // unhappy paths
-  it(`reregister the same oracle a second time, expect Error`, async function () {
+  it(`register accounts[12] as an oracle a second time, expect Error`, async function () {
     try {
-      await fioNft.connect(accounts[1]).regoracle(accounts[13].address);
+      await fioNft.connect(accounts[2]).regoracle(accounts[12].address);
+      await fioNft.connect(accounts[1]).regoracle(accounts[12].address);
+      await fioNft.connect(accounts[3]).regoracle(accounts[12].address);
+      await fioNft.connect(accounts[4]).regoracle(accounts[12].address);
+      await fioNft.connect(accounts[5]).regoracle(accounts[12].address);
+      await fioNft.connect(accounts[6]).regoracle(accounts[12].address);
+      await fioNft.connect(accounts[7]).regoracle(accounts[12].address);
+      // let result = await fioNft.getOracle(accounts[12].address);
+      // expect(result).to.be.a('array');
+    } catch (err) {
+      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Oracle already registered\'');
+    }
+  });
+
+  it(`(Bug - account should already be an oracle) register accounts[13] as an oracle a second time, expect Error`, async function () {
+    try {
       await fioNft.connect(accounts[2]).regoracle(accounts[13].address);
+      await fioNft.connect(accounts[1]).regoracle(accounts[13].address);
       await fioNft.connect(accounts[3]).regoracle(accounts[13].address);
       await fioNft.connect(accounts[4]).regoracle(accounts[13].address);
       await fioNft.connect(accounts[5]).regoracle(accounts[13].address);
       await fioNft.connect(accounts[6]).regoracle(accounts[13].address);
       await fioNft.connect(accounts[7]).regoracle(accounts[13].address);
-      let result = await fioNft.getOracle(accounts[13].address);
+      throw new Error('accounts[13] should already be an oracle - regoracle should have failed on the first call')
     } catch (err) {
-      throw err;
+      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Oracle already registered\'');
     }
   });
 
@@ -559,7 +815,194 @@ describe(`F. [MATIC] Oracles (register)`, function () {
   });
 });
 
-describe(`G. [MATIC] Oracles (unregister)`, function () {
+describe(`H. [MATIC] (BD-4016) Register a new oracle with more custodians designated`, function () {
+
+  let accounts;
+  let custodians;
+  let owner;
+  let factory;
+  let fioNft;
+
+  before(async function () {
+    [owner, ...accounts] = await ethers.getSigners();
+    custodians = [];
+    for (let i = 1; i < 11; i++) {
+      custodians.push(accounts[i].address);
+    }
+    factory = await ethers.getContractFactory('FIONFT', owner);
+    fioNft = await factory.deploy(custodians);
+    await fioNft.deployTransaction.wait();
+  });
+
+  it(`register 10 new custodians`, async function () {
+    let totalCustCount = custodians.length;
+    let newCust;
+    expect(totalCustCount).to.equal(10);
+
+    // time to get it working one loop at a time, i guess, then refactor.....
+    // first iteration of ten
+    for (let a = 0; a < custodians.length; a++) {
+      try {
+        await fioNft.connect(accounts[a + 1]).regcust(accounts[11].address);
+      } catch (err) {
+        expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Already registered\'');
+        console.log(`registered 1 new custodian with ${a} votes from ${custodians.length} custodians.`);
+        break;
+      }
+    }
+    newCust = await fioNft.getCustodian(accounts[11].address);
+    expect(newCust[0]).to.be.a('boolean').and.equal(true);
+    custodians.push(accounts[11].address);
+
+    for (let a = 0; a < custodians.length; a++) {
+      try {
+        await fioNft.connect(accounts[a + 1]).regcust(accounts[12].address);
+      } catch (err) {
+        expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Already registered\'');
+        console.log(`registered 1 new custodian with ${a} votes from ${custodians.length} custodians.`);
+        break;
+      }
+    }
+    newCust = await fioNft.getCustodian(accounts[12].address);
+    expect(newCust[0]).to.be.a('boolean').and.equal(true);
+    custodians.push(accounts[12].address);
+
+    for (let a = 0; a < custodians.length; a++) {
+      try {
+        await fioNft.connect(accounts[a + 1]).regcust(accounts[13].address);
+      } catch (err) {
+        expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Already registered\'');
+        console.log(`registered 1 new custodian with ${a} votes from ${custodians.length} custodians.`);
+        break;
+      }
+    }
+    newCust = await fioNft.getCustodian(accounts[13].address);
+    expect(newCust[0]).to.be.a('boolean').and.equal(true);
+    custodians.push(accounts[13].address);
+
+    for (let a = 0; a < custodians.length; a++) {
+      try {
+        await fioNft.connect(accounts[a + 1]).regcust(accounts[14].address);
+      } catch (err) {
+        expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Already registered\'');
+        console.log(`registered 1 new custodian with ${a} votes from ${custodians.length} custodians.`);
+        break;
+      }
+    }
+    newCust = await fioNft.getCustodian(accounts[14].address);
+    expect(newCust[0]).to.be.a('boolean').and.equal(true);
+    custodians.push(accounts[14].address);
+
+    for (let a = 0; a < custodians.length; a++) {
+      try {
+        await fioNft.connect(accounts[a + 1]).regcust(accounts[15].address);
+      } catch (err) {
+        expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Already registered\'');
+        console.log(`registered 1 new custodian with ${a} votes from ${custodians.length} custodians.`);
+        break;
+      }
+    }
+    newCust = await fioNft.getCustodian(accounts[15].address);
+    expect(newCust[0]).to.be.a('boolean').and.equal(true);
+    custodians.push(accounts[15].address);
+
+    for (let a = 0; a < custodians.length; a++) {
+      try {
+        await fioNft.connect(accounts[a + 1]).regcust(accounts[16].address);
+      } catch (err) {
+        expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Already registered\'');
+        console.log(`registered 1 new custodian with ${a} votes from ${custodians.length} custodians.`);
+        break;
+      }
+    }
+    newCust = await fioNft.getCustodian(accounts[16].address);
+    expect(newCust[0]).to.be.a('boolean').and.equal(true);
+    custodians.push(accounts[16].address);
+
+    for (let a = 0; a < custodians.length; a++) {
+      try {
+        await fioNft.connect(accounts[a + 1]).regcust(accounts[17].address);
+      } catch (err) {
+        expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Already registered\'');
+        console.log(`registered 1 new custodian with ${a} votes from ${custodians.length} custodians.`);
+        break;
+      }
+    }
+    newCust = await fioNft.getCustodian(accounts[17].address);
+    expect(newCust[0]).to.be.a('boolean').and.equal(true);
+    custodians.push(accounts[17].address);
+
+    for (let a = 0; a < custodians.length; a++) {
+      try {
+        await fioNft.connect(accounts[a + 1]).regcust(accounts[18].address);
+      } catch (err) {
+        expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Already registered\'');
+        console.log(`registered 1 new custodian with ${a} votes from ${custodians.length} custodians.`);
+        break;
+      }
+    }
+    newCust = await fioNft.getCustodian(accounts[18].address);
+    expect(newCust[0]).to.be.a('boolean').and.equal(true);
+    custodians.push(accounts[18].address);
+
+    for (let a = 0; a < custodians.length; a++) {
+      try {
+        await fioNft.connect(accounts[a + 1]).regcust(accounts[19].address);
+      } catch (err) {
+        expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Already registered\'');
+        console.log(`registered 1 new custodian with ${a} votes from ${custodians.length} custodians.`);
+        break;
+      }
+    }
+    newCust = await fioNft.getCustodian(accounts[19].address);
+    expect(newCust[0]).to.be.a('boolean').and.equal(true);
+    custodians.push(accounts[19].address);
+
+    for (let a = 0; a < custodians.length; a++) {
+      try {
+        await fioNft.connect(accounts[a + 1]).regcust(accounts[20].address);
+      } catch (err) {
+        expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Already registered\'');
+        console.log(`registered 1 new custodian with ${a} votes from ${custodians.length} custodians.`);
+        break;
+      }
+    }
+    newCust = await fioNft.getCustodian(accounts[20].address);
+    expect(newCust[0]).to.be.a('boolean').and.equal(true);
+    custodians.push(accounts[20].address);
+
+    totalCustCount = custodians.length
+    expect(totalCustCount).to.equal(20);
+  });
+
+  it(`call getOracles, expect an empty list`, async function () {
+    let result = await fioNft.getOracles();
+    expect(result).to.be.a('array');
+    expect(result).to.be.empty;
+  });
+
+  it(`register 1 new oracle`, async function () {
+    for (let a = 0; a < custodians.length; a++) {
+      try {
+        await fioNft.connect(accounts[a + 1]).regoracle(accounts[21].address);
+      } catch (err) {
+        expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Oracle already registered\'');
+        expect(a).to.equal(14);
+        console.log(`registered 1 new oracle with ${a} votes from ${custodians.length} custodians.`);
+        break;
+      }
+    }
+  });
+
+  it(`call getOracles, expect to see 1 new oracle`, async function () {
+    let result = await fioNft.getOracles();
+    expect(result).to.be.a('array');
+    expect(result.length).to.equal(1);
+    expect(result).to.contain(accounts[21].address);
+  });
+});
+
+describe(`I. [MATIC] Oracles (unregister)`, function () {
   let accounts;
   let custodians;
   let owner;
@@ -639,7 +1082,7 @@ describe(`G. [MATIC] Oracles (unregister)`, function () {
   });
 });
 
-describe(`H. [MATIC] FIONFT wrapping`, function () {
+describe(`J. [MATIC] FIONFT wrapping`, function () {
 
   let accounts;
   let custodians;
@@ -938,7 +1381,7 @@ describe(`H. [MATIC] FIONFT wrapping`, function () {
   });
 });
 
-describe(`I. [MATIC] wrapping mismatched accounts and domains`, function () {
+describe(`K. [MATIC] wrapping mismatched accounts and domains`, function () {
 
   let accounts;
   let custodians;
@@ -996,8 +1439,7 @@ describe(`I. [MATIC] wrapping mismatched accounts and domains`, function () {
     }
   });
 
-  it(`(BUG? this test should fail) domain does not match prior approvals`, async function () {
-    await fioNft.connect(accounts[12]).wrapnft(accounts[2].address, testDomain2, transactionId2);
+  it(`(BUG? this test should fail) domain does not match prior approvals`, async function () {    await fioNft.connect(accounts[12]).wrapnft(accounts[2].address, testDomain2, transactionId2);
     await fioNft.connect(accounts[13]).wrapnft(accounts[2].address, testDomain2, transactionId2);
     try {
       let result = await fioNft.connect(accounts[14]).wrapnft(accounts[2].address, 'some-nonmatching-test-domain', transactionId2);
@@ -1012,7 +1454,7 @@ describe(`I. [MATIC] wrapping mismatched accounts and domains`, function () {
   });
 });
 
-describe(`J. [MATIC] FIONFT unwrapping`, function () {
+describe(`L. [MATIC] FIONFT unwrapping`, function () {
 
   let user1;
   let accounts;
@@ -1132,8 +1574,7 @@ describe(`J. [MATIC] FIONFT unwrapping`, function () {
   });
 });
 
-// TODO: Approval needs updated for tokenId
-describe(`K. [MATIC] Approval`, function () {
+describe(`M. [MATIC] Approval`, function () {
 
   let user1;
   let accounts;
@@ -1241,57 +1682,130 @@ describe(`K. [MATIC] Approval`, function () {
   });
 });
 
-describe(`L. [MATIC] Pause`, function () {
+describe(`N. [MATIC] Pause`, function () {
 
   let fioAccount;
   let owner;
-  let ercAccts;
+  let accounts;
   let fioNft;
   let transactionId = '5efdf70d4338b6ae60e3241ce9fb646f55306434c3ed070601bde98a75f4418f';
 
   before(async function () {
-    fioAccount = await newUser(faucet);
+    // fioAccount = await newUser(faucet);
+    //
+    // [owner, accounts, fioNft] = await setupFIONFTcontract(ethers);
+    // await registerFioNftOracles(fioNft, accounts);
 
-    [owner, ercAccts, fioNft] = await setupFIONFTcontract(ethers);
-    await registerFioNftOracles(fioNft, ercAccts);
+    fioAccount = await newUser(faucet);
+    fioTransaction = await faucet.genericAction('transferTokens', {
+      payeeFioPublicKey: fioAccount.publicKey,
+      amount: 100000000000,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    })
+    TRANSACTIION_ID = fioTransaction.transaction_id;
+    [owner, ...accounts] = await ethers.getSigners();
+    custodians = [];
+    for (let i = 1; i < 11; i++) {
+      custodians.push(accounts[i].address);
+    }
+    factory = await ethers.getContractFactory('FIONFT', owner);
+    fioNft = await factory.deploy(custodians);
+    await fioNft.deployTransaction.wait();
+    // register 3 oracles for testing
+    await fioNft.connect(accounts[1]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[2]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[3]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[4]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[5]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[6]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[7]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[1]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[2]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[3]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[4]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[5]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[6]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[7]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[1]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[2]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[3]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[4]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[5]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[6]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[7]).regoracle(accounts[14].address);
   });
 
   it(`pause the contract`, async function () {
-    await fioNft.connect(ercAccts[1]).pause();
+    await fioNft.connect(accounts[1]).pause();
     try {
       // wrapping/unwrapping is prohibited when contract is paused
-      await fioNft.connect(ercAccts[12]).wrapnft(ercAccts[0].address, fioAccount.domain, transactionId);
+      await fioNft.connect(accounts[12]).wrapnft(accounts[0].address, fioAccount.domain, transactionId);
     } catch (err) {
       expect(err.message).to.contain('Pausable: paused');
     } finally {
-      await fioNft.connect(ercAccts[1]).unpause();
-      await fioNft.connect(ercAccts[12]).wrapnft(ercAccts[0].address, fioAccount.domain, transactionId);
+      await fioNft.connect(accounts[1]).unpause();
+      await fioNft.connect(accounts[12]).wrapnft(accounts[0].address, fioAccount.domain, transactionId);
     }
   });
 });
 
-describe(`M. [MATIC] Unpause`, function () {
+describe(`O. [MATIC] Unpause`, function () {
 
   let fioAccount;
   let owner;
-  let ercAccts;
+  let accounts;
   let fioNft;
   let transactionId = '5efdf70d4338b6ae60e3241ce9fb646f55306434c3ed070601bde98a75f4418f';
 
   before(async function () {
     fioAccount = await newUser(faucet);
+    fioTransaction = await faucet.genericAction('transferTokens', {
+      payeeFioPublicKey: fioAccount.publicKey,
+      amount: 100000000000,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    })
+    TRANSACTIION_ID = fioTransaction.transaction_id;
+    [owner, ...accounts] = await ethers.getSigners();
+    custodians = [];
+    for (let i = 1; i < 11; i++) {
+      custodians.push(accounts[i].address);
+    }
+    factory = await ethers.getContractFactory('FIONFT', owner);
+    fioNft = await factory.deploy(custodians);
+    await fioNft.deployTransaction.wait();
+    // register 3 oracles for testing
+    await fioNft.connect(accounts[1]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[2]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[3]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[4]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[5]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[6]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[7]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[1]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[2]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[3]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[4]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[5]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[6]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[7]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[1]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[2]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[3]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[4]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[5]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[6]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[7]).regoracle(accounts[14].address);
 
-    [owner, ercAccts, fioNft] = await setupFIONFTcontract(ethers);
-    await registerFioNftOracles(fioNft, ercAccts);
-
-    await fioNft.connect(ercAccts[1]).pause();
+    await fioNft.connect(accounts[1]).pause();
   });
 
   it(`unpause the fioNft contract`, async function () {
     try {
-      await fioNft.connect(ercAccts[1]).unpause();
+      await fioNft.connect(accounts[1]).unpause();
       // wrapping/unwrapping is prohibited when contract is paused
-      await fioNft.connect(ercAccts[12]).wrapnft(ercAccts[0].address, fioAccount.domain, transactionId);
+      await fioNft.connect(accounts[12]).wrapnft(accounts[0].address, fioAccount.domain, transactionId);
     } catch (err) {
       throw err;
     }
@@ -1299,7 +1813,282 @@ describe(`M. [MATIC] Unpause`, function () {
 
 });
 
-describe(`N. [MATIC] Burn an NFT`, function () {
+describe(`P. [MATIC] Prevent tokens from being sent to contract address`, function () {
+
+  let fioAccount;
+  let owner;
+  let accounts;
+  let custodians;
+  let factory;
+  let wfio;
+  let fioNft;
+  let fioTransaction;
+  let TRANSACTION_ID;
+  let fioNftReceivedBalPre, fioNftReceivedBalPost, fromSentBalPre, fromSentBalPost;
+
+  before(async function () {
+    fioAccount = await newUser(faucet);
+    [owner, ...accounts] = await ethers.getSigners();
+    custodians = [];
+    for (let i = 1; i < 11; i++) {
+      custodians.push(accounts[i].address);
+    }
+  });
+
+  it("Should deploy the fioNft token successfully", async function () {
+    factory = await ethers.getContractFactory('FIONFT', owner);
+    fioNft = await factory.deploy(custodians);
+    await fioNft.deployed();
+    expect(fioNft).to.be.a('object');
+    expect(fioNft).to.have.property('address').which.is.a('string');
+    expect(fioNft).to.have.property('functions').which.is.a('object');
+    expect(fioNft.signer.address).to.equal(owner.address);
+  });
+
+  it(`deploy a wfio for testing token wraps to the FIONFT contract`, async function () {
+    factory = await ethers.getContractFactory('WFIO', owner);
+    wfio = await factory.deploy(0, custodians);
+    await wfio.deployed();
+    expect(wfio).to.be.a('object');
+    expect(wfio).to.have.property('address').which.is.a('string');
+    expect(wfio).to.have.property('functions').which.is.a('object');
+    expect(wfio.signer.address).to.equal(owner.address);
+  });
+
+  it(`register 3 oracles on both WFIO and FIONFT contracts`, async function () {
+    // register 3 oracles for testing
+    await wfio.connect(accounts[1]).regoracle(accounts[12].address);
+    await wfio.connect(accounts[2]).regoracle(accounts[12].address);
+    await wfio.connect(accounts[3]).regoracle(accounts[12].address);
+    await wfio.connect(accounts[4]).regoracle(accounts[12].address);
+    await wfio.connect(accounts[5]).regoracle(accounts[12].address);
+    await wfio.connect(accounts[6]).regoracle(accounts[12].address);
+    await wfio.connect(accounts[7]).regoracle(accounts[12].address);
+    await wfio.connect(accounts[1]).regoracle(accounts[13].address);
+    await wfio.connect(accounts[2]).regoracle(accounts[13].address);
+    await wfio.connect(accounts[3]).regoracle(accounts[13].address);
+    await wfio.connect(accounts[4]).regoracle(accounts[13].address);
+    await wfio.connect(accounts[5]).regoracle(accounts[13].address);
+    await wfio.connect(accounts[6]).regoracle(accounts[13].address);
+    await wfio.connect(accounts[7]).regoracle(accounts[13].address);
+    await wfio.connect(accounts[1]).regoracle(accounts[14].address);
+    await wfio.connect(accounts[2]).regoracle(accounts[14].address);
+    await wfio.connect(accounts[3]).regoracle(accounts[14].address);
+    await wfio.connect(accounts[4]).regoracle(accounts[14].address);
+    await wfio.connect(accounts[5]).regoracle(accounts[14].address);
+    await wfio.connect(accounts[6]).regoracle(accounts[14].address);
+    await wfio.connect(accounts[7]).regoracle(accounts[14].address);
+
+    // fioNft
+    await fioNft.connect(accounts[1]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[2]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[3]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[4]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[5]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[6]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[7]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[1]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[2]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[3]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[4]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[5]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[6]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[7]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[1]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[2]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[3]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[4]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[5]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[6]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[7]).regoracle(accounts[14].address);
+  });
+
+  it(`wrap some wFIO tokens for accounts[15] for testing`,async function () {
+    let _bal = await wfio.balanceOf(accounts[15].address);
+    do {
+      fioTransaction = await faucet.genericAction('transferTokens', {
+        payeeFioPublicKey: fioAccount.publicKey,
+        amount: 1000000000000,
+        maxFee: config.api.transfer_tokens_pub_key.fee,
+        technologyProviderId: ''
+      })
+      TRANSACTION_ID = fioTransaction.transaction_id;
+
+      await wfio.connect(accounts[12]).wrap(accounts[15].address, 1000000000000, TRANSACTION_ID);
+      await wfio.connect(accounts[13]).wrap(accounts[15].address, 1000000000000, TRANSACTION_ID);
+      await wfio.connect(accounts[14]).wrap(accounts[15].address, 1000000000000, TRANSACTION_ID);
+      _bal = await wfio.balanceOf(accounts[15].address);
+    } while ( _bal.lt(100000000000));
+    console.log(`[DBG-account-15] wFIO wrapped: ${ethers.BigNumber.from(_bal).toString()}`);
+  });
+
+  it(`    wait`, async function () { await timeout(3000); });
+
+  it(`wrap another 1000 wFIO tokens, this time for accounts[16]`,async function () {
+    let _bal = await wfio.balanceOf(accounts[16].address);
+    do {
+      fioTransaction = await faucet.genericAction('transferTokens', {
+        payeeFioPublicKey: fioAccount.publicKey,
+        amount: 1000000000000,
+        maxFee: config.api.transfer_tokens_pub_key.fee,
+        technologyProviderId: ''
+      })
+      TRANSACTION_ID = fioTransaction.transaction_id;
+
+      await wfio.connect(accounts[12]).wrap(accounts[16].address, 1000000000000, TRANSACTION_ID);
+      await wfio.connect(accounts[13]).wrap(accounts[16].address, 1000000000000, TRANSACTION_ID);
+      await wfio.connect(accounts[14]).wrap(accounts[16].address, 1000000000000, TRANSACTION_ID);
+      _bal = await wfio.balanceOf(accounts[16].address);
+    } while ( _bal.lt(100000000000));
+    console.log(`[DBG-account-16] wFIO wrapped: ${ethers.BigNumber.from(_bal).toString()}`);
+  });
+
+  it(`[test 1] pre transfer attempt balance display`, async function () {
+    fromSentBalPre =  await accounts[15].getBalance();
+    wfioReceivedBalPre = await wfio.balanceOf(wfio.address);
+    fromSentBalPre = ethers.BigNumber.from(fromSentBalPre).toString();
+    wfioReceivedBalPre = ethers.BigNumber.from(wfioReceivedBalPre).toString();
+    console.log(`[DBG-pre-transfer] senderBal: ${fromSentBalPre} wfioBal: ${wfioReceivedBalPre}`);
+  });
+
+  it(`[test 1] (expect Error: Contract cannot receive tokens) try to send eth to the WFIO contract using the builtin Hardhat sendTransaction`, async function () {
+    try {
+      let result = await accounts[15].sendTransaction({
+        to: wfio.address,
+        value: ethers.utils.parseEther("1.0"), // Sends exactly 1.0 ether
+      });
+      expect(result).to.not.have.property('hash');
+    } catch (err) {
+      expect(err.message).to.contain('Transaction reverted');
+    }
+  });
+
+  it(`[test 1] post transfer attempt balance display, WFIO eth balance should stay the same`, async function () {
+    fromSentBalPost = await accounts[15].getBalance();
+    wfioReceivedBalPost = await wfio.balanceOf(wfio.address);
+    fromSentBalPost = ethers.BigNumber.from(fromSentBalPost).toString();
+    wfioReceivedBalPost = ethers.BigNumber.from(wfioReceivedBalPost).toString();
+    console.log(`[DBG-post-transfer] senderBal: ${fromSentBalPost} wfioBal: ${wfioReceivedBalPost}`);
+    expect(fromSentBalPost).to.equal(fromSentBalPre);
+    expect(wfioReceivedBalPost).to.equal(wfioReceivedBalPre);
+    fromSentBalPre = await wfio.balanceOf(accounts[15].address);
+    fromSentBalPre = ethers.BigNumber.from(fromSentBalPre).toString();
+    wfioReceivedBalPre = wfioReceivedBalPost;
+  });
+
+  it(`[test 2] (expect Error: Contract cannot receive tokens) try to send wFIO to the WFIO contract using wfio.trasnsfer`, async function () {
+    try {
+      await wfio.connect(accounts[15]).transfer(wfio.address, 630000000000);
+    } catch (err) {
+      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Contract cannot receive tokens\'');
+    }
+  });
+
+  it(`[test 2] post transfer attempt balance display, wfioBal should stay the same`, async function () {
+    fromSentBalPost =  await wfio.balanceOf(accounts[15].address);//await accounts[15].getBalance();
+    wfioReceivedBalPost = await wfio.balanceOf(wfio.address);
+    fromSentBalPost = ethers.BigNumber.from(fromSentBalPost).toString();
+    wfioReceivedBalPost = ethers.BigNumber.from(wfioReceivedBalPost).toString();
+    console.log(`[DBG-post-transfer-2] senderBal: ${fromSentBalPost} wfioBal: ${wfioReceivedBalPost}`);
+    expect(fromSentBalPost).to.equal(fromSentBalPre);
+    expect(wfioReceivedBalPost).to.equal(wfioReceivedBalPre);
+  });
+
+  it(`    wait`, async function () { await timeout(3000); });
+
+  it(`wrap another 1000 wFIO tokens, this time for accounts[17]`,async function () {
+    let _bal = await wfio.balanceOf(accounts[17].address);
+    do {
+      fioTransaction = await faucet.genericAction('transferTokens', {
+        payeeFioPublicKey: fioAccount.publicKey,
+        amount: 1000000000000,
+        maxFee: config.api.transfer_tokens_pub_key.fee,
+        technologyProviderId: ''
+      })
+      TRANSACTION_ID = fioTransaction.transaction_id;
+
+      await wfio.connect(accounts[12]).wrap(accounts[17].address, 1000000000000, TRANSACTION_ID);
+      await wfio.connect(accounts[13]).wrap(accounts[17].address, 1000000000000, TRANSACTION_ID);
+      await wfio.connect(accounts[14]).wrap(accounts[17].address, 1000000000000, TRANSACTION_ID);
+      _bal = await wfio.balanceOf(accounts[17].address);
+    } while ( _bal.lt(100000000000));
+    console.log(`[DBG-account-17] wFIO wrapped: ${ethers.BigNumber.from(_bal).toString()}`);
+  });
+
+  it(`approve transferFrom recipient`, async function () {
+    try {
+      await wfio.connect(accounts[17]).approve(accounts[17].address, 1000000000000);
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`[test 3] pre transfer attempt balance display`, async function () {
+    fromSentBalPre =  await wfio.balanceOf(accounts[17].address);//await accounts[17].getBalance();
+    wfioReceivedBalPre = await wfio.balanceOf(wfio.address);
+    fromSentBalPre = ethers.BigNumber.from(fromSentBalPre).toString();
+    wfioReceivedBalPre = ethers.BigNumber.from(wfioReceivedBalPre).toString();
+    console.log(`[DBG-pre-transfer-3] senderBal: ${fromSentBalPre} wfioBal: ${wfioReceivedBalPre}`);
+  });
+
+  it(`[test 3] (expect Error: Contract cannot receive tokens) try to send wFIO to the WFIO contract using wfio.trasnsferFrom`, async function () {
+    try {
+      await wfio.connect(accounts[17]).transferFrom(accounts[17].address, wfio.address, 260000000000);
+    } catch (err) {
+      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Contract cannot receive tokens\'');
+    }
+  });
+
+  it(`[test 3] post transfer attempt balance display, wfioBal should stay the same`, async function () {
+    fromSentBalPost =  await wfio.balanceOf(accounts[17].address);//await accounts[15].getBalance();
+    wfioReceivedBalPost = await wfio.balanceOf(wfio.address);
+    fromSentBalPost = ethers.BigNumber.from(fromSentBalPost).toString();
+    wfioReceivedBalPost = ethers.BigNumber.from(wfioReceivedBalPost).toString();
+    console.log(`[DBG-post-transfer-3] senderBal: ${fromSentBalPost} wfioBal: ${wfioReceivedBalPost}`);
+    expect(fromSentBalPost).to.equal(fromSentBalPre);
+    expect(wfioReceivedBalPost).to.equal(wfioReceivedBalPre);
+  });
+
+  it(`[test 4] pre transfer attempt balance display`, async function () {
+    fromSentBalPre =  await wfio.balanceOf(accounts[17].address);//await accounts[17].getBalance();
+    wfioReceivedBalPre = await wfio.balanceOf(wfio.address);
+    fromSentBalPre = ethers.BigNumber.from(fromSentBalPre).toString();
+    wfioReceivedBalPre = ethers.BigNumber.from(wfioReceivedBalPre).toString();
+    console.log(`[DBG-pre-transfer-4] wfioBal: ${wfioReceivedBalPre}`);
+  });
+
+  it(`[test 4] (expect Error: Contract cannot receive tokens) wrap another 1000 wFIO tokens, this time to wfio.address directly`,async function () {
+    let _bal = await wfio.balanceOf(wfio.address);
+    try {
+      fioTransaction = await faucet.genericAction('transferTokens', {
+        payeeFioPublicKey: fioAccount.publicKey,
+        amount: 1000000000000,
+        maxFee: config.api.transfer_tokens_pub_key.fee,
+        technologyProviderId: ''
+      })
+      TRANSACTION_ID = fioTransaction.transaction_id;
+
+      await wfio.connect(accounts[12]).wrap(wfio.address, 1000000000000, TRANSACTION_ID);
+      await wfio.connect(accounts[13]).wrap(wfio.address, 1000000000000, TRANSACTION_ID);
+      await wfio.connect(accounts[14]).wrap(wfio.address, 1000000000000, TRANSACTION_ID);
+      throw new Error('wrap should not have been successful')
+    } catch (err) {
+      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Contract cannot receive tokens\'');
+    }
+  });
+
+  it(`[test 4] post transfer attempt balance display, wfioBal should stay the same`, async function () {
+    fromSentBalPost =  await wfio.balanceOf(accounts[17].address);//await accounts[15].getBalance();
+    wfioReceivedBalPost = await wfio.balanceOf(wfio.address);
+    fromSentBalPost = ethers.BigNumber.from(fromSentBalPost).toString();
+    wfioReceivedBalPost = ethers.BigNumber.from(wfioReceivedBalPost).toString();
+    console.log(`[DBG-post-transfer-4] wfioBal: ${wfioReceivedBalPost}`);
+    expect(fromSentBalPost).to.equal(fromSentBalPre);
+    expect(wfioReceivedBalPost).to.equal(wfioReceivedBalPre);
+  });
+});
+
+describe(`P. [MATIC] Burn an NFT`, function () {
 
   let user1;
   let accounts;
@@ -1425,7 +2214,7 @@ describe(`N. [MATIC] Burn an NFT`, function () {
   });
 });
 
-describe(`O. [MATIC] get domain names by owner using listDomainsOfOwner`, function () {
+describe(`Q. [MATIC] get domain names by owner using listDomainsOfOwner`, function () {
   let accounts;
   let custodians;
   let owner;
