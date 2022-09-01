@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, callFioApi,fetchJson, timeout,createKeypair} = require('../utils.js');
+const {newUser, callFioApi,fetchJson, callFioApiSigned,generateFioAddress,timeout,createKeypair} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 const config = require('../config.js');
 let faucet;
@@ -46,39 +46,10 @@ describe(`************************** FIP-39-dev-tests.js ***********************
 
   })
 
-  it.skip('updcryptkey -- table check todo, use this', async () => {
-    let inVotersTable;
-    try {
-      const json = {
-        json: true,
-        code: 'fio.addres',
-        scope: 'eosio',
-        table: 'voters',
-        limit: 1000,
-        reverse: false,
-        show_payer: false
-      }
-      const voters = await callFioApi("get_table_rows", json);
-      //console.log('voters: ', voter);
-      inVotersTable = false;
-      for (voter in voters.rows) {
-        if (voters.rows[voter].owner == proxy1.account) {
-          inVotersTable = true;
-          break;
-        }
-      }
-      expect(inVotersTable).to.equal(false)
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
-  })
-
-
   //begin updcryptkey success tests.
   //for these next three tests, during the 30 second wait, do a get table manually
   //and verify table contents manually.
-  it(`fio.address updcryptkey`, async () => {
+  it.skip(`fio.address updcryptkey`, async () => {
     try {
       const result = await userUpdateEncryptKey.sdk.genericAction('pushTransaction', {
         action: 'updcryptkey',
@@ -100,16 +71,16 @@ describe(`************************** FIP-39-dev-tests.js ***********************
   })
 
   //wait a bit
-  it(`Waiting for 30 sec`, async () => {
+  it.skip(`Waiting for 30 sec`, async () => {
     console.log("            waiting 30 seconds \n ");
   });
 
-  it('Wait for 30', async () => {
+  it.skip('Wait for 30', async () => {
     await timeout(30000);
   });
 
 
-  it(`fio.address updcryptkey`, async () => {
+  it.skip(`fio.address updcryptkey`, async () => {
     try {
       const result = await userUpdateEncryptKey.sdk.genericAction('pushTransaction', {
         action: 'updcryptkey',
@@ -135,11 +106,11 @@ describe(`************************** FIP-39-dev-tests.js ***********************
     console.log("            waiting 30 seconds \n ");
   });
 
-  it('Wait for 30', async () => {
+  it.skip('Wait for 30', async () => {
     await timeout(30000);
   });
 
-  it(`fio.address updcryptkey`, async () => {
+  it.skip(`fio.address updcryptkey`, async () => {
     try {
       const result = await userUpdateEncryptKey.sdk.genericAction('pushTransaction', {
         action: 'updcryptkey',
@@ -170,6 +141,256 @@ describe(`************************** FIP-39-dev-tests.js ***********************
   *
   * */
 
-      
+  let walletA1, walletA1FioNames,handleid, fionames, fioaddress, walletA1OrigBalance, walletA1OrigRam, walletA2, walletA2FioNames, walletA2OrigRam, transfer_fio_address_fee, origAddressExpire, feeCollected
+
+  it(`Create users`, async () => {
+    walletA1 = await newUser(faucet);
+    walletA1.address2 = generateFioAddress(walletA1.domain, 5)
+
+    walletA2 = await newUser(faucet);
+    console.log("walletA2 pub key ",walletA2.publicKey);
+  })
+
+
+  //register an address
+  it(`Register walletA1.address2`, async () => {
+    const result = await walletA1.sdk.genericAction('registerFioAddress', {
+      fioAddress: walletA1.address2,
+      maxFee: config.api.register_fio_address.fee,
+      technologyProviderId: ''
+    })
+    //console.log('Result: ', result)
+    expect(result.status).to.equal('OK')
+  })
+
+  //get the index from fionames.
+  it('Call get_table_rows on fionames, note entry', async () => {
+    let bundleCount
+    try {
+      const json = {
+        json: true,               // Get the response as json
+        code: 'fio.address',      // Contract that we target
+        scope: 'fio.address',         // Account that owns the data
+        table: 'fionames',        // Table name
+        limit: 1000,                // Maximum number of rows that we want to get
+        reverse: false,           // Optional: Get reversed data
+        show_payer: false          // Optional: Show ram payer
+      }
+      fionames = await callFioApi("get_table_rows", json);
+      //console.log('fionames: ', fionames);
+      for (fioname in fionames.rows) {
+        if (fionames.rows[fioname].name == walletA1.address2) {
+          console.log('id is : ', fionames.rows[fioname].id);
+          handleid = fionames.rows[fioname].id;
+        }
+      }
+
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+
+  //find the entry in the handleinfo table
+  it('Call get_table_rows on handleinfo, note entry', async () => {
+    let bundleCount
+    try {
+      const json = {
+        json: true,               // Get the response as json
+        code: 'fio.address',      // Contract that we target
+        scope: 'fio.address',         // Account that owns the data
+        table: 'handleinfo',
+        index_position: 2,
+        key_type: 'i64',
+        lower_bound: handleid,// Table name
+        upper_bound: handleid,
+        limit: 1,                // Maximum number of rows that we want to get
+        reverse: false,           // Optional: Get reversed data
+        show_payer: false          // Optional: Show ram payer
+      }
+      fionames = await callFioApi("get_table_rows", json);
+      console.log('reply: ', fionames);
+
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+
+  //transfer the address/handle
+  it(`Transfer walletA1.address2 to walletA2`, async () => {
+    try {
+      fioaddress = walletA1.address2;
+      console.log(" address to burn is ", fioaddress);
+      const result = await walletA1.sdk.genericAction('transferFioAddress', {
+        fioAddress: walletA1.address2,
+        newOwnerKey: walletA2.publicKey,
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      //feeCollected = result.fee_collected;
+      console.log('Result: ', result);
+     // expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log('Error: ', err.json.error);
+      expect(err).to.equal(null);
+    }
+  })
+
+  //note the new id that has the address
+  it('Call get_table_rows post transfer on fionames, note entry', async () => {
+    let bundleCount
+    try {
+      const json = {
+        json: true,               // Get the response as json
+        code: 'fio.address',      // Contract that we target
+        scope: 'fio.address',         // Account that owns the data
+        table: 'fionames',        // Table name
+        limit: 1000,                // Maximum number of rows that we want to get
+        reverse: false,           // Optional: Get reversed data
+        show_payer: false          // Optional: Show ram payer
+      }
+      fionames = await callFioApi("get_table_rows", json);
+      //console.log('fionames: ', fionames);
+      for (fioname in fionames.rows) {
+        if (fionames.rows[fioname].name == walletA1.address2) {
+          console.log('id is : ', fionames.rows[fioname].id);
+          handleid = fionames.rows[fioname].id;
+        }
+      }
+
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it('Call get_table_rows on handleinfo, note entry', async () => {
+    let bundleCount
+    try {
+      const json = {
+        json: true,               // Get the response as json
+        code: 'fio.address',      // Contract that we target
+        scope: 'fio.address',         // Account that owns the data
+        table: 'handleinfo',
+        index_position: 2,
+        key_type: 'i64',
+        lower_bound: handleid,// Table name
+        upper_bound: handleid,
+        limit: 1,                // Maximum number of rows that we want to get
+        reverse: false,           // Optional: Get reversed data
+        show_payer: false          // Optional: Show ram payer
+      }
+      fionames = await callFioApi("get_table_rows", json);
+      console.log('reply: ', fionames);
+      //note the pub key is the same as in the output earlier in the tests.
+
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+
+
+  it(`Burn the address. Expect status = 'OK'. Expect fee_collected = 0`, async () => {
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'burnaddress',
+        account: 'fio.address',
+        actor: walletA2.account,
+        privKey: walletA2.privateKey,
+        data: {
+          "fio_address": fioaddress,
+          "max_fee": config.api.burn_fio_address.fee,
+          "tpid": '',
+          "actor": walletA2.account
+        }
+      })
+      //console.log('Result: ', JSON.parse(result.processed.action_traces[0].receipt.response));
+      expect(JSON.parse(result.processed.action_traces[0].receipt.response).status).to.equal('OK');
+      expect(JSON.parse(result.processed.action_traces[0].receipt.response).fee_collected).to.equal(0);
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`getFioNames for walletA1 and confirm it now only owns 1 address`, async () => {
+    try {
+      walletA1FioNames = await walletA2.sdk.genericAction('getFioNames', {
+        fioPublicKey: walletA2.publicKey
+      })
+      //console.log('getFioNames', result)
+      expect(walletA1FioNames.fio_addresses.length).to.equal(1)
+      expect(walletA1FioNames.fio_domains[0].fio_domain).to.equal(walletA2.domain)
+      expect(walletA1FioNames.fio_addresses[0].fio_address).to.equal(walletA2.address)
+    } catch (err) {
+      console.log('Error:', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Call get_table_rows from fionames. Verify address not in table.`, async () => {
+    let inTable = false;
+    try {
+      const json = {
+        json: true,               // Get the response as json
+        code: 'fio.address',      // Contract that we target
+        scope: 'fio.address',         // Account that owns the data
+        table: 'fionames',        // Table name
+        limit: 1000,                // Maximum number of rows that we want to get
+        reverse: false,           // Optional: Get reversed data
+        show_payer: false          // Optional: Show ram payer
+      }
+      fionames = await callFioApi("get_table_rows", json);
+      //console.log('fionames: ', fionames);
+      for (fioname in fionames.rows) {
+        if (fionames.rows[fioname].name == fioaddress) {
+          //console.log('fioname: ', fionames.rows[fioname]);
+          inTable = true;
+        }
+      }
+      expect(inTable).to.equal(false);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  //now look for the address in the handleinfo, it should no longer be there.
+
+  it('Call get_table_rows on handleinfo, note entry', async () => {
+    let bundleCount
+    try {
+      const json = {
+        json: true,               // Get the response as json
+        code: 'fio.address',      // Contract that we target
+        scope: 'fio.address',         // Account that owns the data
+        table: 'handleinfo',
+        index_position: 2,
+        key_type: 'i64',
+        lower_bound: handleid,// Table name
+        upper_bound: handleid,
+        limit: 1,                // Maximum number of rows that we want to get
+        reverse: false,           // Optional: Get reversed data
+        show_payer: false          // Optional: Show ram payer
+      }
+      fionames = await callFioApi("get_table_rows", json);
+      console.log('reply: ', fionames);
+      //it shouldnt be there. look and verify that.
+
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+
+
+
+
 
 })
