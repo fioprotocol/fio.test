@@ -15,13 +15,15 @@ before(async () => {
  *
  * these tests perform the dev testing described for FIP-39.
  *
- * in addition to these tests is is very important to dev test regaddress, xferaddress, and burnaddress
+ * QA note -- in addition to these tests is is very important to dev test regaddress, xferaddress, and burnaddress
  * as these are affected
  *
- * for regaddress after the reg note an entry appears in the handleinfo table.
- * for transfer address note that the entry in the handleinfo is modified correctly to contain the new
+ * these tests perform the following dev testing
+ *
+ * regaddress after the registration, note an entry appears in the handleinfo table with the correct info.
+ * transfer address,after transfer, note that the entry in the handleinfo is modified correctly to contain the new
  * public key.
- * for burnaddress verify that all entries in the handleinfo for this fioname id are removed from the table.
+ * burnaddress, perform the burn of an address, verify that all entries in the handleinfo for this fioname id are removed from the table.
  * 
  * 
  */
@@ -47,9 +49,12 @@ describe(`************************** FIP-39-dev-tests.js ***********************
   })
 
   //begin updcryptkey success tests.
-  //for these next three tests, during the 30 second wait, do a get table manually
-  //and verify table contents manually.
-  it.skip(`fio.address updcryptkey`, async () => {
+  //dev testing instructions,
+  //run the updcryptkey1, updcryptkey2, updcryptkey3 sequence of tests
+  //for these three tests, during the 30 second wait, do a get table manually at the prompt
+  //and verify table contents match expected visually.
+  //expected results, each get table should show the pub key value set in the test.
+  it.skip(`fio.address updcryptkey1`, async () => {
     try {
       const result = await userUpdateEncryptKey.sdk.genericAction('pushTransaction', {
         action: 'updcryptkey',
@@ -80,7 +85,7 @@ describe(`************************** FIP-39-dev-tests.js ***********************
   });
 
 
-  it.skip(`fio.address updcryptkey`, async () => {
+  it.skip(`fio.address updcryptkey2`, async () => {
     try {
       const result = await userUpdateEncryptKey.sdk.genericAction('pushTransaction', {
         action: 'updcryptkey',
@@ -110,7 +115,7 @@ describe(`************************** FIP-39-dev-tests.js ***********************
     await timeout(30000);
   });
 
-  it.skip(`fio.address updcryptkey`, async () => {
+  it.skip(`fio.address updcryptkey3`, async () => {
     try {
       const result = await userUpdateEncryptKey.sdk.genericAction('pushTransaction', {
         action: 'updcryptkey',
