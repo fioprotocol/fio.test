@@ -14,7 +14,7 @@ describe(`************************** FIPs36-40-dev-testing.js ******************
 
     let userA1,userA2,userA3,userA4,keys,keyssdk
 
-    //this account is used to test the get account for pub key.
+
     it.only(`Test get_account_fio_public_key`, async () => {
         userA1 = await newUser(faucet);
         userA2 = await newUser(faucet);
@@ -33,7 +33,6 @@ describe(`************************** FIPs36-40-dev-testing.js ******************
     })
 
     //wait a bit
-    //wait for unlock 1
     it(`Waiting for 15 sec`, async () => {
         console.log("            waiting 15 seconds \n ");
     });
