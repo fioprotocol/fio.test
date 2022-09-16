@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, existingUser, getTestType, getProdVoteTotal, timeout, unlockWallet, addLock, getAccountVoteWeight, getTotalVotedFio, callFioApi, callFioApiSigned, fetchJson} = require('../utils.js');
+const {newUser, existingUser, getTestType, getProdVoteTotal, timeout, getBundleCount, getAccountVoteWeight, getTotalVotedFio, callFioApi, fetchJson} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
 const { readBufferWithDetectedEncoding } = require('tslint/lib/utils');
@@ -1773,30 +1773,9 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
     }
   })
 
-  it('Get initial bundle count for voterG7. ', async () => {
-    try {
-        const json = {
-            json: true,               // Get the response as json
-            code: 'fio.address',      // Contract that we target
-            scope: 'fio.address',         // Account that owns the data
-            table: 'fionames',        // Table name
-            limit: 1000,                // Maximum number of rows that we want to get
-            reverse: false,           // Optional: Get reversed data
-            show_payer: false          // Optional: Show ram payer
-        }
-        fionames = await callFioApi("get_table_rows", json);
-        //console.log('fionames: ', fionames);
-        for (fioname in fionames.rows) {
-            if (fionames.rows[fioname].name == voterG7.address) {
-                //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
-                bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-            }
-        }
-        expect(bundleCount).to.be.greaterThan(0);
-    } catch (err) {
-        console.log('Error', err);
-        expect(err).to.equal(null);
-    }
+  it('Get initial bundle count for voterG7', async () => {
+    bundleCount = await getBundleCount(voterG7.sdk);
+    expect(bundleCount).to.be.greaterThan(0);
   })
 
   it(`Get balance for voterG7`, async () => {
@@ -1844,33 +1823,12 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
         //console.log('Error', err)
         expect(err).to.equal(null)
     }
-})
+  })
 
-  it('Get bundle count for voterG7. Confirm bundle count was decremented by 1.', async () => {
+  it('Confirm bundle count for voterG7', async () => {
     prevBundleCount = bundleCount;
-    try {
-        const json = {
-            json: true,               // Get the response as json
-            code: 'fio.address',      // Contract that we target
-            scope: 'fio.address',         // Account that owns the data
-            table: 'fionames',        // Table name
-            limit: 1000,                // Maximum number of rows that we want to get
-            reverse: false,           // Optional: Get reversed data
-            show_payer: false          // Optional: Show ram payer
-        }
-        fionames = await callFioApi("get_table_rows", json);
-        //console.log('fionames: ', fionames);
-        for (fioname in fionames.rows) {
-            if (fionames.rows[fioname].name == voterG7.address) {
-                //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
-                bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-            }
-        }
-        expect(bundleCount).to.equal(prevBundleCount - 1);
-    } catch (err) {
-        console.log('Error', err);
-        expect(err).to.equal(null);
-    }
+    bundleCount = await getBundleCount(voterG7.sdk);
+    expect(bundleCount).to.equal(prevBundleCount - 1);
   })
 
   it(`Get voterG7 last_vote_weight`, async () => {

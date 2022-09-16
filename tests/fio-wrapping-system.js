@@ -52,11 +52,11 @@ const Web3 = require('web3');
 const web3 = new Web3('http://127.0.0.1:8545');
 
 const fioABI = require("./Contracts/FIO.json");
-const wfioContract = new web3.eth.Contract(fioABI, '0xee025e62deA87b18d2270634ae558Ad62587836c');
+const wfioContract = new web3.eth.Contract(fioABI, '0xeA0A7639FEc2bfEf57ed06E1180445351999075F');
 
 const fionftABI = require("./Contracts/FIOMATICNFT.json");
 const { resolve } = require('dns');
-const nftContract = new web3.eth.Contract(fionftABI, '0x4822a77f61b1a500DaEA5A80341cfC83B89E7296');
+const nftContract = new web3.eth.Contract(fionftABI, '0x9ad60b5d44Ba04B87375dC204ff2e89A345c068B');
 
 // Use to test against the erc20 Testnet contract at https://rinkeby.etherscan.io/address/0x39e55E8Fcc19ACA3606Ed3CFe7177442185a14F9
 //const etherscan = new Web3('https://rinkeby.infura.io/v3/2ca52b84d74f46efb23d1730e4e215cf');

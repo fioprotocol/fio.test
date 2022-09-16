@@ -67,6 +67,7 @@ describe('TEST SUITE', () => {
     require('./tests/stake-tokens.js');
     require('./tests/stake-timing.js');
     require('./tests/locks-get-locks-with-staking.js');
+    require('./tests/BD-3941-unstake.js');
 
     // These have a similar setup
     require('./tests/stake-rapid-unstake-with-mainnet-locks.js'); //FIP-21 tests for rapid fire unstaking in succession
@@ -107,7 +108,6 @@ describe('TEST SUITE', () => {
      */
     require('./tests/BD-3835-autoproxy.js');
     require('./tests/BD-3853-dev-tests.js');
-    require('./tests/BD-3941-unstake.js');
 
     /**
      * Testnet smoketest. By default runs against local build.
