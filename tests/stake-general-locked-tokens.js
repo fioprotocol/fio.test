@@ -1442,7 +1442,7 @@ describe(`B. Insert stake period in middle of locktokensv2 general locks, then u
 })
 
 
-describe(`C. Insert stake period at END of locktokensv2 general locks, then unlock and unstake`, () => {
+describe.only(`C. Insert stake period at END of locktokensv2 general locks, then unlock and unstake`, () => {
 
   let userA1, locksdk, keys, accountnm, newFioDomain, newFioAddress, lockDuration
 
