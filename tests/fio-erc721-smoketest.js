@@ -16,7 +16,7 @@ const Web3 = require('web3');
 const { Console } = require("console");
 
 // Goerli
-const polygonMumbai = new Web3('https://polygon-mumbai.infura.io/v3/<INSERT API KEY>');
+const polygonMumbai = new Web3('https://polygon-mumbai.infura.io/v3/2ca52b84d74f46efb23d1730e4e215cf');
 const polyContractAddress = '0xF5193f7c4312cA0759C91080e94E957F77669116';
 
 
@@ -24,20 +24,20 @@ const polyMumbaiContract = new polygonMumbai.eth.Contract(fionftABI, polyContrac
 
 const oracle1 = {
     ethPublicKey: '0x2bFBc5e0e4ac9CF3dCE2512812Ef7Fa46031b506',
-    ethPrivateKey: ''
+    ethPrivateKey: '6b949ad580282b883c16f04f3c141f7ecbc7a49a405d245a89a32e166800bba1'
 }
 
 const oracle2 = {
     ethPublicKey: '0xBA08B88cb85e8fDCCdfa2F59A415824d6BD634ca',
-    ethPrivateKey: ''
+    ethPrivateKey: '9ea4cac7b0585354940e7b78630c2d3166ab8e9e3b3f8e69c0d16779bf7adc6b'
 }
 
 const oracle3 = {
     ethPublicKey: '0xf55C6d387b440Ab78CF3475bD7f8aD7Af9F6716f',
-    ethPrivateKey: ''
+    ethPrivateKey: '76c1a0873d88e693e018ea6e894a0c79f0e7d215655f5f55043ea5d57400e592'
 }
 
-const mumbaiPublicKey = '0xe28FF0D44d533d15cD1f811f4DE8e6b1549945c9';
+const mumbaiPublicKey = '0xF5193f7c4312cA0759C91080e94E957F77669116';
 const mumbaiPrivateKey = '';
 
 const gasPrice = 50;
@@ -50,7 +50,7 @@ before(async function () {
     faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 });
 
-describe(`************************** fio-erc721-smoketest.js ************************** \n   A. erc721 wrap/unwrap nft smoketest`, function () {
+describe.only(`************************** fio-erc721-smoketest.js ************************** \n   A. erc721 wrapnft smoketest`, function () {
 
     let user1, rawTx1, rawTx2, rawTx3;
     
