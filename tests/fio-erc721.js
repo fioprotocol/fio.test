@@ -1822,30 +1822,6 @@ describe(`N. [MATIC] Pausing`, function () {
 
 describe(`O. [MATIC] Unpausing`, function () {
 
-  // let fioAccount;
-  // let owner;
-  // let ercAccts;
-  // let fioNft;
-  // let transactionId = '5efdf70d4338b6ae60e3241ce9fb646f55306434c3ed070601bde98a75f4418f';
-  //
-  // before(async function () {
-  //   fioAccount = await newUser(faucet);
-  //
-  //   [owner, ercAccts, fioNft] = await setupFIONFTcontract(ethers);
-  //   await registerFioNftOracles(fioNft, ercAccts);
-  //
-  //   await fioNft.connect(ercAccts[1]).pause();
-  // });
-  //
-  // it(`unpause the fioNft contract`, async function () {
-  //   try {
-  //     await fioNft.connect(ercAccts[1]).unpause();
-  //     // wrapping/unwrapping is prohibited when contract is paused
-  //     await fioNft.connect(ercAccts[12]).wrapnft(ercAccts[0].address, fioAccount.domain, transactionId);
-  //   } catch (err) {
-  //     throw err;
-  //   }
-  // });
   let fioAccount;
   let fioTransaction;
   let accounts;
@@ -1853,6 +1829,7 @@ describe(`O. [MATIC] Unpausing`, function () {
   let owner;
   let factory;
   let fioNft;
+  let testDomain = 'test-domain';
   let TRANSACTIION_ID;
 
   before(async function () {
