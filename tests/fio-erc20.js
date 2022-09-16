@@ -1901,7 +1901,7 @@ describe(`M. [ETH] Pausing`, function () {
   });
 });
 
-describe(`N. [ETH] Unpausing`, function () {
+describe.only(`N. [ETH] Unpausing`, function () {
 
   let fioAccount;
   let fioTransaction;
@@ -1910,18 +1910,11 @@ describe(`N. [ETH] Unpausing`, function () {
   let owner;
   let factory;
   let wfio;
-  let TRANSACTIION_ID;
+  let transactionId = '5efdf70d4338b6ae60e3241ce9fb646f55306434c3ed070601bde98a75f4418f';
 
   before(async function () {
 
     fioAccount = await newUser(faucet);
-    fioTransaction = await faucet.genericAction('transferTokens', {
-      payeeFioPublicKey: fioAccount.publicKey,
-      amount: 100000000000,
-      maxFee: config.api.transfer_tokens_pub_key.fee,
-      technologyProviderId: ''
-    })
-    TRANSACTIION_ID = fioTransaction.transaction_id;
     [owner, ...accounts] = await ethers.getSigners();
     custodians = [];
     for (let i = 1; i < 11; i++) {
@@ -1982,7 +1975,7 @@ describe(`N. [ETH] Unpausing`, function () {
   it(`should now be able to wrap tokens when unpaused`, async function () {
     try {
       // wrapping/unwrapping is prohibited only when contract is paused
-      await wfio.connect(accounts[12]).wrap(accounts[0].address, 100000000000, TRANSACTIION_ID);
+      await wfio.connect(accounts[12]).wrap(accounts[0].address, 100000000000, transactionId);
     } catch (err) {
       throw err;
     }

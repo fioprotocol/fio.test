@@ -1820,7 +1820,7 @@ describe(`N. [MATIC] Pausing`, function () {
   });
 });
 
-describe(`O. [MATIC] Unpausing`, function () {
+describe.only(`O. [MATIC] Unpausing`, function () {
 
   let fioAccount;
   let fioTransaction;
@@ -1830,18 +1830,11 @@ describe(`O. [MATIC] Unpausing`, function () {
   let factory;
   let fioNft;
   let testDomain = 'test-domain';
-  let TRANSACTIION_ID;
+  let transactionId = '5efdf70d4338b6ae60e3241ce9fb646f55306434c3ed070601bde98a75f4418f';
 
   before(async function () {
 
     fioAccount = await newUser(faucet);
-    fioTransaction = await faucet.genericAction('transferTokens', {
-      payeeFioPublicKey: fioAccount.publicKey,
-      amount: 100000000000,
-      maxFee: config.api.transfer_tokens_pub_key.fee,
-      technologyProviderId: ''
-    })
-    TRANSACTIION_ID = fioTransaction.transaction_id;
     [owner, ...accounts] = await ethers.getSigners();
     custodians = [];
     for (let i = 1; i < 11; i++) {
