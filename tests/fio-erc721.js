@@ -1820,7 +1820,7 @@ describe(`N. [MATIC] Pausing`, function () {
   });
 });
 
-describe.only(`O. [MATIC] Unpausing`, function () {
+describe(`O. [MATIC] Unpausing`, function () {
 
   let fioAccount;
   let fioTransaction;
@@ -2158,6 +2158,73 @@ describe(`Q. [MATIC] get domain names by owner using listDomainsOfOwner`, functi
       expect(result[1]).to.contain(testDomain2);
     } catch (err) {
       throw err;
+    }
+  });
+});
+
+describe(`R. [MATIC] Prevent domains from being wrapped to the contract address`, function () {
+
+  let fioAccount;
+  let accounts;
+  let custodians;
+  let owner;
+  let factory;
+  let fioNft;
+  let obtId = '5efdf70d4338b6ae60e3241ce9fb646f55306434c3ed070601bde98a75f4418f';
+  let testDomain = 'test-domain';
+  let tokenId = 1;
+  let fioNftReceivedBalPre, fioNftReceivedBalPost, fromSentBalPre, fromSentBalPost;
+
+  before(async function () {
+    fioAccount = await newUser(faucet);
+    [owner, ...accounts] = await ethers.getSigners();
+    custodians = [];
+    for (let i = 1; i < 11; i++) {
+      custodians.push(accounts[i].address);
+    }
+  });
+
+  it("Should deploy the fioNft token successfully", async function() {
+    factory = await ethers.getContractFactory('FIONFT', owner);
+    fioNft = await factory.deploy(custodians);
+    await fioNft.deployed();
+    expect(fioNft).to.be.a('object');
+    expect(fioNft).to.have.property('address').which.is.a('string');
+    expect(fioNft).to.have.property('functions').which.is.a('object');
+    expect(fioNft.signer.address).to.equal(owner.address);
+  });
+
+  it(`register 3 oracles`, async function () {
+    // register 3 oracles for testing
+    await fioNft.connect(accounts[1]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[2]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[3]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[4]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[5]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[6]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[7]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[1]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[2]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[3]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[4]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[5]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[6]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[7]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[1]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[2]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[3]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[4]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[5]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[6]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[7]).regoracle(accounts[14].address);
+  });
+
+  it(`(expect Error: Cannot wrap to contract account) try to wrap a domain to the fioNft contract`, async function () {
+    try {
+      let result = await fioNft.connect(accounts[12]).wrapnft(fioNft.address, testDomain, obtId);
+      expect(result).to.not.have.property('hash');
+    } catch (err) {
+      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Cannot wrap to contract account\'');
     }
   });
 });
