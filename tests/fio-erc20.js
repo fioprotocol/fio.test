@@ -1722,10 +1722,9 @@ describe(`L. [ETH] Approval`, function () {
   it(`get approval by obtid, expect 1 approval`, async function () {
     try {
       let result = await wfio.connect(accounts[1]).getApproval(TRANSACTION_ID);
-      expect(ethers.BigNumber.from(result[0]).toString()).to.equal('1');
-      expect(result).to.be.a('array');
-      expect(result[0]).to.be.a('object');
-      expect(result[1]).to.be.a('string');
+      expect(result).to.be.a('array')
+      expect(result[0]).to.be.a('number').and.equal(1);
+      expect(result[1]).to.be.a('string').and.equal('0x2546BcD3c84621e976D8185a91A922aE77ECEc30');
       expect(result[2]).to.be.a('object');
     } catch (err) {
       throw err;
@@ -1739,10 +1738,9 @@ describe(`L. [ETH] Approval`, function () {
   it(`get approval by obtid, expect 2 approvals`, async function () {
     try {
       let result = await wfio.connect(accounts[1]).getApproval(TRANSACTION_ID);
-      expect(ethers.BigNumber.from(result[0]).toString()).to.equal('2');
-      expect(result).to.be.a('array');
-      expect(result[0]).to.be.a('object');
-      expect(result[1]).to.be.a('string');
+      expect(result).to.be.a('array')
+      expect(result[0]).to.be.a('number').and.equal(2);
+      expect(result[1]).to.be.a('string').and.equal('0x2546BcD3c84621e976D8185a91A922aE77ECEc30');
       expect(result[2]).to.be.a('object');
     } catch (err) {
       throw err;
@@ -1756,7 +1754,6 @@ describe(`L. [ETH] Approval`, function () {
   it(`get approval by obtid, expect 0 approvals - record has been deleted`, async function () {
     try {
       let result = await wfio.connect(accounts[1]).getApproval(TRANSACTION_ID);
-      expect(ethers.BigNumber.from(result[0]).toString()).to.equal('0');
       expect(result).to.be.a('array');
       expect(result[0]).to.be.a('number').and.equal(0);
       expect(result[1]).to.be.a('string').and.equal('0x0000000000000000000000000000000000000000');
@@ -1901,7 +1898,7 @@ describe(`M. [ETH] Pausing`, function () {
   });
 });
 
-describe.only(`N. [ETH] Unpausing`, function () {
+describe(`N. [ETH] Unpausing`, function () {
 
   let fioAccount;
   let fioTransaction;
@@ -2186,9 +2183,6 @@ describe(`O. [ETH] Prevent tokens from being sent to contract address`, function
     expect(fromSentBalPost).to.equal(fromSentBalPre);
     expect(wfioReceivedBalPost).to.equal(wfioReceivedBalPre);
   });
-
-
-
 
   it(`[test 4] pre transfer attempt balance display`, async function () {
     // fromSentBalPre =  await wfio.balanceOf(accounts[17].address);//await accounts[17].getBalance();
