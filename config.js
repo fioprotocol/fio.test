@@ -1,6 +1,6 @@
-const TESTURL = 'http://localhost:8889'           // Localhost
+//const TESTURL = 'http://localhost:8889'           // Localhost
 //const TESTURL = 'http://54.200.124.65:8889'       // QAnet
-//const TESTURL = 'http://35.85.153.248:8889'       // DEV1
+const TESTURL = 'http://18.237.87.177:8889'       // DEV1
 //const TESTURL = 'http://44.238.153.162:8889'      // Devnet
 //const TESTURL = 'http://fiotestnet.greymass.com'  // Testnet
 //const TESTURL = 'https://fio.greymass.com'        // Mainnet
