@@ -8,7 +8,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson)
 })
 
-describe.only('************************** producer.js ************************** \n    A. Test register/unregister as a producer.', () => {
+describe('************************** producer.js ************************** \n    A. Test register/unregister as a producer.', () => {
 
   let prodA1, userA1, total_voted_fio, total_bp_votes
 
@@ -41,7 +41,7 @@ describe.only('************************** producer.js **************************
         "json": true
       }
       const result = await callFioApi("get_table_rows", json);
-      console.log('result: ', result);
+      //console.log('result: ', result);
       expect(result.rows.length).to.equal(0);
     } catch (err) {
       console.log('Error', err);
@@ -85,7 +85,7 @@ describe.only('************************** producer.js **************************
         "json": true
       }
       const result = await callFioApi("get_table_rows", json);
-      console.log('result: ', result);
+      //console.log('result: ', result);
       expect(result.rows.length).to.equal(1);
       expect(result.rows[0].owner).to.equal(prodA1.account);
       expect(result.rows[0].producer_public_key).to.equal(prodA1.publicKey);
@@ -155,6 +155,10 @@ describe.only('************************** producer.js **************************
     }
   });
 
+  /**
+   * Note that unregproducer changes the producer key to a "default" key. 
+   * See BD-4083 for more information.
+   */
   it(`Confirm prodA1 is not a registered producer`, async function () {
     try {
       const json = {
@@ -168,8 +172,11 @@ describe.only('************************** producer.js **************************
         "json": true
       }
       const result = await callFioApi("get_table_rows", json);
-      console.log('result: ', result);
-      expect(result.rows.length).to.equal(0);
+      //console.log('result: ', result);
+      expect(result.rows.length).to.equal(1);
+      expect(result.rows[0].owner).to.equal(prodA1.account);
+      expect(result.rows[0].is_active).to.equal(0);
+      expect(result.rows[0].producer_public_key).to.equal('FIO1111111111111111111111111111111114T1Anm');
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -199,7 +206,7 @@ describe('B. regproducer with pub key not associated with account (BD-3521)', ()
         "json": true
       }
       const result = await callFioApi("get_table_rows", json);
-      console.log('result: ', result);
+      //console.log('result: ', result);
       expect(result.rows.length).to.equal(0);
     } catch (err) {
       console.log('Error', err);
@@ -214,7 +221,7 @@ describe('B. regproducer with pub key not associated with account (BD-3521)', ()
         account: 'eosio',
         data: {
           fio_address: user1.address,
-          fio_pub_key: user1.publicKey,
+          fio_pub_key: user2.publicKey,
           url: "https://mywebsite.io/",
           location: 80,
           actor: user1.account,
@@ -242,7 +249,7 @@ describe('B. regproducer with pub key not associated with account (BD-3521)', ()
         "json": true
       }
       const result = await callFioApi("get_table_rows", json);
-      console.log('result: ', result);
+      //console.log('result: ', result);
       expect(result.rows.length).to.equal(1);
       expect(result.rows[0].owner).to.equal(user1.account);
       expect(result.rows[0].producer_public_key).to.equal(user2.publicKey);
@@ -262,7 +269,7 @@ describe('B. regproducer with pub key not associated with account (BD-3521)', ()
           max_fee: config.maxFee
         }
       })
-      console.log('Result: ', result)
+      //console.log('Result: ', result)
       expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error: ', err);
@@ -283,8 +290,11 @@ describe('B. regproducer with pub key not associated with account (BD-3521)', ()
         "json": true
       }
       const result = await callFioApi("get_table_rows", json);
-      console.log('result: ', result);
-      expect(result.rows.length).to.equal(0);
+      //console.log('result: ', result);
+      expect(result.rows.length).to.equal(1);
+      expect(result.rows[0].owner).to.equal(user1.account);
+      expect(result.rows[0].is_active).to.equal(0);
+      expect(result.rows[0].producer_public_key).to.equal('FIO1111111111111111111111111111111114T1Anm');
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
