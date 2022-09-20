@@ -1387,81 +1387,7 @@ describe(`J. [MATIC] FIONFT wrapping`, function () {
   });
 });
 
-describe.skip(`K. [MATIC] wrapping mismatched accounts and domains`, function () {
-
-  let accounts;
-  let custodians;
-  let owner;
-  let factory;
-  let fioNft;
-  let transactionId = '5efdf70d4338b6ae60e3241ce9fb646f55306434c3ed070601bde98a75f4418f';
-  let transactionId2 = '6efdf70d4338b6ae60e3241ce9fb646f55306434c3ed070601bde98a75f4418f';
-  let testDomain = 'test-domain';
-  let testDomain2 = 'test-domain-2';
-
-  before(async function () {
-    [owner, ...accounts] = await ethers.getSigners();
-    custodians = [];
-    for (let i = 1; i < 11; i++) {
-      custodians.push(accounts[i].address);
-    }
-    factory = await ethers.getContractFactory('FIONFT', owner);
-    fioNft = await factory.deploy(custodians);
-    await fioNft.deployTransaction.wait();
-    // register 3 oracles for testing
-    await fioNft.connect(accounts[1]).regoracle(accounts[12].address);
-    await fioNft.connect(accounts[2]).regoracle(accounts[12].address);
-    await fioNft.connect(accounts[3]).regoracle(accounts[12].address);
-    await fioNft.connect(accounts[4]).regoracle(accounts[12].address);
-    await fioNft.connect(accounts[5]).regoracle(accounts[12].address);
-    await fioNft.connect(accounts[6]).regoracle(accounts[12].address);
-    await fioNft.connect(accounts[7]).regoracle(accounts[12].address);
-    await fioNft.connect(accounts[1]).regoracle(accounts[13].address);
-    await fioNft.connect(accounts[2]).regoracle(accounts[13].address);
-    await fioNft.connect(accounts[3]).regoracle(accounts[13].address);
-    await fioNft.connect(accounts[4]).regoracle(accounts[13].address);
-    await fioNft.connect(accounts[5]).regoracle(accounts[13].address);
-    await fioNft.connect(accounts[6]).regoracle(accounts[13].address);
-    await fioNft.connect(accounts[7]).regoracle(accounts[13].address);
-    await fioNft.connect(accounts[1]).regoracle(accounts[14].address);
-    await fioNft.connect(accounts[2]).regoracle(accounts[14].address);
-    await fioNft.connect(accounts[3]).regoracle(accounts[14].address);
-    await fioNft.connect(accounts[4]).regoracle(accounts[14].address);
-    await fioNft.connect(accounts[5]).regoracle(accounts[14].address);
-    await fioNft.connect(accounts[6]).regoracle(accounts[14].address);
-    await fioNft.connect(accounts[7]).regoracle(accounts[14].address);
-  });
-
-  it(`recipient account does not match prior approvals`, async function () {
-    await fioNft.connect(accounts[12]).wrapnft(accounts[0].address, testDomain, transactionId);
-    await fioNft.connect(accounts[13]).wrapnft(accounts[0].address, testDomain, transactionId);
-    try {
-      let result = await fioNft.connect(accounts[14]).wrapnft(accounts[8].address, testDomain, transactionId);
-    } catch (err) {
-      expect(err).to.have.property('stackTrace').which.is.a('Array');
-      expect(err).to.have.property('transactionHash').which.is.a('string');
-      expect(err).to.have.property('stack').which.is.a('string');
-      expect(err).to.have.property('message').which.is.a('string').and.equal('VM Exception while processing transaction: reverted with reason string \'Account mismatch\'');
-    }
-  });
-
-  it(`(BUG? this test should fail) domain does not match prior approvals`, async function () {
-    await fioNft.connect(accounts[12]).wrapnft(accounts[2].address, testDomain2, transactionId2);
-    await fioNft.connect(accounts[13]).wrapnft(accounts[2].address, testDomain2, transactionId2);
-    try {
-      let result = await fioNft.connect(accounts[14]).wrapnft(accounts[2].address, 'some-nonmatching-test-domain', transactionId2);
-      console.log(`[DBG - should not see this] result = ${result.toString()}`);
-      throw new Error("SHOULD NOT PASS");
-    } catch (err) {
-      expect(err).to.have.property('stackTrace').which.is.a('array');
-      expect(err).to.have.property('transactionHash').which.is.a('string');
-      expect(err).to.have.property('stack').which.is.a('string');
-      expect(err).to.have.property('message').which.is.a('string').and.contain('amount does not match prior approvals');
-    }
-  });
-});
-
-describe(`L. [MATIC] FIONFT unwrapping`, function () {
+describe(`K. [MATIC] FIONFT unwrapping`, function () {
 
   let user1;
   let accounts;
@@ -1581,7 +1507,7 @@ describe(`L. [MATIC] FIONFT unwrapping`, function () {
   });
 });
 
-describe(`M. [MATIC] Approval`, function () {
+describe(`L. [MATIC] Approval`, function () {
 
   let fioAccount;
   let accounts;
@@ -1590,11 +1516,8 @@ describe(`M. [MATIC] Approval`, function () {
   let factory;
   let fioNft;
   let obtId = '5efdf70d4338b6ae60e3241ce9fb646f55306434c3ed070601bde98a75f4418f';
-  let obtId2 = '6efdf70d4338b6ae60e3241ce9fb646f55306434c3ed070601bde98a75f4418f';
   let testDomain = 'test-domain';
-  let testDomain2 = 'test-domain-2';
-  let tokenId = 1; // cannot figure out how to get JUST this return value from the hardhat promise, so I'm setting it here because I know what it is for this block...
-  let tokenId2 = 2;
+  let approvalEvent;
 
   before(async function () {
     fioAccount = await newUser(faucet);
@@ -1631,24 +1554,15 @@ describe(`M. [MATIC] Approval`, function () {
     await fioNft.connect(accounts[7]).regoracle(accounts[14].address);
   });
 
-  it(`get approval by obtid, expect 0 approvals`, async function () {
-    try {
-      let result = await fioNft.connect(accounts[1]).getApproval(tokenId);
-      expect(result).to.be.a('array');
-      expect(result[0]).to.be.a('number').and.equal(0);
-      expect(result[1]).to.be.a('boolean').and.equal(false);
-    } catch (err) {
-      throw err;
-    }
+  it(`wrap a test domain`,async function () {
+    let tx = await fioNft.connect(accounts[12]).wrapnft(accounts[15].address, testDomain, obtId);
+    let result = await tx.wait();
+    approvalEvent = result.events[0];
   });
 
-  it(`(1 of 3 approvals) wrap a test domain`,async function () {
-    await fioNft.connect(accounts[12]).wrapnft(accounts[15].address, testDomain, obtId);
-  });
-
-  it(`get approval by obtid, expect 1 approval`, async function () {
+  it(`(1 of 3 approvals) get approval by obtid, expect 1 approval`, async function () {
     try {
-      let result = await fioNft.connect(accounts[1]).getApproval(tokenId);
+      let result = await fioNft.connect(accounts[1]).getApproval(approvalEvent.args[1]);
       expect(result).to.be.a('array');
       expect(result[0]).to.be.a('number').and.equal(1);
       expect(result[1]).to.be.a('boolean').and.equal(false);
@@ -1657,13 +1571,15 @@ describe(`M. [MATIC] Approval`, function () {
     }
   });
 
-  it(`(2 of 3 approvals) wrap a test domain`,async function () {
-    await fioNft.connect(accounts[13]).wrapnft(accounts[15].address, testDomain, obtId);
+  it(`wrap a test domain`,async function () {
+    let tx = await fioNft.connect(accounts[13]).wrapnft(accounts[15].address, testDomain, obtId);
+    let result = await tx.wait();
+    approvalEvent = result.events[0];
   });
 
-  it(`get approval by obtid, expect 2 approvals`, async function () {
+  it(`(2 of 3 approvals) get approval by obtid, expect 2 approvals`, async function () {
     try {
-      let result = await fioNft.connect(accounts[1]).getApproval(tokenId);
+      let result = await fioNft.connect(accounts[1]).getApproval(approvalEvent.args[1]);
       expect(result).to.be.a('array');
       expect(result[0]).to.be.a('number').and.equal(2);
       expect(result[1]).to.be.a('boolean').and.equal(false);
@@ -1672,13 +1588,15 @@ describe(`M. [MATIC] Approval`, function () {
     }
   });
 
-  it(`(3 of 3 approvals) wrap a test domain`,async function () {
-    let result = await fioNft.connect(accounts[14]).wrapnft(accounts[15].address, testDomain, obtId);
+  it(`wrap a test domain`,async function () {
+    let tx = await fioNft.connect(accounts[14]).wrapnft(accounts[15].address, testDomain, obtId);
+    let result = await tx.wait();
+    approvalEvent = result.events[0];
   });
 
-  it(`get approval by obtid, expect 0 approvals - record has been deleted`, async function () {
+  it(`(3 of 3 approvals) get approval by obtid, expect 0 approvals - record has been deleted`, async function () {
     try {
-      let result = await fioNft.connect(accounts[1]).getApproval(tokenId);
+      let result = await fioNft.connect(accounts[1]).getApproval(approvalEvent.args[1]);
       expect(result).to.be.a('array');
       expect(result[0]).to.be.a('number').and.equal(0);
       expect(result[1]).to.be.a('boolean').and.equal(false);
@@ -1715,7 +1633,7 @@ describe(`M. [MATIC] Approval`, function () {
   });
 });
 
-describe(`N. [MATIC] Pausing`, function () {
+describe(`M. [MATIC] Pausing`, function () {
 
   let fioAccount;
   let accounts;
@@ -1820,7 +1738,7 @@ describe(`N. [MATIC] Pausing`, function () {
   });
 });
 
-describe(`O. [MATIC] Unpausing`, function () {
+describe(`N. [MATIC] Unpausing`, function () {
 
   let fioAccount;
   let fioTransaction;
@@ -1902,7 +1820,7 @@ describe(`O. [MATIC] Unpausing`, function () {
   });
 });
 
-describe(`P. [MATIC] Burn an NFT`, function () {
+describe(`O. [MATIC] Burn an NFT`, function () {
 
   let user1;
   let accounts;
@@ -2028,7 +1946,7 @@ describe(`P. [MATIC] Burn an NFT`, function () {
   });
 });
 
-describe(`Q. [MATIC] get domain names by owner using listDomainsOfOwner`, function () {
+describe(`P. [MATIC] get domain names by owner using listDomainsOfOwner`, function () {
   let accounts;
   let custodians;
   let owner;
@@ -2162,7 +2080,7 @@ describe(`Q. [MATIC] get domain names by owner using listDomainsOfOwner`, functi
   });
 });
 
-describe(`R. [MATIC] Prevent domains from being wrapped to the contract address`, function () {
+describe(`Q. [MATIC] Prevent domains from being wrapped to the contract address`, function () {
 
   let fioAccount;
   let accounts;

@@ -494,7 +494,7 @@ describe(`F. [ETH] Oracles (register)`, function () {
   });
 
   it(`call getOracles and expect to see all 3 new oracles`, async function () {
-    const result = await wfio.getOracles();
+    let result = await wfio.getOracles();
     expect(result).to.be.a('array');
     expect(result.length).to.equal(3);
     expect(result).to.contain(accounts[12].address);
@@ -515,7 +515,7 @@ describe(`F. [ETH] Oracles (register)`, function () {
   });
 
   it(`call getOracles and expect to see all 3 new oracles`, async function () {
-    const result = await wfio.getOracles();
+    let result = await wfio.getOracles();
     expect(result).to.be.a('array');
     expect(result.length).to.equal(3);
     expect(result).to.contain(accounts[12].address);
@@ -674,7 +674,7 @@ describe(`G. [ETH] Oracles (unregister)`, function () {
   });
 
   it(`call getOracles and expect to see 3 new oracles`, async function () {
-    const result = await wfio.getOracles();
+    let result = await wfio.getOracles();
     expect(result).to.be.a('array');
     expect(result.length).to.equal(4);
     expect(result).to.contain(accounts[12].address);
@@ -1507,7 +1507,7 @@ describe(`K. [ETH] wFIO unwrapping`, function () {
   let owner;
   let factory;
   let wfio;
-  let TRANSACTIION_ID;
+  let TRANSACTION_ID;
 
   beforeEach(async function () {
     let _bal = await wfio.balanceOf(accounts[0].address);
@@ -1518,11 +1518,11 @@ describe(`K. [ETH] wFIO unwrapping`, function () {
         maxFee: config.api.transfer_tokens_pub_key.fee,
         technologyProviderId: ''
       })
-      TRANSACTIION_ID = fioTransaction.transaction_id;
+      TRANSACTION_ID = fioTransaction.transaction_id;
 
-      await wfio.connect(accounts[12]).wrap(accounts[0].address, 100000000000, TRANSACTIION_ID);
-      await wfio.connect(accounts[13]).wrap(accounts[0].address, 100000000000, TRANSACTIION_ID);
-      await wfio.connect(accounts[14]).wrap(accounts[0].address, 100000000000, TRANSACTIION_ID);
+      await wfio.connect(accounts[12]).wrap(accounts[0].address, 100000000000, TRANSACTION_ID);
+      await wfio.connect(accounts[13]).wrap(accounts[0].address, 100000000000, TRANSACTION_ID);
+      await wfio.connect(accounts[14]).wrap(accounts[0].address, 100000000000, TRANSACTION_ID);
       _bal = await wfio.balanceOf(accounts[0].address);
     }
   });
@@ -1662,7 +1662,8 @@ describe(`L. [ETH] Approval`, function () {
   let owner;
   let factory;
   let wfio;
-  let TRANSACTIION_ID = '5efdf70d4338b6ae60e3241ce9fb646f55306434c3ed070601bde98a75f4418f';
+  let TRANSACTION_ID = '5efdf70d4338b6ae60e3241ce9fb646f55306434c3ed070601bde98a75f4418f';
+  let approvalEvent;
 
   before(async function () {
     fioAccount = await newUser(faucet);
@@ -1699,29 +1700,15 @@ describe(`L. [ETH] Approval`, function () {
     await wfio.connect(accounts[7]).regoracle(accounts[14].address);
   });
 
-  it(`get approval by obtid, expect 0 approvals`, async function () {
-    let result = await wfio.connect(accounts[1]).getApproval(TRANSACTIION_ID);
-    expect(result).to.be.a('array');
-    expect(result[0]).to.be.a('number').and.equal(0);
-    expect(result[1]).to.be.a('string').and.equal('0x0000000000000000000000000000000000000000');
-    expect(result[2]).to.be.a('object');
+  it(`wrap 1000 wFIO tokens for accounts[15]`,async function () {
+    let tx = await wfio.connect(accounts[12]).wrap(accounts[15].address, 1000000000000, TRANSACTION_ID);
+    let result = await tx.wait();
+    approvalEvent = result.events[0];
   });
 
-  it(`(1 of 3 approvals) wrap 1000 wFIO tokens for accounts[15]`,async function () {
-    fioTransaction = await faucet.genericAction('transferTokens', {
-      payeeFioPublicKey: fioAccount.publicKey,
-      amount: 1000000000000,
-      maxFee: config.api.transfer_tokens_pub_key.fee,
-      technologyProviderId: ''
-    })
-    TRANSACTION_ID = fioTransaction.transaction_id;
-
-    await wfio.connect(accounts[12]).wrap(accounts[15].address, 1000000000000, TRANSACTION_ID);
-  });
-
-  it(`get approval by obtid, expect 1 approval`, async function () {
+  it(`(1 of 3 approvals) get approval by obtid, expect 1 approval`, async function () {
     try {
-      let result = await wfio.connect(accounts[1]).getApproval(TRANSACTION_ID);
+      let result = await wfio.connect(accounts[1]).getApproval(TRANSACTION_ID);//(approvalEvent.args[1]);
       expect(result).to.be.a('array')
       expect(result[0]).to.be.a('number').and.equal(1);
       expect(result[1]).to.be.a('string').and.equal('0x2546BcD3c84621e976D8185a91A922aE77ECEc30');
@@ -1731,13 +1718,15 @@ describe(`L. [ETH] Approval`, function () {
     }
   });
 
-  it(`(2 of 3 approvals) wrap 1000 wFIO tokens for accounts[15]`,async function () {
-    await wfio.connect(accounts[13]).wrap(accounts[15].address, 1000000000000, TRANSACTION_ID);
+  it(`wrap 1000 wFIO tokens for accounts[15]`,async function () {
+    let tx = await wfio.connect(accounts[13]).wrap(accounts[15].address, 1000000000000, TRANSACTION_ID);
+    let result = await tx.wait();
+    approvalEvent = result.events[0];
   });
 
-  it(`get approval by obtid, expect 2 approvals`, async function () {
+  it(`(2 of 3 approvals) get approval by obtid, expect 2 approvals`, async function () {
     try {
-      let result = await wfio.connect(accounts[1]).getApproval(TRANSACTION_ID);
+      let result = await wfio.connect(accounts[1]).getApproval(approvalEvent.args[1]);
       expect(result).to.be.a('array')
       expect(result[0]).to.be.a('number').and.equal(2);
       expect(result[1]).to.be.a('string').and.equal('0x2546BcD3c84621e976D8185a91A922aE77ECEc30');
@@ -1747,13 +1736,15 @@ describe(`L. [ETH] Approval`, function () {
     }
   });
 
-  it(`(3 of 3 approvals) wrap 1000 wFIO tokens for accounts[15]`,async function () {
-    await wfio.connect(accounts[14]).wrap(accounts[15].address, 1000000000000, TRANSACTION_ID);
+  it(`wrap 1000 wFIO tokens for accounts[15]`,async function () {
+    let tx = await wfio.connect(accounts[14]).wrap(accounts[15].address, 1000000000000, TRANSACTION_ID);
+    let result = await tx.wait();
+    approvalEvent = result.events[0];
   });
 
-  it(`get approval by obtid, expect 0 approvals - record has been deleted`, async function () {
+  it(`(3 of 3 approvals) get approval by obtid, expect 0 approvals - record has been deleted`, async function () {
     try {
-      let result = await wfio.connect(accounts[1]).getApproval(TRANSACTION_ID);
+      let result = await wfio.connect(accounts[1]).getApproval(approvalEvent.args[1]);
       expect(result).to.be.a('array');
       expect(result[0]).to.be.a('number').and.equal(0);
       expect(result[1]).to.be.a('string').and.equal('0x0000000000000000000000000000000000000000');
@@ -1799,7 +1790,7 @@ describe(`M. [ETH] Pausing`, function () {
   let owner;
   let factory;
   let wfio;
-  let TRANSACTIION_ID;
+  let TRANSACTION_ID;
 
   before(async function () {
 
@@ -1810,7 +1801,7 @@ describe(`M. [ETH] Pausing`, function () {
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     })
-    TRANSACTIION_ID = fioTransaction.transaction_id;
+    TRANSACTION_ID = fioTransaction.transaction_id;
     [owner, ...accounts] = await ethers.getSigners();
     custodians = [];
     for (let i = 1; i < 11; i++) {
@@ -1882,7 +1873,7 @@ describe(`M. [ETH] Pausing`, function () {
   it(`should not be able to wrap tokens when paused`, async function () {
     try {
       // wrapping/unwrapping is prohibited when contract is paused
-      await wfio.connect(accounts[12]).wrap(accounts[0].address, 100000000000, TRANSACTIION_ID);
+      await wfio.connect(accounts[12]).wrap(accounts[0].address, 100000000000, TRANSACTION_ID);
     } catch (err) {
       expect(err.message).to.contain('Pausable: paused');
     }
