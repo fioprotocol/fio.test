@@ -73,8 +73,7 @@ describe(`B. [ETH] Custodians (get)`, function () {
     let result = await wfio.getCustodian(custodians[0]);
     expect(result).to.be.a('array');
     expect(result[0]).to.be.a('boolean').and.equal(true);
-    // expect(result[1]).to.be.a('object').with.property('_hex');
-    // expect(result[1]).to.be.a('object').with.property('_isBigNumber');
+    expect(result[1]).to.be.a('number');
   });
 
   // unhappy paths
@@ -110,8 +109,7 @@ describe(`B. [ETH] Custodians (get)`, function () {
     let result = await wfio.getCustodian(accounts[15].address);
     expect(result).to.be.a('array');
     expect(result[0]).to.be.a('boolean').and.equal(false);
-    // expect(result[1]).to.be.a('object').with.property('_hex');
-    // expect(result[1]).to.be.a('object').with.property('_isBigNumber');
+    expect(result[1]).to.be.a('number');
   });
 });
 
@@ -324,8 +322,7 @@ describe(`E. [ETH] Oracles (get)`, function () {
     let result = await wfio.getOracle(accounts[12].address);
     expect(result).to.be.a('array');
     expect(result[0]).to.be.a('boolean').and.equal(true);
-    // expect(result[1]).to.be.a('object').with.property('_hex');
-    // expect(result[1]).to.be.a('object').with.property('_isBigNumber');
+    expect(result[1]).to.be.a('number');
   });
 
   // unhappy paths
@@ -362,8 +359,7 @@ describe(`E. [ETH] Oracles (get)`, function () {
       let result = await wfio.getOracle(accounts[15].address);
       expect(result).to.be.a('array');
       expect(result[0]).to.be.a('boolean').and.equal(false);
-      // expect(result[1]).to.be.a('object').with.property('_hex');
-      // expect(result[1]).to.be.a('object').with.property('_isBigNumber');
+      expect(result[1]).to.be.a('number');
     } catch (err) {
       throw err;
     }
@@ -387,14 +383,6 @@ describe(`F. [ETH] Oracles (register)`, function () {
     factory = await ethers.getContractFactory('WFIO', owner);
     wfio = await factory.deploy(INIT_SUPPLY, custodians);
     await wfio.deployTransaction.wait();
-    // register an oracle for testing
-    // await wfio.connect(accounts[6]).regoracle(accounts[12].address);
-    // await wfio.connect(accounts[5]).regoracle(accounts[12].address);
-    // await wfio.connect(accounts[2]).regoracle(accounts[12].address);
-    // await wfio.connect(accounts[3]).regoracle(accounts[12].address);
-    // await wfio.connect(accounts[4]).regoracle(accounts[12].address);
-    // await wfio.connect(accounts[1]).regoracle(accounts[12].address);
-    // await wfio.connect(accounts[7]).regoracle(accounts[12].address);
   });
 
   /**
@@ -699,7 +687,6 @@ describe(`G. [ETH] Oracles (unregister)`, function () {
       expect(result).to.be.a('array');
       expect(result[0]).to.be.a('boolean').and.equal(false);
     } catch (err) {
-      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Minimum 3 oracles required\'');
       throw err;
     }
   });
@@ -825,25 +812,15 @@ describe(`G1. [ETH] Try to unregister a newly registered oracle, then re-registe
       expect(result).to.be.a('array');
       expect(result[0]).to.be.a('boolean').and.equal(false);
     } catch (err) {
-      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Minimum 3 oracles required\'');
       throw err;
     }
   });
 
-  it(`try to re-register an oracle that has been unregistered`, async function () {
+  it(`(Approval already complete) try to re-register an oracle that has been unregistered, expect Error`, async function () {
     try {
       await wfio.connect(accounts[1]).regoracle(accounts[15].address);
-      await wfio.connect(accounts[2]).regoracle(accounts[15].address);
-      await wfio.connect(accounts[3]).regoracle(accounts[15].address);
-      await wfio.connect(accounts[4]).regoracle(accounts[15].address);
-      await wfio.connect(accounts[5]).regoracle(accounts[15].address);
-      await wfio.connect(accounts[6]).regoracle(accounts[15].address);
-      await wfio.connect(accounts[7]).regoracle(accounts[15].address);
-      result = await wfio.getOracle(accounts[15].address);
-      expect(result).to.be.a('array');
-      expect(result[0]).to.be.a('boolean').and.equal(true);
     } catch (err) {
-      throw err;
+      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Approval already complete\'');
     }
   });
 });
@@ -934,13 +911,10 @@ describe(`H. [ETH] (BD-4016) Register and unregister an oracle with different nu
     await wfio.connect(accounts[3]).regoracle(accounts[11].address);
     await wfio.connect(accounts[4]).regoracle(accounts[11].address);
     await wfio.connect(accounts[5]).regoracle(accounts[11].address);
-    // await wfio.connect(accounts[6]).regoracle(accounts[11].address);
-    // await wfio.connect(accounts[7]).regoracle(accounts[11].address);
     let result = await wfio.getOracle(accounts[11].address);
     expect(result).to.be.a('array');
     expect(result[0]).to.be.a('boolean').and.equal(true);
-    // expect(result[1]).to.be.a('object').with.property('_hex');
-    // expect(result[1]).to.be.a('object').with.property('_isBigNumber');
+    expect(result[1]).to.be.a('number');
   });
 
   it(`call getOracles, expect a single oracle in the list`, async function () {
@@ -961,8 +935,6 @@ describe(`H. [ETH] (BD-4016) Register and unregister an oracle with different nu
     await wfio.connect(accounts[3]).regcust(accounts[18].address);
     await wfio.connect(accounts[4]).regcust(accounts[18].address);
     await wfio.connect(accounts[5]).regcust(accounts[18].address);
-    // await wfio.connect(accounts[6]).regcust(accounts[18].address);
-    // await wfio.connect(accounts[7]).regcust(accounts[18].address);
     result = await wfio.getCustodian(accounts[18].address);
     expect(result[0]).to.be.a('boolean').and.equal(true);
 
@@ -975,7 +947,6 @@ describe(`H. [ETH] (BD-4016) Register and unregister an oracle with different nu
     await wfio.connect(accounts[4]).regcust(accounts[19].address);
     await wfio.connect(accounts[5]).regcust(accounts[19].address);
     await wfio.connect(accounts[6]).regcust(accounts[19].address);
-    // await wfio.connect(accounts[7]).regcust(accounts[19].address);
     result = await wfio.getCustodian(accounts[19].address);
     expect(result[0]).to.be.a('boolean').and.equal(true);
 
@@ -1441,10 +1412,6 @@ describe(`J. [ETH] wFIO wrapping`, function () {
       expect(err).to.have.property('reason').which.is.a('string').and.equal('network does not support ENS');
       expect(err).to.have.property('code').which.is.a('string').and.equal('UNSUPPORTED_OPERATION');
       expect(err).to.have.property('operation').which.is.a('string').and.equal('getResolver');
-
-      // expect(err).to.have.property('reason').which.is.a('string').and.equal('resolver or addr is not configured for ENS name');
-      // expect(err).to.have.property('code').which.is.a('string').and.equal('INVALID_ARGUMENT');
-
       expect(err).to.have.property('stack').which.is.a('string');
       expect(err).to.have.property('message').which.is.a('string');
     }
@@ -1511,7 +1478,6 @@ describe(`J. [ETH] wFIO wrapping`, function () {
   it(`missing obtid, expect Error 400`, async function () {
     try {
       await wfio.connect(accounts[12]).wrap(custodians[0], 1000);
-      // expect(result.status).to.equal('OK');
     } catch (err) {
       expect(err).to.have.property('reason').which.is.a('string').and.equal('missing argument: passed to contract');
       expect(err).to.have.property('code').which.is.a('string').and.equal('MISSING_ARGUMENT');
@@ -1525,7 +1491,6 @@ describe(`J. [ETH] wFIO wrapping`, function () {
   it(`no authority, expect Error 403`, async function () {
     try {
       let result = await wfio.connect(accounts[32]).wrap(accounts[13].address, 100000000000, transactionId);
-      // expect(result.status).to.equal('OK');
     } catch (err) {
       expect(err).to.have.property('stackTrace').which.is.a('Array');
       expect(err).to.have.property('stack').which.is.a('string');
@@ -1691,7 +1656,6 @@ describe(`K. [ETH] wFIO unwrapping`, function () {
   it(`invalid address, expect Error 400`, async function () {
     let fromStartingWfioBal = await wfio.balanceOf(accounts[0].address);
     try {
-      // TODO: what kind of checks are expected? this validation isn't enough for arbitrary strings
       await wfio.connect(accounts[0]).unwrap("0x", 100000000000);
     } catch (err) {
       let fromEndingWfioBal = await wfio.balanceOf(accounts[0].address);
@@ -1981,7 +1945,6 @@ describe(`L. [ETH] Approval`, function () {
     try {
       let result = await wfio.connect(accounts[1]).getApproval('xyz');
     } catch (err) {
-      // expect(err.message).to.contain('Invalid obtid');
       expect(err.code).to.equal('INVALID_ARGUMENT');
       expect(err.value).to.equal('xyz');
     }
@@ -2333,7 +2296,7 @@ describe(`O. [ETH] Prevent tokens from being sent to contract address`, function
   });
 
   it(`[test 2] post transfer attempt balance display, wfioBal should stay the same`, async function () {
-    fromSentBalPost =  await wfio.balanceOf(accounts[15].address);//await accounts[15].getBalance();
+    fromSentBalPost =  await wfio.balanceOf(accounts[15].address);
     wfioReceivedBalPost = await wfio.balanceOf(wfio.address);
     fromSentBalPost = ethers.BigNumber.from(fromSentBalPost).toString();
     wfioReceivedBalPost = ethers.BigNumber.from(wfioReceivedBalPost).toString();
@@ -2372,7 +2335,7 @@ describe(`O. [ETH] Prevent tokens from being sent to contract address`, function
   });
 
   it(`[test 3] pre transfer attempt balance display`, async function () {
-    fromSentBalPre =  await wfio.balanceOf(accounts[17].address);//await accounts[17].getBalance();
+    fromSentBalPre =  await wfio.balanceOf(accounts[17].address);
     wfioReceivedBalPre = await wfio.balanceOf(wfio.address);
     fromSentBalPre = ethers.BigNumber.from(fromSentBalPre).toString();
     wfioReceivedBalPre = ethers.BigNumber.from(wfioReceivedBalPre).toString();
@@ -2384,13 +2347,12 @@ describe(`O. [ETH] Prevent tokens from being sent to contract address`, function
       let result = await wfio.connect(accounts[17]).transferFrom(accounts[17].address, wfio.address, 260000000000);
       expect(result).to.not.have.property('hash');
     } catch (err) {
-      // expect(err.message).to.contain('Transaction reverted');
       expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Contract cannot receive tokens\'');
     }
   });
 
   it(`[test 3] post transfer attempt balance display, wfioBal should stay the same`, async function () {
-    fromSentBalPost =  await wfio.balanceOf(accounts[17].address);//await accounts[15].getBalance();
+    fromSentBalPost =  await wfio.balanceOf(accounts[17].address);
     wfioReceivedBalPost = await wfio.balanceOf(wfio.address);
     fromSentBalPost = ethers.BigNumber.from(fromSentBalPost).toString();
     wfioReceivedBalPost = ethers.BigNumber.from(wfioReceivedBalPost).toString();
@@ -2400,9 +2362,7 @@ describe(`O. [ETH] Prevent tokens from being sent to contract address`, function
   });
 
   it(`[test 4] pre transfer attempt balance display`, async function () {
-    // fromSentBalPre =  await wfio.balanceOf(accounts[17].address);//await accounts[17].getBalance();
     wfioReceivedBalPre = await wfio.balanceOf(wfio.address);
-    // fromSentBalPre = ethers.BigNumber.from(fromSentBalPre).toString();
     wfioReceivedBalPre = ethers.BigNumber.from(wfioReceivedBalPre).toString();
     console.log(`[DBG-pre-transfer-4] wfioBal: ${wfioReceivedBalPre}`);
   });
@@ -2431,12 +2391,9 @@ describe(`O. [ETH] Prevent tokens from being sent to contract address`, function
   });
 
   it(`[test 4] post transfer attempt balance display, wfioBal should stay the same`, async function () {
-    // fromSentBalPost =  await wfio.balanceOf(accounts[17].address);//await accounts[15].getBalance();
     wfioReceivedBalPost = await wfio.balanceOf(wfio.address);
-    // fromSentBalPost = ethers.BigNumber.from(fromSentBalPost).toString();
     wfioReceivedBalPost = ethers.BigNumber.from(wfioReceivedBalPost).toString();
     console.log(`[DBG-post-transfer-4] wfioBal: ${wfioReceivedBalPost}`);
-    // expect(fromSentBalPost).to.equal(fromSentBalPre);
     expect(wfioReceivedBalPost).to.equal(wfioReceivedBalPre);
   });
 });
