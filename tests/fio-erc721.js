@@ -733,6 +733,109 @@ describe(`G. [MATIC] Oracles (unregister)`, function () {
   });
 });
 
+describe(`G1. [MATIC] Try to unregister a newly registered oracle, then re-register that oracle`, function () {
+  let accounts;
+  let custodians;
+  let owner;
+  let factory;
+  let fioNft;
+
+  before(async function () {
+    [owner, ...accounts] = await ethers.getSigners();
+    custodians = [];
+    for (let i = 1; i < 11; i++) {
+      custodians.push(accounts[i].address);
+    }
+    factory = await ethers.getContractFactory('FIONFT', owner);
+    fioNft = await factory.deploy(custodians);
+    await fioNft.deployTransaction.wait();
+  });
+
+  it(`register 4 oracles`, async function () {
+    await fioNft.connect(accounts[1]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[2]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[3]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[4]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[5]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[6]).regoracle(accounts[12].address);
+    await fioNft.connect(accounts[7]).regoracle(accounts[12].address);
+    let result = await fioNft.getOracle(accounts[12].address);
+    expect(result).to.be.a('array');
+    expect(result[0]).to.be.a('boolean').and.equal(true);
+
+    await fioNft.connect(accounts[1]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[2]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[3]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[4]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[5]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[6]).regoracle(accounts[13].address);
+    await fioNft.connect(accounts[7]).regoracle(accounts[13].address);
+    result = await fioNft.getOracle(accounts[13].address);
+    expect(result).to.be.a('array');
+    expect(result[0]).to.be.a('boolean').and.equal(true);
+
+    await fioNft.connect(accounts[1]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[2]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[3]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[4]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[5]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[6]).regoracle(accounts[14].address);
+    await fioNft.connect(accounts[7]).regoracle(accounts[14].address);
+    result = await fioNft.getOracle(accounts[14].address);
+    expect(result).to.be.a('array');
+    expect(result[0]).to.be.a('boolean').and.equal(true);
+
+    await fioNft.connect(accounts[1]).regoracle(accounts[15].address);
+    await fioNft.connect(accounts[2]).regoracle(accounts[15].address);
+    await fioNft.connect(accounts[3]).regoracle(accounts[15].address);
+    await fioNft.connect(accounts[4]).regoracle(accounts[15].address);
+    await fioNft.connect(accounts[5]).regoracle(accounts[15].address);
+    await fioNft.connect(accounts[6]).regoracle(accounts[15].address);
+    await fioNft.connect(accounts[7]).regoracle(accounts[15].address);
+    result = await fioNft.getOracle(accounts[15].address);
+    expect(result).to.be.a('array');
+    expect(result[0]).to.be.a('boolean').and.equal(true);
+  });
+
+  it(`Try to unregister an oracle, expect OK - minimum 3 oracles met`, async function () {
+    let result = await fioNft.getOracle(accounts[15].address);
+    expect(result).to.be.a('array');
+    expect(result[0]).to.be.a('boolean').and.equal(true);
+    try {
+      await fioNft.connect(accounts[1]).unregoracle(accounts[15].address);
+      await fioNft.connect(accounts[2]).unregoracle(accounts[15].address);
+      await fioNft.connect(accounts[3]).unregoracle(accounts[15].address);
+      await fioNft.connect(accounts[4]).unregoracle(accounts[15].address);
+      await fioNft.connect(accounts[5]).unregoracle(accounts[15].address);
+      await fioNft.connect(accounts[6]).unregoracle(accounts[15].address);
+      await fioNft.connect(accounts[7]).unregoracle(accounts[15].address);
+      result = await fioNft.getOracle(accounts[15].address);
+      expect(result).to.be.a('array');
+      expect(result[0]).to.be.a('boolean').and.equal(false);
+    } catch (err) {
+      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Minimum 3 oracles required\'');
+      throw err;
+    }
+  });
+
+  it(`try to re-register an oracle that has been unregistered`, async function () {
+    try {
+      await fioNft.connect(accounts[1]).regoracle(accounts[15].address);
+      await fioNft.connect(accounts[2]).regoracle(accounts[15].address);
+      await fioNft.connect(accounts[3]).regoracle(accounts[15].address);
+      await fioNft.connect(accounts[4]).regoracle(accounts[15].address);
+      await fioNft.connect(accounts[5]).regoracle(accounts[15].address);
+      await fioNft.connect(accounts[6]).regoracle(accounts[15].address);
+      await fioNft.connect(accounts[7]).regoracle(accounts[15].address);
+      result = await fioNft.getOracle(accounts[15].address);
+      expect(result).to.be.a('array');
+      expect(result[0]).to.be.a('boolean').and.equal(true);
+    } catch (err) {
+      throw err;
+    }
+  });
+});
+
 describe(`H. [MATIC] (BD-4016) Register and unregister an oracle with different numbers of custodians`, function () {
 
   let accounts;
