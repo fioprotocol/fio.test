@@ -1139,19 +1139,21 @@ describe(`J. [MATIC] FIONFT wrapping`, function () {
   });
 
   it(`Wrap fioNft`, async function () {
-    let fromStartingBal = await accounts[14].getBalance();
-    let toStartingfioNftBal = await fioNft.balanceOf(accounts[0].address);
+    // let fromStartingBal = await accounts[14].getBalance();
+    // let toStartingfioNftBal = await fioNft.balanceOf(accounts[0].address);
 
     await fioNft.connect(accounts[12]).wrapnft(accounts[0].address, testDomain, transactionId);
     await fioNft.connect(accounts[13]).wrapnft(accounts[0].address, testDomain, transactionId);
     try {
-      let result = await fioNft.connect(accounts[14]).wrapnft(accounts[0].address, testDomain, transactionId);
-      let fromEndingBal = await accounts[14].getBalance();
-      let toEndingfioNftBal = await fioNft.balanceOf(accounts[0].address);
-      expect(result.from).to.equal(accounts[14].address);
-      expect(result.to).to.equal(fioNft.address);
-      expect(fromStartingBal.gt(fromEndingBal)).to.be.true;
-      expect(toStartingfioNftBal.lt(toEndingfioNftBal)).to.be.true;
+      let tx = await fioNft.connect(accounts[14]).wrapnft(accounts[0].address, testDomain, transactionId);
+      let result = await tx.wait();
+      expect(result.events[2].event).to.equal('consensus_activity');
+      expect(tx.from).to.equal(accounts[14].address);
+      expect(tx.to).to.equal(fioNft.address);
+      // let fromEndingBal = await accounts[14].getBalance();
+      // let toEndingfioNftBal = await fioNft.balanceOf(accounts[0].address);
+      // expect(fromStartingBal.gt(fromEndingBal)).to.be.true;
+      // expect(toStartingfioNftBal.lt(toEndingfioNftBal)).to.be.true;
     } catch (err) {
       throw err;
     }
@@ -1184,9 +1186,11 @@ describe(`J. [MATIC] FIONFT wrapping`, function () {
     await fioNft.connect(accounts[15]).wrapnft(accounts[0].address, testDomain2, transactionId2);
     await fioNft.connect(accounts[16]).wrapnft(accounts[0].address, testDomain2, transactionId2);
     try {
-      let result = await fioNft.connect(accounts[17]).wrapnft(accounts[0].address, testDomain2, transactionId2);
-      expect(result.from).to.equal(accounts[17].address);
-      expect(result.to).to.equal(fioNft.address);
+      let tx = await fioNft.connect(accounts[17]).wrapnft(accounts[0].address, testDomain2, transactionId2);
+      let result = await tx.wait();
+      expect(result.events[0].event).to.equal('consensus_activity');
+      expect(tx.from).to.equal(accounts[17].address);
+      expect(tx.to).to.equal(fioNft.address);
     } catch (err) {
       throw err;
     }
@@ -1286,9 +1290,11 @@ describe(`J. [MATIC] FIONFT wrapping`, function () {
     await fioNft.connect(accounts[26]).wrapnft(accounts[0].address, testDomain3, transactionId3);
 
     try {
-      let result = await fioNft.connect(accounts[27]).wrapnft(accounts[0].address, testDomain3, transactionId3);
-      expect(result.from).to.equal(accounts[27].address);
-      expect(result.to).to.equal(fioNft.address);
+      let tx = await fioNft.connect(accounts[27]).wrapnft(accounts[0].address, testDomain3, transactionId3);
+      let result = await tx.wait();
+      expect(result.events[2].event).to.equal('consensus_activity');
+      expect(tx.from).to.equal(accounts[27].address);
+      expect(tx.to).to.equal(fioNft.address);
     } catch (err) {
       throw err;
     }
@@ -1319,6 +1325,36 @@ describe(`J. [MATIC] FIONFT wrapping`, function () {
       expect(err).to.have.property('expectedCount').which.is.a('number').and.equal(3);
       expect(err).to.have.property('stack').which.is.a('string');
       expect(err).to.have.property('message').which.is.a('string');
+    }
+  });
+
+  it(`invalid domain - 1 char, expect Error 400`, async function () {
+    try {
+      let tx = await fioNft.connect(accounts[14]).wrapnft(accounts[0].address, "a", transactionId);
+      let result = await tx.wait();
+      expect(result.events[0].event).to.equal('consensus_activity');
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`invalid domain - 2 char, expect Error 400`, async function () {
+    try {
+      let tx = await fioNft.connect(accounts[14]).wrapnft(accounts[0].address, "aa", transactionId);
+      let result = await tx.wait();
+      expect(result.events[0].event).to.equal('consensus_activity');
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`invalid domain - > 63 char, expect Error 400`, async function () {
+    try {
+      let tx = await fioNft.connect(accounts[14]).wrapnft(accounts[0].address, "Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", transactionId);
+      let result = await tx.wait();
+      expect(result.events[0]).to.be.empty;
+    } catch (err) {
+      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Invalid domain\'');
     }
   });
 
@@ -1600,6 +1636,128 @@ describe(`L. [MATIC] Approval`, function () {
       expect(result).to.be.a('array');
       expect(result[0]).to.be.a('number').and.equal(0);
       expect(result[1]).to.be.a('boolean').and.equal(false);
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`try to call regoracle as a new oracle and have 2 oracles approve it`, async function () {
+    let tx = await fioNft.connect(accounts[1]).regoracle(accounts[32].address);
+    let result = await tx.wait();
+    approvalEvent = result.events[0];
+  });
+
+  it(`(1 approval) get approvals`, async function () {
+    try {
+      let result = await fioNft.connect(accounts[1]).getApproval(approvalEvent.args[1]);
+      expect(result).to.be.a('array');
+      expect(result[0]).to.be.a('number').and.equal(1);
+      expect(result[1]).to.be.a('boolean').and.equal(false);
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`two other oracles approve`, async function () {
+    await fioNft.connect(accounts[2]).regoracle(accounts[32].address);
+    await fioNft.connect(accounts[3]).regoracle(accounts[32].address);
+  });
+
+  it(`(3 approvals) get approvals`, async function () {
+    try {
+      let result = await fioNft.connect(accounts[3]).getApproval(approvalEvent.args[1]);
+      expect(result).to.be.a('array');
+      expect(result[0]).to.be.a('number').and.equal(3);
+      expect(result[1]).to.be.a('boolean').and.equal(false);
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`try to call regcust as an oracle and have the other oracles approve it`, async function () {
+    let tx1 = await fioNft.connect(accounts[1]).regcust(accounts[33].address);
+    let result1 = await tx1.wait();
+    approvalEvent = result1.events[0];
+
+    try {
+      let result = await fioNft.connect(accounts[1]).getApproval(approvalEvent.args[1]);
+      expect(result).to.be.a('array');
+      expect(result[0]).to.be.a('number').and.equal(1);
+      expect(result[1]).to.be.a('boolean').and.equal(false);
+    } catch (err) {
+      throw err;
+    }
+
+    await fioNft.connect(accounts[2]).regcust(accounts[33].address);
+    await fioNft.connect(accounts[3]).regcust(accounts[33].address);
+    await fioNft.connect(accounts[4]).regcust(accounts[33].address);
+    await fioNft.connect(accounts[5]).regcust(accounts[33].address);
+    await fioNft.connect(accounts[6]).regcust(accounts[33].address);
+    await fioNft.connect(accounts[7]).regcust(accounts[33].address);
+
+    // try {
+    //   let result = await fioNft.connect(accounts[7]).getApproval(approvalEvent.args[1]);
+    //   expect(result).to.be.a('array');
+    //   expect(result[0]).to.be.a('number').and.equal(7);
+    //   expect(result[1]).to.be.a('boolean').and.equal(false);
+    // } catch (err) {
+    //   throw err;
+    // }
+
+    try {
+      await fioNft.connect(accounts[8]).regcust(accounts[33].address);
+    } catch (err) {
+      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Already registered\'');
+    }
+  });
+
+  it(`get approval by obtid, expect 7 approvals`, async function () {
+    try {
+      let result = await fioNft.connect(accounts[7]).getApproval(approvalEvent.args[1]);
+      expect(result).to.be.a('array');
+      expect(result[0]).to.be.a('number').and.equal(7);
+      expect(result[1]).to.be.a('boolean').and.equal(true);
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`try to call unregcust as a new oracle and have 5 oracles approve it, but expect to unregister after 3 and error on the 4th attempt`, async function () {
+    let tx = await fioNft.connect(accounts[1]).unregcust(accounts[33].address);
+    let result = await tx.wait();
+    approvalEvent = result.events[0];
+
+    await fioNft.connect(accounts[2]).unregcust(accounts[33].address);
+    await fioNft.connect(accounts[3]).unregcust(accounts[33].address);
+
+    try {
+      let result = await fioNft.connect(accounts[3]).getApproval(approvalEvent.args[1]);
+      expect(result).to.be.a('array');
+      expect(result[0]).to.be.a('number').and.equal(3);
+      expect(result[1]).to.be.a('boolean').and.equal(false);
+    } catch (err) {
+      throw err;
+    }
+
+    await fioNft.connect(accounts[4]).unregcust(accounts[33].address);
+    await fioNft.connect(accounts[5]).unregcust(accounts[33].address);
+    await fioNft.connect(accounts[6]).unregcust(accounts[33].address);
+    await fioNft.connect(accounts[7]).unregcust(accounts[33].address);
+    await fioNft.connect(accounts[8]).unregcust(accounts[33].address);
+
+    try {
+      tx = await fioNft.connect(accounts[9]).unregcust(accounts[33].address);
+    } catch (err) {
+      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Custodian not registered\'');
+    }
+  });
+
+  it(`get approval by obtid, expect 8 approvals`, async function () {
+    try {
+      let result = await fioNft.connect(accounts[1]).getApproval(approvalEvent.args[1]);
+      expect(result).to.be.a('array');
+      expect(result[0]).to.be.a('number').and.equal(8);
+      expect(result[1]).to.be.a('boolean').and.equal(true);
     } catch (err) {
       throw err;
     }

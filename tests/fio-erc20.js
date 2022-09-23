@@ -1708,7 +1708,7 @@ describe(`L. [ETH] Approval`, function () {
 
   it(`(1 of 3 approvals) get approval by obtid, expect 1 approval`, async function () {
     try {
-      let result = await wfio.connect(accounts[1]).getApproval(TRANSACTION_ID);//(approvalEvent.args[1]);
+      let result = await wfio.connect(accounts[1]).getApproval(approvalEvent.args[1]);
       expect(result).to.be.a('array')
       expect(result[0]).to.be.a('number').and.equal(1);
       expect(result[1]).to.be.a('string').and.equal('0x2546BcD3c84621e976D8185a91A922aE77ECEc30');
@@ -1754,13 +1754,133 @@ describe(`L. [ETH] Approval`, function () {
     }
   });
 
+  it(`try to call regoracle as a new oracle and have 2 oracles approve it`, async function () {
+    let tx = await wfio.connect(accounts[1]).regoracle(accounts[32].address);
+    let result = await tx.wait();
+    approvalEvent = result.events[0];
+  });
+
+  it(`(1 approval) get approvals`, async function () {
+    try {
+      let result = await wfio.connect(accounts[1]).getApproval(approvalEvent.args[1]);
+      expect(result).to.be.a('array');
+      expect(result[0]).to.be.a('number').and.equal(1);
+      expect(result[1]).to.be.a('string').and.equal('0x86c53Eb85D0B7548fea5C4B4F82b4205C8f6Ac18');
+      expect(result[2]).to.be.a('object');
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`two other oracles approve`, async function () {
+    await wfio.connect(accounts[2]).regoracle(accounts[32].address);
+    await wfio.connect(accounts[3]).regoracle(accounts[32].address);
+  });
+
+  it(`(3 approvals) get approvals`, async function () {
+    try {
+      let result = await wfio.connect(accounts[3]).getApproval(approvalEvent.args[1]);
+      expect(result).to.be.a('array');
+      expect(result[0]).to.be.a('number').and.equal(3);
+      expect(result[1]).to.be.a('string').and.equal('0x86c53Eb85D0B7548fea5C4B4F82b4205C8f6Ac18');
+      expect(result[2]).to.be.a('object');
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`try to call regcust as an oracle and have the other oracles approve it`, async function () {
+    let tx1 = await wfio.connect(accounts[1]).regcust(accounts[33].address);
+    let result1 = await tx1.wait();
+    approvalEvent = result1.events[0];
+
+    try {
+      let result = await wfio.connect(accounts[1]).getApproval(approvalEvent.args[1]);
+      expect(result).to.be.a('array');
+      expect(result[0]).to.be.a('number').and.equal(1);
+      expect(result[1]).to.be.a('string').and.equal('0x1aac82773CB722166D7dA0d5b0FA35B0307dD99D');
+      expect(result[2]).to.be.a('object');
+    } catch (err) {
+      throw err;
+    }
+
+    await wfio.connect(accounts[2]).regcust(accounts[33].address);
+    await wfio.connect(accounts[3]).regcust(accounts[33].address);
+    await wfio.connect(accounts[4]).regcust(accounts[33].address);
+    await wfio.connect(accounts[5]).regcust(accounts[33].address);
+    await wfio.connect(accounts[6]).regcust(accounts[33].address);
+    await wfio.connect(accounts[7]).regcust(accounts[33].address);
+
+    try {
+      await wfio.connect(accounts[8]).regcust(accounts[33].address);
+    } catch (err) {
+      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Already registered\'');
+    }
+  });
+
+  it(`get approval by obtid, expect 7 approvals`, async function () {
+    try {
+      let result = await wfio.connect(accounts[7]).getApproval(approvalEvent.args[1]);
+      expect(result).to.be.a('array');
+      expect(result[0]).to.be.a('number').and.equal(7);
+      expect(result[1]).to.be.a('string').and.equal('0x1aac82773CB722166D7dA0d5b0FA35B0307dD99D');
+      expect(result[2]).to.be.a('object');
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`try to call unregcust as a new oracle and have 5 oracles approve it, but expect to unregister after 3 and error on the 4th attempt`, async function () {
+    let tx = await wfio.connect(accounts[1]).unregcust(accounts[33].address);
+    let result = await tx.wait();
+    approvalEvent = result.events[0];
+
+    await wfio.connect(accounts[2]).unregcust(accounts[33].address);
+    await wfio.connect(accounts[3]).unregcust(accounts[33].address);
+
+    try {
+      let result = await wfio.connect(accounts[3]).getApproval(approvalEvent.args[1]);
+      expect(result).to.be.a('array');
+      expect(result[0]).to.be.a('number').and.equal(3);
+      expect(result[1]).to.be.a('string').and.equal('0x1aac82773CB722166D7dA0d5b0FA35B0307dD99D');
+      expect(result[2]).to.be.a('object');
+    } catch (err) {
+      throw err;
+    }
+
+    await wfio.connect(accounts[4]).unregcust(accounts[33].address);
+    await wfio.connect(accounts[5]).unregcust(accounts[33].address);
+    await wfio.connect(accounts[6]).unregcust(accounts[33].address);
+    await wfio.connect(accounts[7]).unregcust(accounts[33].address);
+    await wfio.connect(accounts[8]).unregcust(accounts[33].address);
+
+    try {
+      tx = await wfio.connect(accounts[9]).unregcust(accounts[33].address);
+    } catch (err) {
+      expect(err.message).to.equal('VM Exception while processing transaction: reverted with reason string \'Custodian not registered\'');
+    }
+  });
+
+  it(`get approval by obtid, expect 8 approvals`, async function () {
+    try {
+      let result = await wfio.connect(accounts[9]).getApproval(approvalEvent.args[1]);
+      expect(result).to.be.a('array');
+      expect(result[0]).to.be.a('number').and.equal(8);
+      expect(result[1]).to.be.a('string').and.equal('0x1aac82773CB722166D7dA0d5b0FA35B0307dD99D');
+      expect(result[2]).to.be.a('object');
+    } catch (err) {
+      throw err;
+    }
+  });
+
   // unhappy path
   it(`invalid obtid`, async function () {
     try {
       let result = await wfio.connect(accounts[1]).getApproval('xyz');
-      console.log(result)
     } catch (err) {
-      expect(err.message).to.contain('Invalid obtid');
+      // expect(err.message).to.contain('Invalid obtid');
+      expect(err.code).to.equal('INVALID_ARGUMENT');
+      expect(err.value).to.equal('xyz');
     }
   });
 
@@ -1768,7 +1888,8 @@ describe(`L. [ETH] Approval`, function () {
     try {
       await wfio.connect(accounts[1]).getApproval('');
     } catch (err) {
-      expect(err.message).to.contain('Invalid obtid');
+      expect(err.code).to.equal('INVALID_ARGUMENT');
+      expect(err.value).to.equal('');
     }
   });
 
