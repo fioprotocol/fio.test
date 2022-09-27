@@ -2175,6 +2175,8 @@ describe('C. Test unstakefio Bundled transactions', () => {
     expect(locks.unlock_periods[0].amount).to.equal(10000000000);
   });
 
+  it.skip(`WARNING: This test depends on unlock timing. Consuming bundles may impact this timing if it takes too long?`, async () => { });
+
   it(`consume user1's remaining bundled transactions`, async () => {
     try {
       await consumeRemainingBundles(user1, proxy1);
@@ -2186,7 +2188,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
     }
   });
 
-  it(`get locks for user1, expect lock_amount, remaining_lock_amount and unlock period amount to equal 0`, async () => {
+  it(`get locks for user1, check lock_amount, remaining_lock_amount and unlock period`, async () => {
     const locks = await user1.sdk.genericAction('getLocks', {fioPublicKey: user1.publicKey});
     expect(locks).to.have.all.keys('lock_amount', 'remaining_lock_amount', 'time_stamp', 'payouts_performed', 'can_vote', 'unlock_periods');
     // expect(locks.lock_amount).to.equal(0);
@@ -2235,7 +2237,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
     expect(bundleCount).to.equal(0);
   });
 
-  it(`get locks for user1, expect lock_amount, remaining_lock_amount and unlock period amount to equal 20000000000Z`, async () => {
+  it(`get locks for user1, check lock_amount, remaining_lock_amount and unlock period amount`, async () => {
     const locks = await user1.sdk.genericAction('getLocks', {fioPublicKey: user1.publicKey});
     expect(locks).to.have.all.keys('lock_amount', 'remaining_lock_amount', 'time_stamp', 'payouts_performed', 'can_vote', 'unlock_periods');
     expect(locks.lock_amount).to.equal(30000000000);
@@ -2334,7 +2336,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
     }
   });
 
-  it(`get locks for user1, expect lock_amount, remaining_lock_amount and unlock period amount to equal 20000000000Z`, async () => {
+  it(`get locks for user1, check lock_amount, remaining_lock_amount and unlock period amount`, async () => {
     const locks = await user1.sdk.genericAction('getLocks', {fioPublicKey: user1.publicKey});
     expect(locks).to.have.all.keys('lock_amount', 'remaining_lock_amount', 'time_stamp', 'payouts_performed', 'can_vote', 'unlock_periods');
     expect(locks.lock_amount).to.equal(47000000000);
@@ -2348,7 +2350,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
     await timeout(UNSTAKELOCKDURATIONSECONDS * 1000);
   })
 
-  it(`get locks for user1, expect lock_amount, remaining_lock_amount and unlock period amount to equal 20000000000Z`, async () => {
+  it(`get locks for user1, check lock_amount, remaining_lock_amount and unlock period amount`, async () => {
     const locks = await user1.sdk.genericAction('getLocks', {fioPublicKey: user1.publicKey});
     expect(locks).to.have.all.keys('lock_amount', 'remaining_lock_amount', 'time_stamp', 'payouts_performed', 'can_vote', 'unlock_periods');
     expect(locks.lock_amount).to.equal(0);

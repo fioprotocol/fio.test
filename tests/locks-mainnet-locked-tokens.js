@@ -1824,7 +1824,8 @@ describe(`H. (BD-2632, BD-2759) Verify get_fio_balance returns accurate balance 
       })
       expect(lock2.status).to.equal('OK');
     } catch (err) {
-      console.log(err)
+      console.log(err);
+      expect(err).to.equal(null);
     }
   });
 

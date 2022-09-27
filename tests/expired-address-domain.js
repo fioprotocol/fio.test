@@ -108,18 +108,14 @@ describe('************************** expired-address-domain.js *****************
         code: 'fio.address',
         scope: 'fio.address',
         table: 'fionames',
-        limit: 1000,
-        reverse: true,
-        show_payer: false
+        lower_bound: user1.account,
+        upper_bound: user1.account,
+        key_type: 'i64',
+        index_position: '4'
       }
       fionames = await callFioApi("get_table_rows", json);
       //console.log('fionames: ', fionames);
-      for (fioname in fionames.rows) {
-        if (fionames.rows[fioname].name == user1.address) {
-          //console.log('fioname: ', fionames.rows[fioname]);
-          addressExpiration = fionames.rows[fioname].expiration;
-        }
-      }
+      addressExpiration = fionames.rows[0].expiration;
       curdate = new Date();
       var utcSeconds = (curdate.getTime() + curdate.getTimezoneOffset() * 60 * 1000) / 1000;  // Convert to UTC
       //console.log('utcSeconds', utcSeconds);

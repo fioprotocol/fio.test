@@ -64,14 +64,18 @@ describe('TEST SUITE', () => {
     /**
      * !!! These Staking tests require additional configuration !!!
      */
-    require('./tests/stake-tokens.js');
-    require('./tests/stake-timing.js');
+ 
+    // These have a similar setup
     require('./tests/locks-get-locks-with-staking.js');
     require('./tests/BD-3941-unstake.js');
 
     // These have a similar setup
     require('./tests/stake-rapid-unstake-with-mainnet-locks.js'); //FIP-21 tests for rapid fire unstaking in succession
     require('./tests/stake-mainnet-locked-tokens-with-staking.js'); //FIP-21 tests for genesis lock accounts performing staking
+
+    // These both have unique requirements
+    require('./tests/stake-tokens.js');
+    require('./tests/stake-timing.js');
   });
 
   describe('** GENERAL TESTS - NO SETUP **', () => {
@@ -121,24 +125,29 @@ describe('TEST SUITE', () => {
     require('./tests/nft-sdk-tests.js');
     require('./tests/nft-uniqueness.js'); //FIP-27
     require('./tests/nft-remove-burn.js'); //FIP-27
-    //require('./tests/nft-performance-tests.js'); //FIP-27 - Takes a long time and requires monitoring
-
+    
     /**
-     * Lock/staking tests -Do NOT require additional configuration.
+     * Lock/staking tests - Do NOT require additional configuration
      */
     require('./tests/locks-transfer-locked-tokens-account-tests.js');  // FIP-6 tests of generic account functionality
     require('./tests/locks-transfer-locked-tokens.js');  //FIP-21 locking tests for general locks
     require('./tests/stake-general-locked-tokens.js'); //FIP-21 tests for general lock accounts performing staking
     require('./tests/stake-BD-3552-dev-tests.js');
+
+    /**
+     * FIP-26 (marketplace) FIO Escrow Test. 
+     * Tests that require configuration to enable modexpire are commented out by default
+     */
+    require('./tests/fio-escrow.js'); // FIP-26 (marketplace). Requires additional configuration to add the modexpire action
   
   });
 
   describe.skip('** GENERAL TESTS - REQUIRE SETUP **', () => {
 
     /**
-     * FIP-26 (marketplace) FIO Escrow Test. Requires configuration to enable modexpire
+     * FIP-27 - Takes a long time and requires monitoring
      */
-    //require('./tests/fio-escrow.js'); // FIP-26 (marketplace). Requires additional configuration to add the modexpire action
+    //require('./tests/nft-performance-tests.js'); 
 
     /**
      * Expired Address and Domain Testing. Requires manual updates to contracts to shorten expiration timing
@@ -152,7 +161,7 @@ describe('TEST SUITE', () => {
     //require('./tests/retire-tokens.js');  // FIP-22 Retire tokens. Requires setup to run.
     
     /**
-     * Lock tests - May require a new chain to have enough FIO?
+     * Lock tests - May require a new build to have enough FIO?
      */
     //require('./tests/locks-transfer-locked-tokens-large-grants.js'); //FIP-21 tests for FIO genesis locks functionality.
     //require('./tests/locks-mainnet-locked-tokens.js');
@@ -161,15 +170,15 @@ describe('TEST SUITE', () => {
     //require('./tests/locks-transfer-locked-tokens-testnet-smoke-tests.js');
     
     /**
+     * Producer Tests. Only run on devnet. Requires .csv file
+     */
+    //require('./tests/producer-fee-voting-fee-setting.js'); // FIP-10 
+    //require('./tests/producer-fee-setting.js');  // FIP-10
+
+    /**
      * clio tests. Only works with local testing since it accesses the fio.devtools/bin directory
      */
     //require('./tests/clio.js');  // FIP-16
-
-    /**
-     * Producer Tests. Only run on devnet. Requires additional configuration
-     */
-    //require('./tests/producer-fee-voting-fee-setting.js'); // FIP-10
-    //require('./tests/producer-fee-setting.js');  // FIP-10
 
     /**
      * History Node tests. Only run against history node.
