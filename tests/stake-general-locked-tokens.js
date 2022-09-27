@@ -1442,7 +1442,7 @@ describe(`B. Insert stake period in middle of locktokensv2 general locks, then u
 })
 
 
-describe.only(`C. Insert stake period at END of locktokensv2 general locks, then unlock and unstake`, () => {
+describe(`C. Insert stake period at END of locktokensv2 general locks, then unlock and unstake`, () => {
 
   let userA1, locksdk, keys, accountnm, newFioDomain, newFioAddress, lockDuration
 
@@ -1654,7 +1654,7 @@ describe.only(`C. Insert stake period at END of locktokensv2 general locks, then
         index_position: '2'
       }
       result = await callFioApi("get_table_rows", json);
-      console.log('Result: ', result);
+      //console.log('Result: ', result);
       //console.log('periods : ', result.rows[0].periods)
       expect(result.rows[0].lock_amount).to.equal(genLockTotal + unstake1)  
       expect(result.rows[0].remaining_lock_amount).to.equal(genLockTotal + unstake1)  
@@ -1719,7 +1719,7 @@ describe.only(`C. Insert stake period at END of locktokensv2 general locks, then
         index_position: '2'
       }
       result = await callFioApi("get_table_rows", json);
-      console.log('Result: ', result);
+      //console.log('Result: ', result);
       //console.log('periods : ', result.rows[0].periods)
       expect(result.rows[0].lock_amount).to.equal(genLockTotal + unstake1) 
       expect(result.rows[0].remaining_lock_amount).to.equal(genLockTotal + unstake1 - genLock1Amount)  // Subtract first lock amount.

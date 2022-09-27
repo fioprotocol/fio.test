@@ -300,9 +300,9 @@ describe(`B. erc20 unwrap smoketest`, function () {
 
 });
 
-describe.only(`Utilities`, function () {
+describe(`Utilities`, function () {
 
-    describe.only(`Register Oracles`, function () {
+    describe(`Register Oracles`, function () {
         const custodianPublicKeys = [
             '0x097c3dcBA4f7E3A800ca546D87f62B646F10110E',
             '0x310cbb853e0Ed406ab476012BfD6027cb52Ec88B',

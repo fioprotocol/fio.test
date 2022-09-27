@@ -1,3 +1,11 @@
+/*
+   setup,
+
+   you must get a copy of the csv file with the keys for dev net, this is available from Ed.
+   you must set the config.ProdKeyFile to be this file. The file needs to have a header line to be processed
+   properly..
+ */
+
 require('mocha')
 const {expect} = require('chai')
 const {getBlock, readProdFile, getTopprods, getTable, timeout, callFioApi, callFioApiSigned, getFees, newUser, existingUser, fetchJson} = require('../utils.js');
