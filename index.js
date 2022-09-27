@@ -5,7 +5,7 @@ describe('TEST SUITE', () => {
 
   describe(`Run only...`, function () {
     // Use this to run only a few tests
-    require('./tests/locks-mainnet-locked-tokens.js');
+
   });
 
   /**

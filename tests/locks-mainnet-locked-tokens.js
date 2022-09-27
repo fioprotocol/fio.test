@@ -1700,7 +1700,7 @@ describe(`G. Create large grant verify unlocking with skipped periods using tran
   });
 });
 
-describe.only(`H. (BD-2632, BD-2759) Verify get_fio_balance returns accurate balance when an expired mainnet lock is in the table`, () => {
+describe(`H. (BD-2632, BD-2759) Verify get_fio_balance returns accurate balance when an expired mainnet lock is in the table`, () => {
   // create two mainnet (genesis) locks
   let user1, locksdk1, locksdk2, keys1, keys2, accountnm1, accountnm2, transfer_tokens_pub_key_fee
   const lockAmount1 = 7000000000000;
@@ -1810,24 +1810,6 @@ describe.only(`H. (BD-2632, BD-2759) Verify get_fio_balance returns accurate bal
   it(`wait for ${numPeriods} lock periods`, async () => {
     await timeout(lockdurationseconds * (numPeriods * 1000));
   })
-
-  it(`lock more tokens`, async () => {
-    try {
-      const lock2 = await locksdk1.genericAction('pushTransaction', {
-        action: 'addlocked',
-        account: 'eosio',
-        data: {
-          owner: accountnm1,
-          amount: 1000000000,
-          locktype: lockType
-        }
-      })
-      expect(lock2.status).to.equal('OK');
-    } catch (err) {
-      console.log(err);
-      expect(err).to.equal(null);
-    }
-  });
 
   // call get_table on `eosio lockedtokens`, expect `lock_amount` and `remaining_lock_amount` to be correct and include the amount from the expired lock, even though it is still in the table
   it(`Call get_table_rows from lockedtokens and confirm: 6% unlocked amount`, async () => {
