@@ -1700,7 +1700,7 @@ describe(`G. Create large grant verify unlocking with skipped periods using tran
   });
 });
 
-describe(`H. (BD-2632, BD-2759) Verify get_fio_balance returns accurate balance when an expired mainnet lock is in the table`, () => {
+describe.only(`H. (BD-2632, BD-2759) Verify get_fio_balance returns accurate balance when an expired mainnet lock is in the table`, () => {
   // create two mainnet (genesis) locks
   let user1, locksdk1, locksdk2, keys1, keys2, accountnm1, accountnm2, transfer_tokens_pub_key_fee
   const lockAmount1 = 7000000000000;
