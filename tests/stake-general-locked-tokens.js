@@ -1639,6 +1639,8 @@ describe(`C. Insert stake period at END of locktokensv2 general locks, then unlo
     }
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(2000) });
+
   it(`Call get_table_rows from locktokensv2. Confirm: lock_amount updated, additional Staking period added at end`, async () => {
     try {
       const json = {

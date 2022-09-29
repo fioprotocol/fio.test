@@ -30,14 +30,16 @@ describe(`************************** nft-sdk-tests.js **************************
     user1 = await newUser(faucet);
     user2 = await newUser(faucet);
     let fionames = await callFioApi("get_table_rows", {
-      json: true,               // Get the response as json
-      code: 'fio.address',      // Contract that we target
-      scope: 'fio.address',     // Account that owns the data
-      table: 'fionames',        // Table name
-      reverse: false,           // Optional: Get reversed data
-      show_payer: false         // Optional: Show ram payer
+      code: 'fio.address',
+      scope: 'fio.address',
+      table: 'fionames',
+      lower_bound: user1.account,
+      upper_bound: user1.account,
+      key_type: 'i64',
+      index_position: '4',
+      json: true
     });
-    fionames.rows = fionames.rows.slice(-2);
+    //fionames.rows = fionames.rows.slice(-2);
     try {
       expect(fionames.rows[0].name).to.equal(user1.address);
       user1Hash = fionames.rows[0].namehash;
@@ -221,15 +223,18 @@ describe(`B. (unhappy) Test SDK getters with invalid method arguments`, () => {
   before(async () => {
     user1 = await newUser(faucet);
     user2 = await newUser(faucet);
+
     let fionames = await callFioApi("get_table_rows", {
-      json: true,               // Get the response as json
-      code: 'fio.address',      // Contract that we target
-      scope: 'fio.address',     // Account that owns the data
-      table: 'fionames',        // Table name
-      reverse: false,           // Optional: Get reversed data
-      show_payer: false         // Optional: Show ram payer
+      code: 'fio.address',
+      scope: 'fio.address',
+      table: 'fionames',
+      lower_bound: user1.account,
+      upper_bound: user1.account,
+      key_type: 'i64',
+      index_position: '4',
+      json: true
     });
-    fionames.rows = fionames.rows.slice(-2);
+
     try {
       expect(fionames.rows[0].name).to.equal(user1.address);
       user1Hash = fionames.rows[0].namehash;

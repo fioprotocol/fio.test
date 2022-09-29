@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, generateFioAddress, generateFioDomain, createKeypair, callFioApi, getFees, timeout, fetchJson} = require('../utils.js');
+const {newUser, generateFioAddress, generateFioDomain, createKeypair, callFioApi, getFees, getBundleCount, timeout, fetchJson} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
@@ -805,31 +805,9 @@ describe('D. transferFioDomain Error testing', () => {
     }
   })
 
-  it('Call get_table_rows from fionames to get bundles remaining for userD3. Verify 0 bundles', async () => {
-    let bundleCount
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'fio.address',      // Contract that we target
-        scope: 'fio.address',         // Account that owns the data
-        table: 'fionames',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
-      }
-      fionames = await callFioApi("get_table_rows", json);
-      //console.log('fionames: ', fionames);
-      for (fioname in fionames.rows) {
-        if (fionames.rows[fioname].name == userD3.address) {
-          //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
-          bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-        }
-      }
-      expect(bundleCount).to.equal(0);
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
+  it('Confirm bundles remaining = 0', async () => {
+    const bundleCount = await getBundleCount(userD3.sdk);
+    expect(bundleCount).to.equal(0);
   })
 
   it(`Transfer domain with insufficient funds and no bundled transactions. Expect error type 400: ${config.error.insufficientFunds}`, async () => {

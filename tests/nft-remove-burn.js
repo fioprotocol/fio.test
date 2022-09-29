@@ -1,5 +1,5 @@
 const {expect} = require("chai");
-const {newUser, callFioApi, callFioApiSigned, fetchJson} = require("../utils.js");
+const {newUser, callFioApi, callFioApiSigned, timeout, fetchJson} = require("../utils.js");
 const {FIOSDK} = require("@fioprotocol/fiosdk");
 const config = require('../config.js');
 let faucet;
@@ -104,19 +104,31 @@ describe(`************************** nft-remove-burn.js ************************
     user3 = await newUser(faucet);
 
     //grab our user records from fionames so we can use their fio_address_hash
-    let fionames = await callFioApi("get_table_rows", {
-      json: true,               // Get the response as json
-      code: 'fio.address',      // Contract that we target
-      scope: 'fio.address',     // Account that owns the data
-      table: 'fionames',        // Table name
-      limit: 1000,              // Maximum number of rows that we want to get
-      reverse: false,           // Optional: Get reversed data
-      show_payer: false         // Optional: Show ram payer
+    let fionames1 = await callFioApi("get_table_rows", {
+      code: 'fio.address',
+      scope: 'fio.address',
+      table: 'fionames',
+      lower_bound: user1.account,
+      upper_bound: user1.account,
+      key_type: 'i64',
+      index_position: '4',
+      json: true
     });
-    fionames.rows = fionames.rows.slice(-3);    // only need the last 3 accounts
+
+    let fionames2 = await callFioApi("get_table_rows", {
+      code: 'fio.address',
+      scope: 'fio.address',
+      table: 'fionames',
+      lower_bound: user2.account,
+      upper_bound: user2.account,
+      key_type: 'i64',
+      index_position: '4',
+      json: true
+    });
+
     try {
-      user1Hash = fionames.rows[0].namehash
-      user2Hash = fionames.rows[1].namehash
+      user1Hash = fionames1.rows[0].namehash
+      user2Hash = fionames2.rows[0].namehash
     } catch (err) {
       console.log('user namehash not found in table');
       throw err;
@@ -709,23 +721,37 @@ describe(`C. (sdk) Transfer a FIO address to another user and make sure any NFTs
     })
     expect(nft.status).to.equal('OK');
     //grab our user records from fionames so we can use their fio_address_hash
-    let fionames = await callFioApi("get_table_rows", {
-      json: true,               // Get the response as json
-      code: 'fio.address',      // Contract that we target
-      scope: 'fio.address',     // Account that owns the data
-      table: 'fionames',        // Table name
-      limit: 1000,              // Maximum number of rows that we want to get
-      reverse: false,           // Optional: Get reversed data
-      show_payer: false         // Optional: Show ram payer
+
+    let fionames1 = await callFioApi("get_table_rows", {
+      code: 'fio.address',
+      scope: 'fio.address',
+      table: 'fionames',
+      lower_bound: user1.account,
+      upper_bound: user1.account,
+      key_type: 'i64',
+      index_position: '4',
+      json: true
     });
-    fionames.rows = fionames.rows.slice(-3);    // only need the last 3 accounts
+
+    let fionames2 = await callFioApi("get_table_rows", {
+      code: 'fio.address',
+      scope: 'fio.address',
+      table: 'fionames',
+      lower_bound: user2.account,
+      upper_bound: user2.account,
+      key_type: 'i64',
+      index_position: '4',
+      json: true
+    });
+
     try {
-      user1Hash = fionames.rows[0].namehash
-      user2Hash = fionames.rows[1].namehash
+      user1Hash = fionames1.rows[0].namehash
+      user2Hash = fionames2.rows[0].namehash
     } catch (err) {
       console.log('user namehash not found in table');
       throw err;
     }
+
   });
 
   it(`verify user1 NFTs are present in table`, async () => {
@@ -778,6 +804,8 @@ describe(`C. (sdk) Transfer a FIO address to another user and make sure any NFTs
       expect(err).to.equal(null);
     }
   });
+
+  it(`Wait a few seconds.`, async () => { await timeout(2000) })
 
   it(`verify a hash of user1.address added to nftburnq`, async () => {
     try {
@@ -936,6 +964,40 @@ describe(`E. (sdk) Burn all NFTs in nftburnq`, () => {
     });
 
     //grab our user records from fionames so we can use their fio_address_hash
+    let fionames1 = await callFioApi("get_table_rows", {
+      code: 'fio.address',
+      scope: 'fio.address',
+      table: 'fionames',
+      lower_bound: user1.account,
+      upper_bound: user1.account,
+      key_type: 'i64',
+      index_position: '4',
+      json: true
+    });
+
+    let fionames2 = await callFioApi("get_table_rows", {
+      code: 'fio.address',
+      scope: 'fio.address',
+      table: 'fionames',
+      lower_bound: user2.account,
+      upper_bound: user2.account,
+      key_type: 'i64',
+      index_position: '4',
+      json: true
+    });
+
+    let fionames3 = await callFioApi("get_table_rows", {
+      code: 'fio.address',
+      scope: 'fio.address',
+      table: 'fionames',
+      lower_bound: user3.account,
+      upper_bound: user3.account,
+      key_type: 'i64',
+      index_position: '4',
+      json: true
+    });
+
+
     let fionames = await callFioApi("get_table_rows", {
       json: true,               // Get the response as json
       code: 'fio.address',      // Contract that we target
@@ -947,9 +1009,9 @@ describe(`E. (sdk) Burn all NFTs in nftburnq`, () => {
     });
     fionames.rows = fionames.rows.slice(-3);    // only need the last 3 accounts
     try {
-      user1Hash = fionames.rows[0].namehash;
-      user2Hash = fionames.rows[1].namehash;
-      user3Hash = fionames.rows[2].namehash;
+      user1Hash = fionames1.rows[0].namehash;
+      user2Hash = fionames2.rows[0].namehash;
+      user3Hash = fionames3.rows[0].namehash;
     } catch (err) {
       console.log('user namehash not found in table');
       throw err;
@@ -1371,19 +1433,31 @@ describe(`G. (api) Confirm endpoint remove_all_nfts adds NFTs to nftburnq`, () =
     user3 = await newUser(faucet);
 
     //grab our user records from fionames so we can use their fio_address_hash
-    let fionames = await callFioApi("get_table_rows", {
-      json: true,               // Get the response as json
-      code: 'fio.address',      // Contract that we target
-      scope: 'fio.address',     // Account that owns the data
-      table: 'fionames',        // Table name
-      limit: 1000,              // Maximum number of rows that we want to get
-      reverse: false,           // Optional: Get reversed data
-      show_payer: false         // Optional: Show ram payer
+    let fionames1 = await callFioApi("get_table_rows", {
+      code: 'fio.address',
+      scope: 'fio.address',
+      table: 'fionames',
+      lower_bound: user1.account,
+      upper_bound: user1.account,
+      key_type: 'i64',
+      index_position: '4',
+      json: true
     });
-    fionames.rows = fionames.rows.slice(-3);    // only need the last 3 accounts
+
+    let fionames2 = await callFioApi("get_table_rows", {
+      code: 'fio.address',
+      scope: 'fio.address',
+      table: 'fionames',
+      lower_bound: user2.account,
+      upper_bound: user2.account,
+      key_type: 'i64',
+      index_position: '4',
+      json: true
+    });
+
     try {
-      user1Hash = fionames.rows[0].namehash
-      user2Hash = fionames.rows[1].namehash
+      user1Hash = fionames1.rows[0].namehash
+      user2Hash = fionames2.rows[0].namehash
     } catch (err) {
       console.log('user namehash not found in table');
       throw err;

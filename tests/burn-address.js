@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, generateFioAddress, callFioApiSigned, callFioApi, getFees, timeout, fetchJson} = require('../utils.js');
+const {newUser, generateFioAddress, callFioApiSigned, callFioApi, getFees, getBundleCount, timeout, fetchJson} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
@@ -44,30 +44,9 @@ describe('************************** burn-address.js ************************** 
         }
     })
 
-    it('Call get_table_rows from fionames to get bundles remaining for walletA1. Verify NNN bundles', async () => {
-        try {
-            const json = {
-                json: true,               // Get the response as json
-                code: 'fio.address',      // Contract that we target
-                scope: 'fio.address',         // Account that owns the data
-                table: 'fionames',        // Table name
-                limit: 1000,                // Maximum number of rows that we want to get
-                reverse: false,           // Optional: Get reversed data
-                show_payer: false          // Optional: Show ram payer
-            }
-            fionames = await callFioApi("get_table_rows", json);
-            //console.log('fionames: ', fionames);
-            for (fioname in fionames.rows) {
-                if (fionames.rows[fioname].name == walletA1.address) {
-                    //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
-                    prevBundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-                }
-            }
-            expect(prevBundleCount).to.equal(100);
-        } catch (err) {
-            console.log('Error', err);
-            expect(err).to.equal(null);
-        }
+    it('Confirm bundles remaining = 100', async () => {
+        prevBundleCount = await getBundleCount(walletA1.sdk);
+        expect(prevBundleCount).to.equal(100);
     })
 
     it('Confirm burn_fio_address fee for walletA1 is zero (bundles remaining)', async () => {
@@ -175,32 +154,10 @@ describe('************************** burn-address.js ************************** 
         }
     })
 
-    it('Call get_table_rows from fionames to get bundles remaining for walletA1. Expect 0 bundles', async () => {
-        try {
-          let bundleCount;
-          const json = {
-            json: true,               // Get the response as json
-            code: 'fio.address',      // Contract that we target
-            scope: 'fio.address',         // Account that owns the data
-            table: 'fionames',        // Table name
-            limit: 1000,                // Maximum number of rows that we want to get
-            reverse: false,           // Optional: Get reversed data
-            show_payer: false          // Optional: Show ram payer
-          }
-          fionames = await callFioApi("get_table_rows", json);
-          //console.log('fionames: ', fionames);
-          for (fioname in fionames.rows) {
-            if (fionames.rows[fioname].name == walletA1.address) {
-              //console.log('bundleCount: ', fionames.rows[fioname].bundleeligiblecountdown);
-              bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-            }
-          }
-          expect(bundleCount).to.equal(0);
-        } catch (err) {
-          console.log('Error', err);
-          expect(err).to.equal(null);
-        }
-      })
+    it('Confirm bundles remaining = 0', async () => {
+        bundleCount = await getBundleCount(walletA1.sdk);
+        expect(bundleCount).to.equal(0);
+    })
 
     it(`Confirm burn_fio_address fee for walletA1.address is ${config.api.burn_fio_address.fee}`, async () => {
         try {
@@ -539,31 +496,9 @@ describe('C. burnFioAddress Error testing', () => {
         }
     })
 
-    it('Call get_table_rows from fionames to get bundles remaining for userD1. Verify 0 bundles', async () => {
-        let bundleCount
-        try {
-            const json = {
-                json: true,               // Get the response as json
-                code: 'fio.address',      // Contract that we target
-                scope: 'fio.address',         // Account that owns the data
-                table: 'fionames',        // Table name
-                limit: 1000,                // Maximum number of rows that we want to get
-                reverse: false,           // Optional: Get reversed data
-                show_payer: false          // Optional: Show ram payer
-            }
-            fionames = await callFioApi("get_table_rows", json);
-            //console.log('fionames: ', fionames);
-            for (fioname in fionames.rows) {
-                if (fionames.rows[fioname].name == userD1.address) {
-                    //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
-                    bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-                }
-            }
-            expect(bundleCount).to.equal(0);
-        } catch (err) {
-            console.log('Error', err);
-            expect(err).to.equal(null);
-        }
+    it('Confirm bundles remainin = 0', async () => {
+        const bundleCount = await getBundleCount(userD1.sdk);
+        expect(bundleCount).to.equal(0);
     })
 
     it(`Burn address with insufficient funds and no bundled transactions. Expect error type 400: ${config.error.insufficientFunds}`, async () => {
@@ -963,31 +898,32 @@ describe('F. Burn Addresses with NFTs. Single account.', () => {
     it(`Call get_table_rows from fionames. Collect Hashes.`, async () => {
         try {
             const json = {
-                json: true,               // Get the response as json
-                code: 'fio.address',      // Contract that we target
-                scope: 'fio.address',         // Account that owns the data
-                table: 'fionames',        // Table name
-                limit: 1000,                // Maximum number of rows that we want to get
-                reverse: false,           // Optional: Get reversed data
-                show_payer: false          // Optional: Show ram payer
-            }
+                code: 'fio.address',
+                scope: 'fio.address',
+                table: 'fionames',
+                lower_bound: user1.account,
+                upper_bound: user1.account,
+                key_type: 'i64',
+                index_position: '4',
+                json: true
+           }
             fionames = await callFioApi("get_table_rows", json);
             //console.log('fionames: ', fionames);
             for (fioname in fionames.rows) {
                 if (fionames.rows[fioname].name == user1.address) {
-                    //console.log('fioname: ', fionames.rows[fioname]);
+                    //console.log('addressHash: ', fionames.rows[fioname]);
                     addressHash = fionames.rows[fioname].namehash;
                 }
                 if (fionames.rows[fioname].name == user1.address2) {
-                    //console.log('fioname: ', fionames.rows[fioname]);
+                    //console.log('address2Hash: ', fionames.rows[fioname]);
                     address2Hash = fionames.rows[fioname].namehash;
                 }
                 if (fionames.rows[fioname].name == user1.address3) {
-                    //console.log('fioname: ', fionames.rows[fioname]);
+                    //console.log('address3Hash: ', fionames.rows[fioname]);
                     address3Hash = fionames.rows[fioname].namehash;
                 }
                 if (fionames.rows[fioname].name == user1.address4) {
-                    //console.log('fioname: ', fionames.rows[fioname]);
+                    //console.log('address4Hash: ', fionames.rows[fioname]);
                     address4Hash = fionames.rows[fioname].namehash;
                 }
             }
@@ -1045,14 +981,15 @@ describe('F. Burn Addresses with NFTs. Single account.', () => {
         let inTable = false, inTable2 = false, inTable3 = false, inTable4 = false;
         try {
             const json = {
-                json: true,               // Get the response as json
-                code: 'fio.address',      // Contract that we target
-                scope: 'fio.address',         // Account that owns the data
-                table: 'fionames',        // Table name
-                limit: 1000,                // Maximum number of rows that we want to get
-                reverse: false,           // Optional: Get reversed data
-                show_payer: false          // Optional: Show ram payer
-            }
+                code: 'fio.address',
+                scope: 'fio.address',
+                table: 'fionames',
+                lower_bound: user1.account,
+                upper_bound: user1.account,
+                key_type: 'i64',
+                index_position: '4',
+                json: true
+           }
             fionames = await callFioApi("get_table_rows", json);
             //console.log('fionames: ', fionames);
             for (fioname in fionames.rows) {
@@ -1106,6 +1043,8 @@ describe('F. Burn Addresses with NFTs. Single account.', () => {
         }
     })
 
+    it(`Wait a few seconds.`, async () => { await timeout(2000) })
+
     it(`Get burnnftq table. Confirm one additional entry with fio_address_hash = user1.address2.hash.`, async () => {
         try {
             const json = {
@@ -1120,6 +1059,7 @@ describe('F. Burn Addresses with NFTs. Single account.', () => {
             result = await callFioApi("get_table_rows", json);
             //console.log('result: ', result);
             nftburnqCount++;
+            //console.log('nftburncount: ', nftburnqCount)
             expect(result.rows[nftburnqCount - 1].fio_address_hash).to.equal(address2Hash);
             expect(result.rows.length).to.equal(nftburnqCount);
         } catch (err) {
@@ -1128,18 +1068,19 @@ describe('F. Burn Addresses with NFTs. Single account.', () => {
         }
     })
 
-    it(`Call get_table_rows from fionames. Verify user1.address,2 not in table. Confirm address3,4 are in table.`, async () => {
+    it(`Call get_table_rows from fionames. Verify user1.address,2 not in table. Confirm address 3,4 are in table.`, async () => {
         let inTable = false, inTable2 = false, inTable3 = false, inTable4 = false;
         try {
             const json = {
-                json: true,               // Get the response as json
-                code: 'fio.address',      // Contract that we target
-                scope: 'fio.address',         // Account that owns the data
-                table: 'fionames',        // Table name
-                limit: 1000,                // Maximum number of rows that we want to get
-                reverse: false,           // Optional: Get reversed data
-                show_payer: false          // Optional: Show ram payer
-            }
+                code: 'fio.address',
+                scope: 'fio.address',
+                table: 'fionames',
+                lower_bound: user1.account,
+                upper_bound: user1.account,
+                key_type: 'i64',
+                index_position: '4',
+                json: true
+           }
             fionames = await callFioApi("get_table_rows", json);
             //console.log('fionames: ', fionames);
             for (fioname in fionames.rows) {
