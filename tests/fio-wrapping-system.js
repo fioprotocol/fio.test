@@ -52,15 +52,12 @@ const Web3 = require('web3');
 const web3 = new Web3('http://127.0.0.1:8545');
 
 const fioABI = require("./Contracts/FIO.json");
-const wfioContract = new web3.eth.Contract(fioABI, '0x7B0B682f51326F7D0F3D41f70B43f686E35F78Cc');
+const wfioContract = new web3.eth.Contract(fioABI, '');
 
 const fionftABI = require("./Contracts/FIOMATICNFT.json");
 const { resolve } = require('dns');
-const nftContract = new web3.eth.Contract(fionftABI, '0x5BB8d1A2F981115695c801894434600DF2504634');
+const nftContract = new web3.eth.Contract(fionftABI, '');
 
-// Use to test against the erc20 Testnet contract at https://rinkeby.etherscan.io/address/0x39e55E8Fcc19ACA3606Ed3CFe7177442185a14F9
-//const etherscan = new Web3('https://rinkeby.infura.io/v3/2ca52b84d74f46efb23d1730e4e215cf');
-//const wfioEtherscanContract = new etherscan.eth.Contract(fioABI, '0x39e55E8Fcc19ACA3606Ed3CFe7177442185a14F9');
 
 const domainWrapFee = 50000000000;  // 50 FIO
 const tokenWrapFee = 40000000000; // 40 FIO
@@ -73,9 +70,9 @@ let oracle1, oracle2, oracle3;
 before(async function () {
     faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 
-    oracle1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
-    oracle2 = await existingUser('hfdg2qumuvlc', '5JnhMxfnLhZeRCRvCUsaHbrvPSxaqjkQAgw4ZFodx4xXyhZbC9P', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
-    oracle3 = await existingUser('wttywsmdmfew', '5JvmPVxPxypQEKPwFZQW4Vx7EC8cDYzorVhSWZvuYVFMccfi5mU', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
+    oracle1 = await existingUser('qbxn5zhw2ypw', '', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
+    oracle2 = await existingUser('hfdg2qumuvlc', '', 'FIO7uTisye5w2hgrCSE1pJhBKHfqDzhvqDJJ4U3vN9mbYWzataS2b', 'dapixdev', 'bp2@dapixdev');
+    oracle3 = await existingUser('wttywsmdmfew', '', 'FIO6oa5UV9ghWgYH9en8Cv8dFcAxnZg2i9z9gKbnHahciuKNRPyHc', 'dapixdev', 'bp3@dapixdev');
 
     try {
         // owner = 0, custodians = 1-10, oracles = 11-13
@@ -118,7 +115,7 @@ before(async function () {
     }
 });
 
-describe.only(`************************** fio-wrapping-system.js ************************** \n   A. Single token wrap/unwrap with oracle example`, function () {
+describe(`************************** fio-wrapping-system.js ************************** \n   A. Single token wrap/unwrap with oracle example`, function () {
 
     let user0;
     const wrapAmt = 20000000000;  // 20 fIO
@@ -135,7 +132,7 @@ describe.only(`************************** fio-wrapping-system.js ***************
         }
     });
 
-    describe.only(`Wrap FIO`, function () {
+    describe(`Wrap FIO`, function () {
         let wrap_fio_tokens_fee;
 
         it(`Get user0 wfio balanceOf from ETH chain`, async function () {
@@ -231,7 +228,7 @@ describe.only(`************************** fio-wrapping-system.js ***************
             }
         });
 
-        it.only(`getPastEvents for 'consensus_activity' events on ETH chain. Expect to find wrap.`, async function () {
+        it(`getPastEvents for 'consensus_activity' events on ETH chain. Expect to find wrap.`, async function () {
             try {
                 const consensus = await wfioContract.getPastEvents('consensus_activity', {
                     fromBlock: 0,
@@ -2026,3 +2023,86 @@ describe.skip(`Reg 1 oracle on FIO chain and set fees`, function () {
     });
     
   });
+
+
+describe.skip(`Register Oracles`, function () {
+    const infuraApi = "https://polygon-mumbai.infura.io/v3/<key>";
+    const ercContract = "";
+    const web3 = new Web3(infuraApi);
+    const wfioABI = require("./Contracts/FIO.json");
+    const wfioContract = new web3.eth.Contract(wfioABI, ercContract);
+
+    const gasPrice = 3;
+    const gasLimit = 200000;
+
+    const oracles = [
+        '',  // 1
+        '',  // 2
+        ''   // 3
+    ];
+
+    const custodianPublicKeys = [
+        '',  // 1
+        '',  // 2
+        '',  // 3
+        '',  // 4
+        '',  // 5
+        '',  // 6
+        ''   // 7
+    ];
+
+    const custodianPrivateKeys = [
+        '',  // 1
+        '',  // 2
+        '',  // 3
+        '',  // 4
+        '',  // 5
+        '',  // 6
+        ''   // 7
+    ];
+
+    it(`getTransactionCount and create transaction for oracle1`, async function () {
+        try {
+            let cust = 2;
+            let ora = 0;
+            for (ora = 0; ora < 3; ora++) {
+                const txnCount = await web3.eth.getTransactionCount(custodianPublicKeys[cust]);
+
+                const data = wfioContract.methods.regoracle(oracles[ora]).encodeABI();
+
+                rawTx = {
+                    "nonce": web3.utils.toHex(txnCount),
+                    "gasPrice": web3.utils.toHex(gasPrice * 1e9),
+                    "gasLimit": web3.utils.toHex(gasLimit),
+                    "to": ercContract,
+                    "data": data,
+                }
+
+                const signedTx = await web3.eth.accounts.signTransaction(rawTx, custodianPrivateKeys[cust]);
+                //console.log('signed: ', signedTx);
+                //const result = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+
+                await web3.eth //excute the sign transaction using public key and private key of oracle
+                .sendSignedTransaction(signedTx.rawTransaction)
+                .on('transactionHash', (hash) => {
+                    console.log('Transaction has been signed and sent into the chain.')
+                    console.log('TxHash: ', hash);
+                })
+                .on('receipt', (receipt) => {
+                    console.log("Completed: ", receipt);
+                })
+                .on('error', (error, receipt) => {
+                    console.log('Transaction has failed.');
+    
+                    if (receipt && receipt.blockHash && !receipt.status) console.log('It looks like the transaction ended out of gas. Or Oracle has already approved this ObtId. Also, check nonce value')
+                });
+                
+                //console.log('Transaction hash: ', result)
+            }
+
+        } catch (err) {
+            console.log('Error: ', err);
+            expect(err).to.equal(null);;
+        }
+    });
+});

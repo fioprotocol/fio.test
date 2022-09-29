@@ -16,28 +16,28 @@ const Web3 = require('web3');
 const { Console } = require("console");
 
 // Goerli
-const polygonMumbai = new Web3('https://polygon-mumbai.infura.io/v3/2ca52b84d74f46efb23d1730e4e215cf');
-const polyContractAddress = '0xF5193f7c4312cA0759C91080e94E957F77669116';
+const polygonMumbai = new Web3('https://polygon-mumbai.infura.io/v3/<key>');
+const polyContractAddress = '';
 
 
 const polyMumbaiContract = new polygonMumbai.eth.Contract(fionftABI, polyContractAddress);
 
 const oracle1 = {
-    ethPublicKey: '0x2bFBc5e0e4ac9CF3dCE2512812Ef7Fa46031b506',
-    ethPrivateKey: '6b949ad580282b883c16f04f3c141f7ecbc7a49a405d245a89a32e166800bba1'
+    ethPublicKey: '',
+    ethPrivateKey: ''
 }
 
 const oracle2 = {
-    ethPublicKey: '0xBA08B88cb85e8fDCCdfa2F59A415824d6BD634ca',
-    ethPrivateKey: '9ea4cac7b0585354940e7b78630c2d3166ab8e9e3b3f8e69c0d16779bf7adc6b'
+    ethPublicKey: '',
+    ethPrivateKey: ''
 }
 
 const oracle3 = {
-    ethPublicKey: '0xf55C6d387b440Ab78CF3475bD7f8aD7Af9F6716f',
-    ethPrivateKey: '76c1a0873d88e693e018ea6e894a0c79f0e7d215655f5f55043ea5d57400e592'
+    ethPublicKey: '',
+    ethPrivateKey: ''
 }
 
-const mumbaiPublicKey = '0xF5193f7c4312cA0759C91080e94E957F77669116';
+const mumbaiPublicKey = '';
 const mumbaiPrivateKey = '';
 
 const gasPrice = 50;
@@ -50,7 +50,7 @@ before(async function () {
     faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 });
 
-describe.only(`************************** fio-erc721-smoketest.js ************************** \n   A. erc721 wrapnft smoketest`, function () {
+describe(`************************** fio-erc721-smoketest.js ************************** \n   A. erc721 wrapnft smoketest`, function () {
 
     let user1, rawTx1, rawTx2, rawTx3;
     
@@ -73,7 +73,7 @@ describe.only(`************************** fio-erc721-smoketest.js **************
         console.log('Number of Domains: ', result)
     });
 
-    it.skip(`polygonMumbai testnet getPastEvents`, async function () {
+    it(`polygonMumbai testnet getPastEvents`, async function () {
         try {
             const result = await polyMumbaiContract.getPastEvents('unwrapped', {
                 fromBlock: 11012398,
@@ -354,66 +354,6 @@ describe(`B. erc721 unwrapnft smoketest`, function () {
             console.log('Error: ', err);
             expect(err).to.equal(null);;
         }
-    });
-
-});
-
-
-describe.skip(`Utilities`, function () {
-
-    describe(`Register Oracles on Polygon`, function () {
-        const custodianPublicKeys = [
-            '0x2bFBc5e0e4ac9CF3dCE2512812Ef7Fa46031b506',
-            '0xBA08B88cb85e8fDCCdfa2F59A415824d6BD634ca',
-            '0xf55C6d387b440Ab78CF3475bD7f8aD7Af9F6716f',
-            '0xa1D386b970BEfA209b1FDa339974cD595dD99d7a',
-            '0xC9727FAad3E40771C4dE9701eBFf3B758E49B2e2',
-            '0x75aAEeC8513365D787842d4817319ce792d15aBC',
-            '0x267BF19766815Ab32cf7D05eD85a86fD947C8527',
-            '0x12810A467e50338328b1cb6aD480969ac55765B9',
-            '0x20CE1B955134c25a457A6AE688d4f53c6Ad53787'
-        ];
-
-        const custodianPrivateKeys = [
-            '',
-            '',
-            '',
-            '',
-            '',
-            '',
-            '',
-            '',
-            ''
-        ];
-
-        it(`getTransactionCount and create transaction for oracle1`, async function () {
-            try {
-                //for (i = 3; i < 8; i++) {
-                    const txnCount = await polygonMumbai.eth.getTransactionCount(custodianPublicKeys[3]);
-
-                    const data = polyMumbaiContract.methods.regoracle(oracle2.ethPublicKey).encodeABI();
-    
-                    rawTx = {
-                        "nonce": polygonMumbai.utils.toHex(txnCount),
-                        "gasPrice": polygonMumbai.utils.toHex(gasPrice * 1e9),
-                        "gasLimit": polygonMumbai.utils.toHex(gasLimit),
-                        "to": polyContractAddress,
-                        "value": "0x00",
-                        "data": data,
-                    }
-    
-                    const signedTx = await polygonMumbai.eth.accounts.signTransaction(rawTx, custodianPrivateKeys[3]);
-                    console.log('signed: ', signedTx);
-                    const result = await polygonMumbai.eth.sendSignedTransaction(signedTx.rawTransaction);
-                    //console.log('Result: ', result);
-                    console.log('Transaction hash: ', result)
-                //}
-
-            } catch (err) {
-                console.log('Error: ', err);
-                expect(err).to.equal(null);;
-            }
-        });
     });
 
 });
