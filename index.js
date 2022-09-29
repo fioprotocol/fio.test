@@ -78,6 +78,13 @@ describe('TEST SUITE', () => {
     require('./tests/stake-timing.js');
   });
 
+  describe.skip('** HISTORY TESTS **', () => {
+    /**
+     * History Node tests. Only run against history node.
+     */
+    require('./tests/history.js');
+  });
+
   describe('** GENERAL TESTS - NO SETUP **', () => {
 
     /**
@@ -179,11 +186,6 @@ describe('TEST SUITE', () => {
      * clio tests. Only works with local testing since it accesses the fio.devtools/bin directory
      */
     //require('./tests/clio.js');  // FIP-16
-
-    /**
-     * History Node tests. Only run against history node.
-     */
-    //require('./tests/history.js');
 
     /**
      * Performance Test: Locked token tests (FIP-6,21) erformance test. Tests require additional configuration.
