@@ -3,6 +3,6 @@ package-lock.json
 .DS_Store
 tests/.DS_Store
 .idea
-ethContracts/*
+hardhat-contracts/*
 artifacts/*
 cache/*

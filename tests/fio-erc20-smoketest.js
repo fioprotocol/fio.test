@@ -297,5 +297,4 @@ describe(`B. erc20 unwrap smoketest`, function () {
         user1.wfioBalance = result;
         console.log('Balance: ', result)
     });
-
 });

@@ -1654,7 +1654,7 @@ describe(`C. Insert stake period at END of locktokensv2 general locks, then unlo
         index_position: '2'
       }
       result = await callFioApi("get_table_rows", json);
-      console.log('Result: ', result);
+      //console.log('Result: ', result);
       //console.log('periods : ', result.rows[0].periods)
       expect(result.rows[0].lock_amount).to.equal(genLockTotal + unstake1)  
       expect(result.rows[0].remaining_lock_amount).to.equal(genLockTotal + unstake1)  
@@ -1719,7 +1719,7 @@ describe(`C. Insert stake period at END of locktokensv2 general locks, then unlo
         index_position: '2'
       }
       result = await callFioApi("get_table_rows", json);
-      console.log('Result: ', result);
+      //console.log('Result: ', result);
       //console.log('periods : ', result.rows[0].periods)
       expect(result.rows[0].lock_amount).to.equal(genLockTotal + unstake1) 
       expect(result.rows[0].remaining_lock_amount).to.equal(genLockTotal + unstake1 - genLock1Amount)  // Subtract first lock amount.
