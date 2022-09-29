@@ -60,7 +60,7 @@ describe(`************************** BD-3941-unstake.js ************************
       userA1.publicKey = userA1Keys.publicKey;
       userA1.account = userA1Keys.account;
     });
-  
+
     it(`Transfer tokens to userA1`, async function () {
       await faucet.genericAction('transferTokens', {
         payeeFioPublicKey: userA1Keys.publicKey,
@@ -102,7 +102,7 @@ describe(`************************** BD-3941-unstake.js ************************
       }
   
     });
-  
+
     it(`stake ${stakeAmt} FIO from userA1`, async function () {
       //let stake = stakeAmt * 2;
   
@@ -149,14 +149,16 @@ describe(`************************** BD-3941-unstake.js ************************
         throw err;
       }
     });
+
+
+    it(`Wait a few seconds.`, async () => { await timeout(2000) })
   
     it(`get userA1 FIP-6 locks and verify the staking unlock period has been added`, async function () {
         try {
         const result = await userA1.getLocks(userA1Keys.publicKey);
-        //console.log('Result: ', result);
-        expect(result.remaining_lock_amount).to.equal(unstakeAmt);
+        expect(result.remaining_lock_amount).to.be.greaterThan(unstakeAmt);
         expect(result.unlock_periods.length).to.equal(1);
-        expect(result.unlock_periods[0].amount).to.equal(unstakeAmt);
+        expect(result.unlock_periods[0].amount).to.be.greaterThan(unstakeAmt);
         expect(result.unlock_periods[0].duration).to.equal(70);
         } catch (err) {
             console.log('Error: ', err);

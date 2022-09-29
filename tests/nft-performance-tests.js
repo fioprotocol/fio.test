@@ -858,3 +858,228 @@ describe(`C. Try to individually remove a large number of NFTs`, () => {
     }
   });
 });
+
+describe.skip(`D. Add a large number of users with NFT signatures then test getters`, () => {
+  let users = [];
+  let user1Hash, endUserHash, massNft;
+  let nftHash = 'f83b5702557b1ee76d966c6bf92ae0d038cd176aaf36f86a18e2ab59e6aefa4b';
+  let ethContractAddr = '0x123456789ABCDEF';
+
+  // let numUsers = 10000;
+  // let numUsers = 5000;
+  //let numUsers = 1000;
+  // let numUsers = 500;
+  let numUsers = 100;
+
+  before(async () => {
+    for (let i=0; i<numUsers; i++) {
+      users[i] = await newUser(faucet);
+      console.log(users[i].account);
+      console.log(users[i].publicKey);
+      console.log(users[i].privateKey);
+      console.log(users[i].address);
+      // await timeout(1500);    //2000);
+    }
+    console.log('test users created');
+
+    //grab our user records from fionames so we can use their fio_address_hash
+    let fionames = await callFioApi("get_table_rows", {
+      json: true,               // Get the response as json
+      code: 'fio.address',      // Contract that we target
+      scope: 'fio.address',     // Account that owns the data
+      table: 'fionames',        // Table name
+      reverse: false,           // Optional: Get reversed data
+      show_payer: false         // Optional: Show ram payer
+    });
+    fionames.rows = fionames.rows.slice(-numUsers);    // only need the last 3 accounts
+    try {
+      user1Hash = fionames.rows[0].namehash;
+      endUserHash = fionames.rows[fionames.rows.length - 1].namehash;
+    } catch (err) {
+      console.log('user namehash not found in table');
+      throw err;
+    }
+  });
+
+  it(`has ${numUsers} new users`, async () => {
+    expect(users.length).to.equal(numUsers);
+  });
+
+  it(`mint NFTs for every user`, async () => {
+    for (let i=0; i<users.length; i++) {
+      massNft = {
+        "chain_code":"ETH",
+        "contract_address":`${ethContractAddr}`,
+        "token_id":`${i+1}`,
+        "url":"http://fio.example.nft",
+        "hash":`${nftHash}`,
+        "metadata": "abc-xyz-123"
+      };
+      try {
+        const result = await users[i].sdk.genericAction('pushTransaction', {
+          action: 'addnft',
+          account: 'fio.address',
+          data: {
+            fio_address: users[i].address,
+            nfts: [massNft],
+            max_fee: config.api.add_nft.fee,
+            actor: users[i].account,
+            tpid: ""
+          }
+        });
+        console.log(result)
+        expect(result.status).to.equal('OK');
+      } catch (err) {
+        if (err.json.fields[0].err === 'FIO Domain not registered') {
+          continue;
+        }
+        expect(err).to.equal(null);
+      }
+    }
+    console.log('test NFTs minted');
+  });
+
+  it(`verify NFTs have been added to the table`, async () => {
+    // try {
+    const user1Nft = await callFioApi("get_table_rows", {
+      code: "fio.address",
+      scope: "fio.address",
+      table: "nfts",
+      key_type: "i128",
+      index_position: "2",
+      lower_bound: user1Hash,
+      upper_bound: user1Hash,
+      json: true,
+      reverse: false
+    });
+    console.log('user1Nft: ', user1Nft);
+    // expect(user1Nft.rows[0].token_id).to.equal('1');
+    expect(user1Nft.rows.length).to.equal(1);
+    expect(user1Nft.rows[0].fio_address_hash).to.equal(user1Hash);
+    // } catch (err) {
+    //   expect(err).to.equal(null);
+    // }
+
+    // try {
+    const lastUserNft = await callFioApi("get_table_rows", {
+      code: "fio.address",
+      scope: "fio.address",
+      table: "nfts",
+      key_type: "i128",
+      index_position: "2",
+      lower_bound: endUserHash,
+      upper_bound: endUserHash,
+      json: true,
+      reverse: false
+    });
+    // expect(lastUserNft.rows[0].token_id).to.equal(numUsers.toString());
+    expect(lastUserNft.rows[0].fio_address_hash).to.equal(endUserHash);
+    expect(lastUserNft.rows.length).to.equal(1);
+    // } catch (err) {
+    //   expect(err).to.equal(null);
+    // }
+  });
+
+  it(`verify get_nfts_contract returns all NFTs at ${ethContractAddr} (call without ID)`, async () => {
+    try {
+      const result = await callFioApi('get_nfts_contract', {
+        chain_code: "ETH",
+        contract_address: `${ethContractAddr}`
+      });
+      const rowpos = result.nfts.slice(0, numUsers);
+      const rows = result.nfts.slice(-numUsers);
+
+      expect(result.nfts.length).to.be.greaterThanOrEqual(numUsers);
+    } catch (err) {
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`verify get_nfts_contract returns NFT for ID ${numUsers}`, async () => {
+    try {
+      const result = await callFioApi('get_nfts_contract', {
+        chain_code: "ETH",
+        contract_address: `${ethContractAddr}`,
+        token_id: numUsers
+      });
+      console.log('Result: ', result);
+      expect(result.nfts.length).to.be.greaterThanOrEqual(numUsers);
+    } catch (err) {
+      expect(err).to.equal(null);
+    }
+  });
+
+  it.skip(`remove NFTs for all ${numUsers} users`, async () => {
+    for (let i=0; i<users.length; i++) {
+      try {
+        const result = await users[i].sdk.genericAction('pushTransaction', {
+          action: 'remallnfts',
+          account: 'fio.address',
+          data: {
+            fio_address: users[i].address,
+            max_fee: config.api.remove_all_nfts.fee,
+            actor: users[i].account,
+            tpid: ""
+          }
+        });
+        expect(result.status).to.equal('OK');
+        expect(result.fee_collected).to.equal(0);
+      } catch (err) {
+        expect(err).to.equal(null);
+      }
+    }
+  });
+
+  it.skip(`verify NFTs added to nftburnq`, async () => {
+    try {
+      const result = await callFioApi("get_table_rows", {
+        json: true,
+        code: 'fio.address',
+        scope: 'fio.address',
+        table: 'nftburnq',
+        key_type: 'i128',
+        index_position: '2'
+      });
+      expect(result.rows.length).to.be.greaterThanOrEqual(numUsers);
+    } catch (err) {
+      expect(err).to.equal(null);
+    }
+  });
+
+  after(async () => {
+    while (true) {
+      try {
+        await timeout(1500);
+        const result = await users[0].sdk.genericAction('pushTransaction', {
+          action: 'burnnfts',
+          account: 'fio.address',
+          data: {
+            actor: users[0].account,
+          }
+        });
+        expect(result.status).to.equal('OK');
+        // nftCount -= 50;
+      } catch (err) {
+        expect(err.json.fields[0].error).to.equal('Nothing to burn');
+        // nftCount = 0;
+        break;
+      }
+    }
+
+    try {
+      const result = await callFioApi("get_table_rows", {
+        json: true,
+        code: 'fio.address',
+        scope: 'fio.address',
+        table: 'nftburnq',
+        lower_bound: user1Hash,
+        upper_bound: endUserHash,
+        key_type: 'i128',
+        index_position: '2'
+      });
+      expect(result.rows.length).to.equal(0);
+    } catch (err) {
+      expect(err).to.equal(null);
+    }
+  });
+});

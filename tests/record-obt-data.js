@@ -111,58 +111,14 @@ describe(`*********************** record-obt-data.js *********************** \n 
         }
       })
 
-    it('Call get_table_rows from fionames to get bundles remaining for userA2. Verify 100 bundles', async () => {
-        let bundleCount
-        try {
-            const json = {
-                json: true,               // Get the response as json
-                code: 'fio.address',      // Contract that we target
-                scope: 'fio.address',         // Account that owns the data
-                table: 'fionames',        // Table name
-                limit: 1000,                // Maximum number of rows that we want to get
-                reverse: false,           // Optional: Get reversed data
-                show_payer: false          // Optional: Show ram payer
-            }
-            fionames = await callFioApi("get_table_rows", json);
-            //console.log('fionames: ', fionames);
-            for (fioname in fionames.rows) {
-                if (fionames.rows[fioname].name == userA2.address) {
-                    //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
-                    bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-                }
-            }
-            expect(bundleCount).to.equal(100);
-        } catch (err) {
-            console.log('Error', err);
-            expect(err).to.equal(null);
-        }
+    it('Confirm bundles remaining', async () => {
+        const bundleCount = await getBundleCount(userA2.sdk);
+        expect(bundleCount).to.equal(100);
     })
 
-    it('Call get_table_rows from fionames to get bundles remaining for userA1. Verify 98 bundles', async () => {
-        let bundleCount
-        try {
-            const json = {
-                json: true,               // Get the response as json
-                code: 'fio.address',      // Contract that we target
-                scope: 'fio.address',         // Account that owns the data
-                table: 'fionames',        // Table name
-                limit: 1000,                // Maximum number of rows that we want to get
-                reverse: false,           // Optional: Get reversed data
-                show_payer: false          // Optional: Show ram payer
-            }
-            fionames = await callFioApi("get_table_rows", json);
-            //console.log('fionames: ', fionames);
-            for (fioname in fionames.rows) {
-                if (fionames.rows[fioname].name == userA1.address) {
-                    //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
-                    bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-                }
-            }
-            expect(bundleCount).to.equal(98);
-        } catch (err) {
-            console.log('Error', err);
-            expect(err).to.equal(null);
-        }
+    it('Confirm bundles remaining', async () => {
+        const bundleCount = await getBundleCount(userA1.sdk);
+        expect(bundleCount).to.equal(98);
     })
 
     it(`Use up all of userA2's bundles with 50 record_obt_data transactions`, async () => {
@@ -194,31 +150,9 @@ describe(`*********************** record-obt-data.js *********************** \n 
         }
     })
 
-    it('Call get_table_rows from fionames to get bundles remaining for userA2. Verify 0 bundles', async () => {
-        let bundleCount
-        try {
-            const json = {
-                json: true,               // Get the response as json
-                code: 'fio.address',      // Contract that we target
-                scope: 'fio.address',         // Account that owns the data
-                table: 'fionames',        // Table name
-                limit: 1000,                // Maximum number of rows that we want to get
-                reverse: false,           // Optional: Get reversed data
-                show_payer: false          // Optional: Show ram payer
-            }
-            fionames = await callFioApi("get_table_rows", json);
-            //console.log('fionames: ', fionames);
-            for (fioname in fionames.rows) {
-                if (fionames.rows[fioname].name == userA2.address) {
-                    //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
-                    bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-                }
-            }
-            expect(bundleCount).to.equal(0);
-        } catch (err) {
-            console.log('Error', err);
-            expect(err).to.equal(null);
-        }
+    it('Confirm bundles remaining', async () => {
+        const bundleCount = await getBundleCount(userA2.sdk);
+        expect(bundleCount).to.equal(0);
     })
 
     it(`userA2 requests funds from userA1 with no bundles`, async () => {

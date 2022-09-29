@@ -52,11 +52,11 @@ const Web3 = require('web3');
 const web3 = new Web3('http://127.0.0.1:8545');
 
 const fioABI = require("./Contracts/FIO.json");
-const wfioContract = new web3.eth.Contract(fioABI, '0x7F256BACDA60E31Db3eE12d1ed4939954BdA4F8f');
+const wfioContract = new web3.eth.Contract(fioABI, '0xeA0A7639FEc2bfEf57ed06E1180445351999075F');
 
 const fionftABI = require("./Contracts/FIOMATICNFT.json");
 const { resolve } = require('dns');
-const nftContract = new web3.eth.Contract(fionftABI, '0x068C9650EE573D52C76e9AFc3EF8e8C197c5D489');
+const nftContract = new web3.eth.Contract(fionftABI, '0x9ad60b5d44Ba04B87375dC204ff2e89A345c068B');
 
 // Use to test against the erc20 Testnet contract at https://rinkeby.etherscan.io/address/0x39e55E8Fcc19ACA3606Ed3CFe7177442185a14F9
 //const etherscan = new Web3('https://rinkeby.infura.io/v3/2ca52b84d74f46efb23d1730e4e215cf');
@@ -64,7 +64,7 @@ const nftContract = new web3.eth.Contract(fionftABI, '0x068C9650EE573D52C76e9AFc
 
 const domainWrapFee = 50000000000;  // 50 FIO
 const tokenWrapFee = 40000000000; // 40 FIO
-const logDir = '/Users/ericbutz/tmp/fio.oracle/controller/api/logs/';
+const logDir = '/Users/ericbutz/git/fio.oracle/controller/api/logs/';
 
 let faucet, owner;
 let accounts = [], custodians = [], oracles = [], users = [];
@@ -1762,7 +1762,7 @@ describe.skip(`utils`, function () {
     });
 });
 
-describe.skip(`Reg 1 oracle and set fees`, function () {
+describe.skip(`Reg 1 oracle on FIO chain and set fees`, function () {
               
     it(`clean out oracless record with helper function`, async function () {
       try {
