@@ -14,27 +14,27 @@ const fioABI = require("./Contracts/FIO.json");
 const Web3 = require('web3');
 
 // Goerli
-const etherscan = new Web3('https://goerli.infura.io/v3/2ca52b84d74f46efb23d1730e4e215cf');
-const ethContractAddress = '0x9289eFc3DE67bef92Ace4f01f628947e737a94a4';
+const etherscan = new Web3('https://goerli.infura.io/v3/<key>');
+const ethContractAddress = '';
 
 const wfioEtherscanContract = new etherscan.eth.Contract(fioABI, ethContractAddress);
 
 const oracle1 = {
-    ethPublicKey: '0xa28e1D23A8Cc32cf11410A12bb97897B891f84A2',
+    ethPublicKey: '',
     ethPrivateKey: ''
 }
 
 const oracle2 = {
-    ethPublicKey: '0xa0073162Ed8b8DD76300D8f0f111839C45554BF8',
+    ethPublicKey: '',
     ethPrivateKey: ''
 }
 
 const oracle3 = {
-    ethPublicKey: '0x128202c9a1224d2fF2104Bf3a25a038529b0220B',
+    ethPublicKey: '',
     ethPrivateKey: ''
 }
 
-const goerliPublicKey = '0xe28FF0D44d533d15cD1f811f4DE8e6b1549945c9';
+const goerliPublicKey = '';
 const goerliPrivateKey = '';
 
 const gasPrice = 20;
@@ -297,63 +297,4 @@ describe(`B. erc20 unwrap smoketest`, function () {
         user1.wfioBalance = result;
         console.log('Balance: ', result)
     });
-
-});
-
-describe(`Utilities`, function () {
-
-    describe(`Register Oracles`, function () {
-        const custodianPublicKeys = [
-            '0x097c3dcBA4f7E3A800ca546D87f62B646F10110E',
-            '0x310cbb853e0Ed406ab476012BfD6027cb52Ec88B',
-            '0x4178ffC6c78856Fb06777A68E7D5365011CBB0d6',
-            '0xA1400826e266D67E1Fc61a176dB663072a0Af920',
-            '0x8Aa4aA5B414f8EeB238437449c76e90471D9Fe2E',
-            '0x2F278eD46ffE2297C94Ced694Da8622146bA4497',
-            '0x2F958E7b420f392B72d8168918eAcb61f0558a68',
-            '0xdE227CFBDa437760264b78b5ffe9c65844e89537',
-            '0x71fE11C27f5e1980e6b425087d690a0d5d05E458'
-        ];
-
-        const custodianPrivateKeys = [
-            '166b0f3f53922cf9335b1d907da55822481c14266f24aff76c90c279a4cd7181',
-            '',
-            '656f32a0eec11d24cc69ec8dfdb9debaee114e828694f5cd98a0e57f7538770f',
-            '651d2c56559206003bc529e92465fc4f901f6193c5867c956a1a0ac39957d35d',
-            'f42238b5bd721b3061bb288cb84df9684cf2ba8033b53d35a4a5ebe114af4268',
-            '51c50f55a27d03e5abd6b272f76fddf0e1866e5d2aac10058786ab1d2424e4ab',
-            '25f848e3b46da6c08b4951293e564e5de30ca4846d9e5fcc866bc89735c2b11e',
-            '11fcbda9f064a80ac12c831b13a1f0273c3976a3342230ad362d74cb4b1969c5',
-            ''
-        ];
-
-        it(`getTransactionCount and create transaction for oracle1`, async function () {
-            try {
-                //for (i = 3; i < 8; i++) {
-                    const txnCount = await etherscan.eth.getTransactionCount(custodianPublicKeys[0]);
-
-                    const data = wfioEtherscanContract.methods.regoracle(oracle3.ethPublicKey).encodeABI();
-    
-                    rawTx = {
-                        "nonce": etherscan.utils.toHex(txnCount),
-                        "gasPrice": etherscan.utils.toHex(gasPrice * 1e9),
-                        "gasLimit": etherscan.utils.toHex(gasLimit),
-                        "to": ethContractAddress,
-                        "value": "0x00",
-                        "data": data,
-                    }
-    
-                    const signedTx = await etherscan.eth.accounts.signTransaction(rawTx, custodianPrivateKeys[0]);
-                    //console.log('signed: ', signedTx);
-                    const result = await etherscan.eth.sendSignedTransaction(signedTx.rawTransaction);
-                    console.log('Transaction hash: ', result)
-                //}
-
-            } catch (err) {
-                console.log('Error: ', err);
-                expect(err).to.equal(null);;
-            }
-        });
-    });
-
 });
