@@ -1697,6 +1697,7 @@ describe(`L. [MATIC] Approval`, function () {
   it(`validate wrap event`, async function () {
     expect(wrapEvent.args[0]).to.equal(accounts[15].address);
     expect(wrapEvent.args[1].toString()).to.equal(testDomain);
+    expect(wrapEvent.args[2]).to.equal(obtId);
   });
 
   it(`(3 of 3 approvals) get approval by obtid, expect 3 approvals - record has been deleted`, async function () {

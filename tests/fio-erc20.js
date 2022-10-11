@@ -1815,6 +1815,7 @@ describe(`L. [ETH] Approval`, function () {
   it(`validate wrap event`, async function () {
     expect(wrapEvent.args[0]).to.equal(accounts[15].address);
     expect(ethers.BigNumber.from(wrapEvent.args[1]).toNumber()).to.equal(wrapAmt);
+    expect(wrapEvent.args[2]).to.equal(TRANSACTION_ID);
   });
 
   it(`(3 of 3 approvals) get approval by obtid, expect 0 approvals - record has been deleted`, async function () {
