@@ -1731,6 +1731,8 @@ describe(`L. [ETH] Approval`, function () {
   let wfio;
   let TRANSACTION_ID = '5efdf70d4338b6ae60e3241ce9fb646f55306434c3ed070601bde98a75f4418f';
   let approvalEvent;
+  let wrapEvent;
+  let wrapAmt = 1666000000000;
 
   before(async function () {
     fioAccount = await newUser(faucet);
@@ -1768,14 +1770,14 @@ describe(`L. [ETH] Approval`, function () {
   });
 
   it(`wrap 1000 wFIO tokens for accounts[15]`,async function () {
-    let tx = await wfio.connect(accounts[12]).wrap(accounts[15].address, 1000000000000, TRANSACTION_ID);
+    let tx = await wfio.connect(accounts[12]).wrap(accounts[15].address, wrapAmt, TRANSACTION_ID);
     let result = await tx.wait();
     approvalEvent = result.events[0];
   });
 
   it(`(1 of 3 approvals) get approval by obtid, expect 1 approval`, async function () {
     try {
-      let result = await wfio.connect(accounts[1]).getApproval(approvalEvent.args[1]);
+      let result = await wfio.connect(accounts[1]).getApproval(approvalEvent.args[3]);
       expect(result).to.be.a('array')
       expect(result[0]).to.be.a('number').and.equal(1);
       expect(result[1]).to.be.a('string').and.equal('0x2546BcD3c84621e976D8185a91A922aE77ECEc30');
@@ -1786,14 +1788,14 @@ describe(`L. [ETH] Approval`, function () {
   });
 
   it(`wrap 1000 wFIO tokens for accounts[15]`,async function () {
-    let tx = await wfio.connect(accounts[13]).wrap(accounts[15].address, 1000000000000, TRANSACTION_ID);
+    let tx = await wfio.connect(accounts[13]).wrap(accounts[15].address, wrapAmt, TRANSACTION_ID);
     let result = await tx.wait();
     approvalEvent = result.events[0];
   });
 
   it(`(2 of 3 approvals) get approval by obtid, expect 2 approvals`, async function () {
     try {
-      let result = await wfio.connect(accounts[1]).getApproval(approvalEvent.args[1]);
+      let result = await wfio.connect(accounts[1]).getApproval(approvalEvent.args[3]);
       expect(result).to.be.a('array')
       expect(result[0]).to.be.a('number').and.equal(2);
       expect(result[1]).to.be.a('string').and.equal('0x2546BcD3c84621e976D8185a91A922aE77ECEc30');
@@ -1804,17 +1806,23 @@ describe(`L. [ETH] Approval`, function () {
   });
 
   it(`wrap 1000 wFIO tokens for accounts[15]`,async function () {
-    let tx = await wfio.connect(accounts[14]).wrap(accounts[15].address, 1000000000000, TRANSACTION_ID);
+    let tx = await wfio.connect(accounts[14]).wrap(accounts[15].address, wrapAmt, TRANSACTION_ID);
     let result = await tx.wait();
-    approvalEvent = result.events[0];
+    wrapEvent = result.events[1]
+    approvalEvent = result.events[2];
+  });
+
+  it(`validate wrap event`, async function () {
+    expect(wrapEvent.args[0]).to.equal(accounts[15].address);
+    expect(ethers.BigNumber.from(wrapEvent.args[1]).toNumber()).to.equal(wrapAmt);
   });
 
   it(`(3 of 3 approvals) get approval by obtid, expect 0 approvals - record has been deleted`, async function () {
     try {
-      let result = await wfio.connect(accounts[1]).getApproval(approvalEvent.args[1]);
+      let result = await wfio.connect(accounts[1]).getApproval(approvalEvent.args[3]);
       expect(result).to.be.a('array');
-      expect(result[0]).to.be.a('number').and.equal(0);
-      expect(result[1]).to.be.a('string').and.equal('0x0000000000000000000000000000000000000000');
+      expect(result[0]).to.be.a('number').and.equal(3);
+      expect(result[1]).to.be.a('string').and.equal('0x2546BcD3c84621e976D8185a91A922aE77ECEc30');
       expect(result[2]).to.be.a('object');
     } catch (err) {
       throw err;
@@ -1829,7 +1837,7 @@ describe(`L. [ETH] Approval`, function () {
 
   it(`(1 approval) get approvals`, async function () {
     try {
-      let result = await wfio.connect(accounts[1]).getApproval(approvalEvent.args[1]);
+      let result = await wfio.connect(accounts[1]).getApproval(approvalEvent.args[3]);
       expect(result).to.be.a('array');
       expect(result[0]).to.be.a('number').and.equal(1);
       expect(result[1]).to.be.a('string').and.equal('0x86c53Eb85D0B7548fea5C4B4F82b4205C8f6Ac18');
@@ -1846,7 +1854,7 @@ describe(`L. [ETH] Approval`, function () {
 
   it(`(3 approvals) get approvals`, async function () {
     try {
-      let result = await wfio.connect(accounts[3]).getApproval(approvalEvent.args[1]);
+      let result = await wfio.connect(accounts[3]).getApproval(approvalEvent.args[3]);
       expect(result).to.be.a('array');
       expect(result[0]).to.be.a('number').and.equal(3);
       expect(result[1]).to.be.a('string').and.equal('0x86c53Eb85D0B7548fea5C4B4F82b4205C8f6Ac18');
@@ -1862,7 +1870,7 @@ describe(`L. [ETH] Approval`, function () {
     approvalEvent = result1.events[0];
 
     try {
-      let result = await wfio.connect(accounts[1]).getApproval(approvalEvent.args[1]);
+      let result = await wfio.connect(accounts[1]).getApproval(approvalEvent.args[3]);
       expect(result).to.be.a('array');
       expect(result[0]).to.be.a('number').and.equal(1);
       expect(result[1]).to.be.a('string').and.equal('0x1aac82773CB722166D7dA0d5b0FA35B0307dD99D');
@@ -1887,7 +1895,7 @@ describe(`L. [ETH] Approval`, function () {
 
   it(`get approval by obtid, expect 7 approvals`, async function () {
     try {
-      let result = await wfio.connect(accounts[7]).getApproval(approvalEvent.args[1]);
+      let result = await wfio.connect(accounts[7]).getApproval(approvalEvent.args[3]);
       expect(result).to.be.a('array');
       expect(result[0]).to.be.a('number').and.equal(7);
       expect(result[1]).to.be.a('string').and.equal('0x1aac82773CB722166D7dA0d5b0FA35B0307dD99D');
@@ -1906,7 +1914,7 @@ describe(`L. [ETH] Approval`, function () {
     await wfio.connect(accounts[3]).unregcust(accounts[33].address);
 
     try {
-      let result = await wfio.connect(accounts[3]).getApproval(approvalEvent.args[1]);
+      let result = await wfio.connect(accounts[3]).getApproval(approvalEvent.args[3]);
       expect(result).to.be.a('array');
       expect(result[0]).to.be.a('number').and.equal(3);
       expect(result[1]).to.be.a('string').and.equal('0x1aac82773CB722166D7dA0d5b0FA35B0307dD99D');
@@ -1930,7 +1938,7 @@ describe(`L. [ETH] Approval`, function () {
 
   it(`get approval by obtid, expect 8 approvals`, async function () {
     try {
-      let result = await wfio.connect(accounts[9]).getApproval(approvalEvent.args[1]);
+      let result = await wfio.connect(accounts[9]).getApproval(approvalEvent.args[3]);
       expect(result).to.be.a('array');
       expect(result[0]).to.be.a('number').and.equal(8);
       expect(result[1]).to.be.a('string').and.equal('0x1aac82773CB722166D7dA0d5b0FA35B0307dD99D');
