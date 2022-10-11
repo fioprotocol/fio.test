@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const { newUser, generateFioAddress, createKeypair, callFioApi, getFees, callFioApiSigned, fetchJson, timeout} = require('../utils.js');
+const { newUser, generateFioAddress, createKeypair, callFioApi, getFees, getBundleCount, fetchJson, timeout} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
@@ -807,7 +807,10 @@ describe('D. transferFioAddress Error testing', () => {
                 technologyProviderId: ''
             })
             //console.log('Result: ', result)
-            expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+            expect(result).to.have.any.keys('status');
+            expect(result).to.have.any.keys('fee_collected');
+            expect(result).to.have.any.keys('block_num');
+            expect(result).to.have.any.keys('transaction_id');
         } catch (err) {
             console.log('Error: ', err);
             expect(err).to.equal(null);
@@ -827,31 +830,9 @@ describe('D. transferFioAddress Error testing', () => {
         }
     })
 
-    it('Call get_table_rows from fionames to get bundles remaining for userD3. Verify 0 bundles', async () => {
-        let bundleCount
-        try {
-            const json = {
-                json: true,               // Get the response as json
-                code: 'fio.address',      // Contract that we target
-                scope: 'fio.address',         // Account that owns the data
-                table: 'fionames',        // Table name
-                limit: 1000,                // Maximum number of rows that we want to get
-                reverse: false,           // Optional: Get reversed data
-                show_payer: false          // Optional: Show ram payer
-            }
-            fionames = await callFioApi("get_table_rows", json);
-            //console.log('fionames: ', fionames);
-            for (fioname in fionames.rows) {
-                if (fionames.rows[fioname].name == userD3.address) {
-                    //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
-                    bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-                }
-            }
-            expect(bundleCount).to.equal(0);
-        } catch (err) {
-            console.log('Error', err);
-            expect(err).to.equal(null);
-        }
+    it('Confirm bundles remaining', async () => {
+        const bundleCount = await getBundleCount(userD3.sdk);
+        expect(bundleCount).to.equal(0);
     })
 
     it(`Transfer address with insufficient funds and no bundled transactions. Expect error type 400: ${config.error.insufficientFunds}`, async () => {
@@ -1240,14 +1221,15 @@ describe('G. Transfer Addresses with NFTs.', () => {
     it(`Call get_table_rows from fionames. Collect Hashes.`, async () => {
         try {
             const json = {
-                json: true,
                 code: 'fio.address',
                 scope: 'fio.address',
                 table: 'fionames',
-                limit: 1000,
-                reverse: false,
-                show_payer: false
-            }
+                lower_bound: user1.account,
+                upper_bound: user1.account,
+                key_type: 'i64',
+                index_position: '4',
+                json: true
+           }
             fionames = await callFioApi("get_table_rows", json);
             //console.log('fionames: ', fionames);
             for (fioname in fionames.rows) {
@@ -1310,14 +1292,15 @@ describe('G. Transfer Addresses with NFTs.', () => {
         let addressOwner;
         try {
             const json = {
-                json: true,
                 code: 'fio.address',
                 scope: 'fio.address',
                 table: 'fionames',
-                limit: 1000,
-                reverse: false,
-                show_payer: false
-            }
+                lower_bound: user2.account,
+                upper_bound: user2.account,
+                key_type: 'i64',
+                index_position: '4',
+                json: true
+           }
             fionames = await callFioApi("get_table_rows", json);
             //console.log('fionames: ', fionames);
             for (fioname in fionames.rows) {
@@ -1375,14 +1358,15 @@ describe('G. Transfer Addresses with NFTs.', () => {
         let addressOwner;
         try {
             const json = {
-                json: true,
                 code: 'fio.address',
                 scope: 'fio.address',
                 table: 'fionames',
-                limit: 1000,
-                reverse: false,
-                show_payer: false
-            }
+                lower_bound: user2.account,
+                upper_bound: user2.account,
+                key_type: 'i64',
+                index_position: '4',
+                json: true
+           }
             fionames = await callFioApi("get_table_rows", json);
             //console.log('fionames: ', fionames);
             for (fioname in fionames.rows) {
@@ -1440,14 +1424,15 @@ describe('G. Transfer Addresses with NFTs.', () => {
         let addressOwner;
         try {
             const json = {
-                json: true,
                 code: 'fio.address',
                 scope: 'fio.address',
                 table: 'fionames',
-                limit: 1000,
-                reverse: false,
-                show_payer: false
-            }
+                lower_bound: user2.account,
+                upper_bound: user2.account,
+                key_type: 'i64',
+                index_position: '4',
+                json: true
+           }
             fionames = await callFioApi("get_table_rows", json);
             //console.log('fionames: ', fionames);
             for (fioname in fionames.rows) {
@@ -1745,7 +1730,7 @@ describe('H. Transfer Address with NFTs, confirm cannot add new NFT', () => {
     })
 })
 
-describe('E. transfer FIO Address with existing FIO Requests, test getters ', () => {
+describe('I. transfer FIO Address with existing FIO Requests, test getters ', () => {
     let user1, user2, user3, requestId
     const payment = 5000000000 // 5 FIO
     const requestMemo = 'Memo in the initial request'

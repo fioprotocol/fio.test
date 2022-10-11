@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, existingUser, getTestType, getProdVoteTotal, timeout, unlockWallet, addLock, getAccountVoteWeight, getTotalVotedFio, callFioApi, callFioApiSigned, fetchJson} = require('../utils.js');
+const {newUser, existingUser, getTestType, getProdVoteTotal, timeout, getBundleCount, getAccountVoteWeight, getTotalVotedFio, callFioApi, fetchJson} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
 const { readBufferWithDetectedEncoding } = require('tslint/lib/utils');
@@ -1063,7 +1063,7 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
 
   it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
-  it(`Fixed in Gemini: Get voterG1 last_vote_weight`, async () => {
+  it(`Get voterG1 last_vote_weight (Fixed in Gemini)`, async () => {
     try {
       voterG1.last_vote_weight = await getAccountVoteWeight(voterG1.account);
       //console.log('voterG1.last_vote_weight:', voterG1.last_vote_weight)
@@ -1072,7 +1072,7 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
     }
   })
 
-  it(`Fixed in Gemini: proxyG1 last_vote_weight increased by voterG1 vote weight`, async () => {
+  it(`proxyG1 last_vote_weight increased by voterG1 vote weight (Fixed in Gemini)`, async () => {
     try {
       prev_last_vote_weight = proxyG1.last_vote_weight
       proxyG1.last_vote_weight = await getAccountVoteWeight(proxyG1.account);
@@ -1083,7 +1083,7 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
     }
   })
 
-  it(`Fixed in Gemini: bp1@dapixdev total_votes increased by voterG1 last_vote_weight`, async () => {
+  it(`bp1@dapixdev total_votes increased by voterG1 last_vote_weight (Fixed in Gemini)`, async () => {
     try {
       prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
@@ -1124,7 +1124,7 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
     }
   })
 
-  it(`Fixed in Gemini: proxyG1 last_vote_weight increased by voterG2 vote weight`, async () => {
+  it(`proxyG1 last_vote_weight increased by voterG2 vote weight (Fixed in Gemini)`, async () => {
     try {
       prev_last_vote_weight = proxyG1.last_vote_weight
       proxyG1.last_vote_weight = await getAccountVoteWeight(proxyG1.account);
@@ -1135,7 +1135,7 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
     }
   })
 
-  it(`Fixed in Gemini: bp1@dapixdev total_votes increased by voterG2 last_vote_weight`, async () => {
+  it(`bp1@dapixdev total_votes increased by voterG2 last_vote_weight (Fixed in Gemini)`, async () => {
     try {
       prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
@@ -1176,7 +1176,7 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
     }
   })
 
-  it(`Fixed in Gemini: proxyG1 last_vote_weight increased by voterG3 vote weight`, async () => {
+  it(`proxyG1 last_vote_weight increased by voterG3 vote weight (Fixed in Gemini)`, async () => {
     try {
       prev_last_vote_weight = proxyG1.last_vote_weight
       proxyG1.last_vote_weight = await getAccountVoteWeight(proxyG1.account);
@@ -1187,7 +1187,7 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
     }
   })
 
-  it(`Fixed in Gemini: bp1@dapixdev total_votes increased by voterG3 last_vote_weight`, async () => {
+  it(`bp1@dapixdev total_votes increased by voterG3 last_vote_weight (Fixed in Gemini)`, async () => {
     try {
       prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
@@ -1221,7 +1221,7 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
 
   it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
-  it(`Fixed in Gemini: bp1@dapixdev does not change`, async () => {
+  it(`bp1@dapixdev does not change (Fixed in Gemini)`, async () => {
     try {
       prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
@@ -1232,7 +1232,7 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
     }
   })
 
-  it(`Fixed in Gemini: proxyG1 last_vote_weight decreased by voterG1 vote weight`, async () => {
+  it(`proxyG1 last_vote_weight decreased by voterG1 vote weight (Fixed in Gemini)`, async () => {
     try {
       prev_last_vote_weight = proxyG1.last_vote_weight
       proxyG1.last_vote_weight = await getAccountVoteWeight(proxyG1.account);
@@ -1773,30 +1773,9 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
     }
   })
 
-  it('Get initial bundle count for voterG7. ', async () => {
-    try {
-        const json = {
-            json: true,               // Get the response as json
-            code: 'fio.address',      // Contract that we target
-            scope: 'fio.address',         // Account that owns the data
-            table: 'fionames',        // Table name
-            limit: 1000,                // Maximum number of rows that we want to get
-            reverse: false,           // Optional: Get reversed data
-            show_payer: false          // Optional: Show ram payer
-        }
-        fionames = await callFioApi("get_table_rows", json);
-        //console.log('fionames: ', fionames);
-        for (fioname in fionames.rows) {
-            if (fionames.rows[fioname].name == voterG7.address) {
-                //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
-                bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-            }
-        }
-        expect(bundleCount).to.be.greaterThan(0);
-    } catch (err) {
-        console.log('Error', err);
-        expect(err).to.equal(null);
-    }
+  it('Get initial bundle count for voterG7', async () => {
+    bundleCount = await getBundleCount(voterG7.sdk);
+    expect(bundleCount).to.be.greaterThan(0);
   })
 
   it(`Get balance for voterG7`, async () => {
@@ -1844,33 +1823,12 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
         //console.log('Error', err)
         expect(err).to.equal(null)
     }
-})
+  })
 
-  it('Get bundle count for voterG7. Confirm bundle count was decremented by 1.', async () => {
+  it('Confirm bundle count for voterG7', async () => {
     prevBundleCount = bundleCount;
-    try {
-        const json = {
-            json: true,               // Get the response as json
-            code: 'fio.address',      // Contract that we target
-            scope: 'fio.address',         // Account that owns the data
-            table: 'fionames',        // Table name
-            limit: 1000,                // Maximum number of rows that we want to get
-            reverse: false,           // Optional: Get reversed data
-            show_payer: false          // Optional: Show ram payer
-        }
-        fionames = await callFioApi("get_table_rows", json);
-        //console.log('fionames: ', fionames);
-        for (fioname in fionames.rows) {
-            if (fionames.rows[fioname].name == voterG7.address) {
-                //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
-                bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-            }
-        }
-        expect(bundleCount).to.equal(prevBundleCount - 1);
-    } catch (err) {
-        console.log('Error', err);
-        expect(err).to.equal(null);
-    }
+    bundleCount = await getBundleCount(voterG7.sdk);
+    expect(bundleCount).to.equal(prevBundleCount - 1);
   })
 
   it(`Get voterG7 last_vote_weight`, async () => {

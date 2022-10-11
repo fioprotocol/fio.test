@@ -170,7 +170,7 @@ async function cleanUpOraclessTable (faucetAcct, originals = false) {
           actor: fAcct
         }
       });
-      console.log("deleted: ", row, result);
+      //console.log("deleted: ", row, result);
     }
   } catch (err) {
     throw err;

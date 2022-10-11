@@ -1,10 +1,11 @@
 const TESTURL = 'http://localhost:8889'           // Localhost
-// const TESTURL = 'http://54.200.124.65:8889'           // QAnet
-//const TESTURL = 'http://35.85.153.248:8889'          // DEV1
+//const TESTURL = 'http://54.200.124.65:8889'       // QAnet
+//const TESTURL = 'http://18.237.87.177:8889'       // DEV1
 //const TESTURL = 'http://44.238.153.162:8889'      // Devnet
-//const TESTURL = 'http://fiotestnet.greymass.com'   // Testnet
+//const TESTURL = 'http://fiotestnet.greymass.com'  // Testnet
 //const TESTURL = 'https://fio.greymass.com'        // Mainnet
-//const TESTURL = 'http://52.40.41.71:8889'        // Eric DEV
+//const TESTURL = 'http://52.40.41.71:8889'         // Eric DEV
+//const TESTURL = 'http://52.35.164.8:8889'         // Mike DEV
 
 const HISTORYURL = 'http://35.85.153.248:8080'        // History
 
@@ -30,6 +31,7 @@ const config = {
     FUNDS: 3000000000000,
     BILLION: 1000000000,
     maxFee: 800000000000,
+    maxOracleFee: 600000000000,
     defaultBundleCount: 100,
 
     // lock duration periods for local testing
@@ -318,7 +320,7 @@ const config = {
         },
         buy_domain: {
             bundledEligible: false,
-            fee: 1000000000
+            fee: 2000000000
         },
         set_marketplace_config: {
             bundledEligible: false,
@@ -378,11 +380,14 @@ const config = {
         XFERADDRESSRAM: 512,
         CANCELFUNDSRAM: 512,
         BUNDLEVOTERAM: 0,
-        FIOESCROWRAM: 512,
+        FIOESCROWRAM: 1536,
         ADDNFTRAMBASE: 512,
         ADDNFTRAM: 2048,
         STAKEFIOTOKENSRAM: 512,
-        UNSTAKEFIOTOKENSRAM: 512
+        UNSTAKEFIOTOKENSRAM: 512,
+        WRAPTOKENRAM: 512,
+        WRAPDOMAINRAM: 512,
+        TRANSLOCTOKSRAM: 1200
     },
 
     public_addresses: [

@@ -333,7 +333,10 @@ describe(`************************** fio-request.js ************************** \
       walletFioAddress: ''
     })
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
   })
 
   it(`Wait a few seconds.`, async () => { await timeout(3000) })
@@ -939,7 +942,10 @@ describe(`B. Test FIO Request error conditions`, () => {
         walletFioAddress: ''
       })
       //console.log('Result: ', result)
-      expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
@@ -960,30 +966,8 @@ describe(`B. Test FIO Request error conditions`, () => {
   })
 
   it('Call get_table_rows from fionames to get bundles remaining for userB1. Verify 0 bundles', async () => {
-    let bundleCount
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'fio.address',      // Contract that we target
-        scope: 'fio.address',         // Account that owns the data
-        table: 'fionames',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
-      }
-      fionames = await callFioApi("get_table_rows", json);
-      //console.log('fionames: ', fionames);
-      for (fioname in fionames.rows) {
-        if (fionames.rows[fioname].name == userB1.address) {
-          //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
-          bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-        }
-      }
-      expect(bundleCount).to.equal(0);
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
+    const bundles = await getBundleCount(userB1.sdk);
+    expect(bundles).to.equal(0);
   })
 
   it(`Cancel request without available bundled tx and with insufficient fee returns error ${config.error.insufficientFunds}`, async () => {
@@ -1155,30 +1139,10 @@ describe(`C. cancel_funds_request with bundles remaining`, () => {
     }
   })
 
-  it('Call get_table_rows from fionames to get bundles remaining for userA1', async () => {
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'fio.address',      // Contract that we target
-        scope: 'fio.address',         // Account that owns the data
-        table: 'fionames',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
-      }
-      fionames = await callFioApi("get_table_rows", json);
-      //console.log('fionames: ', fionames);
-      for (fioname in fionames.rows) {
-        if (fionames.rows[fioname].name == userA1.address) {
-          //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
-          userA1OrigBundle = fionames.rows[fioname].bundleeligiblecountdown;
-        }
-      }
-      expect(userA1OrigBundle).to.equal(98);  // 2 for new_funds_request
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
+
+  it('Confirm bundles remaining', async () => {
+    userA1OrigBundle = await getBundleCount(userA1.sdk);
+    expect(userA1OrigBundle).to.equal(98);
   })
 
   it(`Get RAM quota for userA1`, async () => {
@@ -1203,7 +1167,10 @@ describe(`C. cancel_funds_request with bundles remaining`, () => {
         technologyProviderId: ''
       })
       //console.log('Result: ', result);
-      expect(result).to.have.all.keys('status', 'fee_collected', 'block_num', 'transaction_id');
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
       expect(result.status).to.equal('cancelled');
       expect(result.fee_collected).to.equal(0);
     } catch (err) {
@@ -1349,31 +1316,9 @@ describe(`C. cancel_funds_request with bundles remaining`, () => {
     }
   })
 
-  it(`Verify userA1 bundle count decreased by 1`, async () => {
-    let bundleCount;
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'fio.address',      // Contract that we target
-        scope: 'fio.address',         // Account that owns the data
-        table: 'fionames',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
-      }
-      fionames = await callFioApi("get_table_rows", json);
-      //console.log('fionames: ', fionames);
-      for (fioname in fionames.rows) {
-        if (fionames.rows[fioname].name == userA1.address) {
-          //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
-          bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-        }
-      }
-      expect(bundleCount).to.equal(userA1OrigBundle - 1);  // 1 bundle for cancel_funds_request
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
+  it('Confirm bundles remaining', async () => {
+    const bundleCount = await getBundleCount(userA1.sdk);
+    expect(bundleCount).to.equal(userA1OrigBundle - 1);  // 1 bundle for cancel_funds_request
   })
 
   it(`Verify RAM quota for userA1 was incremented by ${config.RAM.CANCELFUNDSRAM}`, async () => {
@@ -1521,30 +1466,10 @@ describe('D. cancel_funds_request with NO bundles remaining', () => {
     }
   })
 
-  it('Call get_table_rows from fionames to get bundles remaining for userB1. Expect 0 bundles', async () => {
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'fio.address',      // Contract that we target
-        scope: 'fio.address',         // Account that owns the data
-        table: 'fionames',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
-      }
-      fionames = await callFioApi("get_table_rows", json);
-      //console.log('fionames: ', fionames);
-      for (fioname in fionames.rows) {
-        if (fionames.rows[fioname].name == userB1.address) {
-          //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
-          userB1OrigBundle = fionames.rows[fioname].bundleeligiblecountdown;
-        }
-      }
-      expect(userB1OrigBundle).to.equal(0);
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
+  it('Confirm bundles remaining', async () => {
+    userB1OrigBundle = await getBundleCount(userB1.sdk);
+    console.log('bundles: ', userB1OrigBundle)
+    expect(userB1OrigBundle).to.equal(0);
   })
 
   it(`Get RAM quota for userB1`, async () => {
@@ -1569,7 +1494,10 @@ describe('D. cancel_funds_request with NO bundles remaining', () => {
         technologyProviderId: ''
       })
       //console.log('Result: ', result);
-      expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
       expect(result.status).to.equal('cancelled');
       expect(result.fee_collected).to.equal(cancel_funds_request_fee);
     } catch (err) {
@@ -1924,7 +1852,10 @@ describe(`E. Test cancel_funds_request error conditions`, () => {
         walletFioAddress: ''
       })
       //console.log('Result: ', result)
-      expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
@@ -1944,31 +1875,9 @@ describe(`E. Test cancel_funds_request error conditions`, () => {
     }
   })
 
-  it('Call get_table_rows from fionames to get bundles remaining for userC1. Verify 0 bundles', async () => {
-    let bundleCount
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'fio.address',      // Contract that we target
-        scope: 'fio.address',         // Account that owns the data
-        table: 'fionames',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
-      }
-      fionames = await callFioApi("get_table_rows", json);
-      //console.log('fionames: ', fionames);
-      for (fioname in fionames.rows) {
-        if (fionames.rows[fioname].name == userC1.address) {
-          //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
-          bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-        }
-      }
-      expect(bundleCount).to.equal(0);
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
+  it('Confirm bundles remaining', async () => {
+    const bundleCount = await getBundleCount(userC1.sdk);
+    expect(bundleCount).to.equal(0);
   })
 
   it(`Cancel request without available bundled tx and with insufficient fee. Expect error type 400: ${config.error.insufficientFunds}`, async () => {
@@ -2011,7 +1920,10 @@ describe(`F. get_cancelled_fio_requests paging: Cancel multiple FIO requests and
         walletFioAddress: ''
       })
       //console.log('Result: ', result)
-      expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
     } catch (err) {
       //console.log('Error: ', err);
       expect(err).to.equal(null);

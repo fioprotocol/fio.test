@@ -113,7 +113,6 @@ describe('Test register as proxy after proxying your own vote.', () => {
       maxFee: config.api.transfer_tokens_pub_key.fee,
     })
     //console.log('Result', result)
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
     expect(result.status).to.equal('OK')
     await setRam(prod, 'INITIALACCOUNTRAM', 0)
   })
@@ -346,7 +345,10 @@ describe('Test register as proxy after proxying your own vote.', () => {
       maxFee: config.api.transfer_tokens_pub_key.fee,
     })
     //console.log('Result', result)
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
     expect(result.status).to.equal('OK')
     await setRam(user2, 'INITIALACCOUNTRAM', 0)
   })
@@ -358,7 +360,9 @@ describe('Test register as proxy after proxying your own vote.', () => {
       walletFioAddress: ''
     })
     //console.log('Result', result)
-    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('expiration');
+    expect(result).to.have.any.keys('fee_collected');
     expect(result.status).to.equal('OK')
     await setRam(user2, 'REGDOMAINRAM', result.fee_collected)
   })

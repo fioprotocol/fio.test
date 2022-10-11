@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, timeout, fetchJson, callFioApi, callFioApiSigned} = require('../utils.js');
+const {newUser, timeout, fetchJson, callFioApi, callFioApiSigned, getBundleCount} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
@@ -621,6 +621,8 @@ describe(`E. Add and remove addresses with bundles remaining`, () => {
         userA1 = await newUser(faucet);
     })
 
+    it('Wait a few seconds...', async () => { await timeout(2000); })
+
     it(`Add DASH and BCH addresses to userA1`, async () => {
       try {
         const result = await userA1.sdk.genericAction('addPublicAddresses', {
@@ -937,31 +939,9 @@ describe(`E-2. Add and remove addresses with NO bundles remaining`, () => {
       }
     })
 
-    it('Call get_table_rows from fionames to get bundles remaining for userA1. Verify 0 bundles', async () => {
-      let bundleCount
-      try {
-        const json = {
-          json: true,               // Get the response as json
-          code: 'fio.address',      // Contract that we target
-          scope: 'fio.address',         // Account that owns the data
-          table: 'fionames',        // Table name
-          limit: 1000,                // Maximum number of rows that we want to get
-          reverse: false,           // Optional: Get reversed data
-          show_payer: false          // Optional: Show ram payer
-        }
-        fionames = await callFioApi("get_table_rows", json);
-        //console.log('fionames: ', fionames);
-        for (fioname in fionames.rows) {
-          if (fionames.rows[fioname].name == userA1.address) {
-            //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
-            bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-          }
-        }
-        expect(bundleCount).to.equal(0);
-      } catch (err) {
-        console.log('Error', err);
-        expect(err).to.equal(null);
-      }
+    it('Confirm bundles remaining = 0', async () => {
+      const bundleCount = await getBundleCount(userA1.sdk);
+      expect(bundleCount).to.equal(0);
     })
 
     it(`Verify remove_all_pub_addresses fee is > 0 (no more bundles)`, async () => {
@@ -984,7 +964,10 @@ describe(`E-2. Add and remove addresses with NO bundles remaining`, () => {
           tpid: ''
         })
         //console.log('Result:', result)
-        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+        expect(result).to.have.any.keys('status');
+        expect(result).to.have.any.keys('fee_collected');
+        expect(result).to.have.any.keys('block_num');
+        expect(result).to.have.any.keys('transaction_id');
         expect(result.fee_collected).to.equal(remove_all_pub_addresses_fee);
       } catch (err) {
         console.log('Error', err)
@@ -1064,7 +1047,10 @@ describe(`E-2. Add and remove addresses with NO bundles remaining`, () => {
           tpid: ''
         })
         //console.log('Result:', result)
-        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id')
+        expect(result).to.have.any.keys('status');
+        expect(result).to.have.any.keys('fee_collected');
+        expect(result).to.have.any.keys('block_num');
+        expect(result).to.have.any.keys('transaction_id');
         expect(result.fee_collected).to.equal(remove_pub_address_fee);
       } catch (err) {
         console.log('Error', err)
@@ -1268,7 +1254,7 @@ describe(`F. Sad - result in error`, () => {
     }
   })
 
-  it(`userA2 tries to remove userA1s public addresses. Expect error: missing authority`, async () => {
+  it(`userA2 tries to remove userA1s public addresses. Expect error`, async () => {
     try{
       const result = await userA2.sdk.genericAction('pushTransaction', {
         action: 'remaddress',
@@ -1283,8 +1269,9 @@ describe(`F. Sad - result in error`, () => {
       })
       expect(result.status).to.equal(null);
     } catch (err) {
-      //console.log('Error', err.json.error)
-      expect(err.json.error.details[0].message).to.contain('missing authority ');
+      //console.log('Error', err)
+      expect(err.json.message).to.contain('Request signature is not valid or this user is not allowed to sign this transaction.');
+      expect(err.errorCode).to.equal(403);
     }
   })
 
@@ -1361,7 +1348,10 @@ describe(`F. Sad - result in error`, () => {
         technologyProviderId: ''
       })
       //console.log('Result: ', result)
-      expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
@@ -1381,31 +1371,9 @@ describe(`F. Sad - result in error`, () => {
     }
   })
 
-  it('Call get_table_rows from fionames to get bundles remaining for userA1. Verify 0 bundles', async () => {
-    let bundleCount
-    try {
-      const json = {
-        json: true,               // Get the response as json
-        code: 'fio.address',      // Contract that we target
-        scope: 'fio.address',         // Account that owns the data
-        table: 'fionames',        // Table name
-        limit: 1000,                // Maximum number of rows that we want to get
-        reverse: false,           // Optional: Get reversed data
-        show_payer: false          // Optional: Show ram payer
-      }
-      fionames = await callFioApi("get_table_rows", json);
-      //console.log('fionames: ', fionames);
-      for (fioname in fionames.rows) {
-        if (fionames.rows[fioname].name == userA1.address) {
-          //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
-          bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-        }
-      }
-      expect(bundleCount).to.equal(0);
-    } catch (err) {
-      console.log('Error', err);
-      expect(err).to.equal(null);
-    }
+  it('Confirm bundles remaining = 0', async () => {
+    const bundleCount = await getBundleCount(userA1.sdk);
+    expect(bundleCount).to.equal(0);
   })
 
   it(`Remove with fee less than required fee. Expect error type 400: ${config.error.feeExceedsMax}`, async () => {

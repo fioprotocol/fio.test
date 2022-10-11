@@ -75,7 +75,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 });
 
-describe(`************************** locks-get-locks.js ************************** \n    A. Get Locks Parameter error tests`, () => {
+describe(`************************** locks-get-locks-with-staking.js ************************** \n    A. Get Locks Parameter error tests`, () => {
   let userA1, userA2, userA3, userA4, keys, keys1, keys2, keys3,keys4, locksdk,
     locksdk1, locksdk2, locksdk3,locksdk4, newFioAddress, newFioDomain, newFioDomain2, newFioAddress2,
     total_bp_votes_before, total_bp_votes_after
@@ -191,7 +191,10 @@ describe(`B. Get locks success tests. `, () => {
 
         });
         expect(result.status).to.equal('OK');
-        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+        expect(result).to.have.any.keys('status');
+        expect(result).to.have.any.keys('fee_collected');
+        expect(result).to.have.any.keys('block_num');
+        expect(result).to.have.any.keys('transaction_id');
       } catch (err) {
         console.log(' Error', err)
       }
@@ -221,7 +224,10 @@ describe(`B. Get locks success tests. `, () => {
 
         });
         expect(result.status).to.equal('OK');
-        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+        expect(result).to.have.any.keys('status');
+        expect(result).to.have.any.keys('fee_collected');
+        expect(result).to.have.any.keys('block_num');
+        expect(result).to.have.any.keys('transaction_id');
       } catch (err) {
         console.log(' Error', err)
       }
@@ -267,7 +273,10 @@ describe(`B. Get locks success tests. `, () => {
 
         });
         expect(result.status).to.equal('OK');
-        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+        expect(result).to.have.any.keys('status');
+        expect(result).to.have.any.keys('fee_collected');
+        expect(result).to.have.any.keys('block_num');
+        expect(result).to.have.any.keys('transaction_id');
     } else {
         const result = await userA1.sdk.genericAction('pushTransaction', {
           action: 'trnsloctoks',
@@ -293,7 +302,10 @@ describe(`B. Get locks success tests. `, () => {
 
         });
         expect(result.status).to.equal('OK');
-        expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+        expect(result).to.have.any.keys('status');
+        expect(result).to.have.any.keys('fee_collected');
+        expect(result).to.have.any.keys('block_num');
+        expect(result).to.have.any.keys('transaction_id');
     }
   });
   it(`Verify locks were set with get_locks`, async () => {

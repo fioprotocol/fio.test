@@ -1639,6 +1639,8 @@ describe(`C. Insert stake period at END of locktokensv2 general locks, then unlo
     }
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(2000) });
+
   it(`Call get_table_rows from locktokensv2. Confirm: lock_amount updated, additional Staking period added at end`, async () => {
     try {
       const json = {
@@ -2126,7 +2128,10 @@ describe(`E. Check ram quota for stakefio and unstakefio`, () => {
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     })
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
   })
 
   it(`Success, vote for producer`, async () => {

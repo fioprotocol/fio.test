@@ -270,7 +270,7 @@ describe(`************************** retire-tokens.js **************************
       throw err;
     }
   });
-  it(`confirm that locktokensv2 remaining_lock_amount is 0`, async function () {
+  it(`confirm that locktokensv2 table is empty`, async function () {
     // shows that lock table has been updated
     const json = {
       json: true,
@@ -286,8 +286,10 @@ describe(`************************** retire-tokens.js **************************
 
     try {
       const lockedtokens = await callFioApi("get_table_rows", json);
-      expect(lockedtokens.rows[0].remaining_lock_amount).to.equal(0);
+      //console.log('lockedtokens: ', lockedtokens);
+      expect(lockedtokens.rows.length).to.equal(0);
     } catch (err) {
+      console.log('Error: ', err);
       throw err;
     }
   });
@@ -712,7 +714,7 @@ describe(`C. Retire locked FIO Tokens`, function () {
       throw err;
     }
   });
-  it(`confirm that locktokensv2 remaining_lock_amount is 0`, async function () {
+  it(`confirm that locktokensv2 is empty`, async function () {
     // shows that lock table has been updated
     const json = {
       json: true,
@@ -728,7 +730,7 @@ describe(`C. Retire locked FIO Tokens`, function () {
 
     try {
       const lockedtokens = await callFioApi("get_table_rows", json);
-      expect(lockedtokens.rows[0].remaining_lock_amount).to.equal(0);
+      expect(lockedtokens.rows.length).to.equal(0);
     } catch (err) {
       throw err;
     }
@@ -994,7 +996,7 @@ describe(`C. Retire locked FIO Tokens`, function () {
       throw err;
     }
   });
-  it(`(BD-3132) try to retire more tokens than are unlocked, expect Error`, async function () {
+  it(`Try to retire more tokens than are unlocked, expect Error (Fixed BD-3132) `, async function () {
     let newUserBal;
     userA4Bal = await userA4.sdk.genericAction('getFioBalance', { });
 
@@ -1185,7 +1187,7 @@ describe(`C. Retire locked FIO Tokens`, function () {
       throw err;
     }
   });
-  it(`(BD-3132) try to retire 4000000000000 tokens, expect Error`, async function () {
+  it(`Try to retire 4000000000000 tokens, expect Error (Fixed BD-3132) `, async function () {
     let newUserBal;
     userA5Bal = await userA5.sdk.genericAction('getFioBalance', { });
 
@@ -1350,7 +1352,7 @@ describe(`C. Retire locked FIO Tokens`, function () {
       throw err;
     }
   });
-  it(`confirm that locktokensv2 remaining_lock_amount is 0`, async function () {
+  it(`confirm that locktokensv2 table is empty`, async function () {
     // shows that lock table has been updated
     const json = {
       json: true,
@@ -1367,7 +1369,7 @@ describe(`C. Retire locked FIO Tokens`, function () {
 
     try {
       const lockedtokens = await callFioApi("get_table_rows", json);
-      expect(lockedtokens.rows[0].remaining_lock_amount).to.equal(0);
+      expect(lockedtokens.rows.length).to.equal(0);
     } catch (err) {
       throw err;
     }
@@ -1397,7 +1399,7 @@ describe(`C. Retire locked FIO Tokens`, function () {
   });
 });
 
-describe(`D. Try to retire from accounts with staked tokens`, function () {
+describe.skip(`D. Try to retire from accounts with staked tokens`, function () {
   let bp1, bp2, bp3, userA, userA1, userP, userAKeys, userA1Keys;
   let userABal, userA1Bal;
 
@@ -1510,7 +1512,10 @@ describe(`D. Try to retire from accounts with staked tokens`, function () {
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     });
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
     userABal = await userA.sdk.genericAction('getFioBalance', {});
   });
 
@@ -1531,7 +1536,10 @@ describe(`D. Try to retire from accounts with staked tokens`, function () {
         }
       });
       newUserBal = await userA.sdk.genericAction('getFioBalance', {});
-      expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
       expect(result.status).to.equal('OK');
       expect(result.fee_collected).to.equal(config.api.stake_fio_tokens.fee);
       expect(newUserBal.staked).to.equal(userABal.staked + stakeAmt);
@@ -1544,7 +1552,7 @@ describe(`D. Try to retire from accounts with staked tokens`, function () {
     }
   });
 
-  it(`(BD-3133) retire ${fundsAmount} SUFs from userA, expect Error: Account staking cannot retire`, async function () {
+  it(`Failure test: Retire ${fundsAmount} SUFs from userA, expect Error: Account staking cannot retire (Fixed BD-3133)`, async function () {
     let newUserBal;
     try {
       const result = await userA.sdk.genericAction('pushTransaction', {
@@ -1594,7 +1602,10 @@ describe(`D. Try to retire from accounts with staked tokens`, function () {
         }
       });
       newUserBal = await userA1.sdk.genericAction('getFioBalance', {});
-      expect(result).to.have.all.keys('block_num', 'fee_collected', 'status', 'transaction_id');
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
       expect(result.status).to.equal('OK');
       expect(result.fee_collected).to.equal(config.api.stake_fio_tokens.fee);
       expect(newUserBal.staked).to.equal(stake);
@@ -1629,13 +1640,13 @@ describe(`D. Try to retire from accounts with staked tokens`, function () {
       expect(userA1Bal.staked - newUserBal.staked).to.equal(stakeAmt);
       userA1Bal = newUserBal;
     } catch (err) {
+      console.log('Error: ', err);
       newUserBal = await userA1.sdk.genericAction('getFioBalance', {});
       console.log(err, newUserBal);
       userA1Bal = newUserBal;
       throw err;
     }
 
-    // await timeout(72000);
   });
 
   it(`get userA1 FIP-6 locks and verify the staking unlock period has been added`, async function () {
@@ -1644,8 +1655,9 @@ describe(`D. Try to retire from accounts with staked tokens`, function () {
     expect(result.unlock_periods.length).to.equal(1);
     expect(result.unlock_periods[0].amount).to.equal(1000000000000);
     expect(result.unlock_periods[0].duration).to.equal(70);
-    await timeout(72000);
   });
+
+  it(`Wait 72 seconds.`, async () => { await timeout(72000) })
 
   it(`try to retire 1000 tokens from userA1, expect Error: Account staking cannot retire`, async function () {
     let newUserBal;
@@ -1691,6 +1703,7 @@ describe(`D. Try to retire from accounts with staked tokens`, function () {
       expect(userA1Bal.staked - newUserBal.staked).to.equal(stakeAmt);
       userA1Bal = newUserBal;
     } catch (err) {
+      console.log('Error: ', err.json.error);
       newUserBal = await userA1.sdk.genericAction('getFioBalance', {});
       console.log(err, newUserBal);
       userA1Bal = newUserBal;
@@ -1907,7 +1920,7 @@ describe(`E. Unhappy tests. Try to retire FIO tokens with invalid input`, functi
     }
   });
 
-  it(`confirm that locktokensv2 remaining_lock_amount is 0`, async function () {
+  it(`confirm that locktokensv2 is empty`, async function () {
     // shows that lock table has been updated
     const json = {
       json: true,
@@ -1924,7 +1937,7 @@ describe(`E. Unhappy tests. Try to retire FIO tokens with invalid input`, functi
 
     try {
       const lockedtokens = await callFioApi("get_table_rows", json);
-      expect(lockedtokens.rows[0].remaining_lock_amount).to.equal(0);
+      expect(lockedtokens.rows.length).to.equal(0);
     } catch (err) {
       throw err;
     }
@@ -2020,7 +2033,7 @@ describe(`E. Unhappy tests. Try to retire FIO tokens with invalid input`, functi
     }
   });
 
-  it(`(BD-3166 - negative quantity) Retire -1000000000 SUFs from userA2`, async function () {
+  it(`(negative quantity) Retire -1000000000 SUFs from userA2 (Fixed BD-3166)`, async function () {
     let newUserBal;
     userA2Bal = await userA2.sdk.genericAction('getFioBalance', {});
     try {
@@ -2044,7 +2057,7 @@ describe(`E. Unhappy tests. Try to retire FIO tokens with invalid input`, functi
       expect(err.json.fields[0].error).to.equal('Minimum 1000 FIO has to be retired');
     }
   });
-  it(`(BD-3166 - negative quantity) Retire 0 SUFs from userA2`, async function () {
+  it(`(negative quantity) Retire 0 SUFs from userA2 (Fixed BD-3166)`, async function () {
     let newUserBal;
     userA2Bal = await userA2.sdk.genericAction('getFioBalance', {});
     try {
@@ -2068,7 +2081,7 @@ describe(`E. Unhappy tests. Try to retire FIO tokens with invalid input`, functi
       expect(err.json.fields[0].error).to.equal('Minimum 1000 FIO has to be retired');
     }
   });
-  it(`(BD-3166 - negative quantity) Retire -1 SUFs from userA2`, async function () {
+  it(`(negative quantity) Retire -1 SUFs from userA2 (Fixed BD-3166)`, async function () {
     let newUserBal;
     userA2Bal = await userA2.sdk.genericAction('getFioBalance', {});
     try {
@@ -2092,7 +2105,7 @@ describe(`E. Unhappy tests. Try to retire FIO tokens with invalid input`, functi
       expect(err.json.fields[0].error).to.equal('Minimum 1000 FIO has to be retired');
     }
   });
-  it(`(BD-3166 - negative quantity) Retire -1000000000000000000000 SUFs from userA2`, async function () {
+  it(`(negative quantity) Retire -1000000000000000000000 SUFs from userA2 (Fixed BD-3166)`, async function () {
     let newUserBal;
     userA2Bal = await userA2.sdk.genericAction('getFioBalance', {});
     try {
@@ -2116,7 +2129,7 @@ describe(`E. Unhappy tests. Try to retire FIO tokens with invalid input`, functi
       expect(err.message).to.equal('invalid number');
     }
   });
-  it(`(BD-3166 - negative quantity) Retire -999999999999 SUFs from userA2`, async function () {
+  it(`(negative quantity) Retire -999999999999 SUFs from userA2 (Fixed BD-3166)`, async function () {
     let newUserBal;
     userA2Bal = await userA2.sdk.genericAction('getFioBalance', {});
     try {
@@ -2170,8 +2183,8 @@ describe(`E. Unhappy tests. Try to retire FIO tokens with invalid input`, functi
       });
       expect(result).to.equal(null);
     } catch (err) {
-
-      expect(err.json.error.details[0].message).to.equal('missing authority of invalid');
+      //console.log('Error: ', err.json.error);
+      expect(err.json.error.details[0].message).to.equal(`action's authorizing actor 'invalid' does not exist`);
     }
   });
 
@@ -2188,9 +2201,10 @@ describe(`E. Unhappy tests. Try to retire FIO tokens with invalid input`, functi
       });
       expect(result).to.equal(null);
     } catch (err) {
+      //console.log('Error: ', err.json.error);
       // different verbiage, same error condition
       // expect(err.json.error.details[0].message).to.equal('Signer not actor')
-      expect(err.json.error.details[0].message).to.equal('missing authority of bp1.dapixdev');
+      expect(err.json.error.details[0].message).to.equal(`action's authorizing actor 'bp1.dapixdev' does not exist`);
     }
   });
 });
