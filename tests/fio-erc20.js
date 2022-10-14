@@ -120,6 +120,9 @@ describe(`C. [ETH] Custodians (register)`, function () {
   let owner;
   let factory;
   let wfio;
+  let registerEvent;
+  let approvalEvent;
+  let indexHash;
 
   before(async function () {
     [owner, ...accounts] = await ethers.getSigners();
@@ -139,9 +142,25 @@ describe(`C. [ETH] Custodians (register)`, function () {
     await wfio.connect(accounts[4]).regcust(accounts[18].address);
     await wfio.connect(accounts[5]).regcust(accounts[18].address);
     await wfio.connect(accounts[6]).regcust(accounts[18].address);
-    await wfio.connect(accounts[7]).regcust(accounts[18].address);
-    let result = await wfio.getCustodian(accounts[18].address);
-    expect(result[0]).to.be.a('boolean').and.equal(true);
+    let tx = await wfio.connect(accounts[7]).regcust(accounts[18].address);
+    let result = await tx.wait();
+    registerEvent = result.events[1]
+    indexHash = registerEvent.args[1];
+    approvalEvent = result.events[2]
+  });
+
+  it(`validate custodian event`, async function () {
+    expect(registerEvent.args[0]).to.be.a('string').and.equal(accounts[18].address.toString());
+    expect(registerEvent.args[1]).to.be.a('string');
+    expect(approvalEvent.args[0]).to.be.a('string').and.equal('custodian');
+    expect(approvalEvent.args[1]).to.be.a('string').and.equal(accounts[7].address.toString());
+    expect(approvalEvent.args[2]).to.equal('');
+    expect(approvalEvent.args[3]).to.be.a('string').and.equal(indexHash);
+  });
+
+  it(`validate new custodian`, async function () {
+    let cust = await wfio.getCustodian(accounts[18].address);
+    expect(cust[0]).to.be.a('boolean').and.equal(true);
   });
 
   // unhappy paths
@@ -203,6 +222,9 @@ describe(`D. [ETH] Custodians (unregister)`, function () {
   let owner;
   let factory;
   let wfio;
+  let registerEvent;
+  let approvalEvent;
+  let indexHash;
 
   before(async function () {
     [owner, ...accounts] = await ethers.getSigners();
@@ -222,7 +244,23 @@ describe(`D. [ETH] Custodians (unregister)`, function () {
     await wfio.connect(accounts[4]).unregcust(accounts[9].address);
     await wfio.connect(accounts[5]).unregcust(accounts[9].address);
     await wfio.connect(accounts[6]).unregcust(accounts[9].address);
-    await wfio.connect(accounts[7]).unregcust(accounts[9].address);
+    let tx = await wfio.connect(accounts[7]).unregcust(accounts[9].address);
+    let result = await tx.wait();
+    registerEvent = result.events[1]
+    indexHash = registerEvent.args[1];
+    approvalEvent = result.events[2]
+  });
+
+  it(`validate custodian event`, async function () {
+    expect(registerEvent.args[0]).to.be.a('string').and.equal(accounts[9].address.toString());
+    expect(registerEvent.args[1]).to.be.a('string');
+    expect(approvalEvent.args[0]).to.be.a('string').and.equal('custodian');
+    expect(approvalEvent.args[1]).to.be.a('string').and.equal(accounts[7].address.toString());
+    expect(approvalEvent.args[2]).to.equal('');
+    expect(approvalEvent.args[3]).to.be.a('string').and.equal(indexHash);
+  });
+
+  it(`validate custodian removal`, async function () {
     let result = await wfio.getCustodian(accounts[9].address);
     expect(result[0]).to.be.a('boolean').and.equal(false);
   });
@@ -373,6 +411,9 @@ describe(`F. [ETH] Oracles (register)`, function () {
   let owner;
   let factory;
   let wfio;
+  let registerEvent;
+  let approvalEvent;
+  let indexHash;
 
   before(async function () {
     [owner, ...accounts] = await ethers.getSigners();
@@ -434,11 +475,25 @@ describe(`F. [ETH] Oracles (register)`, function () {
   });
 
   it(`custodian 7 registers new oracle 1`, async function () {
-    await wfio.connect(accounts[7]).regoracle(accounts[12].address);
+    let tx = await wfio.connect(accounts[7]).regoracle(accounts[12].address);
+    let result = await tx.wait();
+    expect(result.events.length).to.equal(1);
   });
 
   it(`custodian 8 registers new oracle 1`, async function () {
-    await wfio.connect(accounts[8]).regoracle(accounts[12].address);
+    let tx = await wfio.connect(accounts[8]).regoracle(accounts[12].address);
+    let result = await tx.wait();
+    expect(result.events.length).to.equal(3);
+    registerEvent = result.events[1]
+    approvalEvent = result.events[2];
+  });
+
+  it(`validate custodian event`, async function () {
+    expect(registerEvent.args[0]).to.be.a('string').and.equal(accounts[12].address.toString());
+    expect(registerEvent.args[1]).to.be.a('string').and.equal(approvalEvent.args[3].toString());
+    expect(approvalEvent.args[0]).to.be.a('string').and.equal('custodian');
+    expect(approvalEvent.args[1]).to.be.a('string').and.equal(accounts[8].address.toString());
+    expect(approvalEvent.args[2]).to.equal('');
   });
 
   it(`custodian 4 registers new oracle 2`, async function () {
@@ -589,6 +644,8 @@ describe(`G. [ETH] Oracles (unregister)`, function () {
   let owner;
   let factory;
   let wfio;
+  let registerEvent;
+  let approvalEvent;
 
   before(async function () {
     [owner, ...accounts] = await ethers.getSigners();
@@ -672,23 +729,44 @@ describe(`G. [ETH] Oracles (unregister)`, function () {
   });
 
   it(`Try to unregister an oracle, expect OK - minimum 3 oracles met`, async function () {
+    let result, tx, oracle;
+
+    oracle = await wfio.getOracle(accounts[12].address);
+    expect(oracle).to.be.a('array');
+    expect(oracle[0]).to.be.a('boolean').and.equal(true);
+
+    await wfio.connect(accounts[1]).unregoracle(accounts[12].address);
+    await wfio.connect(accounts[2]).unregoracle(accounts[12].address);
+    await wfio.connect(accounts[3]).unregoracle(accounts[12].address);
+    await wfio.connect(accounts[4]).unregoracle(accounts[12].address);
+    await wfio.connect(accounts[5]).unregoracle(accounts[12].address);
+
+    // one event (no consensus yet)
+    tx = await wfio.connect(accounts[6]).unregoracle(accounts[12].address);
+    result = await tx.wait();
+    expect(result.events.length).to.equal(1);
+
+    // three events (consensus achieved)
+    tx = await wfio.connect(accounts[7]).unregoracle(accounts[12].address);
+    result = await tx.wait();
+    expect(result.events.length).to.equal(3);
+
+    registerEvent = result.events[1];
+    approvalEvent =  result.events[2];
+  });
+
+  it(`validate custodian event`, async function () {
+    expect(registerEvent.args[0]).to.be.a('string').and.equal(accounts[12].address.toString());
+    expect(registerEvent.args[1]).to.be.a('string').and.equal(approvalEvent.args[3].toString());
+    expect(approvalEvent.args[0]).to.be.a('string').and.equal('custodian');
+    expect(approvalEvent.args[1]).to.be.a('string').and.equal(accounts[7].address.toString());
+    expect(approvalEvent.args[2]).to.equal('');
+  });
+
+  it(`validate new oracle`, async function () {
     let result = await wfio.getOracle(accounts[12].address);
     expect(result).to.be.a('array');
-    expect(result[0]).to.be.a('boolean').and.equal(true);
-    try {
-      await wfio.connect(accounts[1]).unregoracle(accounts[12].address);
-      await wfio.connect(accounts[2]).unregoracle(accounts[12].address);
-      await wfio.connect(accounts[3]).unregoracle(accounts[12].address);
-      await wfio.connect(accounts[4]).unregoracle(accounts[12].address);
-      await wfio.connect(accounts[5]).unregoracle(accounts[12].address);
-      await wfio.connect(accounts[6]).unregoracle(accounts[12].address);
-      await wfio.connect(accounts[7]).unregoracle(accounts[12].address);
-      result = await wfio.getOracle(accounts[12].address);
-      expect(result).to.be.a('array');
-      expect(result[0]).to.be.a('boolean').and.equal(false);
-    } catch (err) {
-      throw err;
-    }
+    expect(result[0]).to.be.a('boolean').and.equal(false);
   });
 
   // unhappy paths
@@ -1183,6 +1261,10 @@ describe(`J. [ETH] wFIO wrapping`, function () {
   let factory;
   let wfio;
   let transactionId;
+  let wrapEvent;
+  let approvalEvent;
+  let indexHash;
+  let fromStartingBal, toStartingWfioBal, fromEndingBal, toEndingWfioBal;
 
   beforeEach(async function () {
     fioAccount = await newUser(faucet);
@@ -1230,23 +1312,33 @@ describe(`J. [ETH] wFIO wrapping`, function () {
   });
 
   it(`Wrap 100 wFIO`, async function () {
-    let fromStartingBal = await accounts[14].getBalance();
-    let toStartingWfioBal = await wfio.balanceOf(accounts[0].address);
+    fromStartingBal = await accounts[14].getBalance();
+    toStartingWfioBal = await wfio.balanceOf(accounts[0].address);
 
     await wfio.connect(accounts[12]).wrap(accounts[0].address, 100000000000, transactionId);
     await wfio.connect(accounts[13]).wrap(accounts[0].address, 100000000000, transactionId);
-    try {
-      let result = await wfio.connect(accounts[14]).wrap(accounts[0].address, 100000000000, transactionId);
-      let fromEndingBal = await accounts[14].getBalance();
-      let toEndingWfioBal = await wfio.balanceOf(accounts[0].address);
-      expect(result.from).to.equal(accounts[14].address);
-      expect(result.to).to.equal(wfio.address);
-      expect(fromStartingBal.gt(fromEndingBal)).to.be.true;
-      expect(toStartingWfioBal.lt(toEndingWfioBal)).to.be.true;
-      expect(toEndingWfioBal.sub(toStartingWfioBal).toNumber()).to.equal(100000000000)
-    } catch (err) {
-      throw err;
-    }
+
+    let tx = await wfio.connect(accounts[14]).wrap(accounts[0].address, 100000000000, transactionId);
+    let result = await tx.wait();
+    wrapEvent = result.events[1];
+    approvalEvent = result.events[2];
+  });
+
+  it(`validate wrap events`, async function () {
+    expect(wrapEvent.args[0]).to.be.a('string').and.equal(accounts[0].address.toString());
+    expect(ethers.BigNumber.from(wrapEvent.args[1]).toNumber()).to.be.a('number').and.equal(100000000000);
+    expect(wrapEvent.args[2]).to.be.a('string').and.equal(approvalEvent.args[2].toString());
+    expect(approvalEvent.args[0]).to.be.a('string').and.equal('oracle');
+    expect(approvalEvent.args[1]).to.be.a('string').and.equal(accounts[14].address.toString());
+    expect(approvalEvent.args[3]).to.be.a('string');
+  });
+
+  it(`validate post-wrap balance`, async function () {
+    fromEndingBal = await accounts[14].getBalance();
+    toEndingWfioBal = await wfio.balanceOf(accounts[0].address);
+    expect(fromStartingBal.gt(fromEndingBal)).to.be.true;
+    expect(toStartingWfioBal.lt(toEndingWfioBal)).to.be.true;
+    expect(toEndingWfioBal.sub(toStartingWfioBal).toNumber()).to.equal(100000000000)
   });
 
   it(`Add 3 new oracles and wrap 100 wFIO`, async function () {
@@ -1296,7 +1388,6 @@ describe(`J. [ETH] wFIO wrapping`, function () {
   });
 
   it(`Add 10 new oracles and wrap 100 wFIO`, async function () {
-
     // register 10 more new oracles
     await wfio.connect(accounts[1]).regoracle(accounts[18].address);
     await wfio.connect(accounts[2]).regoracle(accounts[18].address);
@@ -1576,6 +1667,7 @@ describe(`K. [ETH] wFIO unwrapping`, function () {
   let factory;
   let wfio;
   let TRANSACTION_ID;
+  let wrapEvent;
 
   beforeEach(async function () {
     let _bal = await wfio.balanceOf(accounts[0].address);
@@ -1644,12 +1736,20 @@ describe(`K. [ETH] wFIO unwrapping`, function () {
   });
 
   it(`Unwrap 100 wFIO`, async function () {
-    let fromStartingWfioBal = await wfio.balanceOf(accounts[0].address);
-    await wfio.connect(accounts[0]).unwrap(fioAccount.address, 100000000000);
-    let fromEndingWfioBal = await wfio.balanceOf(accounts[0].address);
-    expect(fromStartingWfioBal.gt(fromEndingWfioBal))
-    expect(fromEndingWfioBal.toNumber()).to.equal(0);
+    let tx = await wfio.connect(accounts[0]).unwrap(fioAccount.address, 100000000000);
+    let result = await tx.wait();
+    expect(result.events.length).to.equal(2);
+    wrapEvent = result.events[1];
+
     await timeout(3000);  // seems to keep subsequent tests from breaking
+  });
+
+  it(`validate wrap events`, async function () {
+    // fromEndingWfioBal = await wfio.balanceOf(accounts[0].address);
+    // expect(fromStartingWfioBal.gt(fromEndingWfioBal))
+    // expect(fromEndingWfioBal.toNumber()).to.equal(0);
+    expect(wrapEvent.args[0]).to.be.a('string').and.equal(fioAccount.address);
+    expect(ethers.BigNumber.from(wrapEvent.args[1]).toNumber()).to.be.a('number').and.equal(100000000000);
   });
 
   // unwrap
