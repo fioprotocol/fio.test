@@ -95,7 +95,7 @@ async function setupFIONFTcontract (ethersObj) {
   }
   let factory = await ethersObj.getContractFactory('FIONFT', owner);
   let fioNft = await factory.deploy(custodians);
-  await fioNft.deployed();
+  await fioNft.deployTransaction.wait();
   return [owner, accounts, fioNft];
 }
 
