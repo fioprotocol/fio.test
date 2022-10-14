@@ -1265,7 +1265,6 @@ describe(`J. [MATIC] FIONFT wrapping`, function () {
   let testDomain3 = 'test-domain-3';
   let wrapEvent;
   let approvalEvent;
-  // let indexHash;
 
   before(async function () {
     [owner, ...accounts] = await ethers.getSigners();
