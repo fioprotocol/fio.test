@@ -1,7 +1,7 @@
 require('mocha')
-config = require('../config.js');
+const config = require('../config.js');
 const {expect} = require('chai')
-const {newUser, fetchJson, generateFioDomain, timeout} = require('../utils.js');
+const {newUser, fetchJson, generateFioDomain, callFioApiSigned, timeout} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 
 
@@ -9,7 +9,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-describe(`************************** register-fio-domain.js ************************** \n    A. Check valid and invalid domain and address formats`, () => {
+describe(`************************** register-renew-fio-domain.js ************************** \n    A. Check valid and invalid domain and address formats`, () => {
     let userA1
     const fiftyfiveChars = "0123456789012345678901234567890123456789012345678901234"
     domain0Bad = ""
@@ -294,7 +294,11 @@ describe('D. Try to re-register the same domain using different case', () => {
       technologyProviderId: ''
     })
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected', 'block_num', 'transaction_id')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
+    expect(result).to.have.any.keys('expiration');
   })
 
 
@@ -373,7 +377,11 @@ describe('E. Test set_fio_domain_public', () => {
       technologyProviderId: ''
     })
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('status', 'expiration', 'fee_collected', 'block_num', 'transaction_id')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
+    expect(result).to.have.any.keys('expiration');
   })
 
   it(`Verify balance for user1 = prev_balance - reg_domain_fee`, async () => {
@@ -423,3 +431,98 @@ describe('E. Test set_fio_domain_public', () => {
 
 
 })
+
+describe('F. Test renewdomain on account with permissions', () => {
+  let user1, user2;
+
+  const permissionName = 'regmyadd';   // Must be < 12 chars
+
+  it('Create users', async () => {
+      user1 = await newUser(faucet);
+      user2 = await newUser(faucet);
+  });
+
+  it(`user1 creates regmyadd permission and assigns to user2`, async () => {
+    try {
+
+      const authorization_object = { 
+        threshold: 1, 
+        accounts: [ 
+          {
+            permission: {
+              actor: user2.account, 
+              permission: 'active'
+            },
+            weight: 1
+          }
+        ],
+        keys: [],
+        waits: [],
+      };
+
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'updateauth',
+        account: 'eosio',
+        actor: user1.account,
+        privKey: user1.privateKey,
+        data: {
+          permission: permissionName,
+          parent: 'active',
+          auth: authorization_object,
+          max_fee: config.maxFee,
+          account: user1.account
+        }
+      });
+      //console.log('Result: ', result);
+      expect(result.processed.receipt.status).to.equal('executed');
+    } catch (err) {
+        console.log('Error: ', err);
+        expect(err).to.equal(null);
+    };
+  });
+
+  it(`user1 links regmyadd permission to regaddress`, async () => {
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'linkauth',
+        account: 'eosio',
+        actor: user1.account,
+        privKey: user1.privateKey,
+        data: {
+          account: user1.account,                // the owner of the permission to be linked, this account will sign the transaction
+          code: 'fio.address',                    // the contract owner of the action to be linked
+          type: 'addaddress',                     // the action to be linked
+          requirement: permissionName,            // the name of the custom permission (created by updateauth)
+          max_fee: config.maxFee
+        }
+      });
+      //console.log('Result: ', result);
+      expect(result.processed.receipt.status).to.equal('executed');
+    } catch (err) {
+        console.log('Error: ', err);
+        expect(err).to.equal(null);
+    };
+  });
+
+  it(`renewdomain for user1`, async () => {
+    try {
+        const result = await user1.sdk.genericAction('pushTransaction', {
+            action: 'renewdomain',
+            account: 'fio.address',
+            data: {
+                "fio_domain": user1.domain,
+                "max_fee": config.maxFee,
+                "tpid": '',
+                "actor": user1.account
+            }
+        })
+        //console.log('Result: ', result);
+        expect(result.status).to.equal('OK');
+    } catch (err) {
+        console.log('Error: ', err);
+        expect(err).to.equal(null);
+    }
+})
+
+
+});

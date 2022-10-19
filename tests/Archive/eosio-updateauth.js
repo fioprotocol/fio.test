@@ -4,64 +4,55 @@
  * account to execute actions on the primary accounts behalf.
  */
 
-const { FIOSDK } = require('@fioprotocol/fiosdk')
-fetch = require('node-fetch')
-const properties = require('./properties.js')
+ require('mocha')
+ const {expect} = require('chai')
+ const {newUser, fetchJson} = require('../utils.js');
+ const {FIOSDK } = require('@fioprotocol/fiosdk')
+ const config = require('../config.js');
 
-const fetchJson = async (uri, opts = {}) => {
-  return fetch(uri, opts)
-}
+describe(`************************** eosio-updateauth.js ************************** \n    A. Create a new account permission`, () => {
 
-const baseUrl = properties.server + '/v1/'
-
-const privateKey = properties.privateKey,
-  publicKey = properties.publicKey,
-  permissionName = 'regaddress',
+  let user1, user2
+  const   permissionName = 'regaddress',
   parent = 'active',
-  registrarAccount = '',  // The account that will register addresses on behalf of the domain owner
-  permission = 'active',
-  max_fee = 1000000000000
+  permission = 'active'
 
+  it(`Create users`, async () => {
+      user1 = await newUser(faucet);
+      user2 = await newUser(faucet);
+  });
 
-const regdomain = async () => {
+  it(`updateauth - pushTransaction`, async () => {
+    const registrarAccount = user2.account;
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'updateauth',
+        account: 'eosio',
+        data: {
+          account: user1.account,
+          permission: permissionName,
+          parent: parent,
+          auth: {
+            threshold: 1,
+            keys: [],
+            waits: [],
+            accounts: [{
+              permission: {
+                actor: registrarAccount,
+                permission: permission
+              },
+              weight: 1
+            }
+            ]
+          },
+          max_fee: config.maxFee
+        }
+      })
+      console.log('Result: ', result);
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal(null)
+    };
+  });
 
-  user = new FIOSDK(
-    privateKey,
-    publicKey,
-    baseUrl,
-    fetchJson
-  )
-
-  accountName = FIOSDK.accountHash(publicKey).accountnm;
-  
-  try {
-      const result = await user.genericAction('pushTransaction', {
-      action: 'updateauth',
-      account: 'eosio',
-      data: {
-        account: accountName,
-        permission: permissionName,
-        parent: parent,
-        auth: {
-          threshold: 1,
-          keys: [],
-          waits: [],
-          accounts: [{
-            permission: {
-              actor: registrarAccount,
-              permission: permission
-            },
-            weight: 1
-          }
-          ]
-        },
-        max_fee: max_fee
-      }
-    })
-    console.log('Result: ', result)
-  } catch (err) {
-    console.log('Error: ', err)
-  }
-}
-
-regdomain();
+});

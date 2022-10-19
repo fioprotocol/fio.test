@@ -36,6 +36,8 @@ before(async () => {
 
   3. Change the unlock period:
 
+  In: fio.staking.cpp
+
   int64_t UNSTAKELOCKDURATIONSECONDS = 604800;
 
     to become

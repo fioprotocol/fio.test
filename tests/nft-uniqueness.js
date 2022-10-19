@@ -155,7 +155,7 @@ describe(`************************** nft-uniqueness.js *************************
   });
 
   it(`add the same NFT to ${numUsers} users`, async () => {
-    console.log(`minting the same NFT for all ${numUsers} test users`);
+    console.log(`          minting the same NFT for all ${numUsers} test users`);
     for (let i=0; i<numUsers; i++) {
       try {
         const result = await users[i].sdk.genericAction('pushTransaction', {
@@ -174,7 +174,7 @@ describe(`************************** nft-uniqueness.js *************************
         expect(err).to.equal(null);
       }
     }
-    console.log('mass assignment complete');
+    console.log('          mass assignment complete');
   });
 
   it(`verify get_nfts_hash returns all ${numUsers} users NFTs`, async () => {
@@ -201,7 +201,7 @@ describe(`************************** nft-uniqueness.js *************************
   });
 
   it(`verify get_nfts_fio_address returns all ${numUsers} users NFTs`, async () => {
-    console.log(`validating NFTs by FIO address for all ${numUsers} users`);
+    console.log(`          validating NFTs by FIO address for all ${numUsers} users`);
     for (let i=0; i<users.length; i++) {
       const result = await callFioApi('get_nfts_fio_address', {
         fio_address: users[i].address
@@ -216,7 +216,7 @@ describe(`************************** nft-uniqueness.js *************************
       expect(result.nfts[0].hash).to.equal(massNft.hash);
       expect(result.nfts[0].metadata).to.equal(massNft.metadata);
     }
-    console.log('done');
+    console.log('          done');
   });
 
   it(`(populated values) add a similar NFT to user1 FIO address`, async () => {
@@ -273,7 +273,7 @@ describe(`************************** nft-uniqueness.js *************************
   });
 
   it(`remove all ${numUsers} users NFTs`, async () => {
-    console.log(`removing all ${numUsers} users NFTs`);
+    console.log(`          removing all ${numUsers} users NFTs`);
     for (let i=0; i<numUsers; i++) {
       // try {
       const result = await users[i].sdk.genericAction('pushTransaction', {
@@ -292,6 +292,6 @@ describe(`************************** nft-uniqueness.js *************************
       //   expect(err).to.equal(null);
       // }
     }
-    console.log('done');
+    console.log('          done');
   });
 });

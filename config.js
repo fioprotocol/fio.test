@@ -1,8 +1,11 @@
 const TESTURL = 'http://localhost:8889'           // Localhost
-//const TESTURL = 'http://35.85.153.248:8889'          // DEV1
+//const TESTURL = 'http://54.200.124.65:8889'       // QAnet
+//const TESTURL = 'http://18.237.87.177:8889'       // DEV1
 //const TESTURL = 'http://44.238.153.162:8889'      // Devnet
-//const TESTURL = 'http://fiotestnet.greymass.com'   // Testnet
+//const TESTURL = 'http://fiotestnet.greymass.com'  // Testnet
 //const TESTURL = 'https://fio.greymass.com'        // Mainnet
+//const TESTURL = 'http://52.40.41.71:8889'         // Eric DEV
+//const TESTURL = 'http://52.35.164.8:8889'         // Mike DEV
 
 const HISTORYURL = 'http://35.85.153.248:8080'        // History
 
@@ -28,6 +31,7 @@ const config = {
     FUNDS: 3000000000000,
     BILLION: 1000000000,
     maxFee: 800000000000,
+    maxOracleFee: 600000000000,
     defaultBundleCount: 100,
 
     // lock duration periods for local testing
@@ -84,7 +88,10 @@ const config = {
         invalidTokenCode: 'Invalid token code format',
         ivalidRejection: 'Only pending requests can be rejected.',
         invalidPayerFioAddress: 'payerFioAddress must match /^(?:(?=.{3,64}$)[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}@[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}$)/gim.',
-        invalidPayeeFioAddress: 'payeeFioAddress must match /^(?:(?=.{3,64}$)[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}@[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}$)/gim.'
+        invalidPayeeFioAddress: 'payeeFioAddress must match /^(?:(?=.{3,64}$)[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}@[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}$)/gim.',
+        locktokenacctexists: 'can_vote:0 locked tokens cannot be transferred to an account that already exists',
+        locktoken0to1: 'can_vote:0 locked tokens cannot be transferred to an account that contains can_vote:1 locked tokens',
+        locktoken1to0: 'can_vote:1 locked tokens cannot be transferred to an account that contains can_vote:0 locked tokens'
     },
 
     error2: {
@@ -377,7 +384,10 @@ const config = {
         ADDNFTRAMBASE: 512,
         ADDNFTRAM: 2048,
         STAKEFIOTOKENSRAM: 512,
-        UNSTAKEFIOTOKENSRAM: 512
+        UNSTAKEFIOTOKENSRAM: 512,
+        WRAPTOKENRAM: 512,
+        WRAPDOMAINRAM: 512,
+        TRANSLOCTOKSRAM: 1200
     },
 
     public_addresses: [

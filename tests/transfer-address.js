@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const { newUser, generateFioAddress, createKeypair, callFioApi, getFees, callFioApiSigned, fetchJson, timeout} = require('../utils.js');
+const { newUser, generateFioAddress, createKeypair, callFioApi, getFees, getBundleCount, fetchJson, timeout} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
@@ -807,7 +807,10 @@ describe('D. transferFioAddress Error testing', () => {
                 technologyProviderId: ''
             })
             //console.log('Result: ', result)
-            expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+            expect(result).to.have.any.keys('status');
+            expect(result).to.have.any.keys('fee_collected');
+            expect(result).to.have.any.keys('block_num');
+            expect(result).to.have.any.keys('transaction_id');
         } catch (err) {
             console.log('Error: ', err);
             expect(err).to.equal(null);
@@ -827,31 +830,9 @@ describe('D. transferFioAddress Error testing', () => {
         }
     })
 
-    it('Call get_table_rows from fionames to get bundles remaining for userD3. Verify 0 bundles', async () => {
-        let bundleCount
-        try {
-            const json = {
-                json: true,               // Get the response as json
-                code: 'fio.address',      // Contract that we target
-                scope: 'fio.address',         // Account that owns the data
-                table: 'fionames',        // Table name
-                limit: 1000,                // Maximum number of rows that we want to get
-                reverse: false,           // Optional: Get reversed data
-                show_payer: false          // Optional: Show ram payer
-            }
-            fionames = await callFioApi("get_table_rows", json);
-            //console.log('fionames: ', fionames);
-            for (fioname in fionames.rows) {
-                if (fionames.rows[fioname].name == userD3.address) {
-                    //console.log('bundleeligiblecountdown: ', fionames.rows[fioname].bundleeligiblecountdown);
-                    bundleCount = fionames.rows[fioname].bundleeligiblecountdown;
-                }
-            }
-            expect(bundleCount).to.equal(0);
-        } catch (err) {
-            console.log('Error', err);
-            expect(err).to.equal(null);
-        }
+    it('Confirm bundles remaining', async () => {
+        const bundleCount = await getBundleCount(userD3.sdk);
+        expect(bundleCount).to.equal(0);
     })
 
     it(`Transfer address with insufficient funds and no bundled transactions. Expect error type 400: ${config.error.insufficientFunds}`, async () => {
@@ -909,7 +890,8 @@ describe('E. Confirm active producers and proxy cannot transfer address', () => 
           //console.log('Result: ', result)
           expect(result.status).to.equal('OK') 
         } catch (err) {
-          console.log('Error: ', err.json)
+          console.log('Error: ', err.json);
+          expect(err).to.equal(null);
         } 
     })
 
@@ -1239,14 +1221,15 @@ describe('G. Transfer Addresses with NFTs.', () => {
     it(`Call get_table_rows from fionames. Collect Hashes.`, async () => {
         try {
             const json = {
-                json: true,
                 code: 'fio.address',
                 scope: 'fio.address',
                 table: 'fionames',
-                limit: 1000,
-                reverse: false,
-                show_payer: false
-            }
+                lower_bound: user1.account,
+                upper_bound: user1.account,
+                key_type: 'i64',
+                index_position: '4',
+                json: true
+           }
             fionames = await callFioApi("get_table_rows", json);
             //console.log('fionames: ', fionames);
             for (fioname in fionames.rows) {
@@ -1309,14 +1292,15 @@ describe('G. Transfer Addresses with NFTs.', () => {
         let addressOwner;
         try {
             const json = {
-                json: true,
                 code: 'fio.address',
                 scope: 'fio.address',
                 table: 'fionames',
-                limit: 1000,
-                reverse: false,
-                show_payer: false
-            }
+                lower_bound: user2.account,
+                upper_bound: user2.account,
+                key_type: 'i64',
+                index_position: '4',
+                json: true
+           }
             fionames = await callFioApi("get_table_rows", json);
             //console.log('fionames: ', fionames);
             for (fioname in fionames.rows) {
@@ -1374,14 +1358,15 @@ describe('G. Transfer Addresses with NFTs.', () => {
         let addressOwner;
         try {
             const json = {
-                json: true,
                 code: 'fio.address',
                 scope: 'fio.address',
                 table: 'fionames',
-                limit: 1000,
-                reverse: false,
-                show_payer: false
-            }
+                lower_bound: user2.account,
+                upper_bound: user2.account,
+                key_type: 'i64',
+                index_position: '4',
+                json: true
+           }
             fionames = await callFioApi("get_table_rows", json);
             //console.log('fionames: ', fionames);
             for (fioname in fionames.rows) {
@@ -1439,14 +1424,15 @@ describe('G. Transfer Addresses with NFTs.', () => {
         let addressOwner;
         try {
             const json = {
-                json: true,
                 code: 'fio.address',
                 scope: 'fio.address',
                 table: 'fionames',
-                limit: 1000,
-                reverse: false,
-                show_payer: false
-            }
+                lower_bound: user2.account,
+                upper_bound: user2.account,
+                key_type: 'i64',
+                index_position: '4',
+                json: true
+           }
             fionames = await callFioApi("get_table_rows", json);
             //console.log('fionames: ', fionames);
             for (fioname in fionames.rows) {
@@ -1743,3 +1729,152 @@ describe('H. Transfer Address with NFTs, confirm cannot add new NFT', () => {
         }
     })
 })
+
+describe('I. transfer FIO Address with existing FIO Requests, test getters ', () => {
+    let user1, user2, user3, requestId
+    const payment = 5000000000 // 5 FIO
+    const requestMemo = 'Memo in the initial request'
+  
+    it(`Create users`, async () => {
+      user1 = await newUser(faucet);
+      user2 = await newUser(faucet);
+      user3 = await newUser(faucet);
+    });
+  
+    it(`user1 requests funds from user2`, async () => {
+      try {
+        const result = await user1.sdk.genericAction('requestFunds', {
+          payerFioAddress: user2.address,
+          payeeFioAddress: user1.address,
+          payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
+          amount: payment,
+          chainCode: 'BTC',
+          tokenCode: 'BTC',
+          memo: requestMemo,
+          maxFee: config.maxFee,
+          payerFioPublicKey: user2.publicKey,
+          technologyProviderId: '',
+          hash: '',
+          offLineUrl: ''
+        })
+        //console.log('Result: ', result)
+        requestId = result.fio_request_id
+        expect(result.status).to.equal('requested')
+      } catch (err) {
+        console.log('Error: ', err)
+        expect(err).to.equal(null)
+      }
+    });
+  
+    it(`get_sent_fio_requests for user1 (payee)`, async () => {
+        try {
+            const json = {
+              "fio_public_key": user1.publicKey
+            }
+            result = await callFioApi("get_sent_fio_requests", json);
+            //console.log('result: ', result);
+            //console.log('content: ', result.requests[0].content);
+            expect(result.requests[0].fio_request_id).to.equal(requestId);
+            expect(result.requests[0].payer_fio_address).to.equal(user2.address);
+            expect(result.requests[0].payee_fio_address).to.equal(user1.address);
+            expect(result.requests[0].payer_fio_public_key).to.equal(user2.publicKey);
+            expect(result.requests[0].payee_fio_public_key).to.equal(user1.publicKey);
+            expect(result.requests[0].status).to.equal('requested');
+        } catch (err) {
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
+        };
+    });
+  
+    it(`get_pending_fio_requests for user2 (payer)`, async () => {
+        try {
+          const json = {
+              "fio_public_key": user2.publicKey
+            }
+            result = await callFioApi("get_pending_fio_requests", json);
+          //console.log('result: ', result)
+          //console.log('content: ', result.requests[0].content)
+          expect(result.requests[0].fio_request_id).to.equal(requestId);
+          expect(result.requests[0].payer_fio_address).to.equal(user2.address);
+          expect(result.requests[0].payee_fio_address).to.equal(user1.address);
+          expect(result.requests[0].payer_fio_public_key).to.equal(user2.publicKey);
+          expect(result.requests[0].payee_fio_public_key).to.equal(user1.publicKey);
+        } catch (err) {
+          console.log('Error: ', err)
+          expect(err).to.equal(null)
+        };
+    });
+  
+    it(` Transfer user2 address to user3`, async () => {
+      try{
+        const result = await user2.sdk.genericAction('pushTransaction', {
+          action: 'xferaddress',
+          account: 'fio.address',
+          data: {
+            "fio_address": user2.address,
+            "new_owner_fio_public_key": user3.publicKey,
+            "max_fee": config.maxFee,
+            "tpid": '',
+            "actor": user2.account
+          }
+        })
+        //console.log('result: ', result);
+        expect(result.status).to.equal('OK');
+      } catch (err) {
+        console.log('Error: ', err)
+        expect(err.errorCode).to.equal(null);
+      };
+    })
+
+    it(`Call (get_fio_addresses for user2. Expect error type 404: ${config.error.noFioAddresses}`, async () => {
+        try {
+          const json = {
+            "fio_public_key": user2.publicKey
+          }
+          result = await callFioApi("get_fio_addresses", json);
+          //console.log('Result: ', result);
+          expect(result.fio_domains.length).to.equal(0)
+        } catch (err) {
+          //console.log('Error', err.error.message)
+          expect(err.error.message).to.equal(config.error.noFioAddresses)
+          expect(err.statusCode).to.equal(404);
+        };
+    });
+  
+    it(`get_sent_fio_requests for user1 (payee)`, async () => {
+        try {
+            const json = {
+              "fio_public_key": user1.publicKey
+            }
+            result = await callFioApi("get_sent_fio_requests", json);
+            //console.log('result: ', result);
+            //console.log('content: ', result.requests[0].content);
+            expect(result.requests[0].fio_request_id).to.equal(requestId);
+            expect(result.requests[0].payer_fio_address).to.equal(user2.address);
+            expect(result.requests[0].payee_fio_address).to.equal(user1.address);
+            expect(result.requests[0].payer_fio_public_key).to.equal(user2.publicKey);
+            expect(result.requests[0].payee_fio_public_key).to.equal(user1.publicKey);
+            expect(result.requests[0].status).to.equal('requested');
+        } catch (err) {
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
+        };
+    });
+  
+    it.skip(`Need to complete: get_pending_fio_requests for user2 (payer)`, async () => {
+      try {
+        const json = {
+            "fio_public_key": user2.publicKey
+          }
+          result = await callFioApi("get_pending_fio_requests", json);
+        //console.log('result: ', result)
+        //console.log('content: ', result.requests[0].content)
+        expect(result).to.equal(null);
+
+      } catch (err) {
+        console.log('Error: ', err)
+        expect(err).to.equal(null)
+      };
+    });
+  
+  })

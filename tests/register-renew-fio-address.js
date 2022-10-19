@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const { newUser, getTestType, callFioApiSigned, generateFioAddress, fetchJson} = require('../utils.js');
+const { newUser, getTestType, callFioApiSigned, createKeypair, generateFioDomain, generateFioAddress, callFioApi, fetchJson} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
 const testType = getTestType();
@@ -10,7 +10,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
-describe(`************************** register-fio-address.js ************************** \n    A. Renew address on private domain`, () => {
+describe(`************************** register-renew-fio-address.js ************************** \n    A. Renew address on private domain`, () => {
     let user1, user2, expirationYear
 
     it(`Create users`, async () => {
@@ -70,6 +70,11 @@ describe(`************************** register-fio-address.js *******************
         })
         //console.log('Result: ', result)
         expect(parseInt(result.expiration.split('-',1))).to.equal(expirationYear)
+        expect(result).to.have.any.keys('status');
+        expect(result).to.have.any.keys('fee_collected');
+        expect(result).to.have.any.keys('block_num');
+        expect(result).to.have.any.keys('transaction_id');
+        expect(result).to.have.any.keys('expiration');
         expect(result.status).to.be.a('string')
         expect(result.expiration).to.be.a('string')
         expect(result.fee_collected).to.be.a('number')
@@ -95,6 +100,11 @@ describe(`B. Renew address`, () => {
                 })
             //console.log('Result: ', result)
             expect(result.status).to.equal('OK');
+            expect(result).to.have.any.keys('status');
+            expect(result).to.have.any.keys('fee_collected');
+            expect(result).to.have.any.keys('block_num');
+            expect(result).to.have.any.keys('transaction_id');
+            expect(result).to.have.any.keys('expiration');
             expect(result.status).to.be.a('string')
             expect(result.expiration).to.be.a('string')
             expect(result.fee_collected).to.be.a('number')
@@ -146,3 +156,70 @@ describe(`B. Renew address`, () => {
         }
     })
 })
+
+describe(`C. Register Address for other user and confirm get_fio_balance returns correct amount (BD-3236)`, () => {
+    let user1, domain, user1Address;
+
+    it(`Create user keys and Crypto Handle`, async () => {
+        user1Keys = await createKeypair();
+        user1 = new FIOSDK(user1Keys.privateKey, user1Keys.publicKey, config.BASE_URL, fetchJson);
+
+        domain = generateFioDomain(8)
+        user1Address = generateFioAddress(domain, 7)
+    })
+
+    it(`faucet regdomain`, async () => {
+        try {
+          const result = await faucet.genericAction('pushTransaction', {
+            action: 'regdomain',
+            account: 'fio.address',
+            data: {
+              fio_domain: domain,
+              owner_fio_public_key: config.FAUCET_PUB_KEY,
+              max_fee: config.maxFee,
+              tpid: '',
+              actor: config.FAUCET_ACCOUNT
+            }
+          })
+          //console.log('Result: ', result)
+          expect(result.status).to.equal('OK')
+        } catch (err) {
+          console.log('Error: ', err.json.error)
+          expect(err).to.equal('null')
+        }
+      })
+
+    it(`faucet regaddress for user1 on domain`, async () => {
+        try {
+          const result = await faucet.genericAction('pushTransaction', {
+            action: 'regaddress',
+            account: 'fio.address',
+            data: {
+              fio_address: user1Address,
+              owner_fio_public_key: user1Keys.publicKey,
+              max_fee: config.maxFee,
+              tpid: '',
+              actor: config.FAUCET_ACCOUNT
+            }
+          });
+          //console.log('Result: ', result)
+          expect(result.status).to.equal('OK');
+        } catch (err) {
+          console.log('Error: ', err.json.error);
+          expect(err).to.equal('null');
+        }
+      })
+    
+      it(`Get balance for user1`, async () => {
+        try {
+            const json = {
+                "fio_public_key": user1Keys.publicKey
+            }
+            result = await callFioApi("get_fio_balance", json);
+            //console.log('user1 balance', result);
+        } catch (err) {
+            //console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+      })
+});

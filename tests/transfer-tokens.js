@@ -34,7 +34,10 @@ describe(`************************** transfer-tokens.js ************************
       technologyProviderId: ''
     })
     //console.log('Result: ', result)
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
   })
 
   it(`userA1's FIO public key has an additional ${fundsAmount} FIO`, async () => {
@@ -139,3 +142,70 @@ describe('B. Transfer Tokens to Sad account ', () => {
   })
 })
 
+
+describe('C. Transfer tokens from account with no tokens ', () => {
+
+  let noFio, user2, newkeypair;
+
+  it(`Create users`, async () => {
+    newKeyPair = await createKeypair();
+    noFio = new FIOSDK(newKeyPair.privateKey, newKeyPair.publicKey, config.BASE_URL, fetchJson);
+    user2 = await newUser(faucet);
+  });
+
+  it(`user2 set domain public`, async () => {
+    try {
+      const result = await user2.sdk.genericAction('setFioDomainVisibility', {
+        fioDomain: user2.domain,
+        isPublic: true,
+        maxFee: config.maxFee,
+        walletFioAddress: ''
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err)
+    }
+  })
+
+  it(`regaddress for noFio account to create account.`, async () => {
+    try {
+      newAddress = generateFioAddress(user2.domain, 8)
+      const result = await faucet.genericAction('pushTransaction', {
+        action: 'regaddress',
+        account: 'fio.address',
+        data: {
+          fio_address: newAddress,
+          owner_fio_public_key: newKeyPair.publicKey,
+          max_fee: config.maxFee,
+          tpid: ''
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`FAILURE: Send FIO from account with no FIO. `, async () => {
+    try {
+      const result = await noFio.genericAction('pushTransaction', {
+        action: 'trnsfiopubky',
+        account: 'fio.token',
+        data: {
+          payee_public_key: user2.publicKey,
+          amount: 10000000000,
+          max_fee: config.maxFee,
+          tpid: ''
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.not.equal('OK')
+    } catch (err) {
+      //console.log('Error: ', err.json)
+      expect(err.json.fields[0].error).to.equal('Insufficient balance')
+    }
+  })
+});

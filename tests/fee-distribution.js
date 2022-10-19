@@ -27,7 +27,7 @@ const foundationRewardPercent = '0.05',
   
 const tpid = 'bp1@dapixdev';   // TPID hash = 0x7916edce0b58512453e0e94d9ad67c46
 
-describe('************************** fee-distribution.js ************************** \n    Test transfer_tokens_pub_key fee distribution (with TPID)', () => {
+describe('************************** fee-distribution.js ************************** \n    A. Test transfer_tokens_pub_key fee distribution (with TPID)', () => {
   let user1, user2, foundationBalance, tpidBalance, tpidBounty, stakingBalance, bpBalance, endpoint_fee, feeCollected
   
   const endpoint = "transfer_tokens_pub_key"
@@ -181,7 +181,10 @@ describe('************************** fee-distribution.js ***********************
       })
       //console.log('Result: ', result)
       feeCollected = result.fee_collected;
-      expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
@@ -316,7 +319,7 @@ describe('************************** fee-distribution.js ***********************
 
 })
 
-describe('Test transfer_tokens_pub_key fee distribution (NO TPID)', () => {
+describe('B. Test transfer_tokens_pub_key fee distribution (NO TPID)', () => {
   let user1, user2, foundationBalance, tpidBounty, stakingBalance, bpBalance, endpoint_fee, feeCollected
   
   const endpoint = "transfer_tokens_pub_key"
@@ -470,7 +473,10 @@ describe('Test transfer_tokens_pub_key fee distribution (NO TPID)', () => {
       })
       //console.log('Result: ', result)
       feeCollected = result.fee_collected;
-      expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
@@ -606,7 +612,7 @@ describe('Test transfer_tokens_pub_key fee distribution (NO TPID)', () => {
 })
 
 
-describe('Test register_fio_address fee distribution', () => {
+describe('C. Test register_fio_address fee distribution', () => {
   let user1, foundationBalance, tpidBounty, stakingBalance, bpBalance, endpoint_fee, feeCollected
 
   const endpoint = "register_fio_address"
@@ -895,7 +901,7 @@ describe('Test register_fio_address fee distribution', () => {
 })
 
 
-describe('Test register_fio_domain fee distribution', () => {
+describe('D. Test register_fio_domain fee distribution', () => {
   let user1, foundationBalance, tpidBounty, stakingBalance, bpBalance, endpoint_fee, feeCollected
 
   const endpoint = "register_fio_domain"
