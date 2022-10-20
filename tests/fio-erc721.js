@@ -2508,3 +2508,106 @@ describe(`Q. [MATIC] Prevent domains from being wrapped to the contract address`
     }
   });
 });
+
+describe(`R. [MATIC] Change the contract owner`, function () {
+
+  let owner;
+  let newOwner;
+  let accounts;
+  let custodians;
+  let factory;
+  let fioNft;
+
+  before(async function () {
+    [owner, ...accounts] = await ethers.getSigners();
+    custodians = [];
+    for (let i = 1; i < 11; i++) {
+      custodians.push(accounts[i].address);
+    }
+  });
+
+  it("Should deploy the FIONFT token successfully", async function() {
+    try {
+      factory = await ethers.getContractFactory('FIONFT', owner);
+      fioNft = await factory.deploy(custodians);
+      await fioNft.deployed();
+      expect(fioNft).to.be.a('object');
+      expect(fioNft).to.have.property('address').which.is.a('string');
+      expect(fioNft).to.have.property('functions').which.is.a('object');
+      expect(fioNft.signer.address).to.equal(owner.address);
+    } catch (err) {
+      throw err;
+    }
+  });
+
+  it(`try to change the contract owner`, async function () {
+    let aIdx = accounts.length - 1;
+    newOwner = await fioNft.connect(owner).changeOwner(accounts[aIdx].address);
+    let result = await newOwner.wait();
+    expect(newOwner.data).to.contain(accounts[aIdx].address.toString().toLowerCase().split("0x")[1]); // strip the 0x off the address for data comparison
+    expect(result.from).to.equal(owner.address.toString());
+  });
+
+  // unhappy
+  it(`(invalid user - missing OWNER_ROLE) try to change the contract owner`, async function () {
+    aIdx = accounts.length - 1;
+    try {
+      newOwner = await fioNft.connect(accounts[20]).changeOwner(accounts[aIdx].address);
+      let result = await newOwner.wait();
+    } catch (err) {
+      expect(err.message).to.equal(`VM Exception while processing transaction: reverted with reason string 'AccessControl: account ${accounts[20].address.toString().toLowerCase()} is missing role 0xb19546dff01e856fb3f010c267a7b1c60363cf8a4664e21cc89c26224620214e'`);
+    }
+  });
+
+  it(`(previous owner - missing OWNER_ROLE) try to change the contract owner`, async function () {
+    aIdx = accounts.length - 1;
+    try {
+      newOwner = await fioNft.connect(owner).changeOwner(accounts[aIdx].address);
+      let result = await newOwner.wait();
+    } catch (err) {
+      expect(err.message).to.equal(`VM Exception while processing transaction: reverted with reason string 'AccessControl: account ${owner.address.toString().toLowerCase()} is missing role 0xb19546dff01e856fb3f010c267a7b1c60363cf8a4664e21cc89c26224620214e'`);
+    }
+  });
+
+  it(`(invalid address)`, async function () {
+    aIdx = accounts.length - 1;
+    try {
+      newOwner = await fioNft.connect(owner).changeOwner('!addr3ss@invalid#$');
+      let result = await newOwner.wait();
+    } catch (err) {
+      expect(err.message).to.contain('network does not support ENS')
+      expect(err.code).to.equal('UNSUPPORTED_OPERATION');
+      expect(err.operation).to.equal('getResolver');
+    }
+  });
+
+  it(`(empty address)`, async function () {
+    aIdx = accounts.length - 1;
+    try {
+      newOwner = await fioNft.connect(owner).changeOwner("");
+      let result = await newOwner.wait();
+    } catch (err) {
+      expect(err.message).to.contain('resolver or addr is not configured for ENS name')
+      expect(err.code).to.equal('INVALID_ARGUMENT');
+      expect(err.value).to.equal('');
+    }
+  });
+
+  it(`(missing address)`, async function () {
+    aIdx = accounts.length - 1;
+    try {
+      newOwner = await fioNft.connect(owner).changeOwner();
+      let result = await newOwner.wait();
+    } catch (err) {
+      expect(err.message).to.contain('missing argument: passed to contract')
+      expect(err.code).to.equal('MISSING_ARGUMENT');
+    }
+  });
+
+  it(`(happy path - new owner should be able to change ownership)`, async function () {
+    newOwner = await fioNft.connect(accounts[aIdx]).changeOwner(accounts[21].address);
+    let result = await newOwner.wait();
+    expect(newOwner.data).to.contain(accounts[21].address.toString().toLowerCase().split("0x")[1]); // strip the 0x off the address for data comparison
+    expect(result.from).to.equal(accounts[aIdx].address.toString());
+  });
+});
