@@ -330,9 +330,9 @@ const callFioApiSigned = async (endPoint, txn) => {
         body: JSON.stringify(tx),
         method: 'POST',
     });
-
-    const json = await pushResult.json()
-    return json;
+    
+    const json = await pushResult.json();
+    return json; 
   };
 
 /**
@@ -812,6 +812,14 @@ async function consumeRemainingBundles(user, user2) {
     console.log('\n');
 }
 
+async function getRamForUser(user) {
+	const json                 = {
+		"account_name": user.account
+	}
+	let getAccountResultBefore = await callFioApi("get_account", json);
+	return getAccountResultBefore.ram_quota;
+}
+
 
 /**
  * Old. Need to get rid of clio calls and replace with API
@@ -1207,4 +1215,4 @@ class Ram {
 } //Ram class
 */
 
-module.exports = { newUser, existingUser, stringToHash, getTestType, getTopprods, callFioApi, callFioApiSigned, httpRequest, httpRequestBig, callFioHistoryApi, convertToK1, unlockWallet, getFees, getAccountFromKey, getProdVoteTotal, addLock, getTotalVotedFio, getAccountVoteWeight, setRam, printUserRam, user, getMnemonic, fetchJson, randStr, timeout, generateFioDomain, generateFioAddress, createKeypair, readProdFile, consumeRemainingBundles, getBundleCount};
+module.exports = { newUser, existingUser, stringToHash, getTestType, getTopprods, callFioApi, callFioApiSigned, httpRequest, httpRequestBig, callFioHistoryApi, convertToK1, unlockWallet, getFees, getAccountFromKey, getProdVoteTotal, addLock, getTotalVotedFio, getAccountVoteWeight, setRam, printUserRam, user, getMnemonic, fetchJson, randStr, timeout, generateFioDomain, generateFioAddress, createKeypair, readProdFile, consumeRemainingBundles, getBundleCount, getRamForUser};

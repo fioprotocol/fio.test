@@ -47,7 +47,10 @@ describe('************************** history.js ************************** \n A.
         walletFioAddress: ''
       })
       //console.log('Result: ', result)
-      expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
@@ -102,7 +105,10 @@ describe('B. trnsfiopubky to existing account', () => {
         walletFioAddress: ''
       })
       //console.log('Result: ', result);
-      expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected');
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
@@ -130,9 +136,8 @@ describe('B. trnsfiopubky to existing account', () => {
     }
     result = await callFioHistoryApi("get_transaction", json);
     //console.log('Result: ', result);
-
-    expect(result.traces.length).to.equal(13);
-
+    //console.log('Result Traces: ', result.traces);
+    expect(result.traces.length).to.equal(14);
   });
 
 })
@@ -235,9 +240,8 @@ describe('C. trnsloctoks - confirm transactions available from history', () => {
     }
     result = await callFioHistoryApi("get_transaction", json);
     //console.log('Result: ', result);
-
-    expect(result.traces.length).to.equal(14);
-
+    //console.log('Result Traces: ', result.traces);
+    expect(result.traces.length).to.equal(16);
   });
 
 })

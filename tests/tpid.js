@@ -891,7 +891,7 @@ describe(`L. User that is auto proxied registers as proxy`, () => {
 
   it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
-  it.skip('(BUG BD-2269) Confirm user1: is_proxy = 1, is_auto_proxy = 0', async () => {
+  it('(BUG BD-2269) Confirm user1: is_proxy = 1, is_auto_proxy = 0', async () => {
     let inVotersTable;
     try {
       const json = {
@@ -1016,7 +1016,7 @@ describe(`M. User that is auto proxied votes for proxy. Confirm is_auto_proxy is
     }
   })
 
-  it.skip('(BUG BD-2270) Confirm user1: is_auto_proxy = 0', async () => {
+  it('(BUG BD-2270 - Fixed) Confirm user1: is_auto_proxy = 0', async () => {
     let inVotersTable;
     try {
       const json = {

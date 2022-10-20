@@ -26,4 +26,17 @@ npm install fioprotocol/fiosdk_typescript#develop
 ```
 npm test
 ```
-
+# Hardhat Setup
+#### 1. Initialize Hardhat environment.
+```
+npm run hardhat-init
+```
+#### 2. Run the desired ERC contract tests:
+```
+# erc20
+npm run hardhat-erc20-test
+# erc721
+npm run hardhat-erc721-test
+# erc20 and erc721
+npm run hardhat-contracts-test
+```

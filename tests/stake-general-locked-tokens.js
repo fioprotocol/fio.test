@@ -1639,6 +1639,8 @@ describe(`C. Insert stake period at END of locktokensv2 general locks, then unlo
     }
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(2000) });
+
   it(`Call get_table_rows from locktokensv2. Confirm: lock_amount updated, additional Staking period added at end`, async () => {
     try {
       const json = {
@@ -1932,37 +1934,6 @@ describe(`D. Insert stake period at BEGINNING of locktokensv2 general locks. No 
     expect(result.status).to.equal('OK')
   })
 
-  it(`Try to do another trnsloctoks. Expect: Locked tokens can only be transferred to new account`, async () => {
-    try { 
-      const result = await faucet.genericAction('pushTransaction', {
-        action: 'trnsloctoks',
-        account: 'fio.token',
-        data: {
-          payee_public_key: keys.publicKey,
-          can_vote: 0,
-          periods: [
-            {
-              duration: genLock1Dur,
-              amount: genLock1Amount + 1,
-            },
-            {
-              duration: genLock2Dur,
-              amount: genLock2Amount + 1,
-            }
-          ],
-          amount: genLockTotal + 2,
-          max_fee: config.maxFee,
-          tpid: '',
-          actor: config.FAUCET_ACCOUNT,
-        }
-      })
-      expect(result.status).to.not.equal('OK')
-    } catch (err) {
-      //console.log('Error', err.json);
-      expect(err.json.fields[0].error).to.equal('Locked tokens can only be transferred to new account');
-    }
-  })
-
   it(`Call get_table_rows from locktokensv2 and confirm: two lock periods added correctly`, async () => {
     try {
       const json = {
@@ -2157,7 +2128,10 @@ describe(`E. Check ram quota for stakefio and unstakefio`, () => {
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     })
-    expect(result).to.have.all.keys('transaction_id', 'block_num', 'status', 'fee_collected')
+    expect(result).to.have.any.keys('status');
+    expect(result).to.have.any.keys('fee_collected');
+    expect(result).to.have.any.keys('block_num');
+    expect(result).to.have.any.keys('transaction_id');
   })
 
   it(`Success, vote for producer`, async () => {
