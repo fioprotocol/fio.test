@@ -215,23 +215,6 @@ describe(`************************** register-fio-domain-address.js ************
     }
   });
 
-  /**
-   *     const result = await callFioApiSigned('push_transaction', {
-   *       action: 'regdomadd',
-   *       account: 'fio.address',
-   *       actor: user2.account,
-   *       privKey: user2.privateKey,
-   *       data: {
-   *         fio_address: generateFioAddress(generateFioDomain(5), 5),
-   *         is_public: 1,
-   *         owner_fio_public_key: user2.publicKey,
-   *         max_fee: config.maxFee,
-   *         tpid: bp.address,
-   *         actor: user2.account
-   *       }
-   *     });
-   */
-
   it(`(invalid is_public) try to register a FIO address and a public FIO domain`, async function () {
     try {
       const result = await callFioApiSigned('push_transaction', {
@@ -503,49 +486,3 @@ describe(`************************** register-fio-domain-address.js ************
     }
   });
 });
-
-
-/**
- *
- * Contract: fio.address
- * New action: regdomadd
- * New end point: /register_fio_domain_address
- * New fee: register_fio_domain_address, not bundle-eligible, fee amount will be determined during development and updated here
- *
- *
- * happy tests
- * - regdomadd public domain
- * - ... private domain
- * - ... owner is caller
- * - ... owner is third party
- *
- *
- * unhappy tests
- * - Invalid FIO Address format.                        DONE
- * - Domain already registered, use regaddress instead. DONE
- * - Invalid FIO Public Key format.                     DONE
- * - Invalid fee value.                                 DONE
- * - Fee exceeds supplied maximum                       DONE
- * - Insufficient balance                               DONE
- * - TPID must be empty or valid FIO address            DONE
- * - Type: invalid_signature
- * - empty/missing/invalid parameters                   DONE
- *    - fio_address
- *    - is_public
- *    - owner_fio_public_key
- *    - max_fee
- *    - tpid
- *    - actor
- *
- * {
- *   "fio_address_domain": "purse@alice",
- *   "is_public": 0,
- *   "owner_fio_public_key": "FIO8PRe4WRZJj5mkem6qVGKyvNFgPsNnjNN6kPhh6EaCpzCVin5Jj",
- *   "max_fee": 30000000000,
- *   "tpid": "rewards@wallet",
- *   "actor": "aftyershcu22"
- * }
- *
- *
- *
- */
