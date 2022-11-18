@@ -197,8 +197,20 @@
       },
       {
         "indexed": false,
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "obtid",
+        "type": "string"
+      },
+      {
+        "indexed": false,
         "internalType": "bytes32",
-        "name": "hash",
+        "name": "indexhash",
         "type": "bytes32"
       }
     ],
@@ -217,7 +229,7 @@
       {
         "indexed": false,
         "internalType": "bytes32",
-        "name": "eid",
+        "name": "indexhash",
         "type": "bytes32"
       }
     ],
@@ -236,7 +248,7 @@
       {
         "indexed": false,
         "internalType": "bytes32",
-        "name": "eid",
+        "name": "indexhash",
         "type": "bytes32"
       }
     ],
@@ -280,7 +292,7 @@
       {
         "indexed": false,
         "internalType": "bytes32",
-        "name": "eid",
+        "name": "indexhash",
         "type": "bytes32"
       }
     ],
@@ -299,7 +311,7 @@
       {
         "indexed": false,
         "internalType": "bytes32",
-        "name": "eid",
+        "name": "indexhash",
         "type": "bytes32"
       }
     ],
@@ -959,7 +971,7 @@
     "inputs": [
       {
         "internalType": "bytes",
-        "name": "obtid",
+        "name": "indexhash",
         "type": "bytes"
       }
     ],
@@ -974,6 +986,11 @@
         "internalType": "bool",
         "name": "",
         "type": "bool"
+      },
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
       }
     ],
     "stateMutability": "view",
