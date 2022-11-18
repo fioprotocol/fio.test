@@ -64,7 +64,7 @@ describe('TEST SUITE', () => {
     /**
      * !!! These Staking tests require additional configuration !!!
      */
- 
+
     // These have a similar setup
     require('./tests/locks-get-locks-with-staking.js');
     require('./tests/BD-3941-unstake.js');
@@ -85,7 +85,7 @@ describe('TEST SUITE', () => {
     require('./tests/history.js');
   });
 
-  describe('** GENERAL TESTS - NO SETUP **', () => {
+  describe.only('** GENERAL TESTS - NO SETUP **', () => {
 
     /**
      * General Tests. Should work against all builds. Do not require additional configuration.
@@ -98,6 +98,7 @@ describe('TEST SUITE', () => {
     require('./tests/ram.js');  // v1.0.x //Eric to update to remove clio
     require('./tests/register-renew-fio-address.js');
     require('./tests/register-renew-fio-domain.js'); // v1.0.x
+    require('./tests/register-fio-domain-address.js');
     require('./tests/transfer-tokens.js'); // v1.0.x
     require('./tests/vote.js');  // v1.0.x
     require('./tests/action-whitelisting.js'); // FIP-12, fio v2.0.0, fio.contracts v2.0.0 // Causes future tests to fail. Only run alone.
@@ -132,7 +133,7 @@ describe('TEST SUITE', () => {
     require('./tests/nft-sdk-tests.js');
     require('./tests/nft-uniqueness.js'); //FIP-27
     require('./tests/nft-remove-burn.js'); //FIP-27
-    
+
     /**
      * Lock/staking tests - Do NOT require additional configuration
      */
@@ -142,11 +143,11 @@ describe('TEST SUITE', () => {
     require('./tests/stake-BD-3552-dev-tests.js');
 
     /**
-     * FIP-26 (marketplace) FIO Escrow Test. 
+     * FIP-26 (marketplace) FIO Escrow Test.
      * Tests that require configuration to enable modexpire are commented out by default
      */
     require('./tests/fio-escrow.js'); // FIP-26 (marketplace). Requires additional configuration to add the modexpire action
-  
+
   });
 
   describe.skip('** GENERAL TESTS - REQUIRE SETUP **', () => {
@@ -154,7 +155,7 @@ describe('TEST SUITE', () => {
     /**
      * FIP-27 - Takes a long time and requires monitoring
      */
-    //require('./tests/nft-performance-tests.js'); 
+    //require('./tests/nft-performance-tests.js');
 
     /**
      * Expired Address and Domain Testing. Requires manual updates to contracts to shorten expiration timing
@@ -166,7 +167,7 @@ describe('TEST SUITE', () => {
      * Retire Tokens. Requires additional configuration
      */
     //require('./tests/retire-tokens.js');  // FIP-22 Retire tokens. Requires setup to run.
-    
+
     /**
      * Lock tests - May require a new build to have enough FIO?
      */
@@ -175,11 +176,11 @@ describe('TEST SUITE', () => {
     //require('./tests/locks-mainnet-locked-tokens-lock1hotfix.js');
     // not sure this test requires test modifications?
     //require('./tests/locks-transfer-locked-tokens-testnet-smoke-tests.js');
-    
+
     /**
      * Producer Tests. Only run on devnet. Requires .csv file
      */
-    //require('./tests/producer-fee-voting-fee-setting.js'); // FIP-10 
+    //require('./tests/producer-fee-voting-fee-setting.js'); // FIP-10
     //require('./tests/producer-fee-setting.js');  // FIP-10
 
     /**
@@ -191,7 +192,7 @@ describe('TEST SUITE', () => {
      * Performance Test: Locked token tests (FIP-6,21) erformance test. Tests require additional configuration.
      * Loads the chain with lots of general locks. Run this before other general locks tests when its desirable to test a loaded chain.
      */
-    //require('./tests/locks-transfer-locked-tokens-max-load.js');  
+    //require('./tests/locks-transfer-locked-tokens-max-load.js');
 
     /**
      * Performance tests. Request OBT. Requires additional configuration. See notes in tests.
@@ -202,5 +203,10 @@ describe('TEST SUITE', () => {
      * Archived tests
      */
     //require('./tests/bravo-migr-test.js'); //This is required when testing 2.3.0 (bravo) with fio bahamas (need to do the full table migration).
+
+    /**
+     * FIP-42 tests that require contract modification
+     */
+    require('./tests/register-fio-domain-address-expired-domain.js');
   });
 });

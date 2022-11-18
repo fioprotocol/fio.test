@@ -1,8 +1,20 @@
-require('mocha')
+require('mocha');
 const config = require('../config.js');
-const {expect} = require('chai')
-const {newUser, existingUser, fetchJson, generateFioDomain, generateFioAddress, callFioApiSigned, timeout} = require('../utils.js');
-const {FIOSDK } = require('@fioprotocol/fiosdk')
+const {expect} = require('chai');
+const {
+  newUser,
+  existingUser,
+  fetchJson,
+  generateFioDomain,
+  generateFioAddress,
+  callFioApi,
+  callFioApiSigned,
+  timeout,
+  getRamForUser
+} = require('../utils.js');
+const {FIOSDK } = require('@fioprotocol/fiosdk');
+const {strict} = require("assert");
+const MS_YEAR = 31557600000;
 let faucet;
 
 before(async () => {
@@ -11,20 +23,28 @@ before(async () => {
 
 describe(`************************** register-fio-domain-address.js ************************** \n    A. Register a FIO domain and addres in one transaction`, function () {
 
-  let user1, user2, bp;
+  let user1, user2, user3, user4, bp, regDomAddObj, preRegBal, npreRegBal, postRegBal, npostRegBal, regFeeCharged, preRegRAM, npreRegRAM, postRegRAM, npostRegRAM, domainRows, fionameRows, dateTime, blockTime, expDateObj, expDate;
   let domain1 = generateFioDomain(5);
   let domain2 = generateFioDomain(10);
+  let domain3 = generateFioDomain(10);
   let address1 = generateFioAddress(domain1, 5);
   let address2 = generateFioAddress(domain2, 9);
+  let address3 = generateFioAddress(domain3, 9);
 
   before(async function () {
     bp = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
     user1 = await newUser(faucet);
     user2 = await newUser(faucet);
+    user3 = await newUser(faucet);
+    user4 = await newUser(faucet);
+    preRegBal = await user1.sdk.genericAction('getFioBalance', {});
+    expect(preRegBal.available).to.equal(2160000000000);
+    expect(preRegBal.balance).to.equal(2160000000000);
+    preRegRAM = await getRamForUser(user1);
   });
 
-  it(`register a FIO address and a public FIO domain`, async function () {
-    const result = await callFioApiSigned('push_transaction', {
+  it(`(happy path 1) register an address and public domain`, async function () {
+    regDomAddObj = await callFioApiSigned('push_transaction', {
       action: 'regdomadd',
       account: 'fio.address',
       actor: user1.account,
@@ -38,16 +58,80 @@ describe(`************************** register-fio-domain-address.js ************
         actor: user1.account
       }
     });
-    expect(result).to.have.all.keys('transaction_id', 'processed');
-    expect(result.processed.receipt.status).to.equal('executed');
-    expect(result.processed.action_traces[0].receipt.response).to.contain('"status": "OK"').and.contain('"fee_collected":800000000000').and.contain('"expiration":');
-    expect(result.processed.action_traces[0].act.data.fio_address).to.equal(address1);
-    expect(result.processed.action_traces[0].act.data.is_public).to.equal(1);
-    expect(result.processed.action_traces[0].act.data.owner_fio_public_key).to.equal(user1.publicKey);
+    expect(regDomAddObj).to.have.all.keys('transaction_id', 'processed');
+    expect(regDomAddObj.processed.receipt.status).to.equal('executed');
+    expect(regDomAddObj.processed.action_traces[0].receipt.response).to.contain('"status": "OK"').and.contain('"fee_collected":800000000000').and.contain('"expiration":');
+    expect(regDomAddObj.processed.action_traces[0].act.data.fio_address).to.equal(address1);
+    expect(regDomAddObj.processed.action_traces[0].act.data.is_public).to.equal(1);
+    expect(regDomAddObj.processed.action_traces[0].act.data.owner_fio_public_key).to.equal(user1.publicKey);
   });
 
-  it(`register a FIO address and a private FIO domain`, async function () {
-    const result = await callFioApiSigned('push_transaction', {
+  it(`confirm correct domain expiration date`, async function () {
+    blockTime = regDomAddObj.processed.block_time.split('.')[0];
+    expDateObj = JSON.parse(regDomAddObj.processed.action_traces[0].receipt.response);
+    let blockTimeStamp = new Date(Date(blockTime)).getTime();
+    let expDateTimeStamp = new Date(expDateObj.expiration).getTime();
+    let timeDelta = expDateTimeStamp - blockTimeStamp;
+    let window = MS_YEAR - timeDelta;   // allow an ~hour window
+    expect(timeDelta).to.be.greaterThanOrEqual(MS_YEAR - window).and.lessThanOrEqual(MS_YEAR);
+  });
+
+  it(`confirm fee charged to user1`, async function () {
+    regFeeCharged = regDomAddObj.processed.action_traces[0].act.data.max_fee;
+    postRegBal = await user1.sdk.genericAction('getFioBalance', {});
+    expect(preRegBal.available - postRegBal.available).to.equal(regFeeCharged)
+    expect(preRegBal.balance - postRegBal.balance).to.equal(regFeeCharged)
+  });
+
+  it(`confirm user1 RAM usage increased after regping`, async function () {
+    postRegRAM= await getRamForUser(user1);
+    expect(postRegRAM).to.be.greaterThan(preRegRAM);
+  });
+
+  it(`get_table_rows (fio.address - domains)`, async function () {
+    domainRows = await callFioApi('get_table_rows', {
+      code: "fio.address",
+      scope: "fio.address",
+      table: "domains",
+      limit: 10,
+      index_position: "1",
+      json: true,
+      reverse: true
+    });
+    expect(domainRows.rows[0]).to.have.all.keys('id', 'name', 'domainhash', 'account', 'is_public', 'expiration');
+  });
+
+  it(`get_table_rows (fio.address - fionames)`, async function () {
+    fionameRows = await callFioApi('get_table_rows', {
+      code: "fio.address",
+      scope: "fio.address",
+      table: "fionames",
+      limit: 10,
+      index_position: "1",
+      json: true,
+      reverse: true
+    });
+    expect(fionameRows.rows[0]).to.have.all.keys('id', 'name', 'namehash', 'domain', 'domainhash', 'expiration', 'owner_account', 'addresses', 'bundleeligiblecountdown');
+    expect(fionameRows.rows[0].addresses[0]).to.have.all.keys('token_code', 'chain_code', 'public_address');
+  });
+
+  it(`(BUG - is_public should be 1) confirm owner_fio_public_key is user1.publicKey`, async function () {
+    expect(domainRows.rows[0].account).to.equal(user1.account);
+    expect(domainRows.rows[0].name).to.equal(domain1);
+    expect(domainRows.rows[0].is_public).to.equal(1);
+    expect(fionameRows.rows[0].domain).to.equal(domain1).and.equal(domainRows.rows[0].name);
+    expect(fionameRows.rows[0].name).to.equal(address1);
+    expect(fionameRows.rows[0].owner_account).to.equal(domainRows.rows[0].account);
+    expect(fionameRows.rows[0].addresses[0].public_address).to.equal(user1.publicKey);
+  });
+
+  it(`store prereg account values for user1`, async function () {
+    preRegBal = await user1.sdk.genericAction('getFioBalance', {});
+    preRegRAM = await getRamForUser(user1);
+  });
+
+  it(`(happy path 2) register an address and private domain`, async function () {
+    regDomAddObj = await callFioApiSigned('push_transaction', {
       action: 'regdomadd',
       account: 'fio.address',
       actor: user1.account,
@@ -61,12 +145,178 @@ describe(`************************** register-fio-domain-address.js ************
         actor: user1.account
       }
     });
-    expect(result).to.have.all.keys('transaction_id', 'processed');
-    expect(result.processed.receipt.status).to.equal('executed');
-    expect(result.processed.action_traces[0].receipt.response).to.contain('"status": "OK"').and.contain('"fee_collected":800000000000').and.contain('"expiration":');
-    expect(result.processed.action_traces[0].act.data.fio_address).to.equal(address2);
-    expect(result.processed.action_traces[0].act.data.is_public).to.equal(0);
-    expect(result.processed.action_traces[0].act.data.owner_fio_public_key).to.equal(user1.publicKey);
+    expect(regDomAddObj).to.have.all.keys('transaction_id', 'processed');
+    expect(regDomAddObj.processed.receipt.status).to.equal('executed');
+    expect(regDomAddObj.processed.action_traces[0].receipt.response).to.contain('"status": "OK"').and.contain('"fee_collected":800000000000').and.contain('"expiration":');
+    expect(regDomAddObj.processed.action_traces[0].act.data.fio_address).to.equal(address2);
+    expect(regDomAddObj.processed.action_traces[0].act.data.is_public).to.equal(0);
+    expect(regDomAddObj.processed.action_traces[0].act.data.owner_fio_public_key).to.equal(user1.publicKey);
+  });
+
+  it(`confirm correct domain expiration date`, async function () {
+    blockTime = regDomAddObj.processed.block_time.split('.')[0];
+    expDateObj = JSON.parse(regDomAddObj.processed.action_traces[0].receipt.response);
+    let blockTimeStamp = new Date(Date(blockTime)).getTime();
+    let expDateTimeStamp = new Date(expDateObj.expiration).getTime();
+    let timeDelta = expDateTimeStamp - blockTimeStamp;
+    let window = MS_YEAR - timeDelta;   // allow an ~hour window
+    expect(timeDelta).to.be.greaterThanOrEqual(MS_YEAR - window).and.lessThanOrEqual(MS_YEAR);
+  });
+
+  it(`confirm fee charged to user1`, async function () {
+    regFeeCharged = regDomAddObj.processed.action_traces[0].act.data.max_fee;
+    postRegBal = await user1.sdk.genericAction('getFioBalance', {});
+    expect(preRegBal.available - postRegBal.available).to.equal(regFeeCharged)
+    expect(preRegBal.balance - postRegBal.balance).to.equal(regFeeCharged)
+  });
+
+  it(`confirm user1 RAM usage increased after regping`, async function () {
+    postRegRAM = await getRamForUser(user1);
+    expect(postRegRAM).to.be.greaterThan(preRegRAM);
+  });
+
+  it(`get_table_rows (fio.address - domains)`, async function () {
+    domainRows = await callFioApi('get_table_rows', {
+      code: "fio.address",
+      scope: "fio.address",
+      table: "domains",
+      limit: 10,
+      index_position: "1",
+      json: true,
+      reverse: true
+    });
+    expect(domainRows.rows[0]).to.have.all.keys('id', 'name', 'domainhash', 'account', 'is_public', 'expiration');
+  });
+
+  it(`get_table_rows (fio.address - fionames)`, async function () {
+    fionameRows = await callFioApi('get_table_rows', {
+      code: "fio.address",
+      scope: "fio.address",
+      table: "fionames",
+      limit: 10,
+      index_position: "1",
+      json: true,
+      reverse: true
+    });
+    expect(fionameRows.rows[0]).to.have.all.keys('id', 'name', 'namehash', 'domain', 'domainhash', 'expiration', 'owner_account', 'addresses', 'bundleeligiblecountdown');
+    expect(fionameRows.rows[0].addresses[0]).to.have.all.keys('token_code', 'chain_code', 'public_address');
+  });
+
+  it(`confirm owner_fio_public_key is user1.publicKey`, async function () {
+    expect(domainRows.rows[0].account).to.equal(user1.account);
+    expect(domainRows.rows[0].name).to.equal(domain2);
+    expect(domainRows.rows[0].is_public).to.equal(0);
+    expect(fionameRows.rows[0].domain).to.equal(domain2).and.equal(domainRows.rows[0].name);
+    expect(fionameRows.rows[0].name).to.equal(address2);
+    expect(fionameRows.rows[0].owner_account).to.equal(domainRows.rows[0].account);
+    expect(fionameRows.rows[0].addresses[0].public_address).to.equal(user1.publicKey);
+  });
+
+  it(`store prereg account values for user4`, async function () {
+    preRegBal = await user4.sdk.genericAction('getFioBalance', {});
+    expect(preRegBal.available).to.equal(2160000000000);
+    expect(preRegBal.balance).to.equal(2160000000000);
+    preRegRAM = await getRamForUser(user4);
+  });
+
+  it(`store prereg account values for user3`, async function () {
+    npreRegBal = await user3.sdk.genericAction('getFioBalance', {});
+    expect(npreRegBal.available).to.equal(2160000000000);
+    expect(npreRegBal.balance).to.equal(2160000000000);
+    npreRegRAM = await getRamForUser(user3);
+  });
+
+  it(`(happy path 3) register a FIO address and a public FIO domain with an owner_fio_public_key different from the actor`, async function () {
+    regDomAddObj = await callFioApiSigned('push_transaction', {
+      action: 'regdomadd',
+      account: 'fio.address',
+      actor: user4.account,
+      privKey: user4.privateKey,
+      data: {
+        fio_address: address3,
+        is_public: 1,
+        owner_fio_public_key: user3.publicKey,
+        max_fee: config.maxFee,
+        tpid: bp.address,
+        actor: user4.account
+      }
+    });
+    expect(regDomAddObj).to.have.all.keys('transaction_id', 'processed');
+    expect(regDomAddObj.processed.receipt.status).to.equal('executed');
+    expect(regDomAddObj.processed.action_traces[0].receipt.response).to.contain('"status": "OK"').and.contain('"fee_collected":800000000000').and.contain('"expiration":');
+    expect(regDomAddObj.processed.action_traces[0].act.data.fio_address).to.equal(address3);
+    expect(regDomAddObj.processed.action_traces[0].act.data.is_public).to.equal(1);
+    expect(regDomAddObj.processed.action_traces[0].act.data.owner_fio_public_key).to.equal(user3.publicKey);
+  });
+
+  it(`confirm correct domain expiration date`, async function () {
+    blockTime = regDomAddObj.processed.block_time.split('.')[0];
+    expDateObj = JSON.parse(regDomAddObj.processed.action_traces[0].receipt.response);
+    let blockTimeStamp = new Date(Date(blockTime)).getTime();
+    let expDateTimeStamp = new Date(expDateObj.expiration).getTime();
+    let timeDelta = expDateTimeStamp - blockTimeStamp;
+    let window = MS_YEAR - timeDelta;   // allow an ~hour window
+    expect(timeDelta).to.be.greaterThanOrEqual(MS_YEAR - window).and.lessThanOrEqual(MS_YEAR);
+  });
+
+  it(`confirm fee charged to user4`, async function () {
+    regFeeCharged = regDomAddObj.processed.action_traces[0].act.data.max_fee;
+    postRegBal = await user4.sdk.genericAction('getFioBalance', {});
+    expect(preRegBal.available - postRegBal.available).to.equal(regFeeCharged)
+    expect(preRegBal.balance - postRegBal.balance).to.equal(regFeeCharged)
+  });
+
+  it(`confirm NO FEE charged to user3`, async function () {
+    npostRegBal = await user3.sdk.genericAction('getFioBalance', {});
+    expect(npreRegBal.available - npostRegBal.available).to.equal(0)
+    expect(npreRegBal.balance - npostRegBal.balance).to.equal(0)
+  });
+
+  it(`confirm user4 RAM usage increased after regping`, async function () {
+    postRegRAM = await getRamForUser(user4);
+    expect(postRegRAM).to.be.greaterThan(preRegRAM);
+  });
+
+  it(`confirm user3 RAM usage NOT increased after regping`, async function () {
+    npostRegRAM = await getRamForUser(user3);
+    expect(npostRegRAM).to.equal(npreRegRAM);
+  });
+
+  it(`get_table_rows (fio.address - domains)`, async function () {
+    domainRows = await callFioApi('get_table_rows', {
+      code: "fio.address",
+      scope: "fio.address",
+      table: "domains",
+      limit: 10,
+      index_position: "1",
+      json: true,
+      reverse: true
+    });
+    expect(domainRows.rows[0]).to.have.all.keys('id', 'name', 'domainhash', 'account', 'is_public', 'expiration');
+  });
+
+  it(`get_table_rows (fio.address - fionames)`, async function () {
+    fionameRows = await callFioApi('get_table_rows', {
+      code: "fio.address",
+      scope: "fio.address",
+      table: "fionames",
+      limit: 10,
+      index_position: "1",
+      json: true,
+      reverse: true
+    });
+    expect(fionameRows.rows[0]).to.have.all.keys('id', 'name', 'namehash', 'domain', 'domainhash', 'expiration', 'owner_account', 'addresses', 'bundleeligiblecountdown');
+    expect(fionameRows.rows[0].addresses[0]).to.have.all.keys('token_code', 'chain_code', 'public_address');
+  });
+
+  it(`(BUG - owner_account should be user3, not user4) confirm owner_fio_public_key is user3.publicKey`, async function () {
+    expect(domainRows.rows[0].account).to.equal(user4.account);
+    expect(domainRows.rows[0].name).to.equal(domain3);
+    expect(domainRows.rows[0].is_public).to.equal(0);
+    expect(fionameRows.rows[0].domain).to.equal(domain3).and.equal(domainRows.rows[0].name);
+    expect(fionameRows.rows[0].name).to.equal(address3);
+    expect(fionameRows.rows[0].owner_account).to.equal(domainRows.rows[0].account).and.equal(user3.account);
+    expect(fionameRows.rows[0].addresses[0].public_address).to.equal(user3.publicKey);
   });
 
   // unhappy
