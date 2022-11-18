@@ -11,7 +11,7 @@
  * 
  *   expiration_time = get_now_plus_one_year();
  * to
- *   expiration_time = now() + 20;
+ *   expiration_time = now() + 30;
  *
  * 
  * To enable an expired address, in fio_address_update change:
@@ -212,8 +212,8 @@ describe('************************** expired-address-domain.js *****************
     }
   })
 
-  it(`Wait 10 seconds for the domains to expire`, async () => {
-    await timeout(11000);
+  it(`Wait 20 seconds for the domains to expire`, async () => {
+    await timeout(20000);
   })
 
   it(`Call get_table_rows from domains. Verify domain is expired.`, async () => {
@@ -239,6 +239,22 @@ describe('************************** expired-address-domain.js *****************
       curdate = new Date();
       var utcSeconds = (curdate.getTime() + curdate.getTimezoneOffset() * 60 * 1000) / 1000;  // Convert to UTC
       expect(domainExpiration).to.be.lessThan(utcSeconds);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Transfer expired domain. Expect success (expired domains allowed as per FIP-17.b)`, async () => {
+    // FIP 17.b changed behavior to allow for transfer of FIO Domains that are expired to support the Domain Marketplace
+    try {
+      const result = await user1.sdk.genericAction('transferFioDomain', {
+        fioDomain: user1.domain,
+        newOwnerKey: user2.publicKey,
+        maxFee: config.api.transfer_fio_domain.fee,
+        technologyProviderId: ''
+      })
+      expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -366,6 +382,7 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
     user2 = await newUser(faucet);
     user3 = await newUser(faucet);
     user4 = await newUser(faucet);
+    user5 = await newUser(faucet);
   })
 
   it(`Wait 10 seconds for the addresses to expire`, async () => {
@@ -409,7 +426,6 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
       expect(err).to.equal(null);
     }
   })
-
   it(`TEST: addaddress`, async () => { });
 
   it(`Add DASH and BCH addresses to user1`, async () => {
@@ -837,6 +853,52 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
     }
   })
 
+  it(`TEST: stakefio autoproxy`, async () => { });
+
+  it(`user5 (who has NOT voted) stakes 10 fio with user3 as proxy`, async () => {
+    try {
+      const result = await user5.sdk.genericAction('pushTransaction', {
+        action: 'stakefio',
+        account: 'fio.staking',
+        data: {
+          fio_address: user5.address,
+          amount: 10000000000,
+          actor: user5.account,
+          max_fee: config.maxFee,
+          tpid: user3.address
+        }
+      });
+      // console.log('Result: ', result)
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log("ERROR: ", err.json);
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`TEST: unstakefio`, async () => { });
+
+  it(`user5 (who has NOT voted) unstakes 5 fio with user3 as proxy`, async () => {
+    try {
+      const result = await user5.sdk.genericAction('pushTransaction', {
+        action: 'unstakefio',
+        account: 'fio.staking',
+        data: {
+          fio_address: user5.address,
+          amount: 5000000000,
+          actor: user5.account,
+          max_fee: config.maxFee,
+          tpid: user3.address
+        }
+      });
+      // console.log('Result: ', result)
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log("ERROR: ", err.json);
+      expect(err).to.equal(null);
+    }
+  });
+
   it(`TEST: voteproxy`, async () => { });
 
   it(`user1 proxy votes to user3`, async () => {
@@ -927,6 +989,46 @@ regproducer, unregprod, trnsfiopubad, stakefio, unstakefio, addnft, remnft, rema
     }
   })
 
+  it(`TEST: stakefio`, async () => { });
+
+  it(`user1 (who has voted) stakes 10 fio `, async () => {
+    const result = await user1.sdk.genericAction('pushTransaction', {
+      action: 'stakefio',
+      account: 'fio.staking',
+      data: {
+        fio_address: user1.address,
+        amount: 10000000000,
+        actor: user1.account,
+        max_fee: config.maxFee,
+        tpid: ''
+      }
+    });
+    // console.log('Result: ', result)
+    expect(result.status).to.equal('OK');
+  });
+
+  it(`TEST: unstakefio`, async () => { });
+
+  it(`user1 (who has voted) unstakes 5 fio `, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'unstakefio',
+        account: 'fio.staking',
+        data: {
+          fio_address: user1.address,
+          amount: 5000000000,
+          actor: user1.account,
+          max_fee: config.maxFee,
+          tpid: ''
+        }
+      });
+      // console.log('Result: ', result)
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log("ERROR: ", err.json);
+      expect(err).to.equal(null);
+    }
+  });
 
   it(`TEST: addnft`, async () => { });
 
