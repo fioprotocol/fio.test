@@ -246,3 +246,136 @@ describe(`************************** BD-4162-unstake.js ************************
      //NO errors!!!!! this runs cleanly.
 });
 
+
+describe.only(`B. BD-4162 - Second unstake returns 'cannot emplace locks' error`, function () {
+    let user1;
+
+    //create the users for the testing
+    it(`Create Users`, async function () {
+        user1 = await newUser(faucet);
+        console.log('user1 pub key: ', user1.publicKey);
+        console.log('user1 account: ', user1.account);
+    });
+
+    it(`user1 votes for bp1@dapixdev`, async () => {
+        try {
+            const result = await user1.sdk.genericAction('pushTransaction', {
+                action: 'voteproducer',
+                account: 'eosio',
+                data: {
+                    "producers": [
+                        'bp1@dapixdev'
+                    ],
+                    fio_address: user1.address,
+                    actor: user1.account,
+                    max_fee: config.maxFee
+                }
+            })
+            //console.log('Result: ', result)
+            expect(result.status).to.equal('OK')
+        } catch (err) {
+            console.log('Error: ', err.json)
+            expect(err).to.equal('null')
+        }
+    })
+
+    it(`stake 400 FIO from user1`, async function () {
+        try {
+            const result = await user1.sdk.genericAction('pushTransaction', {
+                action: 'stakefio',
+                account: 'fio.staking',
+                data: {
+                    fio_address: user1.address,
+                    amount: 400000000000,
+                    actor: user1.account,
+                    max_fee: config.maxFee,
+                    tpid: ''
+                }
+            });
+            expect(result).to.have.any.keys('status');
+            expect(result).to.have.any.keys('fee_collected');
+            expect(result).to.have.any.keys('block_num');
+            expect(result).to.have.any.keys('transaction_id');
+            expect(result.status).to.equal('OK');
+        } catch (err) {
+            console.log('Error: ', err.json);
+            throw err;
+        }
+    });
+
+    it(`unstake 200 FIO from user1`, async function () {
+        try {
+            const result = await user1.sdk.genericAction('pushTransaction', {
+                action: 'unstakefio',
+                account: 'fio.staking',
+                data: {
+                    fio_address: user1.address,
+                    amount: 200000000000,
+                    actor: user1.account,
+                    max_fee: config.maxFee,
+                    tpid: ''
+                }
+            });
+            expect(result.status).to.equal('OK');
+        } catch (err) {
+            console.log('Error: ', err);
+            throw err;
+        }
+    });
+
+    //wait 4 seconds.
+    it(`Wait 75 seconds for unstake locks to expire...`, async () => { })
+    it(`Expire unstake locks complete`, async () => { await timeout(75000) })
+
+    it(`getlocks for the account, note this does not show the true lock state in locktokensv2`, async function () {
+        try {
+            const result = await user1.sdk.getLocks(user1.publicKey);
+            console.log("RESULT ",result);
+
+        } catch (err) {
+            console.log('Error: ', err);
+            throw err;
+        }
+    });
+
+    it(`Call get_table_rows from locktokensv2 for the account`, async () => {
+        try {
+            const json = {
+                json: true,
+                code: 'eosio',
+                scope: 'eosio',
+                table: 'locktokensv2',
+                lower_bound: user1.account,
+                upper_bound: user1.account,
+                key_type: 'i64',
+                index_position: '2'
+            }
+            result = await callFioApi("get_table_rows", json);
+            console.log('Result: ', result);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`(BD-4162) Unstake another 100 FIO from user1 with expired lock`, async function () {
+        try {
+            const result = await user1.sdk.genericAction('pushTransaction', {
+                action: 'unstakefio',
+                account: 'fio.staking',
+                data: {
+                    fio_address: user1.address,
+                    amount: 100000000000,
+                    actor: user1.account,
+                    max_fee: config.maxFee,
+                    tpid: ''
+                }
+            });
+            expect(result.status).to.equal('OK');
+        } catch (err) {
+            console.log('Error: ', err.json.error);
+            throw err;
+        }
+    });
+});
+
