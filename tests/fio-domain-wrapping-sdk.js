@@ -1208,27 +1208,6 @@ describe(`B1. PROBLEM TESTS (wrapdomains)`, function () {
     }
   });
 
-   it.skip(`(BUG BD-3878)(int tpid) try to wrap a FIO domain. Expect invalid format error since it is not a valid crypto handle.`, async function () {
-    let domain = user3.domain;
-    try {
-      const result = await user3.sdk.genericAction('pushTransaction', {
-        action: 'wrapdomain',
-        account: 'fio.oracle',
-        data: {
-          fio_domain: domain,
-          chain_code: "ETH",
-          public_address: fioNft.address,
-          max_oracle_fee: config.maxOracleFee,
-          max_fee: config.maxFee,
-          tpid: 12345
-        }
-      });
-      console.log('Result: ', result)
-      expect(result.status).to.not.equal('OK');
-    } catch (err) {
-      expect(err.json.fields[0].error).to.equal('TPID must be empty or valid FIO address');
-    }
-  });
 });
 
 describe(`** ORACLE TABLE CLEANUP **`, async function () {

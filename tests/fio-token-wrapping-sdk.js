@@ -1422,29 +1422,6 @@ describe(`F. [FIO] Wrap FIO tokens`, function () {
       expect(err.json.fields[0].error).to.equal('Invalid oracle fee value');    }
   });
 
-  it.skip(`(BD-3878)(int tpid) try to wrap 1000 FIO tokens`, async function () {
-    try {
-      const result = await user2.sdk.genericAction('pushTransaction', {
-        action: 'wraptokens',
-        account: 'fio.oracle',
-        data: {
-          amount: wrapAmt,
-          chain_code: "ETH",
-          public_address: wfio.address,
-          max_oracle_fee: config.maxFee,
-          max_fee: config.maxFee,
-          tpid: 1234500000000,
-        }
-      });
-      expect(result.status).to.not.equal('OK');
-      // expect(result.fee_collected).to.equal(400000000);
-      // expect(parseInt(result.oracle_fee_collected)).to.equal(60000000000);
-    } catch (err) {
-      //console.log(err);
-      expect(err.json.error.details[0].message).to.equal('TPID must be empty or valid FIO address');
-    }
-  });
-
   // unhappy tests
   it(`(empty amount) try to wrap FIO tokens`, async function () {
     try {
