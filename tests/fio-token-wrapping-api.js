@@ -1395,35 +1395,6 @@ describe(`F. [FIO][api] Wrap FIO tokens`, function () {
     WRAP_FEE = result.fee;
   });
 
-  // issues
-  it.skip(`(BD-3878)(int tpid) try to wrap 1000 FIO tokens. Expect invalid tpid since it is not a valid Crypto Handle`, async function () {
-    try {
-      const result = await callFioApiSigned('push_transaction', {
-        action: 'wraptokens',
-        account: 'fio.oracle',
-        actor: user1.account,
-        privKey: user1.privateKey,
-        data: {
-          amount: wrapAmt,
-          chain_code: "ETH",
-          public_address: wfio.address,
-          max_oracle_fee: config.maxFee,
-          max_fee: config.maxFee,
-          tpid: 123450000,
-          // tpid: "donkey 123",    // does not replicate - space seems to trigger expected error
-          // tpid: "donkey123",
-          // tpid: "donkey-123",
-          // tpid: "donkey@123",
-          // tpid: "donkey",
-          actor: user1.account
-        }
-      });
-      expect(result).to.not.have.all.keys('transaction_id', 'processed');
-    } catch (err) {
-      expect(err.json.error.details[0].message).to.equal('TPID must be empty or valid FIO address');
-    }
-  });
-
   it(`(negative max_fee) try to wrap 1000 FIO tokens, expect max_fee to cast to unsigned integer`, async function () {
     try {
       const result = await callFioApiSigned('push_transaction', {
