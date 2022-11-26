@@ -165,7 +165,7 @@ describe(`************************** BD-4162-unstake.js ************************
     it(`getlocks for the account, note this does not show the true lock state in locktokensv2`, async function () {
         try {
             const result = await userA1.getLocks(userA1Keys.publicKey);
-            console.log("RESULT ",result);
+            //console.log("RESULT ",result);
 
         } catch (err) {
             console.log('Error: ', err);
@@ -187,7 +187,7 @@ describe(`************************** BD-4162-unstake.js ************************
                 index_position: '2'
             }
             result = await callFioApi("get_table_rows", json);
-            console.log('Result: ', result);
+            //console.log('Result: ', result);
         } catch (err) {
             console.log('Error', err);
             expect(err).to.equal(null);
@@ -247,14 +247,17 @@ describe(`************************** BD-4162-unstake.js ************************
 });
 
 
-describe.only(`B. BD-4162 - Second unstake returns 'cannot emplace locks' error`, function () {
+describe(`B. Second unstake returns 'cannot emplace locks' error (BD-4162)`, function () {
     let user1;
+    const stakeAmount = 400000000000;
+    const unstakeAmount = 200000000000;
+    const unstakeAmount2 = 100000000000;
 
     //create the users for the testing
     it(`Create Users`, async function () {
         user1 = await newUser(faucet);
-        console.log('user1 pub key: ', user1.publicKey);
-        console.log('user1 account: ', user1.account);
+        //console.log('user1 pub key: ', user1.publicKey);
+        //console.log('user1 account: ', user1.account);
     });
 
     it(`user1 votes for bp1@dapixdev`, async () => {
@@ -286,7 +289,7 @@ describe.only(`B. BD-4162 - Second unstake returns 'cannot emplace locks' error`
                 account: 'fio.staking',
                 data: {
                     fio_address: user1.address,
-                    amount: 400000000000,
+                    amount: stakeAmount,
                     actor: user1.account,
                     max_fee: config.maxFee,
                     tpid: ''
@@ -310,7 +313,7 @@ describe.only(`B. BD-4162 - Second unstake returns 'cannot emplace locks' error`
                 account: 'fio.staking',
                 data: {
                     fio_address: user1.address,
-                    amount: 200000000000,
+                    amount: unstakeAmount,
                     actor: user1.account,
                     max_fee: config.maxFee,
                     tpid: ''
@@ -330,7 +333,9 @@ describe.only(`B. BD-4162 - Second unstake returns 'cannot emplace locks' error`
     it(`getlocks for the account, note this does not show the true lock state in locktokensv2`, async function () {
         try {
             const result = await user1.sdk.getLocks(user1.publicKey);
-            console.log("RESULT ",result);
+            //console.log("RESULT ",result);
+            expect(result.lock_amount).to.equal(0);
+            expect(result.unlock_periods.length).to.equal(0);
 
         } catch (err) {
             console.log('Error: ', err);
@@ -351,7 +356,9 @@ describe.only(`B. BD-4162 - Second unstake returns 'cannot emplace locks' error`
                 index_position: '2'
             }
             result = await callFioApi("get_table_rows", json);
-            console.log('Result: ', result);
+            //console.log('Result: ', result);
+            expect(result.rows[0].lock_amount).to.equal(unstakeAmount);
+            expect(result.rows[0].remaining_lock_amount).to.equal(unstakeAmount);
         } catch (err) {
             console.log('Error', err);
             expect(err).to.equal(null);
@@ -365,7 +372,7 @@ describe.only(`B. BD-4162 - Second unstake returns 'cannot emplace locks' error`
                 account: 'fio.staking',
                 data: {
                     fio_address: user1.address,
-                    amount: 100000000000,
+                    amount: unstakeAmount2,
                     actor: user1.account,
                     max_fee: config.maxFee,
                     tpid: ''
@@ -377,5 +384,237 @@ describe.only(`B. BD-4162 - Second unstake returns 'cannot emplace locks' error`
             throw err;
         }
     });
+
+    it(`getlocks for the account, should show the true state now`, async function () {
+        try {
+            const result = await user1.sdk.getLocks(user1.publicKey);
+            //console.log("RESULT ",result);
+            expect(result.lock_amount).to.equal(unstakeAmount2);
+            expect(result.unlock_periods.length).to.equal(1);
+        } catch (err) {
+            console.log('Error: ', err);
+            throw err;
+        }
+    });
+
+    it(`Call get_table_rows from locktokensv2 for the account. Should match lock table.`, async () => {
+        try {
+            const json = {
+                json: true,
+                code: 'eosio',
+                scope: 'eosio',
+                table: 'locktokensv2',
+                lower_bound: user1.account,
+                upper_bound: user1.account,
+                key_type: 'i64',
+                index_position: '2'
+            }
+            result = await callFioApi("get_table_rows", json);
+            //console.log('Result: ', result);
+            expect(result.rows[0].lock_amount).to.equal(unstakeAmount2);
+            expect(result.rows[0].remaining_lock_amount).to.equal(unstakeAmount2);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+    
 });
 
+
+describe(`C. Test with 2 expired locks`, function () {
+    let user1;
+    const stakeAmount = 600000000000;
+    const unstakeAmount1 = 200000000000;
+    const unstakeAmount2 = 100000000000;
+    const unstakeAmount3 = 50000000000;
+
+    //create the users for the testing
+    it(`Create Users`, async function () {
+        user1 = await newUser(faucet);
+        //console.log('user1 pub key: ', user1.publicKey);
+        //console.log('user1 account: ', user1.account);
+    });
+
+    it(`user1 votes for bp1@dapixdev`, async () => {
+        try {
+            const result = await user1.sdk.genericAction('pushTransaction', {
+                action: 'voteproducer',
+                account: 'eosio',
+                data: {
+                    "producers": [
+                        'bp1@dapixdev'
+                    ],
+                    fio_address: user1.address,
+                    actor: user1.account,
+                    max_fee: config.maxFee
+                }
+            })
+            //console.log('Result: ', result)
+            expect(result.status).to.equal('OK')
+        } catch (err) {
+            console.log('Error: ', err.json)
+            expect(err).to.equal('null')
+        }
+    })
+
+    it(`stake ${stakeAmount} FIO from user1`, async function () {
+        try {
+            const result = await user1.sdk.genericAction('pushTransaction', {
+                action: 'stakefio',
+                account: 'fio.staking',
+                data: {
+                    fio_address: user1.address,
+                    amount: stakeAmount,
+                    actor: user1.account,
+                    max_fee: config.maxFee,
+                    tpid: ''
+                }
+            });
+            expect(result).to.have.any.keys('status');
+            expect(result).to.have.any.keys('fee_collected');
+            expect(result).to.have.any.keys('block_num');
+            expect(result).to.have.any.keys('transaction_id');
+            expect(result.status).to.equal('OK');
+        } catch (err) {
+            console.log('Error: ', err.json);
+            throw err;
+        }
+    });
+
+    it(`unstake ${unstakeAmount1} FIO from user1`, async function () {
+        try {
+            const result = await user1.sdk.genericAction('pushTransaction', {
+                action: 'unstakefio',
+                account: 'fio.staking',
+                data: {
+                    fio_address: user1.address,
+                    amount: unstakeAmount1,
+                    actor: user1.account,
+                    max_fee: config.maxFee,
+                    tpid: ''
+                }
+            });
+            expect(result.status).to.equal('OK');
+        } catch (err) {
+            console.log('Error: ', err);
+            throw err;
+        }
+    });
+
+    it(`Wait 11 seconds for one unstake period to go by...`, async () => { })
+    it(`Expire unstake locks complete`, async () => { await timeout(11000) })
+
+    it(`unstake ${unstakeAmount2}  from user1 to get a 2nd lock period`, async function () {
+        try {
+            const result = await user1.sdk.genericAction('pushTransaction', {
+                action: 'unstakefio',
+                account: 'fio.staking',
+                data: {
+                    fio_address: user1.address,
+                    amount: unstakeAmount2,
+                    actor: user1.account,
+                    max_fee: config.maxFee,
+                    tpid: ''
+                }
+            });
+            expect(result.status).to.equal('OK');
+        } catch (err) {
+            console.log('Error: ', err);
+            throw err;
+        }
+    });
+
+    it(`Wait 71 seconds for both locks to expire...`, async () => { })
+    it(`Expire unstake locks complete`, async () => { await timeout(71000) })
+
+    it(`getlocks for the account, note this does not show the true lock state in locktokensv2. Expect:  unstakeAmount2 + unstakeAmount3`, async function () {
+        try {
+            const result = await user1.sdk.getLocks(user1.publicKey);
+            //console.log("RESULT ",result);
+            expect(result.lock_amount).to.equal(0);
+            expect(result.unlock_periods.length).to.equal(0);
+        } catch (err) {
+            console.log('Error: ', err);
+            throw err;
+        }
+    });
+
+    it(`Call get_table_rows from locktokensv2 for the account. Expect remaining lock to be: unstakeAmount1 + unstakeAmount2`, async () => {
+        try {
+            const json = {
+                json: true,
+                code: 'eosio',
+                scope: 'eosio',
+                table: 'locktokensv2',
+                lower_bound: user1.account,
+                upper_bound: user1.account,
+                key_type: 'i64',
+                index_position: '2'
+            }
+            result = await callFioApi("get_table_rows", json);
+            //console.log('Result: ', result);
+            expect(result.rows[0].lock_amount).to.equal(unstakeAmount1 + unstakeAmount2);
+            expect(result.rows[0].remaining_lock_amount).to.equal(unstakeAmount1 + unstakeAmount2);
+            expect(result.rows[0].periods.length).to.equal(2);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`Unstake ${unstakeAmount3} FIO from user1 with two expired locks`, async function () {
+        try {
+            const result = await user1.sdk.genericAction('pushTransaction', {
+                action: 'unstakefio',
+                account: 'fio.staking',
+                data: {
+                    fio_address: user1.address,
+                    amount: unstakeAmount3,
+                    actor: user1.account,
+                    max_fee: config.maxFee,
+                    tpid: ''
+                }
+            });
+            expect(result.status).to.equal('OK');
+        } catch (err) {
+            console.log('Error: ', err.json.error);
+            throw err;
+        }
+    });
+
+    it(`getlocks for the account, should show the true state now. Expect: unstakeAmount3`, async function () {
+        try {
+            const result = await user1.sdk.getLocks(user1.publicKey);
+            //console.log("RESULT ",result);
+            expect(result.lock_amount).to.equal(unstakeAmount3);
+            expect(result.unlock_periods.length).to.equal(1);
+        } catch (err) {
+            console.log('Error: ', err);
+            throw err;
+        }
+    });
+
+    it(`Call get_table_rows from locktokensv2 for the account. Should match lock table.`, async () => {
+        try {
+            const json = {
+                json: true,
+                code: 'eosio',
+                scope: 'eosio',
+                table: 'locktokensv2',
+                lower_bound: user1.account,
+                upper_bound: user1.account,
+                key_type: 'i64',
+                index_position: '2'
+            }
+            result = await callFioApi("get_table_rows", json);
+            //console.log('Result: ', result);
+            expect(result.rows[0].lock_amount).to.equal(unstakeAmount3);
+            expect(result.rows[0].remaining_lock_amount).to.equal(unstakeAmount3);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+    
+});

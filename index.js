@@ -119,6 +119,7 @@ describe('TEST SUITE', () => {
      */
     require('./tests/BD-3835-autoproxy.js');
     require('./tests/BD-3853-dev-tests.js');
+    require('./tests/BD-4162-unstake');
 
     /**
      * Testnet smoketest. By default runs against local build.
