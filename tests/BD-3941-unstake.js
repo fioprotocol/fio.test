@@ -156,9 +156,9 @@ describe(`************************** BD-3941-unstake.js ************************
     it(`get userA1 FIP-6 locks and verify the staking unlock period has been added`, async function () {
         try {
         const result = await userA1.getLocks(userA1Keys.publicKey);
-        expect(result.remaining_lock_amount).to.be.greaterThan(unstakeAmt);
+        expect(result.remaining_lock_amount).to.equal(unstakeAmt);
         expect(result.unlock_periods.length).to.equal(1);
-        expect(result.unlock_periods[0].amount).to.be.greaterThan(unstakeAmt);
+        expect(result.unlock_periods[0].amount).to.equal(unstakeAmt);
         expect(result.unlock_periods[0].duration).to.equal(70);
         } catch (err) {
             console.log('Error: ', err);

@@ -17,7 +17,19 @@ before(async () => {
 
  The following changes must be made to run these tests:
 
- 1. Shorten the main net locking period to become 1 minute
+  1. you must shorten the unstake locking period to become 1 minute
+ 
+   go to the contract fio.staking.cpp and change the following lines
+ 
+   change
+ 
+   int64_t UNSTAKELOCKDURATIONSECONDS = 604800;
+ 
+     to become
+ 
+   int64_t UNSTAKELOCKDURATIONSECONDS = 70;
+
+ 2. Shorten the main net locking period to become 1 minute
 
   In: fio.token.hpp
 
@@ -34,17 +46,8 @@ before(async () => {
     uint32_t firstPayPeriod = 1;
     uint32_t payoutTimePeriod = 1;
 
-  3. Change the unlock period:
-
-  In: fio.staking.cpp
-
-  int64_t UNSTAKELOCKDURATIONSECONDS = 604800;
-
-    to become
-
-  int64_t UNSTAKELOCKDURATIONSECONDS = 70;
  
-  2. Permit anyone to call the addlocked action in the system contract.
+  3. Permit anyone to call the addlocked action in the system contract.
 
   In: fio.system.cpp
 
