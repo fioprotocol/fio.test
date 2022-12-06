@@ -66,7 +66,7 @@ describe(`************************** register-fio-domain-address.js ************
     expect(regDomAddObj.processed.action_traces[0].act.data.owner_fio_public_key).to.equal(user1.publicKey);
   });
 
-  it(`confirm correct domain expiration date`, async function () {
+  it(`(BUG the date in the response is getting incremented an extra year) confirm response contains correct domain expiration date`, async function () {
     blockTime = regDomAddObj.processed.block_time.split('.')[0];
     expDateObj = JSON.parse(regDomAddObj.processed.action_traces[0].receipt.response);
     let blockTimeStamp = new Date(Date(blockTime)).getTime();
@@ -101,6 +101,15 @@ describe(`************************** register-fio-domain-address.js ************
     expect(domainRows.rows[0]).to.have.all.keys('id', 'name', 'domainhash', 'account', 'is_public', 'expiration');
   });
 
+  it(`confirm domains entry contains correct domain expiration date`, async function () {
+    blockTime = regDomAddObj.processed.block_time.split('.')[0];
+    let blockTimeStamp = new Date(Date(blockTime)).getTime();
+    let expDateTimeStamp = new Date(domainRows.rows[0].expiration).getTime();
+    let timeDelta = expDateTimeStamp - blockTimeStamp;
+    let window = MS_YEAR - timeDelta;   // allow an ~hour window
+    expect(timeDelta).to.be.greaterThanOrEqual(MS_YEAR - window).and.lessThanOrEqual(MS_YEAR);
+  });
+
   it(`get_table_rows (fio.address - fionames)`, async function () {
     fionameRows = await callFioApi('get_table_rows', {
       code: "fio.address",
@@ -115,7 +124,7 @@ describe(`************************** register-fio-domain-address.js ************
     expect(fionameRows.rows[0].addresses[0]).to.have.all.keys('token_code', 'chain_code', 'public_address');
   });
 
-  it(`(BUG - is_public should be 1) confirm owner_fio_public_key is user1.publicKey`, async function () {
+  it(`confirm owner_fio_public_key is user1.publicKey`, async function () {
     expect(domainRows.rows[0].account).to.equal(user1.account);
     expect(domainRows.rows[0].name).to.equal(domain1);
     expect(domainRows.rows[0].is_public).to.equal(1);
@@ -153,7 +162,7 @@ describe(`************************** register-fio-domain-address.js ************
     expect(regDomAddObj.processed.action_traces[0].act.data.owner_fio_public_key).to.equal(user1.publicKey);
   });
 
-  it(`confirm correct domain expiration date`, async function () {
+  it(`(BUG the date in the response is getting incremented an extra year) confirm response contains correct domain expiration date`, async function () {
     blockTime = regDomAddObj.processed.block_time.split('.')[0];
     expDateObj = JSON.parse(regDomAddObj.processed.action_traces[0].receipt.response);
     let blockTimeStamp = new Date(Date(blockTime)).getTime();
@@ -186,6 +195,15 @@ describe(`************************** register-fio-domain-address.js ************
       reverse: true
     });
     expect(domainRows.rows[0]).to.have.all.keys('id', 'name', 'domainhash', 'account', 'is_public', 'expiration');
+  });
+
+  it(`confirm domains entry contains correct domain expiration date`, async function () {
+    blockTime = regDomAddObj.processed.block_time.split('.')[0];
+    let blockTimeStamp = new Date(Date(blockTime)).getTime();
+    let expDateTimeStamp = new Date(domainRows.rows[0].expiration).getTime();
+    let timeDelta = expDateTimeStamp - blockTimeStamp;
+    let window = MS_YEAR - timeDelta;   // allow an ~hour window
+    expect(timeDelta).to.be.greaterThanOrEqual(MS_YEAR - window).and.lessThanOrEqual(MS_YEAR);
   });
 
   it(`get_table_rows (fio.address - fionames)`, async function () {
@@ -249,7 +267,7 @@ describe(`************************** register-fio-domain-address.js ************
     expect(regDomAddObj.processed.action_traces[0].act.data.owner_fio_public_key).to.equal(user3.publicKey);
   });
 
-  it(`confirm correct domain expiration date`, async function () {
+  it(`(BUG the date in the response is getting incremented an extra year) confirm response contains correct domain expiration date`, async function () {
     blockTime = regDomAddObj.processed.block_time.split('.')[0];
     expDateObj = JSON.parse(regDomAddObj.processed.action_traces[0].receipt.response);
     let blockTimeStamp = new Date(Date(blockTime)).getTime();
@@ -309,10 +327,19 @@ describe(`************************** register-fio-domain-address.js ************
     expect(fionameRows.rows[0].addresses[0]).to.have.all.keys('token_code', 'chain_code', 'public_address');
   });
 
-  it(`(BUG - owner_account should be user3, not user4) confirm owner_fio_public_key is user3.publicKey`, async function () {
-    expect(domainRows.rows[0].account).to.equal(user4.account);
+  it(`confirm domains entry contains correct domain expiration date`, async function () {
+    blockTime = regDomAddObj.processed.block_time.split('.')[0];
+    let blockTimeStamp = new Date(Date(blockTime)).getTime();
+    let expDateTimeStamp = new Date(domainRows.rows[0].expiration).getTime();
+    let timeDelta = expDateTimeStamp - blockTimeStamp;
+    let window = MS_YEAR - timeDelta;   // allow an ~hour window
+    expect(timeDelta).to.be.greaterThanOrEqual(MS_YEAR - window).and.lessThanOrEqual(MS_YEAR);
+  });
+
+  it(`confirm owner_fio_public_key is user3.publicKey`, async function () {
+    expect(domainRows.rows[0].account).to.equal(user3.account);
     expect(domainRows.rows[0].name).to.equal(domain3);
-    expect(domainRows.rows[0].is_public).to.equal(0);
+    expect(domainRows.rows[0].is_public).to.equal(1);
     expect(fionameRows.rows[0].domain).to.equal(domain3).and.equal(domainRows.rows[0].name);
     expect(fionameRows.rows[0].name).to.equal(address3);
     expect(fionameRows.rows[0].owner_account).to.equal(domainRows.rows[0].account).and.equal(user3.account);
