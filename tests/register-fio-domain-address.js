@@ -9,11 +9,9 @@ const {
   generateFioAddress,
   callFioApi,
   callFioApiSigned,
-  timeout,
   getRamForUser
 } = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk');
-const {strict} = require("assert");
 const MS_YEAR = 31557600000;
 let faucet;
 
@@ -23,7 +21,7 @@ before(async () => {
 
 describe(`************************** register-fio-domain-address.js ************************** \n    A. Register a FIO domain and addres in one transaction`, function () {
 
-  let user1, user2, user3, user4, bp, regDomAddObj, preRegBal, npreRegBal, postRegBal, npostRegBal, regFeeCharged, preRegRAM, npreRegRAM, postRegRAM, npostRegRAM, domainRows, fionameRows, dateTime, blockTime, expDateObj, expDate;
+  let user1, user2, user3, user4, bp, regDomAddObj, preRegBal, npreRegBal, postRegBal, npostRegBal, regFeeCharged, preRegRAM, npreRegRAM, postRegRAM, npostRegRAM, domainRows, fionameRows, blockTime, expDateObj;
   let domain1 = generateFioDomain(5);
   let domain2 = generateFioDomain(10);
   let domain3 = generateFioDomain(10);
@@ -768,9 +766,9 @@ describe(`B. Register a FIO domain and address using /register_fio_domain_addres
 
   let user1, user2, bp;
   let domain1 = generateFioDomain(5);
-  let domain2 = generateFioDomain(10);
+  //let domain2 = generateFioDomain(10);
   let address1 = generateFioAddress(domain1, 5);
-  let address2 = generateFioAddress(domain2, 9);
+  //let address2 = generateFioAddress(domain2, 9);
 
   before(async function () {
     bp = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
