@@ -5,7 +5,9 @@ describe('TEST SUITE', () => {
 
   describe.only(`Run only...`, function () {
     // Use this to run only a few tests
-   require('./tests/register-domains-one-account-max-load')
+   //require('./tests/register-domains-one-account-max-load')
+
+    require('./tests/testnet-smoketest')
   });
 
   /**

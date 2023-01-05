@@ -1007,6 +1007,3898 @@ describe(`************************** register-domains-one-accounts-max-load.js *
 
   })
 
+  //42
+  //21k domains
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  //63
+  //21k domains
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  //84
+  //21k domains
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  //105
+  //21k domains
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+  it(`load the account with 700 domains`, async () => {
+    try {
+
+
+      for (let step = 0; step < 700; step++) {
+
+        try {
+
+          domainGood = generateFioDomain(7);
+
+
+          const result = await userA4.sdk.genericAction('registerFioDomain', {
+            fioDomain: domainGood,
+            maxFee: config.api.register_fio_domain.fee,
+            technologyProviderId: ''
+          })
+          numdomains = numdomains+1;
+          console.log('created domain: ', numdomains)
+          expect(result.status).to.equal('OK')
+
+        }catch(err1){
+          console.log('failed iteraton ', err1)
+        }
+      }
+    }
+    catch
+        (err)
+    {
+      console.log('Error', err)
+    }
+
+  })
+
 })
 
 
