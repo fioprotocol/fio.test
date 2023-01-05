@@ -2000,7 +2000,7 @@ describe.skip(`utils`, function () {
     });
 });
 
-describe.skip(`Reg 1 oracle on FIO chain and set fees`, function () {
+describe(`Reg 1 oracle on FIO chain and set fees`, function () {
 
     it('try to get the wrapping fees from the API, expect: Not enough registered oracles. ', async function () {
         try {
@@ -2013,21 +2013,32 @@ describe.skip(`Reg 1 oracle on FIO chain and set fees`, function () {
   
     it(`reg oracles`, async function () {
       try {
-        await registerNewOracle(oracle1);
+
+        result =  await oracle1.sdk.genericAction('pushTransaction', {
+            action: 'regoracle',
+            account: 'fio.oracle',
+            actor: 'eosio',
+            data: {
+              oracle_actor: oracle2.account,
+              actor: oracle1.account
+            }
+          });
+          console.log('result: ', result)
+        //await registerNewOracle(oracle1);
         //await registerNewOracle(oracle2);
         //await registerNewOracle(oracle3);
       } catch (err) {
-        console.log('Error: ', err.json);
+        console.log('Error: ', err.json.error);
       }
     });
   
     it(`set fees`, async function () {
       try {
         await setTestOracleFees(oracle1, domainWrapFee, tokenWrapFee);
-        //await setTestOracleFees(oracle2, domainWrapFee, tokenWrapFee);
-        //await setTestOracleFees(oracle3, domainWrapFee, tokenWrapFee);
+        await setTestOracleFees(oracle2, domainWrapFee, tokenWrapFee);
+        await setTestOracleFees(oracle3, domainWrapFee, tokenWrapFee);
       } catch (err) {
-        console.log('Error: ', err.json);
+        console.log('Error: ', err);
       }
     });
     
