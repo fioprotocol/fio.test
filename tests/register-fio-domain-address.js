@@ -28,6 +28,10 @@ describe(`************************** register-fio-domain-address.js ************
   let address1 = generateFioAddress(domain1, 5);
   let address2 = generateFioAddress(domain2, 9);
   let address3 = generateFioAddress(domain3, 9);
+  const domainSmall = generateFioDomain(2);
+  const addressSmall = generateFioAddress(domainSmall, 2);
+  const domainLarge = generateFioDomain(65);
+  const addressLarge = generateFioDomain(8) + '@' + domainLarge;
 
   before(async function () {
     bp = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
@@ -64,7 +68,7 @@ describe(`************************** register-fio-domain-address.js ************
     expect(regDomAddObj.processed.action_traces[0].act.data.owner_fio_public_key).to.equal(user1.publicKey);
   });
 
-  it(`(BUG the date in the response is getting incremented an extra year) confirm response contains correct domain expiration date`, async function () {
+  it(`(BUG BD-4244) date in the response is getting incremented an extra year. confirm response contains correct domain expiration date`, async function () {
     blockTime = regDomAddObj.processed.block_time.split('.')[0];
     expDateObj = JSON.parse(regDomAddObj.processed.action_traces[0].receipt.response);
     let blockTimeStamp = new Date(Date(blockTime)).getTime();
@@ -759,6 +763,48 @@ describe(`************************** register-fio-domain-address.js ************
     } catch (err) {
       expect(err.message).to.equal('missing regdomadd.actor (type=name)');
     }
+  });
+
+  it(`(happy path) register a FIO address on a small domain`, async function () {
+    result = await callFioApiSigned('push_transaction', {
+      action: 'regdomadd',
+      account: 'fio.address',
+      actor: user4.account,
+      privKey: user4.privateKey,
+      data: {
+        fio_address: addressSmall,
+        is_public: 0,
+        owner_fio_public_key: user4.publicKey,
+        max_fee: config.maxFee,
+        tpid: bp.address,
+        actor: user4.account
+      }
+    });
+    expect(result).to.have.all.keys('transaction_id', 'processed');
+    expect(result.processed.receipt.status).to.equal('executed');
+    expect(result.processed.action_traces[0].receipt.response).to.contain('"status": "OK"').and.contain('"fee_collected":800000000000').and.contain('"expiration":');
+    expect(result.processed.action_traces[0].act.data.fio_address).to.equal(addressSmall);
+    expect(result.processed.action_traces[0].act.data.is_public).to.equal(0);
+    expect(result.processed.action_traces[0].act.data.owner_fio_public_key).to.equal(user4.publicKey);
+  });
+
+  it(`(fail large domain) register a FIO address on a domain with too many characters`, async function () {
+      console.log('add: ', addressLarge)
+      result = await callFioApiSigned('push_transaction', {
+      action: 'regdomadd',
+      account: 'fio.address',
+      actor: user4.account,
+      privKey: user4.privateKey,
+      data: {
+        fio_address: addressLarge,
+        is_public: 0,
+        owner_fio_public_key: user4.publicKey,
+        max_fee: config.maxFee,
+        tpid: bp.address,
+        actor: user4.account
+      }
+    });
+    expect(result.fields[0].error).to.equal('Invalid FIO Address format');
   });
 });
 

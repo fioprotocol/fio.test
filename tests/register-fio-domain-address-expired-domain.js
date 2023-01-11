@@ -9,13 +9,8 @@
  *
  *   uint32_t domain_expiration = get_now_plus_one_year();
  * to
- *   uint32_t domain_expiration = now() + 20;
+ *   uint32_t domain_expiration = now() + 10;
  *
- * ...and...
- *
- *   a.expiration = 4294967295; //Sunday, February 7, 2106 6:28:15 AM GMT+0000 (Max 32 bit expiration)
- * to
- *   a.expiration = now() + 10;
  *
  * Next, update the number of days past expiration when certain calls are disallowed
  *
@@ -58,26 +53,17 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 });
 
-describe(`************************** register-fio-domain-address.js ************************** \n    A. Use regdomadd to add an expired address`, function () {
+describe(`************************** register-fio-domain-address-expired-domain.js ************************** \n    A. Use regdomadd to add an expired address`, function () {
 
-  let user1, user2, user3, user4, bp, preRegBal, npreRegBal, postRegBal, npostRegBal, regFeeCharged, preRegRAM, npreRegRAM, postRegRAM, npostRegRAM, domainRows, fionameRows, regDomAddObj, dateObj, expDateObj;
+  let user1, user2, bp, regFeeCharged, domainRows, fionameRows, regDomAddObj, dateObj, expDateObj;
   let domain1 = generateFioDomain(5);
-  let domain2 = generateFioDomain(10);
-  let domain3 = generateFioDomain(10);
   let address1 = generateFioAddress(domain1, 5);
-  let address2 = generateFioAddress(domain2, 9);
-  let address3 = generateFioAddress(domain3, 9);
+
 
   before(async function () {
     bp = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
     user1 = await newUser(faucet);
     user2 = await newUser(faucet);
-    user3 = await newUser(faucet);
-    user4 = await newUser(faucet);
-    preRegBal = await user1.sdk.genericAction('getFioBalance', {});
-    expect(preRegBal.available).to.equal(2160000000000);
-    expect(preRegBal.balance).to.equal(2160000000000);
-    preRegRAM = await getRamForUser(user1);
   });
 
   it(`register an address and public domain`, async function () {
@@ -103,17 +89,6 @@ describe(`************************** register-fio-domain-address.js ************
     expect(regDomAddObj.processed.action_traces[0].act.data.fio_address).to.equal(address1);
     expect(regDomAddObj.processed.action_traces[0].act.data.is_public).to.equal(1);
     expect(regDomAddObj.processed.action_traces[0].act.data.owner_fio_public_key).to.equal(user1.publicKey);
-  });
-
-  it(`confirm correct domain expiration date`, async function () {
-    expDateObj = JSON.parse(regDomAddObj.processed.action_traces[0].receipt.response);
-    let cdate = dateObj.toISOString().split('T')[0];
-    let cdateTime = dateObj.toISOString().split('T')[1];
-    let expDateStr = expDateObj.expiration.split('T')[0]
-    let expArr = expDateObj.expiration.split('T')[1].split(':');
-    let expTimeStr = `${expArr[0]}:${expArr[1]}`;
-    expect(expDateStr).to.equal(cdate);
-    expect(cdateTime).to.contain(expTimeStr);   // may fail if difference between cdateTime and expStr is > 10 seconds
   });
 
   it(`get_table_rows (fio.address - domains)`, async function () {
@@ -144,10 +119,25 @@ describe(`************************** register-fio-domain-address.js ************
   });
 
   it(`wait for domain to expire`, async function () {
-    await timeout(20000);
+    await timeout(11000);
   });
 
-  it(`try to register recently expired address and public domain`, async function () {
+  it(`getFioNames for user1 and confirm the domain is expired`, async () => {
+    try {
+      curdate = new Date()
+      var utcSeconds = (curdate.getTime() + curdate.getTimezoneOffset()*60*1000)/1000;  // Convert to UTC
+      const result = await user1.sdk.genericAction('getFioNames', {
+          fioPublicKey: user1.publicKey
+      })
+      expect(result.fio_domains[1].fio_domain).to.equal(domain1);
+      expect(Date.parse(result.fio_domains[1].expiration)/1000).to.be.lessThan(utcSeconds);
+    } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+    }
+  })
+
+  it(`try to register recently expired address and public domain. Expect 'Domain already registered, use regaddress instead.'`, async function () {
     const result = await callFioApiSigned('push_transaction', {
       action: 'regdomadd',
       account: 'fio.address',

@@ -86,7 +86,7 @@ describe('TEST SUITE', () => {
     require('./tests/history.js');
   });
 
-  describe.only('** GENERAL TESTS - NO SETUP **', () => {
+  describe('** GENERAL TESTS - NO SETUP **', () => {
 
     /**
      * General Tests. Should work against all builds. Do not require additional configuration.
@@ -99,7 +99,7 @@ describe('TEST SUITE', () => {
     require('./tests/ram.js');  // v1.0.x //Eric to update to remove clio
     require('./tests/register-renew-fio-address.js');
     require('./tests/register-renew-fio-domain.js'); // v1.0.x
-    require('./tests/register-fio-domain-address.js');
+    require('./tests/register-fio-domain-address.js');  // FIP-42
     require('./tests/transfer-tokens.js'); // v1.0.x
     require('./tests/vote.js');  // v1.0.x
     require('./tests/action-whitelisting.js'); // FIP-12, fio v2.0.0, fio.contracts v2.0.0 // Causes future tests to fail. Only run alone.
@@ -208,6 +208,6 @@ describe('TEST SUITE', () => {
     /**
      * FIP-42 tests that require contract modification
      */
-    require('./tests/register-fio-domain-address-expired-domain.js');
+    //require('./tests/register-fio-domain-address-expired-domain.js');
   });
 });
