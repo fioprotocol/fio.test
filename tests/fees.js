@@ -71,44 +71,44 @@ describe('************************** fees.js ************************** \n    Te
   })
 })
 
-describe(`B. do not require FIO addresses for certain fees`, () => {
+describe(`B. FIP-43 - FIO Address optional for actions which do not require a FIO Address`, () => {
   let userB1
 
   before(async () => {
     userB1 = await newUser(faucet);
   })
 
-  it(`call get_fee on stake_fio_tokens without passing in a fio_address, expect OK`, async () => {
+  it(`call get_fee on stake_fio_tokens without passing in a fio_address, expect fee`, async () => {
     try {
       const result = await callFioApi('get_fee', {"end_point": "stake_fio_tokens"})
-      expect(result).to.have.property('fee').which.is.a('number').and.equals(0)
+      expect(result).to.have.property('fee').which.is.a('number').and.equals(config.api.stake_fio_tokens.fee)
     } catch (err) {
       throw err
     }
   })
 
-  it(`call get_fee on unstake_fio_tokens without passing in a fio_address, expect OK`, async () => {
+  it(`call get_fee on unstake_fio_tokens without passing in a fio_address, expect fee`, async () => {
     try {
       const result = await callFioApi('get_fee', {"end_point": "unstake_fio_tokens"})
-      expect(result).to.have.property('fee').which.is.a('number').and.equals(0)
+      expect(result).to.have.property('fee').which.is.a('number').and.equals(config.api.unstake_fio_tokens.fee)
     } catch (err) {
       throw err
     }
   })
 
-  it(`call get_fee on vote_producer without passing in a fio_address, expect OK`, async () => {
+  it(`call get_fee on vote_producer without passing in a fio_address, expect fee`, async () => {
     try {
       const result = await callFioApi('get_fee', {"end_point": "vote_producer"})
-      expect(result).to.have.property('fee').which.is.a('number').and.equals(0)
+      expect(result).to.have.property('fee').which.is.a('number').and.equals(config.api.vote_producer.fee)
     } catch (err) {
       throw err
     }
   })
 
-  it(`call get_fee on proxy_vote without passing in a fio_address, expect OK`, async () => {
+  it(`call get_fee on proxy_vote without passing in a fio_address, expect fee`, async () => {
     try {
       const result = await callFioApi('get_fee', {end_point: "proxy_vote"})
-      expect(result).to.have.property('fee').which.is.a('number').and.equals(0)
+      expect(result).to.have.property('fee').which.is.a('number').and.equals(config.api.proxy_vote.fee)
     } catch (err) {
       throw err
     }
