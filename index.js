@@ -3,9 +3,9 @@ const {expect} = require('chai');
 
 describe('TEST SUITE', () => {
 
-  describe(`Run only...`, function () {
+  describe.only(`Run only...`, function () {
     // Use this to run only a few tests
-
+    require('./tests/get_account_fio_public_key.js');
   });
 
   /**
@@ -86,7 +86,7 @@ describe('TEST SUITE', () => {
     require('./tests/history.js');
   });
 
-  describe('** GENERAL TESTS - NO SETUP **', () => {
+  describe.skip('** GENERAL TESTS - NO SETUP **', () => {
 
     /**
      * General Tests. Should work against all builds. Do not require additional configuration.
