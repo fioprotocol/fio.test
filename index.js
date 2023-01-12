@@ -86,7 +86,14 @@ describe('TEST SUITE', () => {
     require('./tests/history.js');
   });
 
-  describe('** GENERAL TESTS - NO SETUP **', () => {
+  describe.skip('** PERFORMANCE TESTS **', () => {
+    /**
+     * Take a long time to run
+     */
+    require('tests/register-domains-one-account-max-load.js'); // BD-4245
+  });
+
+  describe.skip('** GENERAL TESTS - NO SETUP **', () => {
 
     /**
      * General Tests. Should work against all builds. Do not require additional configuration.
@@ -202,7 +209,7 @@ describe('TEST SUITE', () => {
     //require('./tests/locks-transfer-locked-tokens-max-load.js');
 
     /**
-     * Performance tests. Request OBT. Requires additional configuration. See notes in tests.
+     * Performance tests. Requires additional configuration. See notes in tests.
      */
     //require('./tests/performance-request-obt.js');
 
