@@ -1,9 +1,3 @@
-/**
- * Adds a new permission to an account. In this example it adds a "regaddress" permission to the account.
- * This permission can then be linked to a contract action (see eosio-linkauth.js) to enable a secondary 
- * account to execute actions on the primary accounts behalf.
- */
-
 require('mocha')
 const {expect} = require('chai')
 const {
