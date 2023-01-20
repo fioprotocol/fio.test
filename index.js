@@ -154,6 +154,11 @@ describe('TEST SUITE', () => {
   describe.skip('** GENERAL TESTS - REQUIRE SETUP **', () => {
 
     /**
+     * FIP-47 - Loads up an account with 21K domains for getter testing
+     */
+    //require('./tests/register-domains-one-account-max-load.js');
+
+    /**
      * FIP-27 - Takes a long time and requires monitoring
      */
     //require('./tests/nft-performance-tests.js');
