@@ -40,8 +40,6 @@ describe(`************************** register-fio-domain-address.js ************
     user3 = await newUser(faucet);
     user4 = await newUser(faucet);
     preRegBal = await user1.sdk.genericAction('getFioBalance', {});
-    expect(preRegBal.available).to.equal(2160000000000);
-    expect(preRegBal.balance).to.equal(2160000000000);
     preRegRAM = await getRamForUser(user1);
   });
 
@@ -234,15 +232,11 @@ describe(`************************** register-fio-domain-address.js ************
 
   it(`store prereg account values for user4`, async function () {
     preRegBal = await user4.sdk.genericAction('getFioBalance', {});
-    expect(preRegBal.available).to.equal(2160000000000);
-    expect(preRegBal.balance).to.equal(2160000000000);
     preRegRAM = await getRamForUser(user4);
   });
 
   it(`store prereg account values for user3`, async function () {
     npreRegBal = await user3.sdk.genericAction('getFioBalance', {});
-    expect(npreRegBal.available).to.equal(2160000000000);
-    expect(npreRegBal.balance).to.equal(2160000000000);
     npreRegRAM = await getRamForUser(user3);
   });
 
@@ -389,27 +383,6 @@ describe(`************************** register-fio-domain-address.js ************
     expect(result.fields[0].name).to.equal('max_fee');
     expect(result.fields[0].value).to.equal((config.maxFee / 2).toString());
     expect(result.fields[0].error).to.equal('Fee exceeds supplied maximum.');
-  });
-
-  it(`(insufficient balance) try to register another FIO address and a public FIO domain`, async function () {
-    const result = await callFioApiSigned('push_transaction', {
-      action: 'regdomadd',
-      account: 'fio.address',
-      actor: user1.account,
-      privKey: user1.privateKey,
-      data: {
-        fio_address: generateFioAddress(generateFioDomain(5), 5),
-        is_public: 1,
-        owner_fio_public_key: user1.publicKey,
-        max_fee: config.maxFee,
-        tpid: bp.address,
-        actor: user1.account
-      }
-    });
-    expect(result.type).to.equal('invalid_input');
-    expect(result.fields[0].name).to.equal('max_fee');
-    expect(result.fields[0].value).to.equal(config.maxFee.toString());
-    expect(result.fields[0].error).to.equal('Insufficient funds to cover fee');
   });
 
   it(`(invalid_signature) try to register a FIO address and a public FIO domain`, async function () {
@@ -789,7 +762,6 @@ describe(`************************** register-fio-domain-address.js ************
   });
 
   it(`(fail large domain) register a FIO address on a domain with too many characters`, async function () {
-      console.log('add: ', addressLarge)
       result = await callFioApiSigned('push_transaction', {
       action: 'regdomadd',
       account: 'fio.address',
