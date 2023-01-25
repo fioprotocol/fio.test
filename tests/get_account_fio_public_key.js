@@ -50,9 +50,9 @@ describe('B. (Negative) Testing get_account_fio_public_key', () => {
       result = await callFioApi("get_account_fio_public_key", json);
       expect(actionList.status).to.equal(null);
     } catch (err) {
-      //console.log('Error', err.error.error);
-      expect(err.error.error.what).to.equal('Invalid FIO Account format');
-      expect(err.error.code).to.equal(400);
+      //console.log('Error', err);
+      expect(err.error.fields[0].error).to.equal('Invalid FIO Account format');
+      expect(err.statusCode).to.equal(400);
     }
   })
 
@@ -66,11 +66,11 @@ describe('B. (Negative) Testing get_account_fio_public_key', () => {
     } catch (err) {
       //console.log('Error', err);
       expect(err.error.message).to.equal('Account not found');
-      expect(err.error.code).to.equal(404);
+      expect(err.statusCode).to.equal(404);
     }
   })
 
-  it(`(failure) account = -1. Expect 500 'Invalid cast from type'`, async () => {
+  it(`(failure) Invalid account = -1. Expect 400 'Invalid FIO Account format'`, async () => {
     try {
       const json = {
         account: -1
@@ -79,8 +79,8 @@ describe('B. (Negative) Testing get_account_fio_public_key', () => {
       expect(actionList.status).to.equal(null);
     } catch (err) {
       //console.log('Error', err);
-      expect(err.error.error.details[0].message).to.equal("Invalid cast from type 'int64_type' to string");
-      expect(err.error.code).to.equal(500);
+      expect(err.error.fields[0].error).to.equal('Invalid FIO Account format');
+      expect(err.statusCode).to.equal(400);
     }
   })
 
