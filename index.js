@@ -3,7 +3,7 @@ const {expect} = require('chai');
 
 describe('TEST SUITE', () => {
 
-  describe(`Run only...`, function () {
+  describe.only(`Run only...`, function () {
     // Use this to run only a few tests
   
   });
@@ -116,6 +116,7 @@ describe('TEST SUITE', () => {
     require('./tests/fee-distribution.js');
     require('./tests/serialize-deserialize.js');  // Tests for BD-3636
     require('./tests/get_account_fio_public_key.js');  // FIP-36
+    require('./tests/newfioacc.js');  // FIP-38
 
     /**
      * Bugs
