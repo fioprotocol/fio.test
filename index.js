@@ -3,9 +3,9 @@ const {expect} = require('chai');
 
 describe('TEST SUITE', () => {
 
-  describe(`Run only...`, function () {
+  describe.only(`Run only...`, function () {
     // Use this to run only a few tests
-
+    require('./tests/newfioacc.js');  // FIP-38
   });
 
   /**
@@ -115,6 +115,7 @@ describe('TEST SUITE', () => {
     require('./tests/FIP-41-devtest-transfer-locked-tokens.js');
     require('./tests/fee-distribution.js');
     require('./tests/serialize-deserialize.js');  // Tests for BD-3636
+    require('./tests/newfioacc.js');  // FIP-38
 
     /**
      * Bugs

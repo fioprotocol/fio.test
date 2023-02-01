@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const { newUser, callFioApi, generateFioDomain, generateFioAddress, fetchJson, randStr} = require('../utils.js');
+const { newUser, callFioApi, generateFioDomain, generateFioAddress, createKeypair, fetchJson, randStr} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 const config = require('../config.js');
 
@@ -12,10 +12,11 @@ before(async () => {
 
 
 describe('************************** ram.js ************************** \n    A. Test RAM Consumption', () => {
-  let user1, user1Domain, user1Address, user1Ram, user1Domain2, user1Address2
+  let user1, user1Domain, user1Address, user1Ram, user1Domain2, user1Address2, user2;
 
   before(async () => {
     user1 = await newUser(faucet);
+    user2 = await newUser(faucet);
   })
 
   it(`Create ramuser public/private keys`, async () => {
