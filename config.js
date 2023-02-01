@@ -162,6 +162,22 @@ const config = {
         fioAddressNotRegistered: {
             message: 'FIO Address not registered',
             statusCode: 400
+        },
+        accountExists: {
+            message: 'Invalid public key used, Account already exists on FIO chain',
+            statusCode: 400
+        },
+        invalidKey: {
+            message: 'Invalid FIO Public Key',
+            statusCode: 400
+        },
+        invalidOwnerPerm: {
+            message: 'Invalid owner permission forma',
+            statusCode: 400
+        },
+        invalidactivePerm: {
+            message: 'Invalid active permission forma',
+            statusCode: 400
         }
     },
 
