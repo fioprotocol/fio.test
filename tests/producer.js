@@ -486,6 +486,63 @@ describe.only('C. FIP47 Update Regproducer', () => {
   it(`Wait a few seconds.`, async () => { await timeout(3000) });
 
 
+  let oldaddress;
+
+  it(`Register a new address`, async () => {
+    oldaddress = user1.address2;
+    user1.address2 = generateFioAddress(user1.domain, 5);
+  });
+
+  it(`Update user1 producer FIO Address`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'regproducer',
+        account: 'eosio',
+        data: {
+          fio_address: user1.address2, 
+          fio_pub_key: prodkey.publicKey,
+          url: url2,
+          location: 20,
+          actor: user1.account,
+          max_fee: config.maxFee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log('Error: ', err.json);
+      expect(err).to.equal('null');
+    }
+  });
+
+
+  it(`Confirm new fio address for user1 producer was registered`, async function () {
+    try {
+      const json = {
+        "code": "eosio",
+        "scope": "eosio",
+        "table": "producers",
+        "lower_bound": user1.account,
+        "upper_bound": user1.account,
+        "key_type": "name",
+        "index_position": "4",
+        "json": true
+      }
+      const result = await callFioApi("get_table_rows", json);
+      //console.log('result: ', result);
+      expect(result.rows.length).to.equal(1);
+      expect(result.rows[0].fio_address).to.equal(user1.address2);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  });
+
+
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) });
+
+
   it(`Update regproducer to change everything back`, async () => {
     try {
       const result = await user1.sdk.genericAction('pushTransaction', {
@@ -523,6 +580,7 @@ describe.only('C. FIP47 Update Regproducer', () => {
       const result = await callFioApi("get_table_rows", json);
       //console.log('result: ', result);
       expect(result.rows.length).to.equal(1);
+      expect(result.rows[0].fio_address).to.equal(user1.address);
       expect(result.rows[0].location).to.equal(80);
       expect(result.rows[0].url).to.equal(url);
       expect(result.rows[0].producer_public_key).to.equal(user1.publicKey);
