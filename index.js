@@ -5,7 +5,7 @@ describe('TEST SUITE', () => {
 
   describe(`Run only...`, function () {
     // Use this to run only a few tests
-
+  
   });
 
   /**
@@ -115,6 +115,7 @@ describe('TEST SUITE', () => {
     require('./tests/FIP-41-devtest-transfer-locked-tokens.js');
     require('./tests/fee-distribution.js');
     require('./tests/serialize-deserialize.js');  // Tests for BD-3636
+    require('./tests/get_account_fio_public_key.js');  // FIP-36
 
     /**
      * Bugs
