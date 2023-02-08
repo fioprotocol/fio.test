@@ -311,6 +311,8 @@ const callFioApiSigned = async (endPoint, txn, perm = 'active') => {
        }]
     };
 
+    //console.log(JSON.stringify(transaction, null, 4));
+
     const abiMap = new Map()
     const tokenRawAbi = await (await fetch(fiourl + 'get_raw_abi', {body: '{"account_name": "' + txn.account + '"}', method: 'POST'})).json()
     abiMap.set(txn.account, tokenRawAbi)

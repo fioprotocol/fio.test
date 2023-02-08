@@ -14,6 +14,14 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 })
 
+/**
+ * IMPORTANT NOTE ON UPDATEAUTH
+ * 
+ * When you do a transaction with a custom permission, the only thing that needs to change in the transaction is the private
+ * key. So, if you add a new account2 permission to account1, then you want to transfer FIO from account1 using the new permission,
+ * you should use all account1 info in the transaction EXCEPT for the private key, which should be the account2 private key.
+ */
+
 describe(`************************** eosio-updateauth.js ************************** \n    A. Create a new permission (permission: active) `, () => {
 
   let user1, user2, user3, user4, user5, user6, user7, user8, user9, user10;
@@ -124,14 +132,36 @@ describe(`************************** eosio-updateauth.js ***********************
         "account_name": user1.account
       }
       result = await callFioApi("get_account", json);
-      //console.log('Result: ', result.permissions);
-      //console.log('active required_auth: ', result.permissions[0].required_auth.accounts);
-      //console.log('owner required_auth: ', result.permissions[1].required_auth);
+      //console.log(JSON.stringify(result, null, 4));
       expect(result.permissions[0].required_auth.accounts[0].permission.actor).to.equal(user2.account);
       expect(result.permissions[0].required_auth.accounts[0].permission.permission).to.equal(permission);
       expect(result.permissions[1].required_auth.keys[0].key).to.equal(user1.publicKey);
     } catch (err) {
       console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`user1 transfers FIO using private key for new account`, async () => {
+    try {
+        const result = await callFioApiSigned('push_transaction', {
+            action: 'trnsfiopubky',
+            account: 'fio.token',
+            actor: user1.account,
+            privKey: user2.privateKey,
+            data: {
+              amount: 1000000000,
+              payee_public_key: user2.publicKey,
+              max_fee: config.maxFee,
+              tpid: '',
+              actor: user1.account
+            }
+        }, permission);
+        //console.log(JSON.stringify(result, null, 4));
+        expect(result.processed.receipt.status).to.equal('executed');
+    } catch (err) {
+      console.log(JSON.stringify(err, null, 4));
+      console.log('Error: ', err);
       expect(err).to.equal(null);
     }
   });
@@ -187,9 +217,7 @@ describe(`************************** eosio-updateauth.js ***********************
         "account_name": user2.account
       }
       result = await callFioApi("get_account", json);
-      //console.log('Result: ', result.permissions);
-      //console.log('active required_auth: ', result.permissions[0].required_auth.accounts);
-      //console.log('owner required_auth: ', result.permissions[1].required_auth);
+      //console.log(JSON.stringify(result, null, 4));
       expect(result.permissions[0].required_auth.accounts[0].permission.actor).to.equal(usersByAccount[2]);
       expect(result.permissions[0].required_auth.accounts[0].permission.permission).to.equal(permission);
       expect(result.permissions[0].required_auth.accounts[1].permission.actor).to.equal(usersByAccount[3]);
@@ -324,7 +352,7 @@ describe(`************************** eosio-updateauth.js ***********************
     };
   });
 
-  it(`Get account for user3`, async () => {
+  it(`Get account for user4`, async () => {
     try {
       const json = {
         "account_name": user4.account
@@ -423,10 +451,9 @@ describe(`************************** eosio-updateauth.js ***********************
       console.log('Error', err);
       expect(err).to.equal(null);
     }
-  })
+  });
 
 });
-
 
 describe(`B. Create a new permission (permission: owner) `, () => {
 
