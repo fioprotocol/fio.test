@@ -485,13 +485,19 @@ describe.only('C. FIP47 Update Regproducer', () => {
 
   it(`Wait a few seconds.`, async () => { await timeout(3000) });
 
+  it(`Register user1 address #2`, async () => {
 
-  let oldaddress;
+    user1.address2 = generateFioAddress(user1.domain, 5);  
 
-  it(`Register a new address`, async () => {
-    oldaddress = user1.address2;
-    user1.address2 = generateFioAddress(user1.domain, 5);
+    const result = await user1.sdk.genericAction('registerFioAddress', {
+      fioAddress: user1.address2,
+      maxFee: config.api.register_fio_address.fee,
+      walletFioAddress: ''
+    })
+
+    expect(result.status).to.equal('OK')
   });
+
 
   it(`Update user1 producer FIO Address`, async () => {
     try {
