@@ -202,7 +202,7 @@ describe('TEST SUITE', () => {
     //require('./tests/locks-transfer-locked-tokens-max-load.js');
 
     /**
-     * Performance tests. Request OBT. Requires additional configuration. See notes in tests.
+     * Performance tests. Requires additional configuration. See notes in tests.
      */
     //require('./tests/performance-request-obt.js');
 

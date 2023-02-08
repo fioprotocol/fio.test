@@ -287,7 +287,7 @@ function callFioApi(apiCall, JSONObject) {
     }));
 };
 
-const callFioApiSigned = async (endPoint, txn) => {
+const callFioApiSigned = async (endPoint, txn, perm = 'active') => {
     const info = await (await fetch(fiourl + 'get_info')).json();
     const blockInfo = await (await fetch(fiourl + 'get_block', {body: `{"block_num_or_id": ${info.last_irreversible_block_num}}`, method: 'POST'})).json()
     const chainId = info.chain_id;
@@ -305,7 +305,7 @@ const callFioApiSigned = async (endPoint, txn) => {
            name: txn.action,
            authorization: [{
                actor: txn.actor,
-               permission: 'active',
+               permission: perm,
            }],
            data: txn.data,
        }]
