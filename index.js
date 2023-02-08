@@ -86,14 +86,7 @@ describe('TEST SUITE', () => {
     require('./tests/history.js');
   });
 
-  describe.skip('** PERFORMANCE TESTS **', () => {
-    /**
-     * Take a long time to run
-     */
-    require('tests/register-domains-one-account-max-load.js'); // BD-4245
-  });
-
-  describe.skip('** GENERAL TESTS - NO SETUP **', () => {
+  describe('** GENERAL TESTS - NO SETUP **', () => {
 
     /**
      * General Tests. Should work against all builds. Do not require additional configuration.
