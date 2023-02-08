@@ -162,6 +162,22 @@ const config = {
         fioAddressNotRegistered: {
             message: 'FIO Address not registered',
             statusCode: 400
+        },
+        accountExists: {
+            message: 'Invalid public key used, Account already exists on FIO chain',
+            statusCode: 400
+        },
+        invalidKey: {
+            message: 'Invalid FIO Public Key',
+            statusCode: 400
+        },
+        invalidOwnerPerm: {
+            message: 'Invalid owner permission format',
+            statusCode: 400
+        },
+        invalidactivePerm: {
+            message: 'Invalid active permission format',
+            statusCode: 400
         }
     },
 
@@ -325,6 +341,10 @@ const config = {
         set_marketplace_config: {
             bundledEligible: false,
             fee: 500000000
+        },
+        new_fio_chain_account: {
+            bundledEligible: false,
+            fee: 2000000000
         }
     },
 
@@ -387,7 +407,8 @@ const config = {
         UNSTAKEFIOTOKENSRAM: 512,
         WRAPTOKENRAM: 512,
         WRAPDOMAINRAM: 512,
-        TRANSLOCTOKSRAM: 1200
+        TRANSLOCTOKSRAM: 1200,
+        NEWFIOCHAINACCOUNTRAM: 0
     },
 
     public_addresses: [
