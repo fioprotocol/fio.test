@@ -606,7 +606,7 @@ describe('B. Test newfioacc - accounts - set owner and active to single account 
     });
 });
 
-describe.only('C. Test newfioacc - accounts - set owner and active to 2 accounts that are different from main account', () => {
+describe.only('(BUG BD-4480) C. Test newfioacc - accounts - set owner and active to 2 accounts that are different from main account', () => {
     let user1, user2, newAccount = {};
     const xferAmount = 90000000000;  // 90 FIO
   
@@ -631,6 +631,7 @@ describe.only('C. Test newfioacc - accounts - set owner and active to 2 accounts
         user1.balance = result.available;
     });
 
+    it(`Wait a few seconds.`, async () => { await timeout(6000) })
 
     it(`Create new account with 2 active and owner perms from user1 and user2`, async () => {
         try {
@@ -696,20 +697,7 @@ describe.only('C. Test newfioacc - accounts - set owner and active to 2 accounts
         }
     });
 
-    it.skip(`get_account for user1. Confirm permissions.`, async function () {
-        try {
-            const json = {
-                "account_name": user1.account
-            }
-            result = await callFioApi("get_account", json);
-            console.log(JSON.stringify(result, null, 4));
-        } catch (err) {
-            //console.log('Error', err)
-            expect(err).to.equal(null)
-        }
-    });
-
-    it.skip(`get_account for newAccount. Confirm permissions.`, async function () {
+    it(`get_account for newAccount. Confirm permissions.`, async function () {
         try {
             const json = {
                 "account_name": newAccount.account
@@ -727,7 +715,7 @@ describe.only('C. Test newfioacc - accounts - set owner and active to 2 accounts
             expect(err).to.equal(null)
         }
     });
-/*
+
     it(`confirm fee deducted from user1 account`, async function () {
         user1.prevBalance = user1.balance;
         result = await user1.sdk.genericAction('getFioBalance', {});
@@ -909,10 +897,10 @@ describe.only('C. Test newfioacc - accounts - set owner and active to 2 accounts
             expect(err).to.equal(null);
         }
     });
-    */
+    
 });
 
-describe('D. Test newfioacc - accounts - set owner and active to multiple (10) accounts that are different from main account', () => {
+describe.skip('D. Test newfioacc - accounts - set owner and active to multiple (10) accounts that are different from main account', () => {
     let user1, user2, user3, user4, user5, user6, user7, user8, user9, user10, newAccount = {};
     const xferAmount = 90000000000;  // 90 FIO
   
@@ -946,8 +934,9 @@ describe('D. Test newfioacc - accounts - set owner and active to multiple (10) a
         user1.balance = result.available;
     });
 
+    it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
-    it(`Create new account with 9 active and 10 owner perms from other users`, async () => {
+    it(`Create new account with 2 active and owner perms from user1 and user2`, async () => {
         try {
             const result = await user1.sdk.genericAction('pushTransaction', {
             action: 'newfioacc',
@@ -1101,6 +1090,13 @@ describe('D. Test newfioacc - accounts - set owner and active to multiple (10) a
                                 "permission": "active"
                             },
                             "weight": 1
+                        },
+                        {
+                            "permission": {
+                                "actor": user10.account,
+                                "permission": "active"
+                            },
+                            "weight": 1
                         }
                     ]
                 },
@@ -1109,7 +1105,6 @@ describe('D. Test newfioacc - accounts - set owner and active to multiple (10) a
                 "tpid": user1.address
             }
             })
-            console.log(JSON.stringify(result, null, 4));
             expect(result.status).to.equal('OK');
         } catch (err) {
             console.log(JSON.stringify(err, null, 4));
@@ -2122,7 +2117,7 @@ describe('G. Test newfioacc - Sad Path', () => {
         }
     });
 
-    it.skip(`(Bug BD-4770) (failure) Invalid tpid. Expect: ${config.error2.invalidTpid.statusCode} ${config.error2.invalidTpid.message}`, async () => {
+    it.skip(`(Bug BD-4470) (failure) Invalid tpid. Expect: ${config.error2.invalidTpid.statusCode} ${config.error2.invalidTpid.message}`, async () => {
         try {
             const result = await user1.sdk.genericAction('pushTransaction', {
             action: 'newfioacc',
