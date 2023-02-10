@@ -606,7 +606,7 @@ describe('B. Test newfioacc - accounts - set owner and active to single account 
     });
 });
 
-describe.only('(BUG BD-4480) C. Test newfioacc - accounts - set owner and active to 2 accounts that are different from main account', () => {
+describe('(BUG BD-4480) C. Test newfioacc - accounts - set owner and active to 2 accounts that are different from main account', () => {
     let user1, user2, newAccount = {};
     const xferAmount = 90000000000;  // 90 FIO
   
@@ -2360,4 +2360,266 @@ describe('G. Test newfioacc - Sad Path', () => {
         }
     });
 
+});
+
+
+describe.only('(BUG BD-4481)  H. Test newfioacc - keys - set owner and active to single key that is different from main account key', () => {
+    let user1, newAccount = {};
+    const xferAmount = 90000000000;  // 90 FIO
+  
+    before(async () => {
+      user1 = await newUser(faucet);
+      const keypair = await createKeypair();
+      const newDomain = generateFioDomain(10);
+      const newAddress = generateFioAddress(newDomain,10);
+      newAccount = {
+        publicKey: keypair.publicKey,
+        privateKey: keypair.privateKey,
+        account: await getAccountFromKey(keypair.publicKey),
+        domain: newDomain,
+        address: newAddress
+      }
+      //console.log(`newAccount: , ${newAccount.account}, ${newAccount.publicKey},${newAccount.privateKey},${newAccount.domain},${newAccount.address}`)
+    });
+
+    it(`Create new account with active and owner keys from user1`, async () => {
+        try {
+            const result = await user1.sdk.genericAction('pushTransaction', {
+            action: 'newfioacc',
+            account: 'eosio',
+            actor: user1.account,
+            data: {
+                "fio_public_key": newAccount.publicKey,
+                "owner": {
+                    "threshold": 1,
+                    "keys": [
+                        {
+                            key: user1.publicKey,
+                            weight: 1
+                        }
+                    ],
+                    "waits": [],
+                    "accounts": []
+                },
+                "active": {
+                    "threshold": 1,
+                    "keys": [
+                        {
+                            key: user1.publicKey,
+                            weight: 1
+                        }
+                    ],
+                    "waits": [],
+                    "accounts": []
+                },
+                "max_fee": config.maxFee,
+                "actor": user1.account,
+                "tpid": user1.address
+            }
+            })
+            expect(result.status).to.equal('OK');
+
+        } catch (err) {
+            console.log(err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`get_account for newAccount. Confirm permissions.`, async function () {
+        try {
+            const json = {
+                "account_name": newAccount.account
+            }
+            result = await callFioApi("get_account", json);
+            console.log(JSON.stringify(result, null, 4));
+            expect(result.account_name).to.equal(newAccount.account);
+            console.log('result.permissions[0].required_auth.keys[0].key: ', result.permissions[0].required_auth.keys[0].key)
+            console.log('user1.publicKey: ', user1.publicKey);
+            console.log('newAccount.publicKey: ', newAccount.publicKey)
+            // This fails. It looks like the permission keys are being set to newAccount.publicKey instead of user1.publicKey
+            expect(result.permissions[0].required_auth.keys[0].key).to.equal(user1.publicKey);
+            //expect(result.permissions[0].required_auth.keys[0].weight).to.equal(1);
+            //expect(result.permissions[1].required_auth.keys[0].key).to.equal(user1.publicKey);
+            //expect(result.permissions[1].required_auth.keys[0].weight).to.equal(1);
+            //expect(result.permissions[0].required_auth.accounts.length).to.equal(0);
+        } catch (err) {
+            //console.log('Error', err)
+            expect(err).to.equal(null)
+        }
+    });
+
+    it(`Confirm new account exists in fio.address accountmap table`, async () => {
+        try {
+            const json = {
+                json: true,
+                code: 'fio.address',
+                scope: 'fio.address',
+                table: 'accountmap',
+                lower_bound: newAccount.account,
+                upper_bound: newAccount.account,
+                key_type: 'i64',
+                index_position: '0'
+            }
+            result = await callFioApi("get_table_rows", json);
+            //console.log(result)
+            expect(result.rows[0].account).to.equal(newAccount.account);
+            expect(result.rows[0].clientkey).to.equal(newAccount.publicKey);
+        } catch (err) {
+            console.log(err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`Get FIO balance for new account. Confirm 0`, async () => {
+        try {
+            const json = {
+                fio_public_key: newAccount.publicKey
+            }
+            result = await callFioApi("get_fio_balance", json);
+            expect(result.balance).to.equal(0);
+        } catch (err) {
+            console.log(err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`get_actor for new account`, async () => {
+        try {
+            const json = {
+                fio_public_key: newAccount.publicKey
+            }
+            result = await callFioApi("get_actor", json);
+            expect(result.actor).to.equal(newAccount.account);
+        } catch (err) {
+            console.log(err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`user1 registers domain for newAccount`, async () => {
+        try {
+            const result = await user1.sdk.genericAction('pushTransaction', {
+                action: 'regdomain',
+                account: 'fio.address',
+                data: {
+                    fio_domain: newAccount.domain,
+                    owner_fio_public_key: newAccount.publicKey,
+                    max_fee: config.maxFee,
+                    tpid: ''
+                }
+            })
+            expect(result.status).to.equal('OK');
+        } catch (err) {
+            console.log(err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`getfiodomains for newAccount from FIO chain. Expect single domain.`, async () => {
+        try {
+            const result = await user1.sdk.genericAction('getFioDomains', {
+                fioPublicKey: newAccount.publicKey
+            })
+            //console.log('Result:', result);
+            expect(result.fio_domains.length).to.equal(1);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`user1 sends ${xferAmount / 1000000000} FIO to new account`, async () => {
+        try {
+            const transfer = await user1.sdk.genericAction('pushTransaction', {
+                action: 'trnsfiopubky',
+                account: 'fio.token',
+                data: {
+                    payee_public_key: newAccount.publicKey,
+                    amount: xferAmount,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: user1.account
+                }
+            });
+            expect(transfer.status).to.equal('OK')
+        } catch (err) {
+            console.log(err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`Get FIO balance for new account. Confirm ${xferAmount / 1000000000} FIO`, async () => {
+        try {
+            const json = {
+                "fio_public_key": newAccount.publicKey
+            }
+            result = await callFioApi("get_fio_balance", json);
+            expect(result.balance).to.equal(xferAmount);
+        } catch (err) {
+            console.log(err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`newAccount transfers FIO using user1 private key`, async () => {
+        try {
+            const result = await callFioApiSigned('push_transaction', {
+                action: 'trnsfiopubky',
+                account: 'fio.token',
+                actor: newAccount.account,
+                privKey: user1.privateKey,
+                data: {
+                  amount: 1000000000,
+                  payee_public_key: user1.publicKey,
+                  max_fee: config.maxFee,
+                  tpid: '',
+                  actor: newAccount.account
+                }
+            });
+            console.log('Result: ', result);
+            expect(result.processed.receipt.status).to.equal('executed');
+        } catch (err) {
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`newAccount registers address using user1 private key`, async () => {
+        try {
+            const result = await callFioApiSigned('push_transaction', {
+                action: 'regaddress',
+                account: 'fio.address',
+                actor: newAccount.account,
+                privKey: user1.privateKey,
+                data: {
+                  fio_address: newAccount.address,
+                  owner_fio_public_key: newAccount.publicKey,
+                  max_fee: config.maxFee,
+                  tpid: '',
+                  actor: newAccount.account
+                }
+            });
+            //console.log('Result: ', result);
+            expect(result.processed.receipt.status).to.equal('executed');
+        } catch (err) {
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`get_pub_address for FIO token for new account`, async () => {
+        try {
+
+            const result = await callFioApi("get_pub_address", {
+                fio_address: newAccount.address,
+                chain_code: "FIO",
+                token_code: "FIO"
+            });
+            //console.log(result);
+            expect(result.public_address).to.equal(newAccount.publicKey);
+        } catch (err) {
+            console.log(err.message)
+            expect(err).to.equal(null);
+        }
+    });
 });

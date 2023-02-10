@@ -15,7 +15,8 @@ const {
   existingUser, 
   generateFioDomain, 
   generateFioAddress, 
-  createKeypair, 
+  createKeypair,
+  getAccountFromKey,
   fetchJson,
   randStr
 } = require('../utils.js');
@@ -348,7 +349,7 @@ describe.skip('D. Need to complete. updateauth using key with no associated acco
     }
   })
 
-  it(`Show permissions userMain`, async () => {
+  it(`get_account for userMain`, async () => {
     try {
         const json = {
             "account_name": userMain.account
@@ -481,6 +482,110 @@ describe(`E. domain and address registration (regdomain, regaddress, regdomadd, 
   });
 })
 
+describe('F. newfioacc - confirm get_actions for new account', () => {
+
+  let user1, newAccount, actionCount;
+
+  before(async () => {
+    user1 = await newUser(faucet);
+    const keypair = await createKeypair();
+    const newDomain = generateFioDomain(10);
+    const newAddress = generateFioAddress(newDomain,10);
+    newAccount = {
+      publicKey: keypair.publicKey,
+      privateKey: keypair.privateKey,
+      account: await getAccountFromKey(keypair.publicKey),
+      domain: newDomain,
+      address: newAddress
+    }
+    //console.log(`newAccount: , ${newAccount.account}, ${newAccount.publicKey},${newAccount.privateKey},${newAccount.domain},${newAccount.address}`)
+  });
+
+  it(`get_actions for newAccount. Expect empty array.`, async () => {
+    const json = {
+      "account_name": newAccount.account
+    };
+    result = await callFioHistoryApi("get_actions", json);
+    //console.log('Result: ', result);
+    actionCount = result.actions.length;
+    expect(actionCount).to.equal(0);
+  });
+
+  it(`Create new account with active and owner perms from user1`, async () => {
+    try {
+        const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'newfioacc',
+        account: 'eosio',
+        actor: user1.account,
+        data: {
+            "fio_public_key": newAccount.publicKey,
+            "owner": {
+                "threshold": 1,
+                "keys": [],
+                "waits": [],
+                "accounts": [{
+                    "permission": {
+                        "actor": user1.account,
+                        "permission": "active"
+                    },
+                    "weight": 1
+                }]
+            },
+            "active": {
+                "threshold": 1,
+                "keys": [],
+                "waits": [],
+                "accounts": 
+                [
+                    {
+                        "permission": {
+                            "actor": user1.account,
+                            "permission": "active"
+                        },
+                        "weight": 1
+                    }
+                ]
+            },
+            "max_fee": config.maxFee,
+            "actor": user1.account,
+            "tpid": user1.address
+        }
+        })
+        expect(result.status).to.equal('OK');
+
+    } catch (err) {
+        console.log(err);
+        expect(err).to.equal(null);
+    }
+  });
+
+  it(`get_actions for newAccount. Expect 2 additional actions (one action for user1 + one action for newAccount)`, async () => {
+    let prevActionCount = actionCount;
+    const json = {
+      "account_name": newAccount.account
+    }
+    result = await callFioHistoryApi("get_actions", json);
+    //console.log(JSON.stringify(result, null, 4));
+
+    // Grab the trx ID
+    transactionID = result.actions[0].action_trace.trx_id;
+
+    actionCount = result.actions.length;
+    expect(actionCount).to.equal(prevActionCount + 2); // One action for user1 + one action for newAccount
+  });
+
+  it(`Look up transaction`, async () => {
+    const json = {
+      "id": transactionID
+    }
+    result = await callFioHistoryApi("get_transaction", json);
+    //console.log('Result: ', result);
+    //console.log('Result Traces: ', result.traces);
+    expect(result.trx.receipt.status).to.equal('executed');
+  });
+
+})
+
 /**
  * INSTRUCTIONS TO SET UP THESE TESTS
  *
@@ -491,7 +596,7 @@ describe(`E. domain and address registration (regdomain, regaddress, regdomadd, 
  *
  */
 
-describe(`F. REQUIRES CONTRACT MODIFICATION. Confirm unwrap txns are available from history`, () => {
+describe.skip(`G. REQUIRES CONTRACT MODIFICATION. Confirm unwrap txns are available from history`, () => {
 
   let user1, newOracle1, newOracle2, newOracle3;
   const nftAddress = '0xpolygonaddress' + randStr(20);
