@@ -302,3 +302,365 @@ describe('B. regproducer with pub key not associated with account (BD-3521)', ()
   });
 
 });
+
+
+describe.only('C. FIP47 Update Regproducer', () => {
+  let user1, user2, prodkey;
+  let url = "https://user1site.io/";
+  let url2 = "https://user1sitechanged.io/";
+  it(`Create users`, async () => {
+    user1 = await newUser(faucet);
+    user1.address2 = generateFioAddress(user1.domain, 5)
+    user2 = await newUser(faucet);
+    prodkey = await newUser(faucet);
+  });
+
+  it(`Register user1 address`, async () => {
+    const result = await user1.sdk.genericAction('registerFioAddress', {
+      fioAddress: user1.address2,
+      maxFee: config.api.register_fio_address.fee,
+      walletFioAddress: ''
+    })
+    //console.log('Result: ', result)
+    expect(result.status).to.equal('OK')
+  });
+
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) });
+
+
+  it(`Register user1 as producer`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'regproducer',
+        account: 'eosio',
+        data: {
+          fio_address: user1.address,
+          fio_pub_key: user1.publicKey,
+          url: url,
+          location: 80,
+          actor: user1.account,
+          max_fee: config.maxFee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log('Error: ', err.json);
+      expect(err).to.equal('null');
+    }
+  });
+
+  it(`Update user1 producer info url`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'regproducer',
+        account: 'eosio',
+        data: {
+          fio_address: user1.address,
+          fio_pub_key: user1.publicKey,
+          url: url2,
+          location: 80,
+          actor: user1.account,
+          max_fee: config.maxFee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log('Error: ', err.json);
+      expect(err).to.equal('null');
+    }
+  });
+
+  it(`Confirm user1 url changed`, async function () {
+    try {
+      const json = {
+        "code": "eosio",
+        "scope": "eosio",
+        "table": "producers",
+        "lower_bound": user1.account,
+        "upper_bound": user1.account,
+        "key_type": "name",
+        "index_position": "4",
+        "json": true
+      }
+      const result = await callFioApi("get_table_rows", json);
+      //console.log('result: ', result);
+      expect(result.rows.length).to.equal(1);
+      expect(result.rows[0].url).to.equal(url2);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`Update user1 producer info location`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'regproducer',
+        account: 'eosio',
+        data: {
+          fio_address: user1.address,
+          fio_pub_key: user1.publicKey,
+          url: url2,
+          location: 20,
+          actor: user1.account,
+          max_fee: config.maxFee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log('Error: ', err.json);
+      expect(err).to.equal('null');
+    }
+  });
+
+  it(`Confirm user1 location changed`, async function () {
+    try {
+      const json = {
+        "code": "eosio",
+        "scope": "eosio",
+        "table": "producers",
+        "lower_bound": user1.account,
+        "upper_bound": user1.account,
+        "key_type": "name",
+        "index_position": "4",
+        "json": true
+      }
+      const result = await callFioApi("get_table_rows", json);
+      //console.log('result: ', result);
+      expect(result.rows.length).to.equal(1);
+      expect(result.rows[0].location).to.equal(20);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`Update user1 producer public key`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'regproducer',
+        account: 'eosio',
+        data: {
+          fio_address: user1.address,
+          fio_pub_key: prodkey.publicKey,
+          url: url2,
+          location: 20,
+          actor: user1.account,
+          max_fee: config.maxFee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log('Error: ', err.json);
+      expect(err).to.equal('null');
+    }
+  });
+
+  it(`Confirm user1 producer public key changed`, async function () {
+    try {
+      const json = {
+        "code": "eosio",
+        "scope": "eosio",
+        "table": "producers",
+        "lower_bound": user1.account,
+        "upper_bound": user1.account,
+        "key_type": "name",
+        "index_position": "4",
+        "json": true
+      }
+      const result = await callFioApi("get_table_rows", json);
+      //console.log('result: ', result);
+      expect(result.rows.length).to.equal(1);
+      expect(result.rows[0].producer_public_key).to.equal(prodkey.publicKey);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) });
+
+  it(`Register user1 address #2`, async () => {
+
+    user1.address2 = generateFioAddress(user1.domain, 5);  
+
+    const result = await user1.sdk.genericAction('registerFioAddress', {
+      fioAddress: user1.address2,
+      maxFee: config.api.register_fio_address.fee,
+      walletFioAddress: ''
+    })
+
+    expect(result.status).to.equal('OK')
+  });
+
+
+  it(`Update user1 producer FIO Address`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'regproducer',
+        account: 'eosio',
+        data: {
+          fio_address: user1.address2, 
+          fio_pub_key: prodkey.publicKey,
+          url: url2,
+          location: 20,
+          actor: user1.account,
+          max_fee: config.maxFee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log('Error: ', err.json);
+      expect(err).to.equal('null');
+    }
+  });
+
+
+  it(`Confirm new fio address for user1 producer was registered`, async function () {
+    try {
+      const json = {
+        "code": "eosio",
+        "scope": "eosio",
+        "table": "producers",
+        "lower_bound": user1.account,
+        "upper_bound": user1.account,
+        "key_type": "name",
+        "index_position": "4",
+        "json": true
+      }
+      const result = await callFioApi("get_table_rows", json);
+      //console.log('result: ', result);
+      expect(result.rows.length).to.equal(1);
+      expect(result.rows[0].fio_address).to.equal(user1.address2);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  });
+
+
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) });
+
+
+  it(`Update regproducer to change everything back`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'regproducer',
+        account: 'eosio',
+        data: {
+          fio_address: user1.address,
+          fio_pub_key: user1.publicKey,
+          url: url,
+          location: 80,
+          actor: user1.account,
+          max_fee: config.maxFee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log('Error: ', err.json);
+      expect(err).to.equal('null');
+    }
+  });
+
+  it(`Confirm the rollback`, async function () {
+    try {
+      const json = {
+        "code": "eosio",
+        "scope": "eosio",
+        "table": "producers",
+        "lower_bound": user1.account,
+        "upper_bound": user1.account,
+        "key_type": "name",
+        "index_position": "4",
+        "json": true
+      }
+      const result = await callFioApi("get_table_rows", json);
+      //console.log('result: ', result);
+      expect(result.rows.length).to.equal(1);
+      expect(result.rows[0].fio_address).to.equal(user1.address);
+      expect(result.rows[0].location).to.equal(80);
+      expect(result.rows[0].url).to.equal(url);
+      expect(result.rows[0].producer_public_key).to.equal(user1.publicKey);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  });
+
+  
+
+  it(`Attempt to update the FIO Handle to one not owned by the signer`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'regproducer',
+        account: 'eosio',
+        data: {
+          fio_address: user2.address,
+          fio_pub_key: user1.publicKey,
+          url: url,
+          location: 80,
+          actor: user1.account,
+          max_fee: config.maxFee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.not.equal('OK');
+    } catch (err) {
+      expect(err.errorCode).to.equal(403);
+      expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
+    }
+  });
+
+  it(`Unregister user1 as producer (cleanup)`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'unregprod',
+        account: 'eosio',
+        data: {
+          fio_address: user1.address,
+          max_fee: config.maxFee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`Confirm user1 is unregistered`, async function () {
+    try {
+      const json = {
+        "code": "eosio",
+        "scope": "eosio",
+        "table": "producers",
+        "lower_bound": user1.account,
+        "upper_bound": user1.account,
+        "key_type": "name",
+        "index_position": "4",
+        "json": true
+      }
+      const result = await callFioApi("get_table_rows", json);
+      //console.log('result: ', result);
+      expect(result.rows.length).to.equal(1);
+      expect(result.rows[0].owner).to.equal(user1.account);
+      expect(result.rows[0].is_active).to.equal(0);
+      expect(result.rows[0].producer_public_key).to.equal('FIO1111111111111111111111111111111114T1Anm');
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  });
+
+
+});
