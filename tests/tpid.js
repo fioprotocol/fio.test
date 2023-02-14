@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, existingUser, callFioApi, generateFioDomain, generateFioAddress, createKeypair, timeout, fetchJson} = require('../utils.js');
+const {newUser, existingUser, callFioApi, callFioApiSigned, generateFioDomain, generateFioAddress, createKeypair, timeout, fetchJson} = require('../utils.js');
 const {FIOSDK} = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
 
@@ -797,8 +797,7 @@ describe(`C. User that has proxied their votes is sent FIO with TPID registered 
 
 })
 
-
-describe(`L. User that is auto proxied registers as proxy`, () => {
+describe(`D. User that is auto proxied registers as proxy`, () => {
 
   let proxy1, user1
 
@@ -923,8 +922,7 @@ describe(`L. User that is auto proxied registers as proxy`, () => {
 
 })
 
-
-describe(`M. User that is auto proxied votes for proxy. Confirm is_auto_proxy is reset to 0`, () => {
+describe(`E. User that is auto proxied votes for proxy. Confirm is_auto_proxy is reset to 0`, () => {
 
   let proxy1, user1
 
@@ -1044,5 +1042,42 @@ describe(`M. User that is auto proxied votes for proxy. Confirm is_auto_proxy is
       expect(err).to.equal(null);
     }
   })
+
+})
+
+// FIO does not stop transactions because of incorrectly formatted tpid, it simply preceeds with the transaction
+// but with an empty tpid.
+describe(`F. Tests with bad tpid parameters - confirm txn still works (push transaction)`, () => {
+
+  let user1, user2
+
+  it(`Create users`, async () => {
+    user1 = await newUser(faucet);
+    user2 = await newUser(faucet);
+  })
+
+  it(`(Bug BD-4470) (failure) Invalid tpid. Expect: ${config.error2.invalidTpid.statusCode} ${config.error2.invalidTpid.message}`, async () => {
+    try {
+        const result = await callFioApiSigned('push_transaction', {
+            action: 'trnsfiopubky',
+            account: 'fio.token',
+            actor: user1.account,
+            privKey: user1.privateKey,
+            data: {
+              amount: 1000000000,
+              payee_public_key: user2.publicKey,
+              max_fee: config.maxFee,
+              tpid: 'notvalidfioaddress',
+              actor: user1.account
+            }
+        });
+        //console.log('Result: ', result);
+        expect(result.processed.receipt.status).to.equal('executed');
+    } catch (err) {
+        console.log(err);
+        expect(err).to.equal(null);
+    }
+});
+
 
 })
