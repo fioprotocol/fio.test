@@ -12,7 +12,7 @@ before(async () => {
 /**
  * Used to sort sdk objects by actor field
  */
-function compareFn(a, b) {
+  function compareAccount(a, b) {
     if (a.account < b.account) {
       return -1;
     }
@@ -48,7 +48,7 @@ describe('************************** newfioacc.js ************************** \n 
     });
 
 
-    it(`XXXXXXXX Create new account with newfioacc - empty accounts and keys. Expect Success?`, async () => {
+    it(`Create new account with newfioacc - empty accounts and keys. Expect new account with fio_public_key as permissions`, async () => {
         try {
             const result = await user1.sdk.genericAction('pushTransaction', {
             action: 'newfioacc',
@@ -620,9 +620,7 @@ describe('B. Test newfioacc - accounts - set owner and active to single account 
     });
 });
 
-/**
- * NOTE: when using updateauth and newfioacc the accounts must be in sorted order!
- */
+// NOTE: when using updateauth and newfioacc the accounts must be in sorted order!
 describe('C. Test newfioacc - accounts - set owner and active to 2 accounts (in sorted order!) (BD-4480) ', () => {
     let pretestUser1, pretestUser2, pretestUser3, user1, user2, user3, newAccount = {}, sortedPretestUsers = [], sortedUsers = [];
     const xferAmount = 90000000000;  // 90 FIO
@@ -632,12 +630,12 @@ describe('C. Test newfioacc - accounts - set owner and active to 2 accounts (in 
         pretestUser2 = await newUser(faucet);
         pretestUser3 = await newUser(faucet);
         const pretestUsers = [pretestUser1, pretestUser2, pretestUser3]
-        sortedPretestUsers = pretestUsers.sort(compareFn);
+        sortedPretestUsers = pretestUsers.sort(compareAccount);
         user1 = await newUser(faucet);
         user2 = await newUser(faucet);
         user3 = await newUser(faucet);
         const users = [user1, user2, user3]
-        sortedUsers = users.sort(compareFn);
+        sortedUsers = users.sort(compareAccount);
         const keypair = await createKeypair();
         const newDomain = generateFioDomain(10);
         const newAddress = generateFioAddress(newDomain,10);
@@ -998,7 +996,7 @@ describe('C. Test newfioacc - accounts - set owner and active to 2 accounts (in 
     
 });
 
-describe.skip('D. Test newfioacc - accounts - set owner and active to multiple (10) accounts that are different from main account', () => {
+describe('D. Test newfioacc - accounts - set owner and active to multiple (10) accounts that are different from main account', () => {
     let user1, user2, user3, user4, user5, user6, user7, user8, user9, user10, newAccount = {};
     const xferAmount = 90000000000;  // 90 FIO
   
@@ -1013,6 +1011,8 @@ describe.skip('D. Test newfioacc - accounts - set owner and active to multiple (
       user8 = await newUser(faucet);
       user9 = await newUser(faucet);
       user10 = await newUser(faucet);
+      const users = [user1, user2, user3, user4, user5, user6, user7, user8, user9, user10]
+      sortedUsers = users.sort(compareAccount);
 
       const keypair = await createKeypair();
       const newDomain = generateFioDomain(10);
@@ -1034,7 +1034,7 @@ describe.skip('D. Test newfioacc - accounts - set owner and active to multiple (
 
     it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
-    it(`Create new account with 2 active and owner perms from user1 and user2`, async () => {
+    it(`Create new account with 10 account-based active and owner perms from user1 and user2`, async () => {
         try {
             const result = await user1.sdk.genericAction('pushTransaction', {
             action: 'newfioacc',
@@ -1050,70 +1050,70 @@ describe.skip('D. Test newfioacc - accounts - set owner and active to multiple (
                     [
                         {
                             "permission": {
-                                "actor": user1.account,
+                                "actor": sortedUsers[0].account,
                                 "permission": "active"
                             },
                             "weight": 1
                         },
                         {
                             "permission": {
-                                "actor": user2.account,
+                                "actor": sortedUsers[1].account,
                                 "permission": "active"
                             },
                             "weight": 1
                         },
                         {
                             "permission": {
-                                "actor": user3.account,
+                                "actor": sortedUsers[2].account,
                                 "permission": "active"
                             },
                             "weight": 1
                         },
                         {
                             "permission": {
-                                "actor": user4.account,
+                                "actor": sortedUsers[3].account,
                                 "permission": "active"
                             },
                             "weight": 1
                         },
                         {
                             "permission": {
-                                "actor": user5.account,
+                                "actor": sortedUsers[4].account,
                                 "permission": "active"
                             },
                             "weight": 1
                         },
                         {
                             "permission": {
-                                "actor": user6.account,
+                                "actor": sortedUsers[5].account,
                                 "permission": "active"
                             },
                             "weight": 1
                         },
                         {
                             "permission": {
-                                "actor": user7.account,
+                                "actor": sortedUsers[6].account,
                                 "permission": "active"
                             },
                             "weight": 1
                         },
                         {
                             "permission": {
-                                "actor": user8.account,
+                                "actor": sortedUsers[7].account,
                                 "permission": "active"
                             },
                             "weight": 1
                         },
                         {
                             "permission": {
-                                "actor": user9.account,
+                                "actor": sortedUsers[8].account,
                                 "permission": "active"
                             },
                             "weight": 1
                         },
                         {
                             "permission": {
-                                "actor": user10.account,
+                                "actor": sortedUsers[9].account,
                                 "permission": "active"
                             },
                             "weight": 1
@@ -1128,70 +1128,70 @@ describe.skip('D. Test newfioacc - accounts - set owner and active to multiple (
                     [
                         {
                             "permission": {
-                                "actor": user1.account,
+                                "actor": sortedUsers[0].account,
                                 "permission": "active"
                             },
                             "weight": 1
                         },
                         {
                             "permission": {
-                                "actor": user2.account,
+                                "actor": sortedUsers[1].account,
                                 "permission": "active"
                             },
                             "weight": 1
                         },
                         {
                             "permission": {
-                                "actor": user3.account,
+                                "actor": sortedUsers[2].account,
                                 "permission": "active"
                             },
                             "weight": 1
                         },
                         {
                             "permission": {
-                                "actor": user4.account,
+                                "actor": sortedUsers[3].account,
                                 "permission": "active"
                             },
                             "weight": 1
                         },
                         {
                             "permission": {
-                                "actor": user5.account,
+                                "actor": sortedUsers[4].account,
                                 "permission": "active"
                             },
                             "weight": 1
                         },
                         {
                             "permission": {
-                                "actor": user6.account,
+                                "actor": sortedUsers[5].account,
                                 "permission": "active"
                             },
                             "weight": 1
                         },
                         {
                             "permission": {
-                                "actor": user7.account,
+                                "actor": sortedUsers[6].account,
                                 "permission": "active"
                             },
                             "weight": 1
                         },
                         {
                             "permission": {
-                                "actor": user8.account,
+                                "actor": sortedUsers[7].account,
                                 "permission": "active"
                             },
                             "weight": 1
                         },
                         {
                             "permission": {
-                                "actor": user9.account,
+                                "actor": sortedUsers[8].account,
                                 "permission": "active"
                             },
                             "weight": 1
                         },
                         {
                             "permission": {
-                                "actor": user10.account,
+                                "actor": sortedUsers[9].account,
                                 "permission": "active"
                             },
                             "weight": 1
@@ -1216,47 +1216,47 @@ describe.skip('D. Test newfioacc - accounts - set owner and active to multiple (
                 "account_name": newAccount.account
             }
             result = await callFioApi("get_account", json);
-            console.log(JSON.stringify(result, null, 4));
+            //console.log(JSON.stringify(result, null, 4));
             expect(result.account_name).to.equal(newAccount.account);
-            expect(result.permissions[0].required_auth.accounts[0].permission.actor).to.equal(user1.account);
+            expect(result.permissions[0].required_auth.accounts[0].permission.actor).to.equal(sortedUsers[0].account);
             expect(result.permissions[0].required_auth.accounts[0].permission.permission).to.equal('active');
-            expect(result.permissions[0].required_auth.accounts[1].permission.actor).to.equal(user2.account);
+            expect(result.permissions[0].required_auth.accounts[1].permission.actor).to.equal(sortedUsers[1].account);
             expect(result.permissions[0].required_auth.accounts[1].permission.permission).to.equal('active');
-            expect(result.permissions[0].required_auth.accounts[2].permission.actor).to.equal(user3.account);
+            expect(result.permissions[0].required_auth.accounts[2].permission.actor).to.equal(sortedUsers[2].account);
             expect(result.permissions[0].required_auth.accounts[2].permission.permission).to.equal('active');
-            expect(result.permissions[0].required_auth.accounts[3].permission.actor).to.equal(user4.account);
+            expect(result.permissions[0].required_auth.accounts[3].permission.actor).to.equal(sortedUsers[3].account);
             expect(result.permissions[0].required_auth.accounts[3].permission.permission).to.equal('active');
-            expect(result.permissions[0].required_auth.accounts[4].permission.actor).to.equal(user5.account);
+            expect(result.permissions[0].required_auth.accounts[4].permission.actor).to.equal(sortedUsers[4].account);
             expect(result.permissions[0].required_auth.accounts[4].permission.permission).to.equal('active');
-            expect(result.permissions[0].required_auth.accounts[5].permission.actor).to.equal(user6.account);
+            expect(result.permissions[0].required_auth.accounts[5].permission.actor).to.equal(sortedUsers[5].account);
             expect(result.permissions[0].required_auth.accounts[5].permission.permission).to.equal('active');
-            expect(result.permissions[0].required_auth.accounts[6].permission.actor).to.equal(user7.account);
+            expect(result.permissions[0].required_auth.accounts[6].permission.actor).to.equal(sortedUsers[6].account);
             expect(result.permissions[0].required_auth.accounts[6].permission.permission).to.equal('active');
-            expect(result.permissions[0].required_auth.accounts[7].permission.actor).to.equal(user8.account);
+            expect(result.permissions[0].required_auth.accounts[7].permission.actor).to.equal(sortedUsers[7].account);
             expect(result.permissions[0].required_auth.accounts[7].permission.permission).to.equal('active');
-            expect(result.permissions[0].required_auth.accounts[8].permission.actor).to.equal(user9.account);
+            expect(result.permissions[0].required_auth.accounts[8].permission.actor).to.equal(sortedUsers[8].account);
             expect(result.permissions[0].required_auth.accounts[8].permission.permission).to.equal('active');
-            expect(result.permissions[0].required_auth.accounts[9].permission.actor).to.equal(user10.account);
+            expect(result.permissions[0].required_auth.accounts[9].permission.actor).to.equal(sortedUsers[9].account);
             expect(result.permissions[0].required_auth.accounts[9].permission.permission).to.equal('active');
-            expect(result.permissions[1].required_auth.accounts[0].permission.actor).to.equal(user1.account);
+            expect(result.permissions[1].required_auth.accounts[0].permission.actor).to.equal(sortedUsers[0].account);
             expect(result.permissions[1].required_auth.accounts[0].permission.permission).to.equal('active');
-            expect(result.permissions[1].required_auth.accounts[1].permission.actor).to.equal(user2.account);
+            expect(result.permissions[1].required_auth.accounts[1].permission.actor).to.equal(sortedUsers[1].account);
             expect(result.permissions[1].required_auth.accounts[1].permission.permission).to.equal('active');
-            expect(result.permissions[1].required_auth.accounts[2].permission.actor).to.equal(user3.account);
+            expect(result.permissions[1].required_auth.accounts[2].permission.actor).to.equal(sortedUsers[2].account);
             expect(result.permissions[1].required_auth.accounts[2].permission.permission).to.equal('active');
-            expect(result.permissions[1].required_auth.accounts[3].permission.actor).to.equal(user4.account);
+            expect(result.permissions[1].required_auth.accounts[3].permission.actor).to.equal(sortedUsers[3].account);
             expect(result.permissions[1].required_auth.accounts[3].permission.permission).to.equal('active');
-            expect(result.permissions[1].required_auth.accounts[4].permission.actor).to.equal(user5.account);
+            expect(result.permissions[1].required_auth.accounts[4].permission.actor).to.equal(sortedUsers[4].account);
             expect(result.permissions[1].required_auth.accounts[4].permission.permission).to.equal('active');
-            expect(result.permissions[1].required_auth.accounts[5].permission.actor).to.equal(user6.account);
+            expect(result.permissions[1].required_auth.accounts[5].permission.actor).to.equal(sortedUsers[5].account);
             expect(result.permissions[1].required_auth.accounts[5].permission.permission).to.equal('active');
-            expect(result.permissions[1].required_auth.accounts[6].permission.actor).to.equal(user7.account);
+            expect(result.permissions[1].required_auth.accounts[6].permission.actor).to.equal(sortedUsers[6].account);
             expect(result.permissions[1].required_auth.accounts[6].permission.permission).to.equal('active');
-            expect(result.permissions[1].required_auth.accounts[7].permission.actor).to.equal(user8.account);
+            expect(result.permissions[1].required_auth.accounts[7].permission.actor).to.equal(sortedUsers[7].account);
             expect(result.permissions[1].required_auth.accounts[7].permission.permission).to.equal('active');
-            expect(result.permissions[1].required_auth.accounts[8].permission.actor).to.equal(user9.account);
+            expect(result.permissions[1].required_auth.accounts[8].permission.actor).to.equal(sortedUsers[8].account);
             expect(result.permissions[1].required_auth.accounts[8].permission.permission).to.equal('active');
-            expect(result.permissions[1].required_auth.accounts[9].permission.actor).to.equal(user10.account);
+            expect(result.permissions[1].required_auth.accounts[9].permission.actor).to.equal(sortedUsers[9].account);
             expect(result.permissions[1].required_auth.accounts[9].permission.permission).to.equal('active');
             expect(result.permissions[0].required_auth.keys.length).to.equal(0);
         } catch (err) {
@@ -1294,7 +1294,7 @@ describe.skip('D. Test newfioacc - accounts - set owner and active to multiple (
         }
     });
 
-    it.skip(`Get FIO balance for new account. Confirm 0`, async () => {
+    it(`Get FIO balance for new account. Confirm 0`, async () => {
         try {
             const json = {
                 fio_public_key: newAccount.publicKey
@@ -2049,7 +2049,7 @@ describe('G. Test newfioacc - Sad Path', () => {
         }
     });
 
-    it(`BD-4771) (failure) Invalid FIO Public Key. Expect: ${config.error2.invalidKey.statusCode} ${config.error2.invalidKey.message}`, async () => {
+    it(`(failure) Invalid FIO Public Key. Expect: ${config.error2.invalidKey.statusCode} ${config.error2.invalidKey.message} (BD-4471)`, async () => {
         try {
             const result = await user1.sdk.genericAction('pushTransaction', {
             action: 'newfioacc',
@@ -2091,13 +2091,13 @@ describe('G. Test newfioacc - Sad Path', () => {
             })
             expect(result).to.equal(null);
         } catch (err) {
-            console.log(err.json.fields[0]);
+            //console.log(err.json.fields[0]);
             expect(err.json.fields[0].error).to.equal(config.error2.invalidKey.message);
             expect(err.errorCode).to.equal(config.error2.invalidKey.statusCode);
         }
     });
 
-    it.skip(`Not clear on which field will cause this... (failure) Invalid owner permission. Expect: ${config.error2.invalidOwnerPerm.statusCode} ${config.error2.invalidOwnerPerm.message}`, async () => {
+    it(`(failure) Invalid owner permission actor. Expect: ${config.error2.invalidOwnerPerm.statusCode} ${config.error2.invalidOwnerPerm.message}`, async () => {
         try {
             const result = await user1.sdk.genericAction('pushTransaction', {
             action: 'newfioacc',
@@ -2139,9 +2139,9 @@ describe('G. Test newfioacc - Sad Path', () => {
             })
             expect(result).to.equal(null);
         } catch (err) {
-            console.log(err.json.error);
-            expect(err.json.fields[0].error).to.equal(config.error2.invalidOwnerPerm.message);
-            expect(err.errorCode).to.equal(config.error2.invalidOwnerPerm.statusCode);
+            //console.log(JSON.stringify(err, null, 4));
+            expect(err.json.error.details[0].message).to.equal(`account '123' does not exist`);
+            expect(err.json.code).to.equal(500);
         }
     });
 
@@ -2302,55 +2302,6 @@ describe('G. Test newfioacc - Sad Path', () => {
             //console.log(err.json.fields[0]);
             expect(err.json.fields[0].error).to.equal(config.error2.insufficientFunds.message);
             expect(err.errorCode).to.equal(config.error2.insufficientFunds.statusCode);
-        }
-    });
-
-    it.skip(`(Bug BD-4470) (failure) Invalid tpid. Expect: ${config.error2.invalidTpid.statusCode} ${config.error2.invalidTpid.message}`, async () => {
-        try {
-            const result = await user1.sdk.genericAction('pushTransaction', {
-            action: 'newfioacc',
-            account: 'eosio',
-            actor: user1.account,
-            data: {
-                "fio_public_key": newAccount.publicKey,
-                "owner": {
-                    "threshold": 1,
-                    "keys": [],
-                    "waits": [],
-                    "accounts": [{
-                        "permission": {
-                            "actor": newAccount.account,
-                            "permission": "active"
-                        },
-                        "weight": 1
-                    }]
-                },
-                "active": {
-                    "threshold": 1,
-                    "keys": [],
-                    "waits": [],
-                    "accounts": 
-                    [
-                        {
-                            "permission": {
-                                "actor": newAccount.account,
-                                "permission": "active"
-                            },
-                            "weight": 1
-                        }
-                    ]
-                },
-                "max_fee": config.maxFee,
-                "actor": user1.account,
-                "tpid": 'notvalidfioaddress'
-            }
-            })
-            console.log('Result: ', result);
-            expect(result).to.equal(null);
-        } catch (err) {
-            console.log(err);
-            expect(err.json.fields[0].error).to.equal(config.error2.invalidTpid.message);
-            expect(err.errorCode).to.equal(config.error2.invalidTpid.statusCode);
         }
     });
 
@@ -2550,7 +2501,7 @@ describe('G. Test newfioacc - Sad Path', () => {
 
 });
 
-describe('(BUG BD-4481)  H. Test newfioacc - keys - set owner and active to single key that is different from main account key', () => {
+describe('H. Test newfioacc - keys - set owner and active to single key that is different from main account key (BUG BD-4481)', () => {
     let pretestUser1, user1, newAccount = {};
     const xferAmount = 90000000000;  // 90 FIO
   
@@ -2708,17 +2659,13 @@ describe('(BUG BD-4481)  H. Test newfioacc - keys - set owner and active to sing
                 "account_name": newAccount.account
             }
             result = await callFioApi("get_account", json);
-            console.log(JSON.stringify(result, null, 4));
+            //console.log(JSON.stringify(result, null, 4));
             expect(result.account_name).to.equal(newAccount.account);
-            console.log('result.permissions[0].required_auth.keys[0].key: ', result.permissions[0].required_auth.keys[0].key)
-            console.log('user1.publicKey: ', user1.publicKey);
-            console.log('newAccount.publicKey: ', newAccount.publicKey)
-            // This fails. It looks like the permission keys are being set to newAccount.publicKey instead of user1.publicKey
             expect(result.permissions[0].required_auth.keys[0].key).to.equal(user1.publicKey);
-            //expect(result.permissions[0].required_auth.keys[0].weight).to.equal(1);
-            //expect(result.permissions[1].required_auth.keys[0].key).to.equal(user1.publicKey);
-            //expect(result.permissions[1].required_auth.keys[0].weight).to.equal(1);
-            //expect(result.permissions[0].required_auth.accounts.length).to.equal(0);
+            expect(result.permissions[0].required_auth.keys[0].weight).to.equal(1);
+            expect(result.permissions[1].required_auth.keys[0].key).to.equal(user1.publicKey);
+            expect(result.permissions[1].required_auth.keys[0].weight).to.equal(1);
+            expect(result.permissions[0].required_auth.accounts.length).to.equal(0);
         } catch (err) {
             //console.log('Error', err)
             expect(err).to.equal(null)
@@ -2838,7 +2785,7 @@ describe('(BUG BD-4481)  H. Test newfioacc - keys - set owner and active to sing
         }
     });
 
-    it.skip(`newAccount transfers FIO using user1 private key`, async () => {
+    it(`newAccount transfers FIO using user1 private key`, async () => {
         try {
             const result = await callFioApiSigned('push_transaction', {
                 action: 'trnsfiopubky',
@@ -2853,7 +2800,7 @@ describe('(BUG BD-4481)  H. Test newfioacc - keys - set owner and active to sing
                   actor: newAccount.account
                 }
             });
-            console.log('Result: ', result);
+            //console.log('Result: ', result);
             expect(result.processed.receipt.status).to.equal('executed');
         } catch (err) {
             console.log('Error: ', err);
@@ -2861,7 +2808,7 @@ describe('(BUG BD-4481)  H. Test newfioacc - keys - set owner and active to sing
         }
     });
 
-    it.skip(`newAccount registers address using user1 private key`, async () => {
+    it(`newAccount registers address using user1 private key`, async () => {
         try {
             const result = await callFioApiSigned('push_transaction', {
                 action: 'regaddress',
@@ -2884,7 +2831,7 @@ describe('(BUG BD-4481)  H. Test newfioacc - keys - set owner and active to sing
         }
     });
 
-    it.skip(`get_pub_address for FIO token for new account`, async () => {
+    it(`get_pub_address for FIO token for new account`, async () => {
         try {
 
             const result = await callFioApi("get_pub_address", {
@@ -2896,6 +2843,447 @@ describe('(BUG BD-4481)  H. Test newfioacc - keys - set owner and active to sing
             expect(result.public_address).to.equal(newAccount.publicKey);
         } catch (err) {
             console.log(err.message)
+            expect(err).to.equal(null);
+        }
+    });
+});
+
+describe('I. Test public key sort order. Confirm it aligns with updateauth', () => {
+    let pretestUser1, user1, newAccount = {};
+    const xferAmount = 90000000000;  // 90 FIO
+
+    // Failure: eosio sorts "H" before "c"
+    const failureKeys = [
+        'FIO7ckXdy9m9DgiMPGvs2X59ktXCtdsLxs52fnRWgEzHmqwoiYNUq',
+        'FIO7HUoM8BphEqXHmecNEQrUqjFyEKcGahFsUnJNryHhyUzC1iBog'
+    ];
+    //success
+    const successKeys = [
+        'FIO7HUoM8BphEqXHmecNEQrUqjFyEKcGahFsUnJNryHhyUzC1iBog',
+        'FIO7ckXdy9m9DgiMPGvs2X59ktXCtdsLxs52fnRWgEzHmqwoiYNUq'
+    ];
+
+    before(async () => {
+        pretestUser1 = await newUser(faucet);
+        user1 = await newUser(faucet);
+        const keypair = await createKeypair();
+        newAccount = {
+            publicKey: keypair.publicKey,
+            privateKey: keypair.privateKey,
+            account: await getAccountFromKey(keypair.publicKey)
+      }
+    });
+  
+    it(`(failure) UPDATEAUTH PRETEST: Update pretestUser1 owner keys with failureKeys`, async () => {
+        try {
+            const result = await callFioApiSigned('push_transaction', {
+                action: 'updateauth',
+                account: 'eosio',
+                actor: pretestUser1.account,
+                privKey: pretestUser1.privateKey,
+                data: {
+                    permission: 'owner',
+                    parent: '',
+                    auth: {
+                        threshold: 1,
+                        accounts: [],
+                        keys: 
+                        [
+                            {
+                                key: failureKeys[0],
+                                weight: 1
+                            },
+                            {
+                                key: failureKeys[1],
+                                weight: 1
+                            }
+                        ],
+                        waits: [],
+                  },
+                  max_fee: config.maxFee,
+                  account: pretestUser1.account
+                }
+            }, 'owner');  // IMPORTANT
+            //console.log(JSON.stringify(result, null, 4));
+            expect(result.code).to.equal(500);
+            expect(result.error.what).to.equal('Action validate exception');
+        } catch (err) {
+            console.log("Error: ", err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`Create new account with failureKeys`, async () => {
+        try {
+            const result = await user1.sdk.genericAction('pushTransaction', {
+            action: 'newfioacc',
+            account: 'eosio',
+            actor: user1.account,
+            data: {
+                "fio_public_key": newAccount.publicKey,
+                "owner": {
+                    "threshold": 1,
+                    "keys": [
+                        {
+                            key: failureKeys[0],
+                            weight: 1
+                        },
+                        {
+                            key: failureKeys[1],
+                            weight: 1
+                        }
+                    ],
+                    "waits": [],
+                    "accounts": []
+                },
+                "active": {
+                    "threshold": 1,
+                    "keys": [
+                        {
+                            key: failureKeys[0],
+                            weight: 1
+                        },
+                        {
+                            key: failureKeys[1],
+                            weight: 1
+                        }
+                    ],
+                    "waits": [],
+                    "accounts": []
+                },
+                "max_fee": config.maxFee,
+                "actor": user1.account,
+                "tpid": user1.address
+            }
+            })
+            console.log('Result: ', result);
+            expect(result).to.equal(null);
+        } catch (err) {
+            //console.log('err: ', err);
+            expect(err.json.code).to.equal(500);
+            expect(err.json.error.what).to.equal('Action validate exception');
+        }
+    });
+
+    it(`UPDATEAUTH PRETEST: Update pretestUser1 owner key with successKeys`, async () => {
+        try {
+            const result = await callFioApiSigned('push_transaction', {
+                action: 'updateauth',
+                account: 'eosio',
+                actor: pretestUser1.account,
+                privKey: pretestUser1.privateKey,
+                data: {
+                    permission: 'owner',
+                    parent: '',
+                    auth: {
+                        threshold: 1,
+                        accounts: [],
+                        keys: 
+                        [
+                            {
+                                key: successKeys[0],
+                                weight: 1
+                            },
+                            {
+                                key: successKeys[1],
+                                weight: 1
+                            }
+                        ],
+                        waits: [],
+                  },
+                  max_fee: config.maxFee,
+                  account: pretestUser1.account
+                }
+            }, 'owner');  // IMPORTANT
+            //console.log(JSON.stringify(result, null, 4));
+            expect(result.processed.receipt.status).to.equal('executed');
+        } catch (err) {
+            console.log("Error: ", err);
+            console.log(JSON.stringify(err, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`Create new account with successKeys`, async () => {
+        try {
+            const result = await user1.sdk.genericAction('pushTransaction', {
+            action: 'newfioacc',
+            account: 'eosio',
+            actor: user1.account,
+            data: {
+                "fio_public_key": newAccount.publicKey,
+                "owner": {
+                    "threshold": 1,
+                    "keys": [
+                        {
+                            key: successKeys[0],
+                            weight: 1
+                        },
+                        {
+                            key: successKeys[1],
+                            weight: 1
+                        }
+                    ],
+                    "waits": [],
+                    "accounts": []
+                },
+                "active": {
+                    "threshold": 1,
+                    "keys": [
+                        {
+                            key: successKeys[0],
+                            weight: 1
+                        },
+                        {
+                            key: successKeys[1],
+                            weight: 1
+                        }
+                    ],
+                    "waits": [],
+                    "accounts": []
+                },
+                "max_fee": config.maxFee,
+                "actor": user1.account,
+                "tpid": user1.address
+            }
+            })
+           //console.log(JSON.stringify(result, null, 4));
+            expect(result.status).to.equal('OK');
+        } catch (err) {
+            console.log(JSON.stringify(result, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+});
+
+describe('J. Test newfioacc - keys - create account with 10 public keys', () => {
+    let  user1, newAccount = {};
+    const xferAmount = 90000000000;  // 90 FIO  
+
+    const testKeys = [
+        'FIO4w7QBqPTqgZWbe8iwP47XrPwZjmiVnXzc6fi6yji9sAc9LrqBK',
+        'FIO55EmDGdh28ZpsT7H1bwveD9Vb2XfrQaQEKgVagmDq9ZMaCm7FK',
+        'FIO5iLGrsRS2WZWQq1JtZbS8ySaAGiNsij1SFBPLbRb8JyNQfEinb',
+        'FIO61wkg5oCwQzSteoninPAnKYH568qhwa5ppirfunREdfrrAycj2',
+        'FIO6BGtjQAJxP4oKTLkcenidJaExdpmWzYu3MxcUGNm9oYi36HuXc',
+        'FIO6eHL7LEFxKtidZcg93ETJ9bpHs93frufRZXCnED8FrywmNNtCH',
+        'FIO7F59GxKmkkWoCncYRfbJ8bv6pnPAKaKYejyEHgBGtKajx8g2dr',
+        'FIO7dCVjCin12Yfz839yW7GpgRuG3gnedab8316F9HcJCMh2ogYVD',
+        'FIO8SUUvGE5wi5B25YnGm2JRvnWLBrhvkk3BxwV5MMcySsJCqa83m',
+        'FIO8XMfzJzncQcokCXC7nAx87h6GcCprdfTVzHD1WJor59TbmVMeD'
+    ];
+  
+    before(async () => {
+        user1 = await newUser(faucet);
+        const keypair = await createKeypair();
+        const newDomain = generateFioDomain(10);
+        const newAddress = generateFioAddress(newDomain,10);
+        newAccount = {
+            publicKey: keypair.publicKey,
+            privateKey: keypair.privateKey,
+            account: await getAccountFromKey(keypair.publicKey),
+            domain: newDomain,
+            address: newAddress
+      }
+    });
+
+    it(`Create new account with 10 active and owner keys`, async () => {
+        try {
+            const result = await user1.sdk.genericAction('pushTransaction', {
+            action: 'newfioacc',
+            account: 'eosio',
+            actor: user1.account,
+            data: {
+                "fio_public_key": newAccount.publicKey,
+                "owner": {
+                    "threshold": 3,
+                    "keys": [
+                        {
+                            key: testKeys[0],
+                            weight: 1
+                        },
+                        {
+                            key: testKeys[1],
+                            weight: 1
+                        },
+                        {
+                            key: testKeys[2],
+                            weight: 1
+                        },
+                        {
+                            key: testKeys[3],
+                            weight: 1
+                        },
+                        {
+                            key: testKeys[4],
+                            weight: 1
+                        },
+                        {
+                            key: testKeys[5],
+                            weight: 1
+                        },
+                        {
+                            key: testKeys[6],
+                            weight: 1
+                        },
+                        {
+                            key: testKeys[7],
+                            weight: 1
+                        },
+                        {
+                            key: testKeys[8],
+                            weight: 1
+                        },
+                        {
+                            key: testKeys[9],
+                            weight: 1
+                        }
+                    ],
+                    "waits": [],
+                    "accounts": []
+                },
+                "active": {
+                    "threshold": 3,
+                    "keys": [
+                        {
+                            key: testKeys[0],
+                            weight: 1
+                        },
+                        {
+                            key: testKeys[1],
+                            weight: 1
+                        },
+                        {
+                            key: testKeys[2],
+                            weight: 1
+                        },
+                        {
+                            key: testKeys[3],
+                            weight: 1
+                        },
+                        {
+                            key: testKeys[4],
+                            weight: 1
+                        },
+                        {
+                            key: testKeys[5],
+                            weight: 1
+                        },
+                        {
+                            key: testKeys[6],
+                            weight: 1
+                        },
+                        {
+                            key: testKeys[7],
+                            weight: 1
+                        },
+                        {
+                            key: testKeys[8],
+                            weight: 1
+                        },
+                        {
+                            key: testKeys[9],
+                            weight: 1
+                        }
+                    ],
+                    "waits": [],
+                    "accounts": []
+                },
+                "max_fee": config.maxFee,
+                "actor": user1.account,
+                "tpid": user1.address
+            }
+            })
+            //console.log('Result: ', result);
+            expect(result.status).to.equal('OK');
+
+        } catch (err) {
+            console.log('err: ', err)
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`get_account for newAccount. Confirm permissions.`, async function () {
+        try {
+            const json = {
+                "account_name": newAccount.account
+            }
+            result = await callFioApi("get_account", json);
+            //console.log(JSON.stringify(result, null, 4));
+            expect(result.account_name).to.equal(newAccount.account);
+            expect(result.permissions[0].required_auth.keys[0].key).to.equal(testKeys[0]);
+            expect(result.permissions[0].required_auth.keys[1].key).to.equal(testKeys[1]);
+            expect(result.permissions[0].required_auth.keys[2].key).to.equal(testKeys[2]);
+            expect(result.permissions[0].required_auth.keys[3].key).to.equal(testKeys[3]);
+            expect(result.permissions[0].required_auth.keys[4].key).to.equal(testKeys[4]);
+            expect(result.permissions[0].required_auth.keys[5].key).to.equal(testKeys[5]);
+            expect(result.permissions[0].required_auth.keys[6].key).to.equal(testKeys[6]);
+            expect(result.permissions[0].required_auth.keys[7].key).to.equal(testKeys[7]);
+            expect(result.permissions[0].required_auth.keys[8].key).to.equal(testKeys[8]);
+            expect(result.permissions[0].required_auth.keys[9].key).to.equal(testKeys[9]);
+            expect(result.permissions[1].required_auth.keys[0].key).to.equal(testKeys[0]);
+            expect(result.permissions[1].required_auth.keys[1].key).to.equal(testKeys[1]);
+            expect(result.permissions[1].required_auth.keys[2].key).to.equal(testKeys[2]);
+            expect(result.permissions[1].required_auth.keys[3].key).to.equal(testKeys[3]);
+            expect(result.permissions[1].required_auth.keys[4].key).to.equal(testKeys[4]);
+            expect(result.permissions[1].required_auth.keys[5].key).to.equal(testKeys[5]);
+            expect(result.permissions[1].required_auth.keys[6].key).to.equal(testKeys[6]);
+            expect(result.permissions[1].required_auth.keys[7].key).to.equal(testKeys[7]);
+            expect(result.permissions[1].required_auth.keys[8].key).to.equal(testKeys[8]);
+            expect(result.permissions[1].required_auth.keys[9].key).to.equal(testKeys[9]);
+            expect(result.permissions[0].required_auth.accounts.length).to.equal(0);
+            expect(result.permissions[0].required_auth.threshold).to.equal(3);
+            expect(result.permissions[1].required_auth.threshold).to.equal(3);
+        } catch (err) {
+            //console.log('Error', err)
+            expect(err).to.equal(null)
+        }
+    });
+
+    it(`Confirm new account exists in fio.address accountmap table`, async () => {
+        try {
+            const json = {
+                json: true,
+                code: 'fio.address',
+                scope: 'fio.address',
+                table: 'accountmap',
+                lower_bound: newAccount.account,
+                upper_bound: newAccount.account,
+                key_type: 'i64',
+                index_position: '0'
+            }
+            result = await callFioApi("get_table_rows", json);
+            //console.log(result)
+            expect(result.rows[0].account).to.equal(newAccount.account);
+            expect(result.rows[0].clientkey).to.equal(newAccount.publicKey);
+        } catch (err) {
+            console.log(err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`Get FIO balance for new account. Confirm 0`, async () => {
+        try {
+            const json = {
+                fio_public_key: newAccount.publicKey
+            }
+            result = await callFioApi("get_fio_balance", json);
+            expect(result.balance).to.equal(0);
+        } catch (err) {
+            console.log(err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`get_actor for new account`, async () => {
+        try {
+            const json = {
+                fio_public_key: newAccount.publicKey
+            }
+            result = await callFioApi("get_actor", json);
+            expect(result.actor).to.equal(newAccount.account);
+        } catch (err) {
+            console.log(err);
             expect(err).to.equal(null);
         }
     });
