@@ -163,7 +163,7 @@ const config = {
             message: 'FIO Address not registered',
             statusCode: 400
         },
-        accountExists: {
+        accountExistsPubKey: {
             message: 'Invalid public key used, Account already exists on FIO chain',
             statusCode: 400
         },

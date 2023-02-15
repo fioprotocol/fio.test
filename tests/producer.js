@@ -304,7 +304,7 @@ describe('B. regproducer with pub key not associated with account (BD-3521)', ()
 });
 
 
-describe.only('C. FIP47 Update Regproducer', () => {
+describe('C. FIP47 Update Regproducer', () => {
   let user1, user2, prodkey;
   let url = "https://user1site.io/";
   let url2 = "https://user1sitechanged.io/";
