@@ -549,7 +549,7 @@ describe(`************************** register-fio-domain-address.js ************
     expect(result.type).to.equal('invalid_input');
     expect(result.fields[0].name).to.equal('owner_fio_public_key');
     expect(result.fields[0].value).to.equal('!@invalid#$');
-    expect(result.fields[0].error).to.equal('Invalid FIO Public Key format');
+    expect(result.fields[0].error).to.equal('Invalid FIO Public Key');
   });
 
   it(`(missing owner_fio_public_key) try to register a FIO address and a public FIO domain`, async function () {
@@ -879,10 +879,11 @@ describe(`B. Register a FIO domain and address using /register_fio_domain_addres
         actor: user2.account
       }
     });
+    //console.log('Result: ', result);
     expect(result.type).to.equal('invalid_input');
     expect(result.fields[0].name).to.equal('owner_fio_public_key');
     expect(result.fields[0].value).to.equal('!@invalid#$');
-    expect(result.fields[0].error).to.equal('Invalid FIO Public Key format');
+    expect(result.fields[0].error).to.equal('Invalid FIO Public Key');
   });
 
   it(`(invalid max_fee) try to register a FIO address and a public FIO domain`, async function () {

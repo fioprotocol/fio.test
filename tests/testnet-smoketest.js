@@ -1714,3 +1714,20 @@ describe(`Domain Marketplace: List domain and cancel domain listing`, async () =
   });
 
 })
+
+describe(`FIPs 36-39`, async () => {
+  it(`FIP-36 - get_account_fio_public_key`, async () => {
+    try {
+      const json = {
+        account: fioSdk.account
+      }
+      result = await callFioApi("get_account_fio_public_key", json);
+      //console.log('Result: ', result);
+      expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+    } catch (err) {
+      expect(err).to.equal(null);
+    }
+  });
+
+  
+});
