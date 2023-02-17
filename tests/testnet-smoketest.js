@@ -9,7 +9,15 @@
 require('mocha')
 const {expect} = require('chai')
 const {FIOSDK} = require('@fioprotocol/fiosdk')
-const { newUser, existingUser, callFioApi, stringToHash, fetchJson } = require('../utils.js');
+const { 
+  newUser, 
+  existingUser, 
+  createKeypair, 
+  callFioApi, 
+  stringToHash, 
+  getAccountFromKey,
+  fetchJson 
+} = require('../utils.js');
 const config = require('../config.js');
 const { EndPoint } = require('@fioprotocol/fiosdk/lib/entities/EndPoint');
 
@@ -1716,6 +1724,17 @@ describe(`Domain Marketplace: List domain and cancel domain listing`, async () =
 })
 
 describe(`FIPs 36-39`, async () => {
+  let newAccount = {};
+
+  before(async () => {
+    const keypair = await createKeypair();
+    newAccount = {
+      publicKey: keypair.publicKey,
+      privateKey: keypair.privateKey,
+      account: await getAccountFromKey(keypair.publicKey)
+    };
+  });
+
   it(`FIP-36 - get_account_fio_public_key`, async () => {
     try {
       const json = {
@@ -1725,9 +1744,76 @@ describe(`FIPs 36-39`, async () => {
       //console.log('Result: ', result);
       expect(result.fio_public_key).to.equal(fioSdk.publicKey);
     } catch (err) {
+      //console.log(err);
+      console.log(JSON.stringify(err.error, null, 4));
       expect(err).to.equal(null);
     }
   });
 
+  it(`FIP-38 - newfioacc - Create new account with active and owner perms`, async () => {
+    try {
+      const result = await fioSdk.sdk.genericAction('pushTransaction', {
+        action: 'newfioacc',
+        account: 'eosio',
+        actor: fioSdk.account,
+        data: {
+            "fio_public_key": newAccount.publicKey,
+            "owner": {
+                "threshold": 1,
+                "keys": [],
+                "waits": [],
+                "accounts": [{
+                    "permission": {
+                        "actor": fioSdk2.account,
+                        "permission": "active"
+                    },
+                    "weight": 1
+                }]
+            },
+            "active": {
+                "threshold": 1,
+                "keys": [],
+                "waits": [],
+                "accounts": 
+                [
+                    {
+                        "permission": {
+                            "actor": fioSdk2.account,
+                            "permission": "active"
+                        },
+                        "weight": 1
+                    }
+                ]
+            },
+            "max_fee": config.maxFee,
+            "actor": fioSdk.account,
+            "tpid": fioSdk.address
+        }
+      })
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+        console.log(err);
+        expect(err).to.equal(null);
+    }
+  });
+
+  it(`FIP-38 - get_account for new account. Confirm permissions.`, async function () {
+    try {
+        const json = {
+            "account_name": newAccount.account
+        }
+        result = await callFioApi("get_account", json);
+        //console.log(JSON.stringify(result, null, 4));
+        expect(result.permissions[0].perm_name).to.equal('active');
+        expect(result.permissions[0].parent).to.equal('owner');
+        expect(result.permissions[0].required_auth.accounts[0].permission.actor).to.equal(fioSdk2.account);
+        expect(result.permissions[0].required_auth.accounts[0].weight).to.equal(1);
+        expect(result.permissions[0].required_auth.keys.length).to.equal(0);
+        expect(result.permissions[0].required_auth.waits.length).to.equal(0);
+    } catch (err) {
+        //console.log('Error', err)
+        expect(err).to.equal(null)
+    }
+  });
   
 });

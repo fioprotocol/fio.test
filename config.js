@@ -178,6 +178,14 @@ const config = {
         invalidactivePerm: {
             message: 'Invalid active permission format',
             statusCode: 400
+        },
+        prodAlreadyRegistered: {
+            message: 'Already registered as producer',
+            statusCode: 400
+        },
+        domainExpired: {
+            message: 'FIO Domain expired',
+            statusCode: 400
         }
     },
 

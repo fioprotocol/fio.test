@@ -564,7 +564,7 @@ describe('C. Run get_fee on transfer_fio_address', () => {
     })
 })
 
-describe.only('D. transferFioAddress Error testing', () => {
+describe('D. transferFioAddress Error testing', () => {
     let userD1, userD2, userD3
 
     it(`Create users`, async () => {
@@ -687,7 +687,7 @@ describe.only('D. transferFioAddress Error testing', () => {
             })
             expect(result.status).to.equal(null);
         } catch (err) {
-            console.log(JSON.stringify(err, null, 4));
+            //console.log(JSON.stringify(err, null, 4));
             expect(err.json.fields[0].error).to.equal(config.error.feeExceedsMax)
             expect(err.errorCode).to.equal(400);
         }
@@ -734,7 +734,7 @@ describe.only('D. transferFioAddress Error testing', () => {
             })
             expect(result.status).to.equal(null);
         } catch (err) {
-            console.log(JSON.stringify(err, null, 4));
+            //console.log(JSON.stringify(err, null, 4));
             expect(err.json.message).to.equal(config.error.signatureError);
             expect(err.errorCode).to.equal(403);
         }

@@ -1,5 +1,5 @@
 /**
- * This test requires manually updating xyz contract to shorten the expiration for domains and addresses
+ * This test requires manually updating contracts to shorten the expiration for domains
  * to 10 seconds. 
  * 
  * In fio.address.cpp:
