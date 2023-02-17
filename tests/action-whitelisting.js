@@ -346,6 +346,7 @@ describe(`C. Test addaction error conditions`, () => {
       }
     })
     //console.log('Result: ', result)
+    //console.log(JSON.stringify(result, null, 4));
     expect(result.error.what).contains(config.error2.accountExists.message);
     expect(result.code).to.equal(config.error2.accountExists.statusCode);
   })

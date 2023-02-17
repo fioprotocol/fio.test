@@ -171,6 +171,7 @@ describe('TEST SUITE', () => {
      */
     //require('./tests/expired-address-domain.js');
     //require('./tests/expired-address-domain-modexpire.js'); // Requires modexpire action which allows expiring of domains
+    //require('./tests/expired-domain.js');  // Requires modifications to domain expire
 
     /**
      * Retire Tokens. Requires additional configuration

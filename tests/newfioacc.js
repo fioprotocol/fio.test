@@ -2403,7 +2403,7 @@ describe('G. Test newfioacc - Sad Path', () => {
 
     it(`Wait a few seconds.`, async () => { await timeout(1000) })
 
-    it(`(failure) Try to Create new account with same account. Expect: ${config.error2.accountExists.statusCode} ${config.error2.accountExists.message}`, async () => {
+    it(`(failure) Try to Create new account with same account. Expect: ${config.error2.accountExistsPubKey.statusCode} ${config.error2.accountExistsPubKey.message}`, async () => {
         try {
             const result = await user1.sdk.genericAction('pushTransaction', {
             action: 'newfioacc',
@@ -2446,12 +2446,12 @@ describe('G. Test newfioacc - Sad Path', () => {
             expect(result).to.equal(null);
         } catch (err) {
             //console.log(err.json);
-            expect(err.json.fields[0].error).to.equal(config.error2.accountExists.message);
-            expect(err.errorCode).to.equal(config.error2.accountExists.statusCode);
+            expect(err.json.fields[0].error).to.equal(config.error2.accountExistsPubKey.message);
+            expect(err.errorCode).to.equal(config.error2.accountExistsPubKey.statusCode);
         }
     });
 
-    it(`(failure) Try to Create new account on existing account. Expect: ${config.error2.accountExists.statusCode} ${config.error2.accountExists.message}`, async () => {
+    it(`(failure) Try to Create new account on existing account. Expect: ${config.error2.accountExistsPubKey.statusCode} ${config.error2.accountExistsPubKey.message}`, async () => {
         try {
             const result = await user1.sdk.genericAction('pushTransaction', {
             action: 'newfioacc',
@@ -2494,8 +2494,8 @@ describe('G. Test newfioacc - Sad Path', () => {
             expect(result).to.equal(null);
         } catch (err) {
             //console.log(err.json);
-            expect(err.json.fields[0].error).to.equal(config.error2.accountExists.message);
-            expect(err.errorCode).to.equal(config.error2.accountExists.statusCode);
+            expect(err.json.fields[0].error).to.equal(config.error2.accountExistsPubKey.message);
+            expect(err.errorCode).to.equal(config.error2.accountExistsPubKey.statusCode);
         }
     });
 

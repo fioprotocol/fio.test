@@ -687,7 +687,7 @@ describe('D. transferFioAddress Error testing', () => {
             })
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log('Error: ', err)
+            //console.log(JSON.stringify(err, null, 4));
             expect(err.json.fields[0].error).to.equal(config.error.feeExceedsMax)
             expect(err.errorCode).to.equal(400);
         }
@@ -719,7 +719,7 @@ describe('D. transferFioAddress Error testing', () => {
             })
             expect(result.status).to.equal('OK');
         } catch (err) {
-            //console.log('Error: ', err)
+            console.log(JSON.stringify(err, null, 4));
             expect(err).to.equal(null);
         }
     })
@@ -734,7 +734,7 @@ describe('D. transferFioAddress Error testing', () => {
             })
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log('Error: ', err)
+            //console.log(JSON.stringify(err, null, 4));
             expect(err.json.message).to.equal(config.error.signatureError);
             expect(err.errorCode).to.equal(403);
         }
@@ -1037,7 +1037,7 @@ describe('F. Confirm users with OBT records or Requests CAN transfer addresses (
             //console.log('Result: ', result)
             expect(result.status).to.equal('OK')
         } catch (err) {
-            console.log('Error: ', err)
+            console.log(JSON.stringify(err, null, 4));
             expect(err).to.equal(null)
         }
     })
