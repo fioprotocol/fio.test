@@ -1,12 +1,12 @@
-const TESTURL = 'http://localhost:8889'          // Localhost
+//const TESTURL = 'http://localhost:8889'          // Localhost
 // const TESTURL = 'http://44.240.21.122:8889'      // DEV1
 // const TESTURL = 'http://44.238.153.162:8889'     // Devnet
 // const TESTURL = 'http://fiotestnet.greymass.com' // Testnet
 // const TESTURL = 'https://fio.greymass.com'       // Mainnet
-// const TESTURL = 'http://35.82.73.97:8889'        // Eric DEV
+ const TESTURL = 'http://35.82.73.97:8889'        // Eric DEV
 // const TESTURL = 'http://52.35.164.8:8889'        // Mike DEV
 
-const HISTORYURL = 'http://35.85.153.248:8080'          // History
+const HISTORYURL = 'http://44.240.21.122:8080'          // History
 // const HISTORYURL = 'http://35.82.73.97:8080'         // Eric History
 
 const DEVTOOLSDIR = '../fio.devtools'
