@@ -5,7 +5,7 @@ describe('TEST SUITE', () => {
 
   describe.only(`Run only...`, function () {
     // Use this to run only a few tests
-    require('./tests/addaddress.js');
+
   });
 
   /**
@@ -86,7 +86,7 @@ describe('TEST SUITE', () => {
     require('./tests/history.js');
   });
 
-  describe('** GENERAL TESTS - NO SETUP **', () => {
+  describe.only('** GENERAL TESTS - NO SETUP **', () => {
 
     /**
      * General Tests. Should work against all builds. Do not require additional configuration.
