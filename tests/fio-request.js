@@ -553,7 +553,7 @@ describe(`************************** fio-request.js ************************** \
 
 })
 
-describe.only(`B. Test FIO Request error conditions`, () => {
+describe(`B. Test FIO Request error conditions`, () => {
   let userB1, userB2, userB3, userB1RequestId, userB1RequestId2, userB1RequestId3, userB1Balance
   const payment = 5000000000 // 5 FIO
   const requestMemo = 'Memo in the initial request'
@@ -582,7 +582,7 @@ describe.only(`B. Test FIO Request error conditions`, () => {
       console.log('Result: ', result)
       expect(result).to.equal(null)
     } catch (err) {
-      console.log('Error: ', err)
+      //console.log('Error: ', err)
       expect(err.json.type).to.equal('invalid_signature');
       expect(err.json.message).to.equal(config.error.invalidRequestSignature);
       expect(err.errorCode).to.equal(403);

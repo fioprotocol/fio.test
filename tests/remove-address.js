@@ -25,6 +25,8 @@ describe(`************************** remove-address.js *************************
       })
 
     } catch (err) {
+      console.log('Error: ', err)
+      //console.log(JSON.stringify(err, null, 4));
       expect(err.message).to.equal(config.error.validationError2)
       expect(err.list[0].message).to.equal(config.error.fioAddressRequired)
     }
