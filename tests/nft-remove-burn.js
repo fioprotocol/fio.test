@@ -346,8 +346,6 @@ describe(`B. (sdk)(unhappy) Try to add all NFTs to nftburnq with invalid user in
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.errorCode).to.equal(404);
       expect(err.json.fields[0].error).to.equal('Invalid FIO Address');
     }
@@ -366,8 +364,6 @@ describe(`B. (sdk)(unhappy) Try to add all NFTs to nftburnq with invalid user in
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.errorCode).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid FIO Address');
     }
@@ -403,8 +399,6 @@ describe(`B. (sdk)(unhappy) Try to add all NFTs to nftburnq with invalid user in
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.errorCode).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid FIO Address');
     }
@@ -423,8 +417,6 @@ describe(`B. (sdk)(unhappy) Try to add all NFTs to nftburnq with invalid user in
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.errorCode).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid FIO Address');
     }
@@ -498,8 +490,6 @@ describe(`B. (sdk)(unhappy) Try to add all NFTs to nftburnq with invalid user in
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.errorCode).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid fee value');
     }

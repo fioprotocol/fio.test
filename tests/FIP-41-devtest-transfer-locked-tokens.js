@@ -118,8 +118,9 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
         })
         expect(result.status).to.not.equal('OK')
       } catch (err) {
-        let expected = `Error 400`;
-        expect(err.message).to.include(expected);
+        //console.log(JSON.stringify(err, null, 4));
+        expect(err.json.fields[0].error).to.equal(config.error2.invalidUnlockPeriodTotal.message);
+        expect(err.errorCode).to.equal(config.error2.invalidUnlockPeriodTotal.statusCode);
       }
     }
   });
@@ -178,8 +179,9 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
         expect(result.status).to.not.equal('OK');
 
       } catch (err) {
-        let expected = `Error 400`;
-        expect(err.message).to.include(expected);
+        //console.log(JSON.stringify(err, null, 4));
+        expect(err.json.fields[0].error).to.equal(config.error2.invalidUnlockPeriodSorted.message);
+        expect(err.errorCode).to.equal(config.error2.invalidUnlockPeriodSorted.statusCode);
       }
     }
   });
@@ -237,8 +239,9 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
         })
         expect(result.status).to.not.equal('OK');
       } catch (err) {
-        let expected = `Error 400`
-        expect(err.message).to.include(expected);
+        //console.log(JSON.stringify(err, null, 4));
+        expect(err.json.fields[0].error).to.equal(config.error2.invalidUnlockPeriodDuration.message);
+        expect(err.errorCode).to.equal(config.error2.invalidUnlockPeriodDuration.statusCode);
       }
     }
   });

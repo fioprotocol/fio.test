@@ -25,7 +25,6 @@ describe(`************************** remove-address.js *************************
       })
 
     } catch (err) {
-      console.log('Error: ', err)
       //console.log(JSON.stringify(err, null, 4));
       expect(err.message).to.equal(config.error.validationError2)
       expect(err.list[0].message).to.equal(config.error.fioAddressRequired)
@@ -166,7 +165,7 @@ describe(`B. Remove public addresses, public adresses parameter tests`, () => {
   })
 
 
-  it(`removePublicAddress Fail, empty string for public addresses`, async () => {
+  it(`(failure) removePublicAddress Fail, empty string for public addresses. Expect: ${config.error2.addaddressMinMax.statusCode} ${config.error2.addaddressMinMax.message}`, async () => {
     try {
       const result = await userA1.sdk.genericAction('removePublicAddresses', {
         fioAddress: userA1.address,
@@ -176,14 +175,13 @@ describe(`B. Remove public addresses, public adresses parameter tests`, () => {
       })
 
     } catch (err) {
-      //console.log('Error', err)
-      //console.log('Error message', err.message)
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
+      //console.log(JSON.stringify(err, null, 4));
+      expect(err.json.fields[0].error).to.equal(config.error2.addaddressMinMax.message);
+      expect(err.errorCode).to.equal(config.error2.addaddressMinMax.statusCode);
     }
   })
 
-  it(`removePublicAddress Fail, empty list of public addresses`, async () => {
+  it(`removePublicAddress Fail, empty list of public addresses. Expect: ${config.error2.addaddressMinMax.statusCode} ${config.error2.addaddressMinMax.message}`, async () => {
     try {
       const result = await userA1.sdk.genericAction('removePublicAddresses', {
         fioAddress: userA1.address,
@@ -193,14 +191,13 @@ describe(`B. Remove public addresses, public adresses parameter tests`, () => {
       })
 
     } catch (err) {
-    //  console.log('Error', err)
-    //  console.log('Error message', err.message)
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
+      //console.log(JSON.stringify(err, null, 4));
+      expect(err.json.fields[0].error).to.equal(config.error2.addaddressMinMax.message);
+      expect(err.errorCode).to.equal(config.error2.addaddressMinMax.statusCode);
     }
   })
 
-  it(`removePublicAddress Fail, unexpected json attributes public addresses`, async () => {
+  it(`removePublicAddress Fail, unexpected json attributes public addresses. Expect: ${config.error2.invalidPublicAddress.statusCode} ${config.error2.invalidPublicAddress.message}`, async () => {
     try {
       const result = await userA1.sdk.genericAction('removePublicAddresses', {
         fioAddress: userA1.address,
@@ -222,12 +219,12 @@ describe(`B. Remove public addresses, public adresses parameter tests`, () => {
       })
 
     } catch (err) {
-    //  console.log('Error', err)
-    //  console.log('Error message', err.message)
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
+      //console.log(JSON.stringify(err, null, 4));
+      expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message);
+      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
-  })
+  });
+  
 
   it(`removePublicAddress Fail, missing token_code on one element`, async () => {
     try {
@@ -327,7 +324,7 @@ describe(`B. Remove public addresses, public adresses parameter tests`, () => {
   })
 
 
-  it(`removePublicAddress Fail, non existent chain_code on address`, async () => {
+  it(`removePublicAddress Fail, non existent chain_code on address. Expect: ${config.error2.invalidPublicAddress.statusCode} ${config.error2.invalidPublicAddress.message}`, async () => {
     try {
       const result = await userA1.sdk.genericAction('removePublicAddresses', {
         fioAddress: userA1.address,
@@ -335,7 +332,7 @@ describe(`B. Remove public addresses, public adresses parameter tests`, () => {
           {
             chain_code: 'BCHED',
             token_code: 'BCH',
-            public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+            public_address: 'XyCyPKzTWvW2XdcYjPaPXGQDCGk946ywEvw',
             },
           {
             chain_code: 'DASH',
@@ -348,14 +345,13 @@ describe(`B. Remove public addresses, public adresses parameter tests`, () => {
       })
 
     } catch (err) {
-      //console.log('Error', err)
-      //console.log('Error message', err.message)
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
+      //console.log(JSON.stringify(err, null, 4));
+      expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message);
+      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   })
 
-  it(`removePublicAddress Fail, non existent token_code on address`, async () => {
+  it(`removePublicAddress Fail, non existent token_code on address. Expect: ${config.error2.invalidPublicAddress.statusCode} ${config.error2.invalidPublicAddress.message}`, async () => {
     try {
       const result = await userA1.sdk.genericAction('removePublicAddresses', {
         fioAddress: userA1.address,
@@ -363,7 +359,7 @@ describe(`B. Remove public addresses, public adresses parameter tests`, () => {
           {
             chain_code: 'BCH',
             token_code: 'BCHED',
-            public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+            public_address: 'XyCyPKzTWvW2XdcYjPaPXGQDCGk946ywEvw',
             },
           {
             chain_code: 'DASH',
@@ -376,14 +372,13 @@ describe(`B. Remove public addresses, public adresses parameter tests`, () => {
       })
 
     } catch (err) {
-      //console.log('Error', err)
-      //console.log('Error message', err.message)
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
+      //console.log(JSON.stringify(err, null, 4));
+      expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message);
+      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   })
 
-  it(`removePublicAddress Fail, non existing public address`, async () => {
+  it(`removePublicAddress Fail, non existing public address. Expect: ${config.error2.invalidPublicAddress.statusCode} ${config.error2.invalidPublicAddress.message}`, async () => {
     try {
       const result = await userA1.sdk.genericAction('removePublicAddresses', {
         fioAddress: userA1.address,
@@ -391,7 +386,7 @@ describe(`B. Remove public addresses, public adresses parameter tests`, () => {
           {
             chain_code: 'BCH',
             token_code: 'BCH',
-            public_address: 'bitcoincash:qg9',
+            public_address: 'bitcoincashqg9',
             },
           {
             chain_code: 'DASH',
@@ -404,10 +399,9 @@ describe(`B. Remove public addresses, public adresses parameter tests`, () => {
       })
 
     } catch (err) {
-    // console.log('Error', err)
-    // console.log('Error message', err.message)
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
+      //console.log(JSON.stringify(err, null, 4));
+      expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message);
+      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   })
 })
@@ -452,12 +446,12 @@ describe(`C. Remove public address, max fee parameter tests`, () => {
           maxFee: "400A000000000",
           walletFioAddress: ''
         })
-
+        console.log(result)
+        expect(result).to.equal(null);
       } catch (err) {
-        //console.log('Error', err)
+        //console.log('Error', err);
         //console.log('Error message', err.message)
-        var expected = `invalid number`
-        expect(err.message).to.include(expected)
+        expect(err.message).to.equal('invalid number');
       }
     })
 
@@ -469,12 +463,12 @@ describe(`C. Remove public address, max fee parameter tests`, () => {
           maxFee: -400000000000,
           walletFioAddress: ''
         })
-
+        console.log(result)
+        expect(result).to.equal(null);
       } catch (err) {
-        //console.log('Error', err)
+        //console.log('Error', err);
         //console.log('Error message', err.message)
-        var expected = `Error 400`
-        expect(err.message).to.include(expected)
+        expect(err.message).to.equal('Invalid fee value');
       }
     })
 })
@@ -497,10 +491,11 @@ describe(`D. Remove public address, tpid parameter tests`, () => {
         maxFee: config.api.add_pub_address.fee,
         tpid: "ed@"
       })
-
+      expect(result).to.equal(null);
     } catch (err) {
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
+      //console.log(JSON.stringify(err, null, 4));
+      expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message);
+      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   })
 
@@ -512,10 +507,11 @@ describe(`D. Remove public address, tpid parameter tests`, () => {
         maxFee: config.api.add_pub_address.fee,
         tpid: "eddapixdev"
       })
-
+      expect(result).to.equal(null);
     } catch (err) {
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
+      //console.log(JSON.stringify(err, null, 4));
+      expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message);
+      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   })
 
@@ -527,10 +523,11 @@ describe(`D. Remove public address, tpid parameter tests`, () => {
         maxFee: config.api.add_pub_address.fee,
         tpid: "@dapixdev"
       })
-
+      expect(result).to.equal(null);
     } catch (err) {
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
+      //console.log(JSON.stringify(err, null, 4));
+      expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message);
+      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   })
 
@@ -542,11 +539,11 @@ describe(`D. Remove public address, tpid parameter tests`, () => {
         maxFee: config.api.add_pub_address.fee,
         tpid: "ed@@dapixdev"
       })
-
+      expect(result).to.equal(null);
     } catch (err) {
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
-
+      //console.log(JSON.stringify(err, null, 4));
+      expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message);
+      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   })
 
@@ -558,11 +555,11 @@ describe(`D. Remove public address, tpid parameter tests`, () => {
         maxFee: config.api.add_pub_address.fee,
         tpid: "ed!#@dapixdev"
       })
-
+      expect(result).to.equal(null);
     } catch (err) {
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
-
+      //console.log(JSON.stringify(err, null, 4));
+      expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message);
+      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   })
 
@@ -574,11 +571,11 @@ describe(`D. Remove public address, tpid parameter tests`, () => {
         maxFee: config.api.add_pub_address.fee,
         tpid: "ed@dapix#$%dev"
       })
-
+      expect(result).to.equal(null);
     } catch (err) {
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
-
+      //console.log(JSON.stringify(err, null, 4));
+      expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message);
+      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   })
 
@@ -590,10 +587,11 @@ describe(`D. Remove public address, tpid parameter tests`, () => {
         maxFee: config.api.add_pub_address.fee,
         tpid: "ed@dapix12345678901234546678901234567890123344556dev"
       })
-
+      expect(result).to.equal(null);
     } catch (err) {
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
+      //console.log(JSON.stringify(err, null, 4));
+      expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message);
+      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   })
 
@@ -605,12 +603,11 @@ describe(`D. Remove public address, tpid parameter tests`, () => {
         maxFee: config.api.add_pub_address.fee,
         tpid: "ed@dapix12567890123344556dev"
       })
-
+      expect(result).to.equal(null);
     } catch (err) {
-    //  console.log('Error', err)
-    //  console.log('Error message', err.message)
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
+      //console.log(JSON.stringify(err, null, 4));
+      expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message);
+      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   })
 })
@@ -788,6 +785,8 @@ describe(`E-2. Add and remove addresses with NO bundles remaining`, () => {
         expect(err).to.equal(null)
       }
     })
+
+    it(`Wait a few seconds.`, async () => { await timeout(2000) });
 
     it('confirm BCH address was added', async () => {
       try {

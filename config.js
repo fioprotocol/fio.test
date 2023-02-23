@@ -1,5 +1,5 @@
-//const TESTURL = 'http://localhost:8889'          // Localhost
-const TESTURL = 'http://44.240.21.122:8889'      // DEV1
+const TESTURL = 'http://localhost:8889'          // Localhost
+// const TESTURL = 'http://44.240.21.122:8889'      // DEV1
 // const TESTURL = 'http://44.238.153.162:8889'     // Devnet
 // const TESTURL = 'http://fiotestnet.greymass.com' // Testnet
 // const TESTURL = 'https://fio.greymass.com'       // Mainnet
@@ -55,7 +55,7 @@ const config = {
         invalidDomain: 'Invalid FIO domain',
         fioDomainRequired: 'fioDomain is required.',
         fioAddressNotRegistered: 'FIO Address not registered',
-        fioDomainInvalidChar: 'fioDomain must match /^[a-z0-9\\-]+$/i.',
+        fioDomainInvalidChar: 'fioDomain must match /^[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}$/i.',
         fioAddressRequired: 'fioAddress is required.',
         fioDomainLengthErr: 'fioDomain must have a length between 1 and 62.',
         fioAddressLengthErr: 'fioAddress must have a length between 3 and 64.',
@@ -185,6 +185,22 @@ const config = {
         },
         domainExpired: {
             message: 'FIO Domain expired',
+            statusCode: 400
+        },
+        addaddressMinMax: {
+            message: 'Min 1, Max 5 public addresses are allowed',
+            statusCode: 400
+        },
+        invalidUnlockPeriodTotal: {
+            message: 'Invalid total amount for unlock periods',
+            statusCode: 400
+        },
+        invalidUnlockPeriodSorted: {
+            message: 'Invalid duration value in unlock periods, must be sorted',
+            statusCode: 400
+        },
+        invalidUnlockPeriodDuration: {
+            message: 'Invalid duration value in unlock periods',
             statusCode: 400
         }
     },
