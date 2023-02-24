@@ -6,7 +6,7 @@ const {expect} = require('chai')
 const {newUser, 
   fetchJson,
   randStr,
-  consumeRemainingBundles
+  timeout
 } = require('../../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk');
 config = require('../../config.js');
@@ -39,6 +39,8 @@ const setupAutoBundle = async () => {
       })
       //console.log('Result1: ', result1);
 
+      await timeout(3000);
+
       //set domain public
       const result2 = await faucet.genericAction('setFioDomainVisibility', {
         fioDomain: domain[i],
@@ -47,6 +49,8 @@ const setupAutoBundle = async () => {
         technologyProviderId: ''
       })
       //console.log('Result2: ', result2);
+
+      await timeout(3000);
 
       // set up accounts with zero bundles
       for (let j = 0; j < accountsWithBundles; j++) {
@@ -60,6 +64,7 @@ const setupAutoBundle = async () => {
           technologyProviderId: ''
         })
         //console.log('Result3: ', result3);
+        await timeout(3000);
 
         // Use up bundles with 51 record_obt_data transactions
         //console.log('Using up bundles...');
