@@ -109,9 +109,9 @@ describe(`B. Parameter tests`, () => {
         })
         expect(result.status).to.not.equal('OK')
       } catch (err) {
-       // console.log(err)
-        var expected = `Error 400`
-        expect(err.message).to.include(expected)
+        //console.log(JSON.stringify(err, null, 4));
+        expect(err.json.fields[0].error).to.equal(config.error2.invalidUnlockPeriodTotal.message);
+        expect(err.errorCode).to.equal(config.error2.invalidUnlockPeriodTotal.statusCode);
       }
     }
   })
@@ -172,9 +172,9 @@ describe(`B. Parameter tests`, () => {
         expect(result.status).to.not.equal('OK')
 
       } catch (err) {
-       // console.log(err)
-        var expected = `Error 400`
-        expect(err.message).to.include(expected)
+        //console.log(JSON.stringify(err, null, 4));
+        expect(err.json.fields[0].error).to.equal(config.error2.invalidUnlockPeriodSorted.message);
+        expect(err.errorCode).to.equal(config.error2.invalidUnlockPeriodSorted.statusCode);
       }
     }
   })
@@ -233,8 +233,9 @@ describe(`B. Parameter tests`, () => {
         })
         expect(result.status).to.not.equal('OK')
       } catch (err) {
-        var expected = `Error 400`
-        expect(err.message).to.include(expected)
+        //console.log(JSON.stringify(err, null, 4));
+        expect(err.json.fields[0].error).to.equal(config.error2.invalidUnlockPeriodDuration.message);
+        expect(err.errorCode).to.equal(config.error2.invalidUnlockPeriodDuration.statusCode);
       }
     }
   })
@@ -832,8 +833,9 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
       })
       expect(result.status).to.not.equal('OK')
     } catch (err) {
-      var expected = `Error 400`
-      expect(err.message).to.include(expected)
+      //console.log(err)
+      expect(err.json.fields[0].error).to.equal('Funds locked');
+      expect(err.errorCode).to.equal(400);
     }
   })
 
@@ -2161,8 +2163,9 @@ describe(`E. Token unlocking tests`, () => {
     })
       expect(result.status).to.not.equal('OK')
   } catch (err) {
-    var expected = `Error 400`
-    expect(err.message).to.include(expected)
+    //console.log(JSON.stringify(err, null, 4));
+    expect(err.json.fields[0].error).to.equal('Funds locked');
+    expect(err.errorCode).to.equal(400);
   }
   })
 

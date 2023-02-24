@@ -118,6 +118,7 @@ describe('TEST SUITE', () => {
     require('./tests/get_account_fio_public_key.js');  // FIP-36
     require('./tests/eosio-updateauth.js');  // FIP-37
     require('./tests/newfioacc.js');  // FIP-38
+    require('./tests/multicast-servers.js');  // Update to SDK to support backup servers
 
     /**
      * Bugs
