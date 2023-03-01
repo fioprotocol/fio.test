@@ -5,7 +5,7 @@ describe('TEST SUITE', () => {
 
   describe.only(`Run only...`, function () {
     // Use this to run only a few tests
-
+    require('./tests/fio.address-updcryptkey.js');
   });
 
   /**
@@ -119,6 +119,7 @@ describe('TEST SUITE', () => {
     require('./tests/eosio-updateauth.js');  // FIP-37
     require('./tests/newfioacc.js');  // FIP-38
     require('./tests/multicast-servers.js');  // Update to SDK to support backup servers
+    require('./tests/fio.address-updcryptkey.js');  // FIP-39
 
     /**
      * Bugs
