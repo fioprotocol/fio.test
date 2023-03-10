@@ -202,6 +202,10 @@ const config = {
         invalidUnlockPeriodDuration: {
             message: 'Invalid duration value in unlock periods',
             statusCode: 400
+        },
+        noEncryptionAddress: {
+            message: 'No such FIO address',
+            statusCode: 400
         }
     },
 
