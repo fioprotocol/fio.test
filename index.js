@@ -3,9 +3,9 @@ const {expect} = require('chai');
 
 describe('TEST SUITE', () => {
 
-  describe(`Run only...`, function () {
+  describe.only(`Run only...`, function () {
     // Use this to run only a few tests
-
+    require('./tests/nft-performance-tests.js');
   });
 
   /**
