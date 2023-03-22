@@ -550,7 +550,7 @@ describe('C. (user1 no encrypt key, user2 encrypt key) Add encryption key, encry
 
 });
 
-describe.skip('C.2. RequestNewFunds SDK testing (user1 and user2 encrypt key) Add encryption key, encrypt with encryption key using fio request, decrypt fio request', () => {
+describe('C.2. RequestNewFunds SDK testing (user1 and user2 encrypt key) Add encryption key, encrypt with encryption key using fio request, decrypt fio request', () => {
     let user1, user2, encryptKeys1 = {}, encryptKeys2 = {}, requestId, cipherContent;
     const payeeTokenPublicAddress = 'thisispayeetokenpublicaddress';
   
@@ -1105,22 +1105,7 @@ describe('C.3. RecordObtData testing (user1 and user2 encrypt key) Add encryptio
     });
 });
 
-describe('D. (failure) Encrypt with public Key, add encryption key, decrypt', () => {
-    let user1, user2, encryptKeys = {};
-  
-    before(async () => {
-        user1 = await newUser(faucet);
-        user2 = await newUser(faucet);
-        const keypair = await createKeypair();
-        encryptKeys = {
-            publicKey: keypair.publicKey,
-            privateKey: keypair.privateKey,
-        }
-    });
-
-});
-
-describe('E. Modified actions - regaddress. Confirm addition of encrypt key', () => {
+describe('D. Modified actions - regaddress. Confirm addition of encrypt key', () => {
     let user1, user2;
   
     before(async () => {
@@ -1230,7 +1215,7 @@ describe('E. Modified actions - regaddress. Confirm addition of encrypt key', ()
     });
 });
 
-describe('F. xferaddress. Confirm addition of encrypt key when tranferring to empty account', () => {
+describe('E. xferaddress. Confirm addition of encrypt key when tranferring to empty account', () => {
     let user1, user2;
   
     before(async () => {
@@ -1338,7 +1323,7 @@ describe('F. xferaddress. Confirm addition of encrypt key when tranferring to em
     });
 });
 
-describe('G. Modified actions - burnaddress. Confirm removal of encrypt key', () => {
+describe('F. Modified actions - burnaddress. Confirm removal of encrypt key', () => {
     let user1, user2, encryptKeys = {};
   
     before(async () => {
@@ -1504,7 +1489,7 @@ describe('G. Modified actions - burnaddress. Confirm removal of encrypt key', ()
     });
 });
 
-describe('H. Set encryption key to empty string', () => {
+describe('G. Set encryption key to empty string', () => {
     let user1;
   
     before(async () => {
@@ -1591,7 +1576,7 @@ describe('H. Set encryption key to empty string', () => {
 
 });
 
-describe.only('I. Test newfioacc - Sad Path', () => {
+describe('H. Test newfioacc - Sad Path', () => {
     let user1, user2, userNoFunds = {}, encryptKeys = {};
   
     before(async () => {
@@ -1635,7 +1620,7 @@ describe.only('I. Test newfioacc - Sad Path', () => {
         }
     });
 
-    it(`(BD-4573) (failure) fio_address - Nonexistent FIO Address on user1 domain. Expect: ${config.error2.fioAddressNotRegistered.statusCode} ${config.error2.fioAddressNotRegistered.message}`, async () => {
+    it(`(failure) fio_address - Nonexistent FIO Address on user1 domain. Expect: ${config.error2.fioAddressNotExist.statusCode} ${config.error2.fioAddressNotExist.message} (BD-4573)`, async () => {
         try {
             const result = await user1.sdk.genericAction('pushTransaction', {
                 action: 'updcryptkey',
@@ -1651,9 +1636,9 @@ describe.only('I. Test newfioacc - Sad Path', () => {
             console.log('Result: ', result)
             expect(result).to.equal(null);
         } catch (err) {
-            console.log(JSON.stringify(err, null, 4));
-            expect(err.json.fields[0].error).to.equal(config.error2.fioAddressNotRegistered.message);
-            expect(err.errorCode).to.equal(config.error2.fioAddressNotRegistered.statusCode);
+            //console.log(JSON.stringify(err, null, 4));
+            expect(err.json.fields[0].error).to.equal(config.error2.fioAddressNotExist.message);
+            expect(err.errorCode).to.equal(config.error2.fioAddressNotExist.statusCode);
         }
     });
 
@@ -1817,7 +1802,7 @@ describe.only('I. Test newfioacc - Sad Path', () => {
 
 });
 
-describe.only('J. (BD-4538) user2 tries to add encryption key for user1', () => {
+describe('I. user2 tries to add encryption key for user1 (BD-4538)', () => {
     let user1, user2, encryptKeys = {};
   
     before(async () => {
@@ -1830,7 +1815,7 @@ describe.only('J. (BD-4538) user2 tries to add encryption key for user1', () => 
         };
     });
 
-    it(`(failure) actor - Signer not actor. Expect: ${config.error2.invalidSignature.statusCode} ${config.error2.invalidSignature.message}`, async () => {
+    it(`(failure) actor - Signer not actor. Expect: ${config.error2.invalidActorAuth.statusCode} ${config.error2.invalidActorAuth.message}`, async () => {
         try {
             const result = await callFioApiSigned('push_transaction', {
                 action: 'updcryptkey',
@@ -1845,8 +1830,9 @@ describe.only('J. (BD-4538) user2 tries to add encryption key for user1', () => 
                     actor: user1.account
                 }
             });
-            console.log('Result: ', result)
-            expect(result.status).to.equal(null);
+            //console.log(JSON.stringify(result, null, 4));
+            expect(result.code).to.equal(config.error2.invalidActorAuth.statusCode);
+            expect(result.error.what).to.equal(config.error2.invalidActorAuth.message);
         } catch (err) {
             console.log(JSON.stringify(err, null, 4));
             expect(err).to.equal('null');
@@ -1859,7 +1845,7 @@ describe.only('J. (BD-4538) user2 tries to add encryption key for user1', () => 
                 fio_address: user1.address
             }
             result = await callFioApi("get_encrypt_key", json);
-            console.log('Result: ', result);
+            //console.log('Result: ', result);
             expect(result.encrypt_public_key).to.equal(user1.publicKey);
         } catch (err) {
             console.log('Error', err);

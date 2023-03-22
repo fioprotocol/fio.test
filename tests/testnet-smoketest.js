@@ -1724,7 +1724,7 @@ describe(`Domain Marketplace: List domain and cancel domain listing`, async () =
 })
 
 describe(`FIPs 36-39`, async () => {
-  let newAccount = {};
+  let newAccount = {}, encryptKeys = {};
 
   before(async () => {
     const keypair = await createKeypair();
@@ -1733,6 +1733,11 @@ describe(`FIPs 36-39`, async () => {
       privateKey: keypair.privateKey,
       account: await getAccountFromKey(keypair.publicKey)
     };
+    const keypair2 = await createKeypair();
+    encryptKeys = {
+        publicKey: keypair2.publicKey,
+        privateKey: keypair2.privateKey,
+    }
   });
 
   it(`FIP-36 - get_account_fio_public_key`, async () => {
@@ -1813,6 +1818,71 @@ describe(`FIPs 36-39`, async () => {
     } catch (err) {
         //console.log('Error', err)
         expect(err).to.equal(null)
+    }
+  });
+
+  // FIP-39
+  it(`Add new encrypt key for user1`, async () => {
+    try {
+        const result = await fioSdk.sdk.genericAction('pushTransaction', {
+            action: 'updcryptkey',
+            account: 'fio.address',
+            data: {
+                fio_address: fioSdk.address,
+                encrypt_public_key: encryptKeys.publicKey,
+                max_fee: config.maxFee,
+                tpid: fioSdk.address
+            }
+        })
+        expect(result.status).to.equal('OK');
+    } catch (err) {
+        console.log(JSON.stringify(err, null, 4));
+        expect(err).to.equal(null);
+    }
+  });
+
+  it(`Call get_encrypt_key. Verify it was the added key`, async () => {
+    try {
+        const json = {
+            fio_address: fioSdk.address
+        }
+        result = await callFioApi("get_encrypt_key", json);
+        expect(result.encrypt_public_key).to.equal(encryptKeys.publicKey);
+    } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+    }
+  });
+
+  it(`Switch encrypt key back to public key in case it is used later in the smoketest`, async () => {
+    try {
+        const result = await fioSdk.sdk.genericAction('pushTransaction', {
+            action: 'updcryptkey',
+            account: 'fio.address',
+            data: {
+                fio_address: fioSdk.address,
+                encrypt_public_key: fioSdk.publicKey,
+                max_fee: config.maxFee,
+                tpid: fioSdk.address
+            }
+        })
+        expect(result.status).to.equal('OK');
+    } catch (err) {
+        console.log(JSON.stringify(err, null, 4));
+        expect(err).to.equal(null);
+    }
+  });
+
+  it(`Call get_encrypt_key. Verify it is back to main public key`, async () => {
+    try {
+        const json = {
+            fio_address: fioSdk.address
+        }
+        result = await callFioApi("get_encrypt_key", json);
+        expect(result.encrypt_public_key).to.equal(fioSdk.publicKey);
+    } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
     }
   });
   

@@ -843,3 +843,76 @@ describe(`B. Create a new permission (permission: owner) `, () => {
   })
 
 });
+
+/**
+ * We want to allow user2 to be able to execute a regaddress on user1's account. To do this:
+ * - user1 creates a permission called "regnewadd" and assigns authorization to user2.account active
+ * - user1 links the new permission to the regaddress action
+ */
+describe(`C. NEED to complete after SDK update. user1 creates a new permission (permission: regnewadd), links it to the regaddress action, and gives user2 permissions for regnewadd`, () => {
+
+  let user1, user2;
+
+  it(`Create users`, async () => {
+      user1 = await newUser(faucet);
+      user2 = await newUser(faucet);
+
+      console.log(user1.privateKey, user1.publicKey, user1.account)
+    });
+
+  it.skip(`user1 creates a permission called "regnewadd" and assigns authorization to user2.account active`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'updateauth',
+        account: 'eosio',
+        data: {
+          account: user1.account,
+          permission: 'regnewadd',
+          parent: 'active',
+          auth: {
+            threshold: 1,
+            keys: [],
+            waits: [],
+            accounts: [
+              {
+                permission: {
+                  actor: user2.account,
+                  permission: 'active'
+                },
+                weight: 1
+              }
+            ]
+          },
+          max_fee: config.maxFee
+        }
+      });
+      console.log('Result: ', result);
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log(JSON.stringify(err, null, 4));
+      expect(err).to.equal(null);
+    };
+  });
+
+  it.skip(`user1 links the new permission to the regaddress action`, async () => {
+    try {
+      const result = await user1.sdk.genericAction('pushTransaction', {
+        action: 'linkauth',
+        account: 'eosio',
+        data: {
+          account: user1.account,            // The name of the account containing the permission to link
+          code: 'fio.address',               // System contract that owns the action to be linked
+          type: 'regaddress',                // The action to be linked
+          requirement: 'regnewadd',          // The permission to be linked
+          max_fee: config.maxFee
+        }
+      });
+      console.log('Result: ', result);
+      expect(result.status).to.equal('OK');
+    } catch (err) {
+      console.log(JSON.stringify(err, null, 4));
+      expect(err).to.equal(null);
+    }
+  });
+
+});

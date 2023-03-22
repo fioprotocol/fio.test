@@ -210,6 +210,10 @@ const config = {
         invalidEncryptKey: {
             message: 'Encrypt key not a valid FIO Public Key',
             statusCode: 400
+        },
+        fioAddressNotExist: {
+            message: 'FIO Address invalid or does not exist',
+            statusCode: 400
         }
     },
 
