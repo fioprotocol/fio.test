@@ -4,6 +4,7 @@ const {
     newUser,
     fetchJson,
     createKeypair,
+    generateFioDomain,
     generateFioAddress,
     callFioApi,
     callFioApiSigned,
@@ -333,7 +334,7 @@ describe('B. updcryptkey - confirm keys', () => {
 
 });
 
-describe.only('C. Add encryption key, encrypt with encryption key using fio request, decrypt fio request', () => {
+describe('C. (user1 no encrypt key, user2 encrypt key) Add encryption key, encrypt with encryption key using fio request, decrypt fio request', () => {
     let user1, user2, encryptKeys = {}, requestId;
   
     before(async () => {
@@ -466,7 +467,7 @@ describe.only('C. Add encryption key, encrypt with encryption key using fio requ
                 json: true
             }
             result = await callFioApi("get_table_rows", json);
-            console.log(JSON.stringify(result, null, 4));
+            //console.log(JSON.stringify(result, null, 4));
             expect(result.rows[0].payer_key).to.equal(encryptKeys.publicKey);
         } catch (err) {
             console.log('Error', err);
@@ -479,8 +480,7 @@ describe.only('C. Add encryption key, encrypt with encryption key using fio requ
             const result = await callFioApi("get_pending_fio_requests", {
             fio_public_key: user2.publicKey
           })
-          console.log('Result', result);
-          console.log('user2.publicKey', user2.publicKey);
+          //console.log('user2.publicKey', user2.publicKey);
           expect(result.requests[0].fio_request_id).to.equal(requestId);
           expect(result.requests[0].payer_fio_address).to.equal(user2.address);
           expect(result.requests[0].payee_fio_address).to.equal(user1.address);
@@ -492,14 +492,11 @@ describe.only('C. Add encryption key, encrypt with encryption key using fio requ
         }
     });
 
-    it.skip(`(sdk) Call get_pending_fio_requests for user2 (payer)`, async () => {
+    it.skip(`(sdk ISUP-44) Call get_pending_fio_requests for user2 (payer) (uses encryption key)`, async () => {
         try {
-          const result = await user2.sdk.genericAction('getPendingFioRequests', {
-            limit: '',
-            offset: ''
-          })
-          console.log('result: ', result)
-          console.log('content: ', result.requests[0].content)
+          const result = await user2.sdk.genericAction('getPendingFioRequests', {  })
+          //console.log('result: ', result)
+          //console.log('content: ', result.requests[0].content)
           expect(result.requests[0].fio_request_id).to.equal(requestId);
           expect(result.requests[0].payer_fio_address).to.equal(user2.address);
           expect(result.requests[0].payee_fio_address).to.equal(user1.address);
@@ -512,7 +509,7 @@ describe.only('C. Add encryption key, encrypt with encryption key using fio requ
         }
     });
 
-    it('(api) Call get_sent_fio_requests for user1', async () => {
+    it('(api) Call get_sent_fio_requests for user1 (no encryption key)', async () => {
         try {
             const result = await callFioApi("get_sent_fio_requests", {
             fio_public_key: user1.publicKey,
@@ -551,6 +548,561 @@ describe.only('C. Add encryption key, encrypt with encryption key using fio requ
         }
       });
 
+});
+
+describe.skip('C.2. RequestNewFunds SDK testing (user1 and user2 encrypt key) Add encryption key, encrypt with encryption key using fio request, decrypt fio request', () => {
+    let user1, user2, encryptKeys1 = {}, encryptKeys2 = {}, requestId, cipherContent;
+    const payeeTokenPublicAddress = 'thisispayeetokenpublicaddress';
+  
+    before(async () => {
+        user1 = await newUser(faucet);
+        user2 = await newUser(faucet);
+        const keypair1 = await createKeypair();
+        encryptKeys1 = {
+            publicKey: keypair1.publicKey,
+            privateKey: keypair1.privateKey,
+        };
+        const keypair2 = await createKeypair();
+        encryptKeys2 = {
+            publicKey: keypair2.publicKey,
+            privateKey: keypair2.privateKey,
+        };
+
+        console.log('User1 account: ', user1.account);
+        console.log('User1 pub key: ', user1.publicKey);
+        console.log('User2 account: ', user2.account);
+        console.log('User2 pub key: ', user2.publicKey);
+        console.log('encryptKeys1 pub key: ', encryptKeys1.publicKey);
+        console.log('encryptKeys2 pub key: ', encryptKeys2.publicKey);
+    });
+
+    it(`Add new encrypt key for user1`, async () => {
+        try {
+            const result = await user1.sdk.genericAction('pushTransaction', {
+                action: 'updcryptkey',
+                account: 'fio.address',
+                data: {
+                    fio_address: user1.address,
+                    encrypt_public_key: encryptKeys1.publicKey,
+                    max_fee: config.maxFee,
+                    tpid: user1.address
+                }
+            })
+            expect(result.status).to.equal('OK');
+        } catch (err) {
+            console.log(JSON.stringify(err, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`Add new encrypt key for user2`, async () => {
+        try {
+            const result = await user2.sdk.genericAction('pushTransaction', {
+                action: 'updcryptkey',
+                account: 'fio.address',
+                data: {
+                    fio_address: user2.address,
+                    encrypt_public_key: encryptKeys2.publicKey,
+                    max_fee: config.maxFee,
+                    tpid: user2.address
+                }
+            })
+            expect(result.status).to.equal('OK');
+        } catch (err) {
+            console.log(JSON.stringify(err, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`Call get_table_rows for fionames for user2. Get id.`, async () => {
+        try {
+          const json = {
+            json: true,
+            code: 'fio.address',
+            scope: 'fio.address',
+            table: 'fionames',
+            lower_bound: user2.account,
+            upper_bound: user2.account,
+            key_type: 'i64',
+            reverse: true,
+            index_position: '4'
+          }
+            result = await callFioApi("get_table_rows", json);
+            user2.id = result.rows[0].id;
+            expect(user2.id).to.be.a('number');
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`Call get_table_rows for fionameinfo for user2. Confirm encryption key.`, async () => {
+        try {
+          const json = {
+            json: true,
+            code: 'fio.address',
+            scope: 'fio.address',
+            table: 'fionameinfo',
+            lower_bound: user2.id,
+            upper_bound: user2.id,
+            key_type: 'i64',
+            reverse: true,
+            index_position: '2'
+          }
+            result = await callFioApi("get_table_rows", json);
+            expect(result.rows[0].fionameid).to.equal(user2.id);
+            expect(result.rows[0].datadesc).to.equal('FIO_REQUEST_CONTENT_ENCRYPTION_PUB_KEY');
+            expect(result.rows[0].datavalue).to.equal(encryptKeys2.publicKey);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    });
+
+
+    it(`Call get_encrypt_key for user2. Verify it ruturns the encryption key and not the original public key`, async () => {
+        try {
+            const json = {
+                fio_address: user2.address
+            }
+            result = await callFioApi("get_encrypt_key", json);
+            expect(result.encrypt_public_key).to.equal(encryptKeys2.publicKey);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`requestFunds - user2.address as payer and user1.address as payee`, async () => {
+        try {
+          const result = await user1.sdk.genericAction('requestFunds', {
+            payerFioAddress: user2.address,
+            payeeFioAddress: user1.address,
+            payeeTokenPublicAddress: payeeTokenPublicAddress,
+            amount: 1000000000,
+            chainCode: 'BTC',
+            tokenCode: 'BTC',
+            memo: "requestmemo",
+            maxFee: config.maxFee,
+            payerFioPublicKey: encryptKeys2.publicKey,
+            technologyProviderId: '',
+          })
+          //console.log('Result: ', result);
+          requestId = result.fio_request_id;
+          expect(result.status).to.equal('requested')
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+      });
+
+      it(`Call get_table_rows for fiotrxtss for user2. Verify payer_key is encryption key.`, async () => {
+        try {
+            const json = {
+                code: 'fio.reqobt',
+                scope: 'fio.reqobt',
+                table: 'fiotrxtss',
+                lower_bound: user2.account,
+                upper_bound: user2.account,
+                key_type: 'i64',
+                index_position: '9',
+                json: true
+            }
+            result = await callFioApi("get_table_rows", json);
+            //console.log(JSON.stringify(result, null, 4));
+            expect(result.rows[0].payer_key).to.equal(encryptKeys2.publicKey);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it('(api) Call get_pending_fio_requests for user2 (payer)', async () => {
+        try {
+            const result = await callFioApi("get_pending_fio_requests", {
+            fio_public_key: user2.publicKey
+          })
+          console.log('result', result);
+          cipherContent = result.requests[0].content;
+          expect(result.requests[0].fio_request_id).to.equal(requestId);
+          expect(result.requests[0].payer_fio_address).to.equal(user2.address);
+          expect(result.requests[0].payee_fio_address).to.equal(user1.address);
+          expect(result.requests[0].payer_fio_public_key).to.equal(encryptKeys2.publicKey);
+          expect(result.requests[0].payee_fio_public_key).to.equal(encryptKeys1.publicKey);
+        } catch (err) {
+          console.log('Error', err);
+          expect(err).to.equal(null);
+        }
+    });
+
+
+    // Right now, it is possible to pass in payerFioPublicKey and that is used as the encrypt key
+    // This will cause problems since the keys in the table might be set to something different from the encrypt key
+    // ISUP-43 will update the SDK to ALWAYS override payerFioPublicKey and will use the encrypt key for encryption (if one exists)
+    it.skip(`(Waiting on ISUP-43) Verify user1 and user2 encryption keys were used to encrypt content`, async () => {
+        try {
+            expect(cipherContent).to.be.a('string')
+        
+            const uncipherContent1 = user1.sdk.transactions.getUnCipherContent('new_funds_content', cipherContent, user1.privateKey, encryptKeys2.publicKey)
+            console.log('uncipherContent1: ',uncipherContent1);
+            expect(uncipherContent1.payee_public_address).to.equal(payeeTokenPublicAddress);
+        
+            const uncipherContent2 = user2.sdk.transactions.getUnCipherContent('new_funds_content', cipherContent, encryptKeys2.privateKey, encryptKeys1.publicKey)
+            console.log('uncipherContent2: ',uncipherContent2);
+            expect(uncipherContent2.payee_public_address).to.equal(payeeTokenPublicAddress)
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it.skip(`(sdk waiting on ISUP-44) Call getPendingFioRequests for user2 (payer) (uses encryption key)`, async () => {
+        try {
+          const result = await user2.sdk.genericAction('getPendingFioRequests', {  })
+          console.log('result: ', result)
+          console.log('content: ', result.requests[0].content)
+          expect(result.requests[0].fio_request_id).to.equal(requestId);
+          expect(result.requests[0].payer_fio_address).to.equal(user2.address);
+          expect(result.requests[0].payee_fio_address).to.equal(user1.address);
+          expect(result.requests[0].payer_fio_public_key).to.equal(encryptKeys2.publicKey);
+          expect(result.requests[0].payee_fio_public_key).to.equal(encryptKeys1.publicKey);
+          expect(result.requests[0].content.memo).to.equal("requestmemo");
+        } catch (err) {
+          console.log('Error: ', err)
+          expect(err).to.equal(null);
+        }
+    });
+
+    it('(api) Call get_received_fio_requests for user2 (payer)', async () => {
+        try {
+            const result = await callFioApi("get_received_fio_requests", {
+            fio_public_key: user2.publicKey
+          })
+          console.log('user2.publicKey', user2.publicKey);
+          expect(result.requests[0].fio_request_id).to.equal(requestId);
+          expect(result.requests[0].payer_fio_address).to.equal(user2.address);
+          expect(result.requests[0].payee_fio_address).to.equal(user1.address);
+          expect(result.requests[0].payer_fio_public_key).to.equal(encryptKeys2.publicKey);
+          expect(result.requests[0].payee_fio_public_key).to.equal(encryptKeys1.publicKey);
+        } catch (err) {
+          console.log('Error', err);
+          expect(err).to.equal(null);
+        }
+    });
+
+    it.skip(`(sdk waiting on ISUP-44) Call getReceivedFioRequests for user2 (payer) (uses encryption key)`, async () => {
+        try {
+          const result = await user2.sdk.genericAction('getReceivedFioRequests', {  })
+          console.log('result: ', result)
+          console.log('content: ', result.requests[0].content)
+          expect(result.requests[0].fio_request_id).to.equal(requestId);
+          expect(result.requests[0].payer_fio_address).to.equal(user2.address);
+          expect(result.requests[0].payee_fio_address).to.equal(user1.address);
+          expect(result.requests[0].payer_fio_public_key).to.equal(encryptKeys2.publicKey);
+          expect(result.requests[0].payee_fio_public_key).to.equal(encryptKeys1.publicKey);
+          expect(result.requests[0].content.memo).to.equal("requestmemo");
+        } catch (err) {
+          console.log('Error: ', err)
+          expect(err).to.equal(null);
+        }
+    });
+
+    it('(api) Call get_sent_fio_requests for user1 (no encryption key)', async () => {
+        try {
+            const result = await callFioApi("get_sent_fio_requests", {
+            fio_public_key: user1.publicKey,
+            limit: 10,
+            offset: 0
+          })
+          //console.log('Result', result)
+          expect(result.requests[0].fio_request_id).to.equal(requestId);
+          expect(result.requests[0].payer_fio_address).to.equal(user2.address);
+          expect(result.requests[0].payee_fio_address).to.equal(user1.address);
+          expect(result.requests[0].payer_fio_public_key).to.equal(encryptKeys2.publicKey);
+          expect(result.requests[0].payee_fio_public_key).to.equal(encryptKeys1.publicKey);
+          expect(result.requests[0].status).to.equal('requested');
+        } catch (err) {
+          console.log('Error', err)
+        }
+    });
+
+    it.skip(`(sdk waiting on ISUP-44) getSentFioRequests for user1 (payee). Expect `, async () => {
+        try {
+          const result = await user1.sdk.genericAction('getSentFioRequests', {
+            limit: '',
+            offset: ''
+          })
+          //console.log('result: ', result)
+          //console.log('content: ', result.requests[0].content)
+          expect(result.requests[0].fio_request_id).to.equal(requestId);
+          expect(result.requests[0].payer_fio_address).to.equal(user2.address);
+          expect(result.requests[0].payee_fio_address).to.equal(user1.address);
+          expect(result.requests[0].payer_fio_public_key).to.equal(encryptKeys2.publicKey);
+          expect(result.requests[0].payee_fio_public_key).to.equal(encryptKeys1.publicKey);
+          expect(result.requests[0].content.memo).to.equal("requestmemo");
+        } catch (err) {
+          console.log('Error: ', err)
+          expect(err).to.equal(null)
+        }
+      });
+
+});
+
+describe('C.3. RecordObtData testing (user1 and user2 encrypt key) Add encryption key, encrypt with encryption key using fio request, decrypt fio request', () => {
+    let user1, user2, encryptKeys1 = {}, encryptKeys2 = {}, txnId, cipherContent;
+    const payment = 1000000000;
+    const tokenCode = 'BTC';
+    const chainCode = 'BTC';
+    const payerTokenPublicAddress = 'user1BTCAddress';
+    const payeeTokenPublicAddress = 'user2BTCAddress';
+  
+    before(async () => {
+        user1 = await newUser(faucet);
+        user2 = await newUser(faucet);
+        const keypair1 = await createKeypair();
+        encryptKeys1 = {
+            publicKey: keypair1.publicKey,
+            privateKey: keypair1.privateKey,
+        };
+        const keypair2 = await createKeypair();
+        encryptKeys2 = {
+            publicKey: keypair2.publicKey,
+            privateKey: keypair2.privateKey,
+        };
+
+        console.log('User1 account: ', user1.account);
+        console.log('User1 pub key: ', user1.publicKey);
+        console.log('User1 priv key: ', user1.privateKey);
+        console.log('User2 account: ', user2.account);
+        console.log('User2 priv key: ', user2.privateKey);
+        console.log('User2 pub key: ', user2.publicKey);
+        console.log('encryptKeys1 pub key: ', encryptKeys1.publicKey);
+        console.log('encryptKeys2 pub key: ', encryptKeys2.publicKey);
+    });
+
+    it(`Add new encrypt key for user1`, async () => {
+        try {
+            const result = await user1.sdk.genericAction('pushTransaction', {
+                action: 'updcryptkey',
+                account: 'fio.address',
+                data: {
+                    fio_address: user1.address,
+                    encrypt_public_key: encryptKeys1.publicKey,
+                    max_fee: config.maxFee,
+                    tpid: user1.address
+                }
+            })
+            expect(result.status).to.equal('OK');
+        } catch (err) {
+            console.log(JSON.stringify(err, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`Add new encrypt key for user2`, async () => {
+        try {
+            const result = await user2.sdk.genericAction('pushTransaction', {
+                action: 'updcryptkey',
+                account: 'fio.address',
+                data: {
+                    fio_address: user2.address,
+                    encrypt_public_key: encryptKeys2.publicKey,
+                    max_fee: config.maxFee,
+                    tpid: user2.address
+                }
+            })
+            expect(result.status).to.equal('OK');
+        } catch (err) {
+            console.log(JSON.stringify(err, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`Call get_table_rows for fionames for user2. Get id.`, async () => {
+        try {
+          const json = {
+            json: true,
+            code: 'fio.address',
+            scope: 'fio.address',
+            table: 'fionames',
+            lower_bound: user2.account,
+            upper_bound: user2.account,
+            key_type: 'i64',
+            reverse: true,
+            index_position: '4'
+          }
+            result = await callFioApi("get_table_rows", json);
+            user2.id = result.rows[0].id;
+            expect(user2.id).to.be.a('number');
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`Call get_table_rows for fionameinfo for user2. Confirm encryption key.`, async () => {
+        try {
+          const json = {
+            json: true,
+            code: 'fio.address',
+            scope: 'fio.address',
+            table: 'fionameinfo',
+            lower_bound: user2.id,
+            upper_bound: user2.id,
+            key_type: 'i64',
+            reverse: true,
+            index_position: '2'
+          }
+            result = await callFioApi("get_table_rows", json);
+            expect(result.rows[0].fionameid).to.equal(user2.id);
+            expect(result.rows[0].datadesc).to.equal('FIO_REQUEST_CONTENT_ENCRYPTION_PUB_KEY');
+            expect(result.rows[0].datavalue).to.equal(encryptKeys2.publicKey);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    });
+
+
+    it(`Call get_encrypt_key for user1. Verify it ruturns the encryption key and not the original public key`, async () => {
+        try {
+            const json = {
+                fio_address: user1.address
+            }
+            result = await callFioApi("get_encrypt_key", json);
+            expect(result.encrypt_public_key).to.equal(encryptKeys1.publicKey);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`Call get_encrypt_key for user2. Verify it ruturns the encryption key and not the original public key`, async () => {
+        try {
+            const json = {
+                fio_address: user2.address
+            }
+            result = await callFioApi("get_encrypt_key", json);
+            expect(result.encrypt_public_key).to.equal(encryptKeys2.publicKey);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`user1 transferTokens to user2`, async () => {
+        const result = await user1.sdk.genericAction('transferTokens', {
+            payeeFioPublicKey: user2.publicKey,
+            amount: payment,
+            maxFee: config.maxFee
+        });
+        //console.log('Result: ', result);
+        txnId = result.transaction_id;
+        expect(result).to.have.any.keys('status');
+        expect(result).to.have.any.keys('fee_collected');
+        expect(result).to.have.any.keys('block_num');
+        expect(result).to.have.any.keys('transaction_id');
+    });
+
+    it(`recordObtData - user1.address as payer and user2.address as payee`, async () => {
+        try {
+            const result = await user1.sdk.genericAction('recordObtData', {
+                payerFioAddress: user1.address,
+                payeeFioAddress: user2.address,
+                payerTokenPublicAddress: payerTokenPublicAddress,  // BTC address
+                payeeTokenPublicAddress: payeeTokenPublicAddress,  // BTC address
+                amount: payment,
+                chainCode: chainCode,
+                tokenCode: tokenCode,
+                obtId: txnId,
+                maxFee: config.maxFee,
+                technologyProviderId: '',
+                //payeeFioPublicKey: user2.publicKey,  // This should be ignored. Key used to encrypt should always be encryption key.
+                memo: 'requestmemo'
+            })         
+            //console.log('Result: ', result);
+            expect(result.status).to.equal('sent_to_blockchain')
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+      });
+
+      it(`Call get_table_rows for fiotrxtss for user1 (payer). Verify payer_key is encryption key.`, async () => {
+        try {
+            const json = {
+                code: 'fio.reqobt',
+                scope: 'fio.reqobt',
+                table: 'fiotrxtss',
+                lower_bound: user1.account,
+                upper_bound: user1.account,
+                key_type: 'i64',
+                index_position: '5',  // 5 is payer account and 6 is payee account
+                json: true
+            }
+            result = await callFioApi("get_table_rows", json);
+            //console.log(JSON.stringify(result, null, 4));
+            expect(result.rows[0].payer_key).to.equal(encryptKeys1.publicKey);
+            expect(result.rows[0].payee_key).to.equal(encryptKeys2.publicKey);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it('(api) Call get_obt_data for user1 (payer)', async () => {
+        try {
+            const result = await callFioApi("get_obt_data", {
+            fio_public_key: user1.publicKey
+          })
+          //console.log('result', result);
+          cipherContent = result.obt_data_records[0].content;
+          expect(result.obt_data_records[0].payer_fio_address).to.equal(user1.address);
+          expect(result.obt_data_records[0].payee_fio_address).to.equal(user2.address);
+          expect(result.obt_data_records[0].payer_fio_public_key).to.equal(encryptKeys1.publicKey);
+          expect(result.obt_data_records[0].payee_fio_public_key).to.equal(encryptKeys2.publicKey);
+        } catch (err) {
+          console.log('Error', err);
+          expect(err).to.equal(null);
+        }
+    });
+
+
+    // Right now, it is possible to pass in payerFioPublicKey and that is used as the encrypt key
+    // This will cause problems since the keys in the table might be set to something different from the encrypt key
+    // ISUP-43 will update the SDK to ALWAYS override payerFioPublicKey and will use the encrypt key for encryption (if one exists)
+    it.skip(`(Waiting on ISUP-43, currently still uses user1.privateKey, etc. ) Verify user1 and user2 encryption keys were used to encrypt content`, async () => {
+        try {
+            expect(cipherContent).to.be.a('string')
+        
+            const uncipherContent1 = user1.sdk.transactions.getUnCipherContent('record_obt_data_content', cipherContent, encryptKeys1.privateKey, encryptKeys2.publicKey)
+            console.log('uncipherContent1: ',uncipherContent1);
+            expect(uncipherContent1.payee_public_address).to.equal(payeeTokenPublicAddress);
+        
+            const uncipherContent2 = user2.sdk.transactions.getUnCipherContent('record_obt_data_content', cipherContent, encryptKeys2.privateKey, encryptKeys1.publicKey)
+            console.log('uncipherContent2: ',uncipherContent2);
+            expect(uncipherContent2.payee_public_address).to.equal(payeeTokenPublicAddress)
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it.skip(`(sdk waiting on ISUP-44, not decrypting content) Call getObtData for user1 (payer) (uses encryption key)`, async () => {
+        try {
+          const result = await user1.sdk.genericAction('getObtData', {  })
+          console.log('result: ', result)
+          console.log('content: ', result.obt_data_records[0].content)
+          expect(result.obt_data_records[0].payer_fio_address).to.equal(user1.address);
+          expect(result.obt_data_records[0].payee_fio_address).to.equal(user2.address);
+          expect(result.obt_data_records[0].payer_fio_public_key).to.equal(encryptKeys1.publicKey);
+          expect(result.obt_data_records[0].payee_fio_public_key).to.equal(encryptKeys2.publicKey);
+          expect(result.obt_data_records[0].content.memo).to.equal("requestmemo");
+        } catch (err) {
+          console.log('Error: ', err)
+          expect(err).to.equal(null);
+        }
+    });
 });
 
 describe('D. (failure) Encrypt with public Key, add encryption key, decrypt', () => {
@@ -1039,8 +1591,8 @@ describe('H. Set encryption key to empty string', () => {
 
 });
 
-describe.skip('I. Test newfioacc - Sad Path', () => {
-    let user1, user2, userNoFunds, encryptKeys = {};
+describe.only('I. Test newfioacc - Sad Path', () => {
+    let user1, user2, userNoFunds = {}, encryptKeys = {};
   
     before(async () => {
         user1 = await newUser(faucet);
@@ -1051,17 +1603,21 @@ describe.skip('I. Test newfioacc - Sad Path', () => {
             privateKey: keypair.privateKey,
         };
         const keys = await createKeypair();
-        userNoFunds = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson)
+        userNoFunds.publicKey = keys.publicKey;
+        userNoFunds = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
         userNoFunds.account = FIOSDK.accountHash(userNoFunds.publicKey).accountnm;
+        userNoFunds.domain = generateFioDomain(10);
+        userNoFunds.address = generateFioAddress(userNoFunds.domain, 10);
+
+        console.log('user1.publicKey: ', user1.publicKey);
+        console.log('encryptKeys.publicKey: ', encryptKeys.publicKey);
     });
 
-    it(`(failure) actor - Not owner of FIO Address. Expect: Request signature is not valid or this user is not allowed to sign this transaction.`, async () => {
+    it(`(failure) actor - Not owner of FIO Address. Expect: ${config.error2.invalidSignature.statusCode} ${config.error2.invalidSignature.message}`, async () => {
         try {
-            const result = await callFioApiSigned('push_transaction', {
+            const result = await user1.sdk.genericAction('pushTransaction', {
                 action: 'updcryptkey',
                 account: 'fio.address',
-                actor: user1.account,
-                privKey: user1.privateKey,
                 data: {
                     fio_address: user2.address,
                     encrypt_public_key: encryptKeys.publicKey,
@@ -1071,11 +1627,207 @@ describe.skip('I. Test newfioacc - Sad Path', () => {
                 }
             });
             console.log('Result: ', result)
-            expect(result.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
+            expect(result).to.equal('null');
+        } catch (err) {
+            //console.log('Error: ', err);
+            expect(err.json.message).to.equal(config.error2.invalidSignature.message);
+            expect(err.errorCode).to.equal(config.error2.invalidSignature.statusCode);
+        }
+    });
+
+    it(`(BD-4573) (failure) fio_address - Nonexistent FIO Address on user1 domain. Expect: ${config.error2.fioAddressNotRegistered.statusCode} ${config.error2.fioAddressNotRegistered.message}`, async () => {
+        try {
+            const result = await user1.sdk.genericAction('pushTransaction', {
+                action: 'updcryptkey',
+                account: 'fio.address',
+                data: {
+                    fio_address: 'nonexistentaddress@' + user1.domain,
+                    encrypt_public_key: encryptKeys.publicKey,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: user1.account
+                }
+            });
+            console.log('Result: ', result)
+            expect(result).to.equal(null);
+        } catch (err) {
+            console.log(JSON.stringify(err, null, 4));
+            expect(err.json.fields[0].error).to.equal(config.error2.fioAddressNotRegistered.message);
+            expect(err.errorCode).to.equal(config.error2.fioAddressNotRegistered.statusCode);
+        }
+    });
+
+    it(`(failure) encrypt_public_key - Invalid encrypt key. Expect: ${config.error2.invalidEncryptKey.statusCode} ${config.error2.invalidEncryptKey.message}`, async () => {
+        try {
+            const result = await user1.sdk.genericAction('pushTransaction', {
+                action: 'updcryptkey',
+                account: 'fio.address',
+                data: {
+                    fio_address: user1.address,
+                    encrypt_public_key: 'notakey',
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: user1.account
+                }
+            });
+            expect(result).to.equal(null);
+        } catch (err) {
+            //console.log(JSON.stringify(err, null, 4));
+            expect(err.json.fields[0].error).to.equal(config.error2.invalidEncryptKey.message);
+            expect(err.errorCode).to.equal(config.error2.invalidEncryptKey.statusCode);
+        }
+    });
+
+    it(`(failure) max_fee - Invalid Fee Value. Expect: ${config.error2.invalidFeeValue.message}`, async () => {
+        try {
+            const result = await callFioApiSigned('push_transaction', {
+                action: 'updcryptkey',
+                account: 'fio.address',
+                actor: user1.account,
+                privKey: user1.privateKey,
+                data: {
+                    fio_address: user1.address,
+                    encrypt_public_key: encryptKeys.publicKey,
+                    max_fee: -100,
+                    tpid: '',
+                    actor: user1.account
+                }
+            });
+            expect(result).to.equal(null);
+        } catch (err) {
+            //console.log(JSON.stringify(err, null, 4));
+            expect(err.actual.fields[0].error).to.equal(config.error2.invalidFeeValue.message);
+        }
+    });
+
+    it(`(failure) tpid - Invalid TPID. Expect: ${config.error2.invalidTpid.statusCode} ${config.error2.invalidTpid.message}`, async () => {
+        try {
+            const result = await user1.sdk.genericAction('pushTransaction', {
+                action: 'updcryptkey',
+                account: 'fio.address',
+                data: {
+                    fio_address: user1.address,
+                    encrypt_public_key: encryptKeys.publicKey,
+                    max_fee: config.maxFee,
+                    tpid: -100,
+                    actor: user1.account
+                }
+            });
+            expect(result.status).to.equal(null);
+        } catch (err) {
+            //console.log(JSON.stringify(err, null, 4));
+            expect(err.json.fields[0].error).to.equal(config.error2.invalidTpid.message);
+            expect(err.errorCode).to.equal(config.error2.invalidTpid.statusCode);
+        }
+    });
+
+    it(`Use up all of user1's bundles with 51 record_obt_data transactions`, async () => {
+        try {
+            for (i = 0; i < 51; i++) {
+                const result = await user1.sdk.genericAction('recordObtData', {
+                    payerFioAddress: user1.address,
+                    payeeFioAddress: user2.address,
+                    payerTokenPublicAddress: user1.publicKey,
+                    payeeTokenPublicAddress: user2.publicKey,
+                    amount: 5000000000,
+                    chainCode: "BTC",
+                    tokenCode: "BTC",
+                    status: '',
+                    obtId: '',
+                    maxFee: config.api.record_obt_data.fee,
+                    technologyProviderId: '',
+                    payeeFioPublicKey: user2.publicKey,
+                    memo: ''
+                })
+            }
+            const result2 = await user1.sdk.genericAction('getFioNames', { fioPublicKey: user1.publicKey });
+            //console.log('result2: ', result2);
+            expect(result2.fio_addresses[0].remaining_bundled_tx).to.equal(0);
+        } catch (err) {
+            console.log('Error', err)
+            expect(err).to.equal(null)
+        }
+    });
+
+    it(`(failure) max_fee - Low fee. Expect: ${config.error2.feeExceedsMax.statusCode} ${config.error2.feeExceedsMax.message}`, async () => {
+        try {
+            const result = await user1.sdk.genericAction('pushTransaction', {
+                action: 'updcryptkey',
+                account: 'fio.address',
+                data: {
+                    fio_address: user1.address,
+                    encrypt_public_key: encryptKeys.publicKey,
+                    max_fee: 100,
+                    tpid: '',
+                    actor: user1.account
+                }
+            });
+            console.log('Result: ', result);
+            expect(result).to.equal(null);
+        } catch (err) {
+            //console.log(JSON.stringify(err, null, 4));
+            expect(err.json.fields[0].error).to.equal(config.error2.feeExceedsMax.message);
+            expect(err.errorCode).to.equal(config.error2.feeExceedsMax.statusCode);
+        }
+    });
+
+    // Insufficient balance test
+
+    it(`get balance for user1`, async function () {
+        result = await user1.sdk.genericAction('getFioBalance', {});
+        user1.balance = result.available;
+        //console.log('Result: ', result)
+    });
+
+    it(`Transfer all tokens for user1`, async () => {
+        try {
+            const result = await user1.sdk.genericAction('transferTokens', {
+                payeeFioPublicKey: user2.publicKey,
+                amount: user1.balance - 5000000000,
+                maxFee: config.maxFee
+            });
+            //console.log('Result: ', result);
+            expect(result.status).to.equal('OK');
         } catch (err) {
             console.log(JSON.stringify(err, null, 4));
             expect(err).to.equal('null');
         }
+    });
+
+    it(`(failure) Insufficient balance. Expect: ${config.error2.insufficientFunds.statusCode} ${config.error2.insufficientFunds.message}`, async () => {
+        try {
+            const result = await user1.sdk.genericAction('pushTransaction', {
+                action: 'updcryptkey',
+                account: 'fio.address',
+                data: {
+                    fio_address: user1.address,
+                    encrypt_public_key: encryptKeys.publicKey,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: user1.account
+                }
+            });
+            expect(result.status).to.equal(null);
+        } catch (err) {
+            //console.log(JSON.stringify(err, null, 4));
+            expect(err.json.fields[0].error).to.equal(config.error2.insufficientFunds.message);
+            expect(err.errorCode).to.equal(config.error2.insufficientFunds.statusCode);
+        }
+    });
+
+});
+
+describe.only('J. (BD-4538) user2 tries to add encryption key for user1', () => {
+    let user1, user2, encryptKeys = {};
+  
+    before(async () => {
+        user1 = await newUser(faucet);
+        user2 = await newUser(faucet);
+        const keypair = await createKeypair();
+        encryptKeys = {
+            publicKey: keypair.publicKey,
+            privateKey: keypair.privateKey,
+        };
     });
 
     it(`(failure) actor - Signer not actor. Expect: ${config.error2.invalidSignature.statusCode} ${config.error2.invalidSignature.message}`, async () => {
@@ -1101,157 +1853,17 @@ describe.skip('I. Test newfioacc - Sad Path', () => {
         }
     });
 
-    it(`(failure) fio_address - Nonexistent FIO Address on user1 domain. Expect: ${config.error2.fioAddressNotRegistered.statusCode} ${config.error2.fioAddressNotRegistered.message}`, async () => {
+    it(`Call get_encrypt_key for user1. Verify same as user1.publicKey (no key was added)`, async () => {
         try {
-            const result = await callFioApiSigned('push_transaction', {
-                action: 'updcryptkey',
-                account: 'fio.address',
-                actor: user1.account,
-                privKey: user1.privateKey,
-                data: {
-                    fio_address: 'nonexistentaddress@' + user1.domain,
-                    encrypt_public_key: encryptKeys.publicKey,
-                    max_fee: config.maxFee,
-                    tpid: '',
-                    actor: user1.account
-                }
-            });
-            console.log('Result: ', result)
-            expect(result.status).to.equal(null);
+            const json = {
+                fio_address: user1.address
+            }
+            result = await callFioApi("get_encrypt_key", json);
+            console.log('Result: ', result);
+            expect(result.encrypt_public_key).to.equal(user1.publicKey);
         } catch (err) {
-            console.log('Error: ', err);
-            expect(err.json.fields[0].error).to.equal(config.error2.fioAddressNotRegistered.message);
-            expect(err.errorCode).to.equal(config.error2.fioAddressNotRegistered.statusCode);
-        }
-    });
-
-    it(`(failure) encrypt_public_key - Invalid encrypt key. Expect: ${config.error2.invalidKey.statusCode} ${config.error2.invalidKey.message}`, async () => {
-        try {
-            const result = await callFioApiSigned('push_transaction', {
-                action: 'updcryptkey',
-                account: 'fio.address',
-                actor: user1.account,
-                privKey: user1.privateKey,
-                data: {
-                    fio_address: user1.address,
-                    encrypt_public_key: 'notakey',
-                    max_fee: config.maxFee,
-                    tpid: '',
-                    actor: user1.account
-                }
-            });
-            expect(result.status).to.equal(null);
-        } catch (err) {
-            console.log(JSON.stringify(err, null, 4));
-            expect(err.json.fields[0].error).to.equal(config.error2.invalidKey.message);
-            expect(err.errorCode).to.equal(config.error2.invalidKey.statusCode);
-        }
-    });
-
-    it(`(failure) max_fee - Invalid Fee Value. Expect: ${config.error2.invalidFeeValue.statusCode} ${config.error2.invalidFeeValue.message}`, async () => {
-        try {
-            const result = await callFioApiSigned('push_transaction', {
-                action: 'updcryptkey',
-                account: 'fio.address',
-                actor: user1.account,
-                privKey: user1.privateKey,
-                data: {
-                    fio_address: user1.address,
-                    encrypt_public_key: encryptKeys.publicKey,
-                    max_fee: -100,
-                    tpid: '',
-                    actor: user1.account
-                }
-            });
-            expect(result.status).to.equal(null);
-        } catch (err) {
-            console.log(JSON.stringify(err, null, 4));
-            expect(err.json.fields[0].error).to.equal(config.error2.invalidFeeValue.message);
-            expect(err.errorCode).to.equal(config.error2.invalidFeeValue.statusCode);
-        }
-    });
-
-    it(`(failure) max_fee - Low fee. Expect: ${config.error2.feeExceedsMax.statusCode} ${config.error2.feeExceedsMax.message}`, async () => {
-        try {
-            const result = await callFioApiSigned('push_transaction', {
-                action: 'updcryptkey',
-                account: 'fio.address',
-                actor: user1.account,
-                privKey: user1.privateKey,
-                data: {
-                    fio_address: user1.address,
-                    encrypt_public_key: encryptKeys.publicKey,
-                    max_fee: 100,
-                    tpid: '',
-                    actor: user1.account
-                }
-            });
-            expect(result.status).to.equal(null);
-        } catch (err) {
-            console.log(JSON.stringify(err, null, 4));
-            expect(err.json.fields[0].error).to.equal(config.error2.feeExceedsMax.message);
-            expect(err.errorCode).to.equal(config.error2.feeExceedsMax.statusCode);
-        }
-    });
-
-    it(`(failure) tpid - Invalid TPID. Expect: ${config.error2.invalidTpid.statusCode} ${config.error2.invalidTpid.message}`, async () => {
-        try {
-            const result = await callFioApiSigned('push_transaction', {
-                action: 'updcryptkey',
-                account: 'fio.address',
-                actor: user1.account,
-                privKey: user1.privateKey,
-                data: {
-                    fio_address: user1.address,
-                    encrypt_public_key: encryptKeys.publicKey,
-                    max_fee: config.maxFee,
-                    tpid: -100,
-                    actor: user1.account
-                }
-            });
-            expect(result.status).to.equal(null);
-        } catch (err) {
-            console.log(JSON.stringify(err, null, 4));
-            expect(err.json.fields[0].error).to.equal(config.error2.invalidTpid.message);
-            expect(err.errorCode).to.equal(config.error2.invalidTpid.statusCode);
-        }
-    });
-
-    // Insufficient balance test
-
-    it(`faucet registers address for userNoFunds`, async () => {
-        try {
-          const result = await faucet.genericAction('registerFioAddress', {
-            fioAddress: userNoFunds.address,
-            maxFee: config.maxFee
-          })
-          expect(result.status).to.equal('OK')
-        } catch (err) {
-          console.log(JSON.stringify(err, null, 4));
-          expect(err).to.equal('null');
-        }
-    });
-
-    it(`(failure) Insufficient balance. Expect: ${config.error2.insufficientFunds.statusCode} ${config.error2.insufficientFunds.message}`, async () => {
-        try {
-            const result = await callFioApiSigned('push_transaction', {
-                action: 'updcryptkey',
-                account: 'fio.address',
-                actor: userNoFunds.account,
-                privKey: userNoFunds.privateKey,
-                data: {
-                    fio_address: userNoFunds.address,
-                    encrypt_public_key: encryptKeys.publicKey,
-                    max_fee: config.maxFee,
-                    tpid: '',
-                    actor: userNoFunds.account
-                }
-            });
-            expect(result.status).to.equal(null);
-        } catch (err) {
-            console.log(JSON.stringify(err, null, 4));
-            expect(err.json.fields[0].error).to.equal(config.error2.insufficientFunds.message);
-            expect(err.errorCode).to.equal(config.error2.insufficientFunds.statusCode);
+            console.log('Error', err);
+            expect(err).to.equal(null);
         }
     });
 

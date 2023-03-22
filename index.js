@@ -164,6 +164,11 @@ describe('TEST SUITE', () => {
     //require('./tests/register-domains-one-account-max-load.js');
 
     /**
+     * FIP-39 - Creats accounts with now encryption keys on old 2.8 fio.contracts version, then runs with latest fio.contracts
+     */
+    //require('./tests/fio.address-updcryptkey-back-compat.js');
+
+    /**
      * FIP-27 - Takes a long time and requires monitoring
      */
     //require('./tests/nft-performance-tests.js');
