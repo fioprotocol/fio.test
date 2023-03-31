@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, callFioApi,fetchJson, createKeypair, timeout} = require('../utils.js');
+const {newUser, callFioApi,fetchJson, createKeypair, stringToHash, timeout} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 const config = require('../config.js');
 let faucet;
@@ -13,18 +13,23 @@ before(async () => {
 
 
 
-describe(`************************** FIP-40-permissions-dev-tests.js ************************** \n    A. dev tests permissions \n `, () => {
+describe(`************************** FIP-40-permissions-dev-tests.js ************************** \n    A. happy path smoke tests permissions add and remove \n `, () => {
 
 
-  let permuser1;
-  let permuser2;
+  let permuser1,
+      permuser2,
+      permuser3,
+      permuser4;
 
 
   before(async () => {
     permuser1 = await newUser(faucet);
     permuser2 = await newUser(faucet);
+    permuser3 = await newUser(faucet);
+    permuser4 = await newUser(faucet);
 
-    //now transfer 1k fio from the faucet to this account
+
+      //now transfer 1k fio from the faucet to this account
     const result = await faucet.genericAction('transferTokens', {
       payeeFioPublicKey: permuser1.publicKey,
       amount: 1000000000000,
@@ -38,60 +43,335 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
   })
 
 
-  it(`dev test, call addperm`, async () => {
+
+    it(`SUCCESS, call addperm`, async () => {
     try {
 
       const result = await permuser1.sdk.genericAction('pushTransaction', {
         action: 'addperm',
         account: 'fio.perms',
         data: {
-          grantee_account: permuser1.account,
-          permission_name: "permname1",
+          grantee_account: permuser2.account,
+          permission_name: "register_address_on_domain",
           permission_info: "",
-          object_name: "object1",
+          object_name: permuser1.domain,
           max_fee: config.maxFee,
           tpid: '',
           actor: permuser1.account
         }
       })
 
-     // console.log("result ", result);
+
+        expect(result.fee_collected).to.equal(514287432);
+    // console.log("result ", result);
     } catch (err) {
-     // console.log("Error : ", err)
-      // expect(err.json.fields[0].error).to.contain('has not voted')
+        console.log('Error', err);
+        expect(err).to.equal(null);
     }
   })
 
-  it(`dev test, call remperm`, async () => {
+    it('SUCCESS confirm permissions and accesses table contents', async () => {
+        try {
+
+           // hash  object_type, object_name, and permission_name
+            let control_string = "domain"+permuser1.domain+"register_address_on_domain";
+            const control_hash  = stringToHash(control_string);
+            //search for record in permissions using index 5 (bypermissioncontrolhash)
+            const json = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'permissions',
+                lower_bound: control_hash,
+                upper_bound: control_hash,
+                key_type: 'i128',
+                index_position: '5'
+            }
+            result = await callFioApi("get_table_rows", json);
+            //get the id for the record
+            expect(result.rows.length).to.equal(1);
+            //hash account and id
+            let pid = result.rows[0].id;
+            let access_control = permuser2.account + pid.toString();
+            const access_hash = stringToHash(access_control);
+
+            //search for record in accesses using index 4 (byaccesscontrolhash)
+            const json1 = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'accesses',
+                lower_bound: access_hash,
+                upper_bound: access_hash,
+                key_type: 'i128',
+                index_position: '4'
+            }
+            result1 = await callFioApi("get_table_rows", json1);
+            //get the id for the record
+            expect(result1.rows.length).to.equal(1);
+
+            //console.log('Result: ', result);
+            //console.log('Result 1', result1);
+            //console.log('periods : ', result.rows[0].periods)
+
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`Waiting 3 seconds for no duplicate`, async () => {
+
+        console.log("      wait 3 seconds ")
+    })
+
+    it(`wait 3 seconds for unlock`, async () => {
+        await timeout(3 * 1000);
+    })
+
+    it(`FAILURE, call addperm again, permission exists`, async () => {
+        try {
+
+            const result = await permuser1.sdk.genericAction('pushTransaction', {
+                action: 'addperm',
+                account: 'fio.perms',
+                data: {
+                    grantee_account: permuser2.account,
+                    permission_name: "register_address_on_domain",
+                    permission_info: "",
+                    object_name: permuser1.domain,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser1.account
+                }
+            })
+
+
+            expect(result.status).to.equal(null);
+
+        } catch (err) {
+           // console.log('Error', err);
+            expect(err.json.fields[0].error).to.equal("Permission already exists")
+        }
+    })
+
+    it(`SUCCESS, call addperm for a second account`, async () => {
+        try {
+
+            const result = await permuser1.sdk.genericAction('pushTransaction', {
+                action: 'addperm',
+                account: 'fio.perms',
+                data: {
+                    grantee_account: permuser3.account,
+                    permission_name: "register_address_on_domain",
+                    permission_info: "",
+                    object_name: permuser1.domain,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser1.account
+                }
+            })
+
+
+            expect(result.fee_collected).to.equal(514287432);
+            // console.log("result ", result);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+  it(`SUCCESS, call remperm for first grantee`, async () => {
     try {
 
       const result = await permuser1.sdk.genericAction('pushTransaction', {
         action: 'remperm',
         account: 'fio.perms',
         data: {
-          grantee_account: permuser1.account,
-          permission_name: "freddy",
-          object_name: "",
+          grantee_account: permuser2.account,
+          permission_name: "register_address_on_domain",
+          object_name: permuser1.domain,
           max_fee: config.maxFee,
           tpid: '',
           actor: permuser1.account
         }
       })
+        expect(result.fee_collected).to.equal(212354321);
 
-    //  console.log("result ", result);
+    //console.log("result ", result);
     } catch (err) {
-     // console.log("Error : ", err)
+     console.log("Error : ", err)
       // expect(err.json.fields[0].error).to.contain('has not voted')
     }
   })
+
+
+    it('SUCCESS confirm removal in accesses table contents, permissions record remains', async () => {
+        try {
+
+            // hash  object_type, object_name, and permission_name
+            let control_string = "domain"+permuser1.domain+"register_address_on_domain";
+            const control_hash  = stringToHash(control_string);
+            //search for record in permissions using index 5 (bypermissioncontrolhash)
+            const json = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'permissions',
+                lower_bound: control_hash,
+                upper_bound: control_hash,
+                key_type: 'i128',
+                index_position: '5'
+            }
+            result = await callFioApi("get_table_rows", json);
+            //get the id for the record
+            expect(result.rows.length).to.equal(1);
+
+            let pid = result.rows[0].id;
+            let access_control = permuser2.account + pid.toString();
+            const access_hash = stringToHash(access_control);
+
+            //search for record in accesses using index 4 (byaccesscontrolhash)
+            const json1 = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'accesses',
+                lower_bound: access_hash,
+                upper_bound: access_hash,
+                key_type: 'i128',
+                index_position: '4'
+            }
+            result1 = await callFioApi("get_table_rows", json1);
+            //get the id for the record
+            expect(result1.rows.length).to.equal(0);
+
+            //console.log('Result: ', result);
+            //console.log('Result 1', result1);
+            //console.log('periods : ', result.rows[0].periods)
+
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`Waiting 3 seconds for no duplicate`, async () => {
+
+        console.log("      wait 3 seconds ")
+    })
+
+    it(`wait 3 seconds for unlock`, async () => {
+        await timeout(3 * 1000);
+    })
+
+    it(`FAILURE, call remperm again for first grantee, perm not existing`, async () => {
+        try {
+
+            const result = await permuser1.sdk.genericAction('pushTransaction', {
+                action: 'remperm',
+                account: 'fio.perms',
+                data: {
+                    grantee_account: permuser2.account,
+                    permission_name: "register_address_on_domain",
+                    object_name: permuser1.domain,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser1.account
+                }
+            })
+            expect(result.status).to.equal(null);
+
+            //console.log("result ", result);
+        } catch (err) {
+            //console.log("Error : ", err)
+            expect(err.json.fields[0].error).to.contain('Permission not found')
+        }
+    })
+    it(`SUCCESS, call remperm for second grantee`, async () => {
+        try {
+
+            const result = await permuser1.sdk.genericAction('pushTransaction', {
+                action: 'remperm',
+                account: 'fio.perms',
+                data: {
+                    grantee_account: permuser3.account,
+                    permission_name: "register_address_on_domain",
+                    object_name: permuser1.domain,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser1.account
+                }
+            })
+            expect(result.fee_collected).to.equal(212354321);
+
+            //console.log("result ", result);
+        } catch (err) {
+            console.log("Error : ", err)
+            // expect(err.json.fields[0].error).to.contain('has not voted')
+        }
+    })
+
+
+    it('SUCCESS confirm removal in accesses table contents, permissions record removed', async () => {
+        try {
+
+            // hash  object_type, object_name, and permission_name
+            let control_string = "domain"+permuser1.domain+"register_address_on_domain";
+            const control_hash  = stringToHash(control_string);
+            //search for record in permissions using index 5 (bypermissioncontrolhash)
+            const json = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'permissions',
+                lower_bound: control_hash,
+                upper_bound: control_hash,
+                key_type: 'i128',
+                index_position: '5'
+            }
+            result = await callFioApi("get_table_rows", json);
+            //get the id for the record
+            expect(result.rows.length).to.equal(0);
+
+
+            //search for record in accesses using index 3 (bygrantee)
+            const json1 = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'accesses',
+                lower_bound: permuser3.account,
+                upper_bound: permuser3.account,
+                key_type: 'i64',
+                index_position: '3'
+            }
+            result1 = await callFioApi("get_table_rows", json1);
+            //get the id for the record
+            expect(result1.rows.length).to.equal(0);
+
+            //console.log('Result: ', result);
+            //console.log('Result 1', result1);
+            //console.log('periods : ', result.rows[0].periods)
+
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
 })
 
-describe.only(`B. addperm -- argument validation tests`, () => {
-    let user1, user2
+describe(`B. addperm -- argument validation tests`, () => {
+    let user1, user2,
+        permuser1,permuser2,permuser3;
 
     before(async () => {
         user1 = await newUser(faucet);
         user2 = await newUser(faucet);
+        permuser1 = await newUser(faucet);
+        permuser2 = await newUser(faucet);
+        permuser3 = await newUser(faucet);
     });
 
     /*** grantee tests **/
@@ -444,22 +724,50 @@ describe.only(`B. addperm -- argument validation tests`, () => {
         }
     });
 
+
+    it(`SUCCESS, call addperm`, async () => {
+        try {
+
+            const result = await permuser1.sdk.genericAction('pushTransaction', {
+                action: 'addperm',
+                account: 'fio.perms',
+                data: {
+                    grantee_account: permuser2.account,
+                    permission_name: "register_address_on_domain",
+                    permission_info: "",
+                    object_name: permuser1.domain,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser1.account
+                }
+            })
+
+
+            expect(result.fee_collected).to.equal(514287432);
+            // console.log("result ", result);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
     /** max fee **/
     it(`FAILURE -- max fee, zero `, async () => {
 
         try {
+            let user4 = await newUser(faucet);
 
-            let result = await user1.sdk.genericAction('pushTransaction', {
+            let result = await  permuser1.sdk.genericAction('pushTransaction', {
                 action: 'addperm',
                 account: 'fio.perms',
                 data: {
-                    grantee_account: user2.account,
+                    grantee_account: user4.account,
                     permission_name: "register_address_on_domain",
                     permission_info: "",
-                    object_name: user1.domain,
+                    object_name: permuser1.domain,
                     max_fee: -1,
                     tpid: '',
-                    actor: user1.account
+                    actor: permuser1.account
                 }
             });
             expect(result.status).to.equal(null);
@@ -469,22 +777,26 @@ describe.only(`B. addperm -- argument validation tests`, () => {
         }
     });
 
+
+
     /** tpid tests **/
     it(`FAILURE -- tpid, invalid format `, async () => {
 
         try {
+            let user3 = await newUser(faucet);
+            let user4 = await newUser(faucet);
 
-            let result = await user1.sdk.genericAction('pushTransaction', {
+            let result = await user3.sdk.genericAction('pushTransaction', {
                 action: 'addperm',
                 account: 'fio.perms',
                 data: {
-                    grantee_account: user2.account,
+                    grantee_account: user4.account,
                     permission_name: "register_address_on_domain",
                     permission_info: "",
-                    object_name: user1.domain,
+                    object_name: user3.domain,
                     max_fee: config.maxFee,
                     tpid: 'f$%#',
-                    actor: user1.account
+                    actor: user3.account
                 }
             });
             expect(result.status).to.equal('OK');
@@ -543,12 +855,26 @@ describe.only(`B. addperm -- argument validation tests`, () => {
 
 })
 
-describe.only(`C. remperm -- argument validation tests`, () => {
-    let user1, user2
+describe(`C. remperm -- argument validation tests`, () => {
+    let user1,
+        user2,
+        user3,
+        user4,
+        permuser1,
+        permuser2;
+    let user6;
+    let user5;
+
 
     before(async () => {
         user1 = await newUser(faucet);
         user2 = await newUser(faucet);
+        user3 = await newUser(faucet);
+        user4 = await newUser(faucet);
+        permuser1 = await newUser(faucet);
+        permuser2 = await newUser(faucet);
+        user6 = await newUser(faucet);
+        user5 = await newUser(faucet);
     });
 
 
@@ -678,10 +1004,10 @@ describe.only(`C. remperm -- argument validation tests`, () => {
                     actor: user1.account
                 }
             });
-            expect(result.status).to.equal('OK');
+            expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err).to.equal(null)
+            expect(err.json.fields[0].error).to.equal("Permission not found");
         }
     });
     it(`FAILURE -- invalid permission name, empty name `, async () => {
@@ -813,10 +1139,10 @@ describe.only(`C. remperm -- argument validation tests`, () => {
                     actor: user1.account
                 }
             });
-            expect(result.status).to.equal('OK');
+            expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err).to.equal(null)
+            expect(err.json.fields[0].error).to.equal("Permission not found");
         }
     });
     it(`FAILURE -- object name, domain owner not actor `, async () => {
@@ -865,20 +1191,50 @@ describe.only(`C. remperm -- argument validation tests`, () => {
     });
 
     /** max fee **/
-    it(`FAILURE -- max fee, zero `, async () => {
+    it(`SUCCESS, add perm for user `, async () => {
 
         try {
 
-            let result = await user1.sdk.genericAction('pushTransaction', {
+            let result1 = await user6.sdk.genericAction('pushTransaction', {
+                action: 'addperm',
+                account: 'fio.perms',
+                data: {
+                    grantee_account: user5.account,
+                    permission_name: "register_address_on_domain",
+                    permission_info: "",
+                    object_name: user6.domain,
+                    max_fee:5000000000,
+                    tpid: '',
+                    actor: user6.account
+                }
+            });
+           // console.log(result1);
+            expect(result1.status).to.equal('OK');
+        } catch (err) {
+            //console.log("Error ", err)
+            expect(err).to.equal(null)
+
+        }
+
+    });
+
+
+
+    /** max fee **/
+    it(`FAILURE -- max fee, zero `, async () => {
+
+        try{
+
+            let result = await user6.sdk.genericAction('pushTransaction', {
                 action: 'remperm',
                 account: 'fio.perms',
                 data: {
-                    grantee_account: user2.account,
+                    grantee_account: user5.account,
                     permission_name: "register_address_on_domain",
-                    object_name: user1.domain,
+                    object_name: user6.domain,
                     max_fee: -1,
                     tpid: '',
-                    actor: user1.account
+                    actor: user6.account
                 }
             });
             expect(result.status).to.equal(null);
@@ -961,7 +1317,7 @@ describe.only(`C. remperm -- argument validation tests`, () => {
 
 })
 
-describe(`AA. indexing tests, Add a large number of users each with 2 permissions, query tables`, () => {
+describe.skip(`AA. indexing tests, Add a large number of users each with 2 permissions, query tables`, () => {
     let users = [];
     let owners = [];
 
