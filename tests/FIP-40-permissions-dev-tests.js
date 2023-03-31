@@ -18,17 +18,13 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
 
   let permuser1,
       permuser2,
-      permuser3,
-      permuser4;
+      permuser3;
 
 
   before(async () => {
     permuser1 = await newUser(faucet);
     permuser2 = await newUser(faucet);
     permuser3 = await newUser(faucet);
-    permuser4 = await newUser(faucet);
-
-
       //now transfer 1k fio from the faucet to this account
     const result = await faucet.genericAction('transferTokens', {
       payeeFioPublicKey: permuser1.publicKey,
@@ -36,7 +32,6 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
       maxFee: config.api.transfer_tokens_pub_key.fee,
       technologyProviderId: ''
     })
-
 
     console.log('permuser1.publicKey: ', permuser1.publicKey)
 
@@ -364,14 +359,13 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
 
 describe(`B. addperm -- argument validation tests`, () => {
     let user1, user2,
-        permuser1,permuser2,permuser3;
+        permuser1,permuser2;
 
     before(async () => {
         user1 = await newUser(faucet);
         user2 = await newUser(faucet);
         permuser1 = await newUser(faucet);
         permuser2 = await newUser(faucet);
-        permuser3 = await newUser(faucet);
     });
 
     /*** grantee tests **/
@@ -858,21 +852,13 @@ describe(`B. addperm -- argument validation tests`, () => {
 describe(`C. remperm -- argument validation tests`, () => {
     let user1,
         user2,
-        user3,
-        user4,
-        permuser1,
-        permuser2;
-    let user6;
-    let user5;
+        user6,
+        user5;
 
 
     before(async () => {
         user1 = await newUser(faucet);
         user2 = await newUser(faucet);
-        user3 = await newUser(faucet);
-        user4 = await newUser(faucet);
-        permuser1 = await newUser(faucet);
-        permuser2 = await newUser(faucet);
         user6 = await newUser(faucet);
         user5 = await newUser(faucet);
     });
