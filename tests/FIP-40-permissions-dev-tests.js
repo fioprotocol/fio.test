@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, callFioApi,fetchJson, createKeypair, stringToHash, timeout} = require('../utils.js');
+const {newUser, callFioApi,fetchJson, createKeypair, stringToHash, generateFioAddress, timeout} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 const config = require('../config.js');
 let faucet;
@@ -13,7 +13,7 @@ before(async () => {
 
 
 
-describe(`************************** FIP-40-permissions-dev-tests.js ************************** \n    A. happy path smoke tests permissions add and remove \n `, () => {
+describe(`************************** FIP-40-permissions-dev-tests.js ************************** \n    A. smoke tests permissions add and remove \n `, () => {
 
 
   let permuser1,
@@ -176,7 +176,7 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
         }
     })
 
-  it(`SUCCESS, call remperm for first grantee`, async () => {
+    it(`SUCCESS, call remperm for first grantee`, async () => {
     try {
 
       const result = await permuser1.sdk.genericAction('pushTransaction', {
@@ -199,7 +199,6 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
       // expect(err.json.fields[0].error).to.contain('has not voted')
     }
   })
-
 
     it('SUCCESS confirm removal in accesses table contents, permissions record remains', async () => {
         try {
@@ -351,6 +350,389 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
 
         } catch (err) {
             console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+})
+
+describe(`   A.1. smoke tests regaddress with permissions integrated \n `, () => {
+
+
+    let permuser1,
+        permuser2,
+        permuser3,
+        user1Address,
+        publicuser1;
+
+
+    before(async () => {
+        permuser1 = await newUser(faucet);    //owner of domain
+        permuser2 = await newUser(faucet);    //grantee of access to perm1 domain
+        permuser3 = await newUser(faucet);    //no access granted to perm1 domain
+        publicuser1 = await newUser(faucet);    //user with public domain
+        //now transfer 1k fio from the faucet to this account
+        const result = await faucet.genericAction('transferTokens', {
+            payeeFioPublicKey: permuser1.publicKey,
+            amount: 1000000000000,
+            maxFee: config.api.transfer_tokens_pub_key.fee,
+            technologyProviderId: ''
+        })
+        user1Address = generateFioAddress(permuser1.domain, 7);
+       // console.log("address to register is ",user1Address);
+
+        console.log('permuser1.publicKey: ', permuser1.publicKey)
+
+    })
+
+
+
+    it(`SUCCESS, call addperm for user1 domain, grant access user2`, async () => {
+        try {
+
+            const result = await permuser1.sdk.genericAction('pushTransaction', {
+                action: 'addperm',
+                account: 'fio.perms',
+                data: {
+                    grantee_account: permuser2.account,
+                    permission_name: "register_address_on_domain",
+                    permission_info: "",
+                    object_name: permuser1.domain,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser1.account
+                }
+            })
+
+            expect(result.fee_collected).to.equal(514287432);
+            // console.log("result ", result);
+        } catch (err) {
+           // console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it('SUCCESS confirm permissions and accesses table contents', async () => {
+        try {
+
+            // hash  object_type, object_name, and permission_name
+            let control_string = "domain"+permuser1.domain+"register_address_on_domain";
+            const control_hash  = stringToHash(control_string);
+            //search for record in permissions using index 5 (bypermissioncontrolhash)
+            const json = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'permissions',
+                lower_bound: control_hash,
+                upper_bound: control_hash,
+                key_type: 'i128',
+                index_position: '5'
+            }
+            result = await callFioApi("get_table_rows", json);
+            //get the id for the record
+            expect(result.rows.length).to.equal(1);
+            //hash account and id
+            let pid = result.rows[0].id;
+            let access_control = permuser2.account + pid.toString();
+            const access_hash = stringToHash(access_control);
+
+            //search for record in accesses using index 4 (byaccesscontrolhash)
+            const json1 = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'accesses',
+                lower_bound: access_hash,
+                upper_bound: access_hash,
+                key_type: 'i128',
+                index_position: '4'
+            }
+            result1 = await callFioApi("get_table_rows", json1);
+            //get the id for the record
+            expect(result1.rows.length).to.equal(1);
+
+            //console.log('Result: ', result);
+            //console.log('Result 1', result1);
+            //console.log('periods : ', result.rows[0].periods)
+
+        } catch (err) {
+            //console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`FAILURE user3 try to regaddress on user1 domain`, async () => {
+        try {
+            const result = await permuser3.sdk.genericAction('pushTransaction', {
+                action: 'regaddress',
+                account: 'fio.address',
+                data: {
+                    fio_address: user1Address,
+                    owner_fio_public_key: permuser3.publicKey,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser3.account
+                }
+            });
+           // console.log('Result: ', result)
+            expect(result).to.equal(null);
+        } catch (err) {
+           // console.log(err);
+            expect(err.json.fields[0].error).to.equal("FIO Domain is not public. Only owner can create FIO Addresses.");
+        }
+    })
+
+    it(`SUCCESS user2 try to regaddress on user1 domain`, async () => {
+        try {
+            const result = await permuser2.sdk.genericAction('pushTransaction', {
+                action: 'regaddress',
+                account: 'fio.address',
+                data: {
+                    fio_address: user1Address,
+                    owner_fio_public_key: permuser2.publicKey,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser2.account
+                }
+            });
+           // console.log('Result: ', result)
+            expect(result.status).to.equal('OK');
+        } catch (err) {
+           // console.log(err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    //remove access for permuser2 see that regaddress now fails on permuser1 domain.
+    it(`SUCCESS, call remperm for user1 domain, remove access of user2`, async () => {
+        try {
+
+            const result = await permuser1.sdk.genericAction('pushTransaction', {
+                action: 'remperm',
+                account: 'fio.perms',
+                data: {
+                    grantee_account: permuser2.account,
+                    permission_name: "register_address_on_domain",
+                    object_name: permuser1.domain,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser1.account
+                }
+            })
+
+            expect(result.fee_collected).to.equal(212354321);
+            // console.log("result ", result);
+        } catch (err) {
+           // console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`FAILURE user2 try to regaddress on user1 domain`, async () => {
+        try {
+            let addaddress3 = generateFioAddress(publicuser1.domain, 7);
+            const result = await permuser2.sdk.genericAction('pushTransaction', {
+                action: 'regaddress',
+                account: 'fio.address',
+                data: {
+                    fio_address: addaddress3,
+                    owner_fio_public_key: permuser3.publicKey,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser2.account
+                }
+            });
+           // console.log('Result: ', result)
+            expect(result).to.equal(null);
+        } catch (err) {
+           // console.log(err);
+            expect(err.json.fields[0].error).to.equal("FIO Domain is not public. Only owner can create FIO Addresses.");
+        }
+    })
+
+    //make a domain public, see that others can register.
+    it(`SUCCESS set_fio_domain_public = true for user1.domain`, async () => {
+        try {
+            const result = await publicuser1.sdk.genericAction('setFioDomainVisibility', {
+                fioDomain: publicuser1.domain,
+                isPublic: true,
+                maxFee: config.maxFee,
+                technologyProviderId: ''
+            })
+            //console.log('Result: ', result);
+            expect(result.status).to.equal('OK');
+        } catch (err) {
+           // console.log('Error: ', err)
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`SUCCESS user2 try to regaddress on user1 domain`, async () => {
+        try {
+            let addaddress2 = generateFioAddress(publicuser1.domain, 7);
+
+            const result = await permuser2.sdk.genericAction('pushTransaction', {
+                action: 'regaddress',
+                account: 'fio.address',
+                data: {
+                    fio_address: addaddress2,
+                    owner_fio_public_key: permuser2.publicKey,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser2.account
+                }
+            });
+          //  console.log('Result: ', result)
+            expect(result.status).to.equal('OK');
+        } catch (err) {
+           // console.log(err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`SUCCESS, call addperm for user1 domain, grant access user2`, async () => {
+        try {
+
+            const result = await publicuser1.sdk.genericAction('pushTransaction', {
+                action: 'addperm',
+                account: 'fio.perms',
+                data: {
+                    grantee_account: permuser2.account,
+                    permission_name: "register_address_on_domain",
+                    permission_info: "",
+                    object_name: publicuser1.domain,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: publicuser1.account
+                }
+            })
+
+            expect(result.fee_collected).to.equal(514287432);
+            // console.log("result ", result);
+        } catch (err) {
+           // console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it('SUCCESS confirm permissions and accesses table contents', async () => {
+        try {
+
+            // hash  object_type, object_name, and permission_name
+            let control_string = "domain"+publicuser1.domain+"register_address_on_domain";
+            const control_hash  = stringToHash(control_string);
+            //search for record in permissions using index 5 (bypermissioncontrolhash)
+            const json = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'permissions',
+                lower_bound: control_hash,
+                upper_bound: control_hash,
+                key_type: 'i128',
+                index_position: '5'
+            }
+            result = await callFioApi("get_table_rows", json);
+            //get the id for the record
+            expect(result.rows.length).to.equal(1);
+            //hash account and id
+            let pid = result.rows[0].id;
+            let access_control = permuser2.account + pid.toString();
+            const access_hash = stringToHash(access_control);
+
+            //search for record in accesses using index 4 (byaccesscontrolhash)
+            const json1 = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'accesses',
+                lower_bound: access_hash,
+                upper_bound: access_hash,
+                key_type: 'i128',
+                index_position: '4'
+            }
+            result1 = await callFioApi("get_table_rows", json1);
+            //get the id for the record
+            expect(result1.rows.length).to.equal(1);
+
+            //console.log('Result: ', result);
+            //console.log('Result 1', result1);
+            //console.log('periods : ', result.rows[0].periods)
+
+        } catch (err) {
+           // console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`SUCCESS user2 try to regaddress on user1 domain`, async () => {
+        try {
+            let addaddress2 = generateFioAddress(publicuser1.domain, 7);
+
+            const result = await permuser2.sdk.genericAction('pushTransaction', {
+                action: 'regaddress',
+                account: 'fio.address',
+                data: {
+                    fio_address: addaddress2,
+                    owner_fio_public_key: permuser2.publicKey,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser2.account
+                }
+            });
+           // console.log('Result: ', result)
+            expect(result.status).to.equal('OK');
+        } catch (err) {
+           // console.log(err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`SUCCESS, call remperm for user1 domain, remove access of user2`, async () => {
+        try {
+
+            const result = await publicuser1.sdk.genericAction('pushTransaction', {
+                action: 'remperm',
+                account: 'fio.perms',
+                data: {
+                    grantee_account: permuser2.account,
+                    permission_name: "register_address_on_domain",
+                    object_name: publicuser1.domain,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: publicuser1.account
+                }
+            })
+           // console.log("result ", result);
+
+            expect(result.fee_collected).to.equal(212354321);
+            // console.log("result ", result);
+        } catch (err) {
+           // console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`SUCCESS user2 try to regaddress on user1 domain`, async () => {
+        try {
+
+            let addaddress2 = generateFioAddress(publicuser1.domain, 7);
+            const result = await permuser2.sdk.genericAction('pushTransaction', {
+                action: 'regaddress',
+                account: 'fio.address',
+                data: {
+                    fio_address: addaddress2,
+                    owner_fio_public_key: permuser2.publicKey,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser2.account
+                }
+            });
+           // console.log('Result: ', result)
+            expect(result.status).to.equal('OK');
+        } catch (err) {
+           // console.log(err);
             expect(err).to.equal(null);
         }
     })
