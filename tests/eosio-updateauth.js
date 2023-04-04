@@ -843,3 +843,90 @@ describe(`B. Create a new permission (permission: owner) `, () => {
   })
 
 });
+
+describe.only(`C. Use SDK genericAction to updateauth `, () => {
+  let user1, user2, user3, user4;
+
+  it(`Create users`, async () => {
+    user1 = await newUser(faucet);
+    user2 = await newUser(faucet);
+    user3 = await newUser(faucet);
+    user4 = await newUser(faucet);
+  });
+
+  it(`SUCCESS with direct API - user1 gives user2 account active permission`, async () => {
+    try {
+      const authorization = {
+        threshold: 1,
+        accounts: [
+          {
+            permission: {
+              actor: user2.account,
+              permission: 'active'
+            },
+            weight: 1
+          }
+        ],
+        keys: [],
+        waits: [],
+      };
+
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'updateauth',
+        account: 'eosio',
+        actor: user1.account,
+        privKey: user1.privateKey,
+        data: {
+          permission: 'active',
+          parent: 'owner',
+          auth: authorization,
+          max_fee: config.maxFee,
+          account: user1.account
+        }
+      });
+      //console.log('Result: ', result);
+      expect(result.processed.receipt.status).to.equal('executed');
+    } catch (err) {
+        console.log('Error: ', err);
+        expect(err).to.equal(null);
+    };
+  });
+
+  it(`FAILURE using SDK - user3 gives user4 account active permission`, async () => {
+
+    const authorization = {
+      threshold: 1,
+      accounts: [
+        {
+          permission: {
+            actor: user4.account,
+            permission: 'active'
+          },
+          weight: 1
+        }
+      ],
+      keys: [],
+      waits: [],
+    };
+
+    try {
+        const result = await user3.sdk.genericAction('pushTransaction', {
+            action: 'updateauth',
+            account: 'eosio',
+            data: {
+              permission: 'active',
+              parent: 'owner',
+              auth: authorization,
+              max_fee: config.maxFee,
+              account: user3.account
+            }
+        })
+        console.log('Result: ', result)
+        expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log(JSON.stringify(err, null, 4));
+      expect(err).to.equal('null')
+    }
+  });
+
+});
