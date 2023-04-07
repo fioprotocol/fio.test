@@ -66,14 +66,12 @@ describe(`************************** register-fio-domain-address.js ************
     expect(regDomAddObj.processed.action_traces[0].act.data.owner_fio_public_key).to.equal(user1.publicKey);
   });
 
-  it(`(BUG BD-4244) date in the response is getting incremented an extra year. confirm response contains correct domain expiration date`, async function () {
+  it(`Date in the response is getting incremented an extra year. confirm response contains correct domain expiration date (BD-4244)`, async function () {
     blockTime = regDomAddObj.processed.block_time.split('.')[0];
     expDateObj = JSON.parse(regDomAddObj.processed.action_traces[0].receipt.response);
     let blockTimeStamp = new Date(Date(blockTime)).getTime();
     let expDateTimeStamp = new Date(expDateObj.expiration).getTime();
-    let timeDelta = expDateTimeStamp - blockTimeStamp;
-    let window = MS_YEAR - timeDelta;   // allow an ~hour window
-    expect(timeDelta).to.be.greaterThanOrEqual(MS_YEAR - window).and.lessThanOrEqual(MS_YEAR);
+    expect(expDateTimeStamp).to.be.greaterThanOrEqual(blockTimeStamp + MS_YEAR - 5000).and.lessThanOrEqual(blockTimeStamp + MS_YEAR + 5000);
   });
 
   it(`confirm fee charged to user1`, async function () {
@@ -162,14 +160,12 @@ describe(`************************** register-fio-domain-address.js ************
     expect(regDomAddObj.processed.action_traces[0].act.data.owner_fio_public_key).to.equal(user1.publicKey);
   });
 
-  it(`(BUG the date in the response is getting incremented an extra year) confirm response contains correct domain expiration date`, async function () {
+  it(`Confirm response contains correct domain expiration date`, async function () {
     blockTime = regDomAddObj.processed.block_time.split('.')[0];
     expDateObj = JSON.parse(regDomAddObj.processed.action_traces[0].receipt.response);
     let blockTimeStamp = new Date(Date(blockTime)).getTime();
     let expDateTimeStamp = new Date(expDateObj.expiration).getTime();
-    let timeDelta = expDateTimeStamp - blockTimeStamp;
-    let window = MS_YEAR - timeDelta;   // allow an ~hour window
-    expect(timeDelta).to.be.greaterThanOrEqual(MS_YEAR - window).and.lessThanOrEqual(MS_YEAR);
+    expect(expDateTimeStamp).to.be.greaterThanOrEqual(blockTimeStamp + MS_YEAR - 5000).and.lessThanOrEqual(blockTimeStamp + MS_YEAR + 5000);
   });
 
   it(`confirm fee charged to user1`, async function () {
@@ -255,6 +251,7 @@ describe(`************************** register-fio-domain-address.js ************
         actor: user4.account
       }
     });
+    //console.log(JSON.stringify(regDomAddObj, null, 4));
     expect(regDomAddObj).to.have.all.keys('transaction_id', 'processed');
     expect(regDomAddObj.processed.receipt.status).to.equal('executed');
     expect(regDomAddObj.processed.action_traces[0].receipt.response).to.contain('"status": "OK"').and.contain('"fee_collected":800000000000').and.contain('"expiration":');
@@ -263,14 +260,12 @@ describe(`************************** register-fio-domain-address.js ************
     expect(regDomAddObj.processed.action_traces[0].act.data.owner_fio_public_key).to.equal(user3.publicKey);
   });
 
-  it(`(BUG the date in the response is getting incremented an extra year) confirm response contains correct domain expiration date`, async function () {
+  it(`Confirm response contains correct domain expiration date`, async function () {
     blockTime = regDomAddObj.processed.block_time.split('.')[0];
     expDateObj = JSON.parse(regDomAddObj.processed.action_traces[0].receipt.response);
     let blockTimeStamp = new Date(Date(blockTime)).getTime();
     let expDateTimeStamp = new Date(expDateObj.expiration).getTime();
-    let timeDelta = expDateTimeStamp - blockTimeStamp;
-    let window = MS_YEAR - timeDelta;   // allow an ~hour window
-    expect(timeDelta).to.be.greaterThanOrEqual(MS_YEAR - window).and.lessThanOrEqual(MS_YEAR);
+    expect(expDateTimeStamp).to.be.greaterThanOrEqual(blockTimeStamp + MS_YEAR - 5000).and.lessThanOrEqual(blockTimeStamp + MS_YEAR + 5000);
   });
 
   it(`confirm fee charged to user4`, async function () {
