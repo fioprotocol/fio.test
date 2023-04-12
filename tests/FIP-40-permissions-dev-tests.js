@@ -1,16 +1,38 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, callFioApi,fetchJson, createKeypair, stringToHash, generateFioAddress, timeout} = require('../utils.js');
+const {newUser, callFioApi,fetchJson, createKeypair, stringToHash, generateFioAddress, timeout, randStr, callFioApiSigned} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 const config = require('../config.js');
 let faucet;
 let permission_name = "register_address_on_domain";
+const expireDate = 1527686000;  // May, 2018
+let burnUser;
+
+function mintNfts(num) {
+    let nfts = [];
+    if (num === 0) return nfts;
+    for (let i = 1; i <= num; i++) {
+        nfts.push({
+            "chain_code": "ETH",
+            "contract_address": "0x123456789ABCDEF",
+            "token_id": `${randStr(6)}`,
+            "url": "",
+            "hash": "",
+            "metadata": ""
+        });
+    }
+    return nfts;
+}
 
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
+    burnUser = await newUser(faucet);
 })
 
-
+/**
+ * these tests are designed to perform the QA level testing for FIP-40, including testing the new permissions
+ * capability added into the FIO protocol for FIP-40
+ */
 
 
 describe(`************************** FIP-40-permissions-dev-tests.js ************************** \n    A. smoke tests permissions add and remove \n `, () => {
@@ -282,6 +304,7 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
             expect(err.json.fields[0].error).to.contain('Permission not found')
         }
     })
+
     it(`SUCCESS, call remperm for second grantee`, async () => {
         try {
 
@@ -305,7 +328,6 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
             // expect(err.json.fields[0].error).to.contain('has not voted')
         }
     })
-
 
     it('SUCCESS confirm removal in accesses table contents, permissions record removed', async () => {
         try {
@@ -353,6 +375,118 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
             expect(err).to.equal(null);
         }
     })
+
+    it(`FAILURE, call addperm for more than 100 accounts. fail on 101`, async () => {
+        try {
+            console.log("Creating 100 grantees for domain ",permuser1.domain);
+            for (let i =0; i< 103; i++)
+            {
+                let taccount = await newUser(faucet);
+                console.log("adding grantee ",i);
+
+                const result = await permuser1.sdk.genericAction('pushTransaction', {
+                    action: 'addperm',
+                    account: 'fio.perms',
+                    data: {
+                        grantee_account: taccount.account,
+                        permission_name: "register_address_on_domain",
+                        permission_info: "",
+                        object_name: permuser1.domain,
+                        max_fee: config.maxFee,
+                        tpid: '',
+                        actor: permuser1.account
+                    }
+                })
+            }
+        } catch (err) {
+            //console.log('Error', err);
+            expect(err.json.fields[0].error).to.equal("Number of grantees exceeded, Max number grantees permitted is 100");
+        }
+    })
+
+
+    it(`FAILURE, call clearperm from a non fio.address account`, async () => {
+        try {
+
+                const result = await permuser1.sdk.genericAction('pushTransaction', {
+                    action: 'clearperm',
+                    account: 'fio.perms',
+                    data: {
+
+                        permission_name: "register_address_on_domain",
+                        object_name: permuser1.domain,
+                    }
+                })
+
+        } catch (err) {
+            //console.log('Error', err);
+            expect(err.json.fields[0].error).to.equal("missing required authority of fio.addresss");
+        }
+    })
+
+
+    //transfer the domain for permuser1.domain to new ownership verify all grantees are removed.
+    it(`permuser1 transfers domain to permuser3`, async () => {
+        try {
+            const result = await permuser1.sdk.genericAction('transferFioDomain', {
+                fioDomain: permuser1.domain,
+                newOwnerKey: permuser3.publicKey,
+                maxFee: config.api.transfer_fio_domain.fee,
+                technologyProviderId: ''
+            })
+            expect(result.status).to.equal('OK');
+        } catch (err) {
+            console.log('Error: ', err)
+            expect(err).to.equal(null);
+        }
+    })
+
+    it('SUCCESS confirm removal in accesses table contents, permissions record also removed', async () => {
+        try {
+
+            // hash  object_type, object_name, and permission_name
+            let control_string = "domain"+permuser1.domain+"register_address_on_domain";
+            const control_hash  = stringToHash(control_string);
+            //search for record in permissions using index 5 (bypermissioncontrolhash)
+            const json = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'permissions',
+                lower_bound: control_hash,
+                upper_bound: control_hash,
+                key_type: 'i128',
+                index_position: '5'
+            }
+            result = await callFioApi("get_table_rows", json);
+            //get the id for the record
+            expect(result.rows.length).to.equal(0);
+
+            //NOTE -- todo we could save the grantees and then check that the grantees are gone from accesses.
+            /**
+            //search for record in accesses using index 3 (bygrantee)
+            const json1 = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'accesses',
+                lower_bound: user[i].account,
+                upper_bound: user[i].account,
+                key_type: 'i64',
+                index_position: '3'
+            }
+            let result1 = await callFioApi("get_table_rows", json1);
+            //get the id for the record
+            expect(result1.rows.length).to.equal(0);
+             */
+
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+
 
 })
 
@@ -1685,6 +1819,542 @@ describe(`C. remperm -- argument validation tests`, () => {
 
 })
 
+
+/**
+ * This test requires the "modexpire" action
+ *
+ * This test also requires a cleanly started chain to ensure all tests run successfully.
+ *
+ * Currently in:
+ *   fio.contracts - dev/expire_helper
+ *   fio.devtools - dev/expire_helper
+ *
+ * In fio.address.abi:
+ *
+ *   Add modexpire struct:
+
+ {
+        "name": "modexpire",
+        "base": "",
+        "fields": [
+          {
+            "name": "fio_address",
+            "type": "string"
+          },
+          {
+            "name": "expire",
+            "type": "int64"
+          }
+        ]
+      },
+
+ *
+ *  Add modexpire action:
+ *
+
+ {
+      "name": "modexpire",
+      "type": "modexpire",
+      "ricardian_contract": ""
+    },
+ *
+ *
+ * In fio.address.cpp
+ *
+ *   Add modexpire action: (beware of autoformattig of the "byname"_n>)
+ *
+
+ [[eosio::action]]
+ void modexpire(const string &fio_address, const int64_t &expire) {
+            FioAddress fa;
+            getFioAddressStruct(fio_address, fa);
+            name actor = name{"eosio"};
+            const uint128_t nameHash = string_to_uint128_hash(fa.fioaddress.c_str());
+            auto namesbyname = domains.get_index<"byname"_n>();
+            auto fioname_iter = namesbyname.find(nameHash);
+
+            namesbyname.modify(fioname_iter, actor, [&](struct domain &a) {
+                a.expiration = expire;
+            });
+        }
+ *
+ *
+ *   Add modexpire to EOSIO_DISPATCH, e.g.:
+ *
+ *      EOSIO_DISPATCH(FioNameLookup, (regaddress)(addaddress)(remaddress)(remalladdr)(regdomain)(renewdomain)(renewaddress)(
+ *          setdomainpub)(burnexpired)(modexpire)(decrcounter)
+ *
+ *
+ *  Rebuild contracts
+ *
+ *  be sure to start the chain without many other CPU intensive things on the local dev box, exit clion etc etc.
+ */
+
+describe.skip('D. Burn large number of expired domains with gaps between expired and non-expired', () => {
+
+    let nftburnqCount;
+    let user = [];
+    const domainBlockCount = 5;
+    const addressBlockCount = 10;
+    const nftBlockCount = 3;  // Must be divisible by 3
+    let burnexpiredStepSize = 3; // Offset gets incremented by this number in the while loop. Also index is set to this number.
+    const retryLimit = 1; // Number of times to call burnexpired with the same offset/limit when hitting a CPU limit error
+
+    it(`Get nftburnq table number of rows (in case there are existing entries)`, async () => {
+        try {
+            const json = {
+                json: true,
+                code: 'fio.address',
+                scope: 'fio.address',
+                table: 'nftburnq',
+                limit: 1000,
+                reverse: false,
+                show_payer: false
+            }
+            result = await callFioApi("get_table_rows", json);
+            //console.log('result: ', result);
+            nftburnqCount = result.rows.length;
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`#1 - Create domain block: ${domainBlockCount} domains, ${addressBlockCount} addresses, ${nftBlockCount} NFTs`, async () => {
+        let address = [], addedNfts;
+
+
+
+        try {
+
+            for (let i = 0; i < domainBlockCount; i++) {
+                console.log('          (Adding Domain) #' + i);
+                user[i] = await newUser(faucet);
+               // console.log('user[i].privateKey: ', user[i].privateKey);
+               // console.log('user[i].privateKey: ', user[i].publicKey);
+
+
+                //console.log('          (Adding ' + addressBlockCount + ' Addresses with ' + nftBlockCount + ' NFTs)');
+                for (let j = 0; j < addressBlockCount; j++) {
+                    address[j] = generateFioAddress(user[i].domain, 10)
+                  //  console.log('address[j]: ', address[j]);
+
+                    const addressResult = await user[i].sdk.genericAction('registerFioAddress', {
+                        fioAddress: address[j],
+                        maxFee: config.maxFee,
+                        technologyProviderId: ''
+                    })
+                   // console.log('addressResult: ', addressResult)
+                    expect(addressResult.status).to.equal('OK')
+
+                    let permgrantee = await newUser(faucet);
+                    //make permission on user[i]
+                    let permresult = await user[i].sdk.genericAction('pushTransaction', {
+                        action: 'addperm',
+                        account: 'fio.perms',
+                        data: {
+                            grantee_account: permgrantee.account,
+                            permission_name: "register_address_on_domain",
+                            permission_info: "",
+                            object_name:user[i].domain,
+                            max_fee: config.maxFee,
+                            tpid: '',
+                            actor: user[i].account
+                        }
+                    });
+
+                    for (k = 0; k < nftBlockCount / 3; k++) {
+                        addedNfts = mintNfts(3);
+                        const addnftResult = await user[i].sdk.genericAction('pushTransaction', {
+                            action: 'addnft',
+                            account: 'fio.address',
+                            data: {
+                                fio_address: address[j],
+                                nfts: addedNfts,
+                                max_fee: config.maxFee,
+                                actor: user[i].account,
+                                tpid: ""
+                            }
+                        })
+                        //console.log(`nft count: `, k)
+                        //console.log(`addnftResult: `, addnftResult)
+                        expect(addnftResult.status).to.equal('OK')
+                    } // k - nfts
+                }  // j - addresses
+            } // i - domains
+
+        } catch (err) {
+            console.log(err.json)
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`(Expire the domains using modexpire)`, async () => {
+
+            for (let i = 0; i < domainBlockCount; i++) {
+                try {
+                const result = await callFioApiSigned('push_transaction', {
+                    action: 'modexpire',
+                    account: 'fio.address',
+                    actor: user[i].account,
+                    privKey: user[i].privateKey,
+                    data: {
+                        "fio_address": user[i].domain,
+                        "expire": expireDate,
+                        "actor": user[i].account
+                    }
+                })
+                //console.log('Result: ', result);
+                expect(result.processed.receipt.status).to.equal('executed');
+                } catch (err) {
+                    console.log('Error: ', err);
+                    // expect(err).to.equal(null);
+                }
+            }
+
+    });
+
+    it(`#2 - Create non expired domains block: ${domainBlockCount} domains, ${addressBlockCount} addresses, ${nftBlockCount} NFTs`, async () => {
+        let address = [], addedNfts;
+        try {
+
+            for (i = domainBlockCount; i < domainBlockCount * 2; i++) {
+                console.log('          (Adding Domain) #' + i);
+                user[i] = await newUser(faucet);
+
+                //console.log('          (Adding ' + addressBlockCount + ' Addresses with ' + nftBlockCount + ' NFTs)');
+                for (j = 0; j < addressBlockCount; j++) {
+                    address[j] = generateFioAddress(user[i].domain, 10)
+
+                    const addressResult = await user[i].sdk.genericAction('registerFioAddress', {
+                        fioAddress: address[j],
+                        maxFee: config.maxFee,
+                        technologyProviderId: ''
+                    })
+                    //console.log('addressResult: ', addressResult)
+                    expect(addressResult.status).to.equal('OK')
+
+
+                    //NO PERMISSIONS ON THESE DOMAINS
+
+
+                    for (k = 0; k < nftBlockCount / 3; k++) {
+                        addedNfts = mintNfts(3);
+                        const addnftResult = await user[i].sdk.genericAction('pushTransaction', {
+                            action: 'addnft',
+                            account: 'fio.address',
+                            data: {
+                                fio_address: address[j],
+                                nfts: addedNfts,
+                                max_fee: config.maxFee,
+                                actor: user[i].account,
+                                tpid: ""
+                            }
+                        })
+                        //console.log(`addnftResult: `, addnftResult)
+                        expect(addnftResult.status).to.equal('OK')
+                    } // k - nfts
+                }  // j - addresses
+            } // i - domains
+
+        } catch (err) {
+            console.log(err.json)
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`#3 - Create expired domains block: ${domainBlockCount} domains, ${addressBlockCount} addresses, ${nftBlockCount} NFTs`, async () => {
+        let address = [], addedNfts;
+        try {
+
+            for (i = domainBlockCount * 2; i < domainBlockCount * 3; i++) {
+                console.log('          (Adding Domain) #' + i);
+                user[i] = await newUser(faucet);
+
+                //console.log('          (Adding ' + addressBlockCount + ' Addresses with ' + nftBlockCount + ' NFTs)');
+                for (j = 0; j < addressBlockCount; j++) {
+                    address[j] = generateFioAddress(user[i].domain, 10)
+
+                    const addressResult = await user[i].sdk.genericAction('registerFioAddress', {
+                        fioAddress: address[j],
+                        maxFee: config.maxFee,
+                        technologyProviderId: ''
+                    })
+                    //console.log('addressResult: ', addressResult)
+                    expect(addressResult.status).to.equal('OK')
+
+                    for (k = 0; k < nftBlockCount / 3; k++) {
+                        addedNfts = mintNfts(3);
+                        const addnftResult = await user[i].sdk.genericAction('pushTransaction', {
+                            action: 'addnft',
+                            account: 'fio.address',
+                            data: {
+                                fio_address: address[j],
+                                nfts: addedNfts,
+                                max_fee: config.maxFee,
+                                actor: user[i].account,
+                                tpid: ""
+                            }
+                        })
+                        //console.log(`addnftResult: `, addnftResult)
+                        expect(addnftResult.status).to.equal('OK')
+                    } // k - nfts
+                }  // j - addresses
+            } // i - domains
+
+        } catch (err) {
+            console.log(err.json)
+            expect(err).to.equal(null);
+        }
+    });
+    it(`(Expire the domains using modexpire)`, async () => {
+        try {
+            for (i = domainBlockCount * 2; i < domainBlockCount * 3; i++) {
+                const result = await callFioApiSigned('push_transaction', {
+                    action: 'modexpire',
+                    account: 'fio.address',
+                    actor: user[i].account,
+                    privKey: user[i].privateKey,
+                    data: {
+                        "fio_address": user[i].domain,
+                        "expire": expireDate,
+                        "actor": user[i].account
+                    }
+                })
+                expect(result.processed.receipt.status).to.equal('executed');
+            }
+        } catch (err) {
+            console.log('Error: ', err);
+            expect(err).to.equal(null);
+        }
+    });
+
+
+    it(`Call burnexpired until empty`, async () => {
+        let offset, limit;
+        let retryCount = 0;
+        let empty = false;
+        let workDoneThisRound = true;
+        let workDoneThisOffset = false;
+        let count = 1;
+
+        while (!empty) {
+            offset = burnexpiredStepSize * count;
+            limit = burnexpiredStepSize;
+
+            try {
+                const result = await burnUser.sdk.genericAction('pushTransaction', {
+                    action: 'burnexpired',
+                    account: 'fio.address',
+                    data: {
+                        actor: burnUser.account,
+                        offset: offset,
+                        limit: limit
+                    }
+                })
+                console.log('Offset = ' + offset + ', Limit = ' + limit + ', Result: {status: ' + result.status + ', items_burned: ' + result.items_burned + ' }');
+                expect(result.status).to.equal('OK');
+                workDoneThisOffset = true;
+                workDoneThisRound = true;
+                retryCount = 0;
+                await timeout(1000); // To avoid duplicate transaction
+            } catch (err) {
+                workDoneThisOffset = false;
+                //console.log('Error: ', err);
+                if (err.errorCode == 400 && err.json.fields[0].error == 'No work.') {
+                    retryCount = 0;
+                    console.log('Offset = ' + offset + ', Limit = ' + limit + ', Result: ' + err.json.fields[0].error);
+                    expect(err.errorCode).to.equal(400);
+                    expect(err.json.fields[0].error).to.equal('No work.');
+                } else if (err.json.code == 500 && err.json.error.what == 'Transaction exceeded the current CPU usage limit imposed on the transaction') {
+                    console.log('Offset = ' + offset + ', Limit = ' + limit + ', Result: Transaction exceeded the current CPU usage limit imposed on the transaction');
+                    retryCount++;
+                } else {
+                    console.log('UNEXPECTED ERROR: ', err);
+                }
+
+            }
+
+            const json = {
+                json: true,
+                code: 'fio.address',
+                scope: 'fio.address',
+                table: 'domains',
+                limit: burnexpiredStepSize,
+                lower_bound: burnexpiredStepSize * count,
+                reverse: false,
+                show_payer: false
+            }
+            result = await callFioApi("get_table_rows", json);
+            //console.log('Table lookup: ', result);
+
+            if (result.rows.length == 0) {
+                console.log("DONE");
+                count = 1;  // Start again
+                // If this is the first round, or work was done during the round, reset
+                if (workDoneThisRound) {
+                    workDoneThisRound = false;
+                } else {
+                    empty = true;  // No work was done this round and we are at the end of the domains
+                }
+            } else {
+                // Only increment the offset if no work was done
+                if (!workDoneThisOffset) {
+                    // If you have done several retries, move to next offset
+                    if (retryCount == 0) {
+                        count++;
+                    } else if (retryCount >= retryLimit) {
+                        retryCount = 0;
+                        count++;
+                    }
+                }
+            }
+        }
+
+    });
+
+    it(`To confirm burnexpired, Call with limit = 1 with offset step size of 1`, async () => {
+        let offset, limit;
+        let retryCount = 0;
+        let empty = false;
+        let workDoneThisRound = true;
+        let workDoneThisOffset = false;
+        let count = 1;
+
+        burnexpiredStepSize = 1;
+
+        while (!empty) {
+            offset = burnexpiredStepSize * count;
+            limit = burnexpiredStepSize;
+
+            try {
+                const result = await burnUser.sdk.genericAction('pushTransaction', {
+                    action: 'burnexpired',
+                    account: 'fio.address',
+                    data: {
+                        actor: burnUser.account,
+                        offset: offset,
+                        limit: limit
+                    }
+                })
+                console.log('Offset = ' + offset + ', Limit = ' + limit + ', Result: {status: ' + result.status + ', items_burned: ' + result.items_burned + ' }');
+                expect(result.status).to.equal('OK');
+                workDoneThisOffset = true;
+                workDoneThisRound = true;
+                retryCount = 0;
+                await timeout(1000); // To avoid duplicate transaction
+            } catch (err) {
+                workDoneThisOffset = false;
+                //console.log('Error: ', err);
+                if (err.errorCode == 400 && err.json.fields[0].error == 'No work.') {
+                    retryCount = 0;
+                    console.log('Offset = ' + offset + ', Limit = ' + limit + ', Result: ' + err.json.fields[0].error);
+                    expect(err.errorCode).to.equal(400);
+                    expect(err.json.fields[0].error).to.equal('No work.');
+                } else if (err.json.code == 500 && err.json.error.what == 'Transaction exceeded the current CPU usage limit imposed on the transaction') {
+                    console.log('Offset = ' + offset + ', Limit = ' + limit + ', Result: Transaction exceeded the current CPU usage limit imposed on the transaction');
+                    retryCount++;
+                } else {
+                    console.log('UNEXPECTED ERROR: ', err);
+                }
+
+            }
+
+            const json = {
+                json: true,
+                code: 'fio.address',
+                scope: 'fio.address',
+                table: 'domains',
+                limit: burnexpiredStepSize,
+                lower_bound: burnexpiredStepSize * count,
+                reverse: false,
+                show_payer: false
+            }
+            result = await callFioApi("get_table_rows", json);
+            //console.log('Table lookup: ', result);
+
+            if (result.rows.length == 0) {
+                console.log("DONE");
+                count = 1;  // Start again
+                // If this is the first round, or work was done during the round, reset
+                if (workDoneThisRound) {
+                    workDoneThisRound = false;
+                } else {
+                    empty = true;  // No work was done this round and we are at the end of the domains
+                }
+            } else {
+                // Only increment the offset if no work was done
+                if (!workDoneThisOffset) {
+                    // If you have done several retries, move to next offset
+                    if (retryCount == 0) {
+                        count++;
+                    } else if (retryCount >= retryLimit) {
+                        retryCount = 0;
+                        count++;
+                    }
+                }
+            }
+        }
+
+    });
+
+    /*check all domains see that no permissions exist. */
+    it('SUCCESS confirm removal in accesses table contents, permissions record removed', async () => {
+        try {
+
+            for (let i = 0; i < domainBlockCount; i++) {
+                // hash  object_type, object_name, and permission_name
+                let control_string = "domain" + user[i].domain + "register_address_on_domain";
+                const control_hash = stringToHash(control_string);
+                //search for record in permissions using index 5 (bypermissioncontrolhash)
+                const json = {
+                    json: true,
+                    code: 'fio.perms',
+                    scope: 'fio.perms',
+                    table: 'permissions',
+                    lower_bound: control_hash,
+                    upper_bound: control_hash,
+                    key_type: 'i128',
+                    index_position: '5'
+                }
+                let result = await callFioApi("get_table_rows", json);
+                //get the id for the record
+                expect(result.rows.length).to.equal(0);
+
+
+                //search for record in accesses using index 3 (bygrantee)
+                const json1 = {
+                    json: true,
+                    code: 'fio.perms',
+                    scope: 'fio.perms',
+                    table: 'accesses',
+                    lower_bound: user[i].account,
+                    upper_bound: user[i].account,
+                    key_type: 'i64',
+                    index_position: '3'
+                }
+                let result1 = await callFioApi("get_table_rows", json1);
+                //get the id for the record
+                expect(result1.rows.length).to.equal(0);
+            }
+
+            //console.log('Result: ', result);
+            //console.log('Result 1', result1);
+            //console.log('periods : ', result.rows[0].periods)
+
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+})
+
+
+/**
+ * this test was used for early prototyping to prove adequate function of 128 bit indexes used by the table model.
+ * this test DOES NOT need run as part of QA
+ */
 describe.skip(`AA. indexing tests, Add a large number of users each with 2 permissions, query tables`, () => {
     let users = [];
     let owners = [];
@@ -1777,3 +2447,167 @@ describe.skip(`AA. indexing tests, Add a large number of users each with 2 permi
 
 })
 
+
+/**
+ *this test was made to better understand the max number of permissions that could be removed in one tx on the local dev box.
+ *the number discovered was between 6-8k permissions.
+ * this test does not need run as part of QA
+ */
+describe.skip(`AB. permissions performance tests \n `, () => {
+
+    //setup, make the cost/fee of addperm to be zero. in the devtools
+
+    /* contract setup , go to fio.perms.cpp in the remperm action.
+    change the following code
+
+
+                fio_400_assert((access_iter != accessbyhash.end() ), "grantee_account", grantee_account.to_string(),
+                               "Permission not found", ErrorPermissionExists);
+                accessbyhash.erase(access_iter);
+
+
+    to become
+
+                //TEST ONLY CODE!!! remove ALLLLL accesses for this permission!, prototype only code which is used
+                //for performance testing.
+                auto     accessbypermid1         = accesses.get_index<"bypermid"_n>();
+                auto     accessbypermid_iter          = accessbypermid1.find(permid);
+
+                fio_400_assert((accessbypermid_iter != accessbypermid1.end() ), "grantee_account", grantee_account.to_string(),
+                               "Permission not found", ErrorPermissionExists);
+
+                while (accessbypermid_iter != accessbypermid1.end()) {
+                    auto nextaccess = accessbypermid_iter;
+                    nextaccess++;
+                    accessbypermid1.erase(accessbypermid_iter);
+                    accessbypermid_iter = nextaccess;
+                }
+
+
+                fio_400_assert((access_iter != accessbyhash.end() ), "grantee_account", grantee_account.to_string(),
+                               "permid Permission not found", ErrorPermissionExists);
+
+
+               // comment out for TESTING ONLY!!!!! accessbyhash.erase(access_iter);
+     */
+
+    let
+        numUsersToCreate = 6000,
+    permuser1,
+        permuser2,
+        permuser3;
+
+
+    before(async () => {
+        permuser1 = await newUser(faucet);
+
+        permuser3 = await newUser(faucet);
+        //now transfer 1k fio from the faucet to this account
+        const result = await faucet.genericAction('transferTokens', {
+            payeeFioPublicKey: permuser1.publicKey,
+            amount: 1000000000000,
+            maxFee: config.api.transfer_tokens_pub_key.fee,
+            technologyProviderId: ''
+        })
+
+        console.log('permuser1.publicKey: ', permuser1.publicKey)
+
+    })
+
+
+
+    it(`SUCCESS, call addperm for many new accounts`, async () => {
+        try {
+
+            let userCount = 0;
+            while (userCount < numUsersToCreate) {
+
+                userCount = userCount + 1;
+                try {
+                    permuser2 = await newUser(faucet);
+                    const result = await permuser1.sdk.genericAction('pushTransaction', {
+                        action: 'addperm',
+                        account: 'fio.perms',
+                        data: {
+                            grantee_account: permuser2.account,
+                            permission_name: "register_address_on_domain",
+                            permission_info: "",
+                            object_name: permuser1.domain,
+                            max_fee: config.maxFee,
+                            tpid: '',
+                            actor: permuser1.account
+                        }
+                    })
+                }catch(err){
+                    console.log ("EERRROR creating ",userCount);
+                }
+                console.log("CREATED ACCOUNT ",userCount);
+            }
+
+
+           // expect(result.fee_collected).to.equal(514287432);
+            // console.log("result ", result);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+
+
+
+
+    it(`SUCCESS, call remperm for last grantee, removes ALL accesses!!`, async () => {
+        try {
+
+            const result = await permuser1.sdk.genericAction('pushTransaction', {
+                action: 'remperm',
+                account: 'fio.perms',
+                data: {
+                    grantee_account: permuser2.account,
+                    permission_name: "register_address_on_domain",
+                    object_name: permuser1.domain,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser1.account
+                }
+            })
+            expect(result.fee_collected).to.equal(212354321);
+
+            //console.log("result ", result);
+        } catch (err) {
+            console.log("Error : ", err)
+            // expect(err.json.fields[0].error).to.contain('has not voted')
+        }
+    })
+
+    it('SUCCESS confirm removal in accesses table contents, permissions record should also be gone', async () => {
+        try {
+
+            // hash  object_type, object_name, and permission_name
+            let control_string = "domain"+permuser1.domain+"register_address_on_domain";
+            const control_hash  = stringToHash(control_string);
+            //search for record in permissions using index 5 (bypermissioncontrolhash)
+            const json = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'permissions',
+                lower_bound: control_hash,
+                upper_bound: control_hash,
+                key_type: 'i128',
+                index_position: '5'
+            }
+            result = await callFioApi("get_table_rows", json);
+            //get the id for the record
+            expect(result.rows.length).to.equal(0);
+
+
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+
+})
