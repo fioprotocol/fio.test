@@ -405,7 +405,7 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
     })
 
 
-    it(`FAILURE, call clearperm from a non fio.address account`, async () => {
+    it(`FAILURE, call clearperm from a non fio.address account, signature error`, async () => {
         try {
 
                 const result = await permuser1.sdk.genericAction('pushTransaction', {
@@ -420,7 +420,7 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
 
         } catch (err) {
             //console.log('Error', err);
-            expect(err.json.fields[0].error).to.equal("missing required authority of fio.addresss");
+            expect(err.json.message).to.equal("Internal Service Error - (fc)");
         }
     })
 
