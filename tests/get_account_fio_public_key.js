@@ -3,6 +3,7 @@ const {expect} = require('chai')
 const {
   callFioApi, 
   newUser, 
+  timeout,
   fetchJson,
 } = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk');
@@ -19,7 +20,9 @@ describe('************************** get_account_fio_public_key.js *************
 
   it(`Create users`, async () => {
     user1 = await newUser(faucet);
-  })
+  });
+
+  it(`Wait a few seconds.`, async () => { await timeout(2000) });
 
   it(`(success) Send user1 account. Expect success`, async () => {
     try {
