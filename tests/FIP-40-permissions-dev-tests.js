@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, callFioApi,fetchJson, createKeypair, stringToHash, generateFioAddress, timeout, randStr, callFioApiSigned} = require('../utils.js');
+const {newUser, callFioApi,fetchJson, createKeypair, stringToHash, generateFioAddress, generateFioDomain, timeout, randStr, callFioApiSigned} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 const config = require('../config.js');
 let faucet;
@@ -35,7 +35,7 @@ before(async () => {
  */
 
 
-describe(`************************** FIP-40-permissions-dev-tests.js ************************** \n    A. smoke tests permissions add and remove \n `, () => {
+describe(`************************** FIP-40-permissions-dev-tests.js ************************** \n    A. contract action smoke tests permissions add and remove \n `, () => {
 
 
   let permuser1,
@@ -490,7 +490,94 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
 
 })
 
-describe(`   A.1. smoke tests regaddress with permissions integrated \n `, () => {
+describe(`B. chain_api endpoint smoke tests permissions add and remove \n `, () => {
+
+
+    let permuser1,
+        permuser2,
+        permuser3;
+
+
+    before(async () => {
+        permuser1 = await newUser(faucet);
+        permuser2 = await newUser(faucet);
+        permuser3 = await newUser(faucet);
+        //now transfer 1k fio from the faucet to this account
+        const result = await faucet.genericAction('transferTokens', {
+            payeeFioPublicKey: permuser1.publicKey,
+            amount: 1000000000000,
+            maxFee: config.api.transfer_tokens_pub_key.fee,
+            technologyProviderId: ''
+        })
+
+        console.log('permuser1.publicKey: ', permuser1.publicKey)
+
+    })
+
+
+
+
+    it(`SUCCESS, call addperm`, async () => {
+        try {
+
+            const result = await callFioApiSigned('add_fio_permission', {
+                action: 'addperm',
+                account: 'fio.perms',
+                actor: permuser1.account,
+                privKey: permuser1.privateKey,
+                data: {
+                    grantee_account: permuser2.account,
+                    permission_name: "register_address_on_domain",
+                    permission_info: "",
+                    object_name: permuser1.domain,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser1.account
+                }
+            })
+
+ //console.log("result ", result);
+            expect(result.processed.action_traces[0].receipt.response).to.contain("514287432");
+
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`SUCCESS, call remperm`, async () => {
+        try {
+
+            const result = await callFioApiSigned('remove_fio_permission', {
+                action: 'remperm',
+                account: 'fio.perms',
+                actor: permuser1.account,
+                privKey: permuser1.privateKey,
+                data: {
+                    grantee_account: permuser2.account,
+                    permission_name: "register_address_on_domain",
+                    object_name: permuser1.domain,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser1.account
+                }
+            })
+
+            //console.log("result ", result);
+            expect(result.processed.action_traces[0].receipt.response).to.contain("OK");
+
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+
+
+
+})
+
+describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
 
 
     let permuser1,
@@ -873,7 +960,7 @@ describe(`   A.1. smoke tests regaddress with permissions integrated \n `, () =>
 
 })
 
-describe(`B. addperm -- argument validation tests`, () => {
+describe(`D. addperm -- argument validation tests`, () => {
     let user1, user2,
         permuser1,permuser2;
 
@@ -1365,7 +1452,7 @@ describe(`B. addperm -- argument validation tests`, () => {
 
 })
 
-describe(`C. remperm -- argument validation tests`, () => {
+describe(`E. remperm -- argument validation tests`, () => {
     let user1,
         user2,
         user6,
@@ -1818,6 +1905,499 @@ describe(`C. remperm -- argument validation tests`, () => {
     });
 
 })
+
+describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
+
+
+    let permuser1,
+        permuser2,
+        permuser3;
+    let users = [];
+
+    const NUMBER_PERMS = 10;
+
+
+    before(async () => {
+        permuser1 = await newUser(faucet);
+        permuser2 = await newUser(faucet);
+        permuser3 = await newUser(faucet);
+        //now transfer 1k fio from the faucet to this account
+        const result = await faucet.genericAction('transferTokens', {
+            payeeFioPublicKey: permuser1.publicKey,
+            amount: 1000000000000,
+            maxFee: config.api.transfer_tokens_pub_key.fee,
+            technologyProviderId: ''
+        })
+
+        console.log('permuser1.publicKey: ', permuser1.publicKey)
+
+    })
+
+
+    it(`SUCCESS load the permuser1 account with multiple domains and multiple grantees per domain`, async () => {
+        try {
+
+
+            for (let step = 0; step < 3; step++) {
+
+                try {
+
+                    domainGood = generateFioDomain(7);
+
+
+                    const result = await permuser1.sdk.genericAction('registerFioDomain', {
+                        fioDomain: domainGood,
+                        maxFee: config.api.register_fio_domain.fee,
+                        technologyProviderId: ''
+                    })
+
+                    console.log('created domain: ', step);
+                    expect(result.status).to.equal('OK')
+
+                    for (let i = 0; i < NUMBER_PERMS; i++) {
+                        console.log('          (Adding permission) #' + i);
+                        users[i] = await newUser(faucet);
+                        const result = await callFioApiSigned('add_fio_permission', {
+                            action: 'addperm',
+                            account: 'fio.perms',
+                            actor: permuser1.account,
+                            privKey: permuser1.privateKey,
+                            data: {
+                                grantee_account: users[i].account,
+                                permission_name: "register_address_on_domain",
+                                permission_info: "",
+                                object_name: domainGood,
+                                max_fee: config.maxFee,
+                                tpid: '',
+                                actor: permuser1.account
+                            }
+                        })
+
+                        //console.log("result ", result);
+                        expect(result.processed.action_traces[0].receipt.response).to.contain("514287432");
+                    }
+
+                }catch(err1){
+                    console.log('failed iteraton ', err1)
+                }
+            }
+        }
+        catch
+            (err)
+        {
+            console.log('Error', err)
+        }
+
+    })
+
+
+    it(`SUCCESS -- call get_grantor_permissions with no limit and offset`, async () => {
+        try {
+            const json = {
+                grantor_account: permuser1.account
+            }
+            result = await callFioApi("get_grantor_permissions", json);
+            console.log('Result: ', result);
+            //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+        } catch (err) {
+            //console.log(err);
+            console.log(JSON.stringify(err.error, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+
+    /* Todo add other QA tests for limit and offset.
+    it(`SUCCESS -- call get_grantee_permissions with 0 limit and offset`, async () => {
+        try {
+            const json = {
+                grantee_account: permuser1.account,
+                limit: 0,
+                offset: 0
+            }
+            result = await callFioApi("get_grantee_permissions", json);
+            console.log('Result: ', result);
+            //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+        } catch (err) {
+            //console.log(err);
+            console.log(JSON.stringify(err.error, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+
+
+    it(`SUCCESS -- call get_grantee_permissions with  limit 2 and offset 3`, async () => {
+        try {
+            const json = {
+                grantee_account: permuser1.account,
+                limit: 2,
+                offset: 3
+            }
+            result = await callFioApi("get_grantee_permissions", json);
+            console.log('Result: ', result);
+            //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+        } catch (err) {
+            //console.log(err);
+            console.log(JSON.stringify(err.error, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`SUCCESS -- call get_grantee_permissions with  limit 20 and offset 3`, async () => {
+        try {
+            const json = {
+                grantee_account: permuser1.account,
+                limit: 20,
+                offset: 3
+            }
+            result = await callFioApi("get_grantee_permissions", json);
+            console.log('Result: ', result);
+            //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+        } catch (err) {
+            //console.log(err);
+            console.log(JSON.stringify(err.error, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+    it(`SUCCESS -- call get_grantee_permissions with  limit 20 and offset 20`, async () => {
+        try {
+            const json = {
+                grantee_account: permuser1.account,
+                limit: 20,
+                offset: 20
+            }
+            result = await callFioApi("get_grantee_permissions", json);
+            console.log('Result: ', result);
+            //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+        } catch (err) {
+            //console.log(err);
+            console.log(JSON.stringify(err.error, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+    */
+})
+
+describe(`G. chain_api endpoint get_grantee_permissions tests \n `, () => {
+
+
+    let permuser1,
+        permuser2,
+        permuser3;
+    let users = [];
+
+    const NUMBER_PERMS = 10;
+
+
+    before(async () => {
+        permuser1 = await newUser(faucet);
+        permuser2 = await newUser(faucet);
+        permuser3 = await newUser(faucet);
+        //now transfer 1k fio from the faucet to this account
+        const result = await faucet.genericAction('transferTokens', {
+            payeeFioPublicKey: permuser1.publicKey,
+            amount: 1000000000000,
+            maxFee: config.api.transfer_tokens_pub_key.fee,
+            technologyProviderId: ''
+        })
+
+        console.log('permuser1.publicKey: ', permuser1.publicKey)
+
+    })
+
+
+
+    it(`SUCCESS, grant permuser1 permission on many many domains`, async () => {
+        try {
+
+            for (let i = 0; i < NUMBER_PERMS; i++) {
+                console.log('          (Adding permission) #' + i);
+                users[i] = await newUser(faucet);
+                const result = await callFioApiSigned('add_fio_permission', {
+                    action: 'addperm',
+                    account: 'fio.perms',
+                    actor: users[i].account,
+                    privKey: users[i].privateKey,
+                    data: {
+                        grantee_account: permuser1.account,
+                        permission_name: "register_address_on_domain",
+                        permission_info: "",
+                        object_name: users[i].domain,
+                        max_fee: config.maxFee,
+                        tpid: '',
+                        actor: users[i].account
+                    }
+                })
+
+                //console.log("result ", result);
+                expect(result.processed.action_traces[0].receipt.response).to.contain("514287432");
+            }
+
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`SUCCESS -- call get_grantee_permissions with no limit and offset`, async () => {
+        try {
+            const json = {
+                grantee_account: permuser1.account
+            }
+            result = await callFioApi("get_grantee_permissions", json);
+            console.log('Result: ', result);
+            //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+        } catch (err) {
+            //console.log(err);
+            console.log(JSON.stringify(err.error, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`SUCCESS -- call get_grantee_permissions with 0 limit and offset`, async () => {
+        try {
+            const json = {
+                grantee_account: permuser1.account,
+                limit: 0,
+                offset: 0
+            }
+            result = await callFioApi("get_grantee_permissions", json);
+            console.log('Result: ', result);
+            //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+        } catch (err) {
+            //console.log(err);
+            console.log(JSON.stringify(err.error, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+
+
+    it(`SUCCESS -- call get_grantee_permissions with  limit 2 and offset 3`, async () => {
+        try {
+            const json = {
+                grantee_account: permuser1.account,
+                limit: 2,
+                offset: 3
+            }
+            result = await callFioApi("get_grantee_permissions", json);
+            console.log('Result: ', result);
+            //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+        } catch (err) {
+            //console.log(err);
+            console.log(JSON.stringify(err.error, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`SUCCESS -- call get_grantee_permissions with  limit 20 and offset 3`, async () => {
+        try {
+            const json = {
+                grantee_account: permuser1.account,
+                limit: 20,
+                offset: 3
+            }
+            result = await callFioApi("get_grantee_permissions", json);
+            console.log('Result: ', result);
+            //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+        } catch (err) {
+            //console.log(err);
+            console.log(JSON.stringify(err.error, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+    it(`SUCCESS -- call get_grantee_permissions with  limit 20 and offset 20`, async () => {
+        try {
+            const json = {
+                grantee_account: permuser1.account,
+                limit: 20,
+                offset: 20
+            }
+            result = await callFioApi("get_grantee_permissions", json);
+            console.log('Result: ', result);
+            //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+        } catch (err) {
+            //console.log(err);
+            console.log(JSON.stringify(err.error, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+})
+
+describe(`H. chain_api endpoint get_object_permissions tests \n `, () => {
+
+
+    let permuser1,
+        permuser2,
+        permuser3;
+    let users = [];
+    let useDomain;
+
+    const NUMBER_PERMS = 10;
+
+
+    before(async () => {
+        permuser1 = await newUser(faucet);
+        permuser2 = await newUser(faucet);
+        permuser3 = await newUser(faucet);
+        //now transfer 1k fio from the faucet to this account
+        const result = await faucet.genericAction('transferTokens', {
+            payeeFioPublicKey: permuser1.publicKey,
+            amount: 1000000000000,
+            maxFee: config.api.transfer_tokens_pub_key.fee,
+            technologyProviderId: ''
+        })
+
+        console.log('permuser1.publicKey: ', permuser1.publicKey)
+
+    })
+
+
+    it(`SUCCESS load the permuser1 account with multiple domains, each with permissions granted to multiple accounts per domain`, async () => {
+        try {
+
+
+            for (let step = 0; step < 3; step++) {
+
+                try {
+
+                    domainGood = generateFioDomain(7);
+
+                   if(step == 1){
+                       useDomain = domainGood;
+                   }
+                    const result = await permuser1.sdk.genericAction('registerFioDomain', {
+                        fioDomain: domainGood,
+                        maxFee: config.api.register_fio_domain.fee,
+                        technologyProviderId: ''
+                    })
+
+                    console.log('created domain: ', step);
+                    console.log('created domain name ',domainGood);
+                    expect(result.status).to.equal('OK')
+
+                    for (let i = 0; i < NUMBER_PERMS; i++) {
+                        console.log('          (Adding permission) #' + i);
+                        users[i] = await newUser(faucet);
+                        const result = await callFioApiSigned('add_fio_permission', {
+                            action: 'addperm',
+                            account: 'fio.perms',
+                            actor: permuser1.account,
+                            privKey: permuser1.privateKey,
+                            data: {
+                                grantee_account: users[i].account,
+                                permission_name: "register_address_on_domain",
+                                permission_info: "",
+                                object_name: domainGood,
+                                max_fee: config.maxFee,
+                                tpid: '',
+                                actor: permuser1.account
+                            }
+                        })
+
+                        //console.log("result ", result);
+                        expect(result.processed.action_traces[0].receipt.response).to.contain("514287432");
+                    }
+
+                }catch(err1){
+                    console.log('failed iteraton ', err1)
+                }
+            }
+        }
+        catch
+            (err)
+        {
+            console.log('Error', err)
+        }
+
+    })
+
+
+    it(`SUCCESS -- call get_object_permissions with no limit and offset`, async () => {
+        try {
+            const json = {
+                object_name: useDomain,
+                permission_name: "register_address_on_domain",
+            }
+            result = await callFioApi("get_object_permissions", json);
+            console.log('Result: ', result);
+            //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+        } catch (err) {
+            //console.log(err);
+            console.log(JSON.stringify(err.error, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+
+    /* Todo add QA tests for limit and offset.
+    it(`SUCCESS -- call get_grantee_permissions with 0 limit and offset`, async () => {
+        try {
+            const json = {
+                grantee_account: permuser1.account,
+                limit: 0,
+                offset: 0
+            }
+            result = await callFioApi("get_grantee_permissions", json);
+            console.log('Result: ', result);
+            //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+        } catch (err) {
+            //console.log(err);
+            console.log(JSON.stringify(err.error, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+
+
+    it(`SUCCESS -- call get_grantee_permissions with  limit 2 and offset 3`, async () => {
+        try {
+            const json = {
+                grantee_account: permuser1.account,
+                limit: 2,
+                offset: 3
+            }
+            result = await callFioApi("get_grantee_permissions", json);
+            console.log('Result: ', result);
+            //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+        } catch (err) {
+            //console.log(err);
+            console.log(JSON.stringify(err.error, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`SUCCESS -- call get_grantee_permissions with  limit 20 and offset 3`, async () => {
+        try {
+            const json = {
+                grantee_account: permuser1.account,
+                limit: 20,
+                offset: 3
+            }
+            result = await callFioApi("get_grantee_permissions", json);
+            console.log('Result: ', result);
+            //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+        } catch (err) {
+            //console.log(err);
+            console.log(JSON.stringify(err.error, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+    it(`SUCCESS -- call get_grantee_permissions with  limit 20 and offset 20`, async () => {
+        try {
+            const json = {
+                grantee_account: permuser1.account,
+                limit: 20,
+                offset: 20
+            }
+            result = await callFioApi("get_grantee_permissions", json);
+            console.log('Result: ', result);
+            //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+        } catch (err) {
+            //console.log(err);
+            console.log(JSON.stringify(err.error, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+    */
+})
+
 
 
 /**
