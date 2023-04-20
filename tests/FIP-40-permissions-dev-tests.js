@@ -1913,8 +1913,10 @@ describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
         permuser2,
         permuser3;
     let users = [];
+    const domains = [];
 
     const NUMBER_PERMS = 10;
+    const DOMAINS_PER_ACCOUNT = 5;
 
 
     before(async () => {
@@ -1924,7 +1926,7 @@ describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
         //now transfer 1k fio from the faucet to this account
         const result = await faucet.genericAction('transferTokens', {
             payeeFioPublicKey: permuser1.publicKey,
-            amount: 1000000000000,
+            amount: 4000000000000,
             maxFee: config.api.transfer_tokens_pub_key.fee,
             technologyProviderId: ''
         })
@@ -1938,11 +1940,13 @@ describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
         try {
 
 
-            for (let step = 0; step < 3; step++) {
+            for (let step = 0; step < DOMAINS_PER_ACCOUNT; step++) {
 
                 try {
 
                     domainGood = generateFioDomain(7);
+                    domains[step] = domainGood;
+                   // console.log()
 
 
                     const result = await permuser1.sdk.genericAction('registerFioDomain', {
@@ -1954,16 +1958,18 @@ describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
                     console.log('created domain: ', step);
                     expect(result.status).to.equal('OK')
 
+                    //users holds grantees every ten is for another domain.
                     for (let i = 0; i < NUMBER_PERMS; i++) {
                         console.log('          (Adding permission) #' + i);
-                        users[i] = await newUser(faucet);
+                        users[(step*NUMBER_PERMS)+i] = await newUser(faucet);
+
                         const result = await callFioApiSigned('add_fio_permission', {
                             action: 'addperm',
                             account: 'fio.perms',
                             actor: permuser1.account,
                             privKey: permuser1.privateKey,
                             data: {
-                                grantee_account: users[i].account,
+                                grantee_account: users[(step*NUMBER_PERMS)+i].account,
                                 permission_name: "register_address_on_domain",
                                 permission_info: "",
                                 object_name: domainGood,
@@ -1997,84 +2003,118 @@ describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
                 grantor_account: permuser1.account
             }
             result = await callFioApi("get_grantor_permissions", json);
-            console.log('Result: ', result);
-            //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+           // console.log('Result: ', result);
+
+            //expect item 0 to be the first user.
+            expect(result.permissions[0].grantee_account).to.equal(users[0].account);
+            expect(result.permissions[0].object_name).to.equal(domains[0]);
+            //expect item 29 for be the last user.
+            expect(result.permissions[DOMAINS_PER_ACCOUNT*NUMBER_PERMS-1].grantee_account).to.equal(users[DOMAINS_PER_ACCOUNT*NUMBER_PERMS-1].account);
+            expect(result.permissions[DOMAINS_PER_ACCOUNT*NUMBER_PERMS-1].object_name).to.equal(domains[DOMAINS_PER_ACCOUNT-1]);
         } catch (err) {
-            //console.log(err);
-            console.log(JSON.stringify(err.error, null, 4));
+            console.log(err);
             expect(err).to.equal(null);
         }
     });
 
-    /* Todo add other QA tests for limit and offset.
-    it(`SUCCESS -- call get_grantee_permissions with 0 limit and offset`, async () => {
+    it(`SUCCESS -- call get_grantor_permissions with 0 limit and offset`, async () => {
         try {
             const json = {
-                grantee_account: permuser1.account,
+                grantor_account: permuser1.account,
                 limit: 0,
                 offset: 0
             }
-            result = await callFioApi("get_grantee_permissions", json);
-            console.log('Result: ', result);
-            //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+            result = await callFioApi("get_grantor_permissions", json);
+          //  console.log('Result: ', result);
+            //expect item 0 to be the first user.
+            expect(result.permissions[0].grantee_account).to.equal(users[0].account);
+            expect(result.permissions[0].object_name).to.equal(domains[0]);
+            //expect item 29 for be the last user.
+            expect(result.permissions[DOMAINS_PER_ACCOUNT*NUMBER_PERMS-1].grantee_account).to.equal(users[DOMAINS_PER_ACCOUNT*NUMBER_PERMS-1].account);
+            expect(result.permissions[DOMAINS_PER_ACCOUNT*NUMBER_PERMS-1].object_name).to.equal(domains[DOMAINS_PER_ACCOUNT-1]);
+
         } catch (err) {
-            //console.log(err);
-            console.log(JSON.stringify(err.error, null, 4));
+            console.log(err);
+           // console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
 
 
-    it(`SUCCESS -- call get_grantee_permissions with  limit 2 and offset 3`, async () => {
+    it(`SUCCESS -- call get_grantor_permissions with  limit and offset in the middle of the table contents`, async () => {
         try {
+            let offsetval = 30; //must be the beginning of a block of domains for this to work.
             const json = {
-                grantee_account: permuser1.account,
-                limit: 2,
-                offset: 3
+                grantor_account: permuser1.account,
+                limit: NUMBER_PERMS,
+                offset: offsetval
             }
-            result = await callFioApi("get_grantee_permissions", json);
-            console.log('Result: ', result);
+            result = await callFioApi("get_grantor_permissions", json);
+           // console.log('Result: ', result);
+            //expect item 0 to be  user[NUMBER_PERMS*DOMAINS_PER_ACCOUNT-1].
+
+            expect(result.permissions[0].grantee_account).to.equal(users[offsetval].account);
+            expect(result.permissions[0].object_name).to.equal(domains[offsetval/NUMBER_PERMS]);
+            //expect item NUMBER_PERMS*DOMAINS_PER_ACCOUNT-1 be the user[NUMBER_PERMS*2-1].
+            expect(result.permissions[NUMBER_PERMS-1].grantee_account).to.equal(users[offsetval+NUMBER_PERMS-1].account);
+            expect(result.permissions[NUMBER_PERMS-1].object_name).to.equal(domains[offsetval/NUMBER_PERMS]);
+
+            //console.log('Result: ', result);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
         } catch (err) {
-            //console.log(err);
-            console.log(JSON.stringify(err.error, null, 4));
+            console.log(err);
+            //console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
 
-    it(`SUCCESS -- call get_grantee_permissions with  limit 20 and offset 3`, async () => {
+    it(`SUCCESS -- call get_grantor_permissions with  limit 20 and offset 3`, async () => {
         try {
             const json = {
-                grantee_account: permuser1.account,
+                grantor_account: permuser1.account,
                 limit: 20,
                 offset: 3
             }
-            result = await callFioApi("get_grantee_permissions", json);
-            console.log('Result: ', result);
+            result = await callFioApi("get_grantor_permissions", json);
+           // console.log('Result: ', result);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+            expect(result.permissions[0].grantee_account).to.equal(users[3].account);
+            expect(result.permissions[0].object_name).to.equal(domains[0]);
+            //expect item NUMBER_PERMS*DOMAINS_PER_ACCOUNT-1 be the user[NUMBER_PERMS*2-1].
+            expect(result.permissions[19].grantee_account).to.equal(users[22].account);
+            expect(result.permissions[19].object_name).to.equal(domains[2]);
+
         } catch (err) {
-            //console.log(err);
-            console.log(JSON.stringify(err.error, null, 4));
+            console.log(err);
+           // console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
-    it(`SUCCESS -- call get_grantee_permissions with  limit 20 and offset 20`, async () => {
+
+    it(`SUCCESS -- call get_grantor_permissions with  limit 20 and offset 20`, async () => {
         try {
             const json = {
-                grantee_account: permuser1.account,
+                grantor_account: permuser1.account,
                 limit: 20,
                 offset: 20
             }
-            result = await callFioApi("get_grantee_permissions", json);
-            console.log('Result: ', result);
+            result = await callFioApi("get_grantor_permissions", json);
+           // console.log('Result: ', result);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+            //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+            expect(result.permissions[0].grantee_account).to.equal(users[20].account);
+            expect(result.permissions[0].object_name).to.equal(domains[2]);
+            //expect item NUMBER_PERMS*DOMAINS_PER_ACCOUNT-1 be the user[NUMBER_PERMS*2-1].
+            expect(result.permissions[19].grantee_account).to.equal(users[39].account);
+            expect(result.permissions[19].object_name).to.equal(domains[3]);
+
         } catch (err) {
-            //console.log(err);
-            console.log(JSON.stringify(err.error, null, 4));
+            console.log(err);
+            //console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
-    */
+
 })
 
 describe(`G. chain_api endpoint get_grantee_permissions tests \n `, () => {
@@ -2144,11 +2184,16 @@ describe(`G. chain_api endpoint get_grantee_permissions tests \n `, () => {
                 grantee_account: permuser1.account
             }
             result = await callFioApi("get_grantee_permissions", json);
-            console.log('Result: ', result);
+          //  console.log('Result: ', result);
+            expect(result.permissions.length).to.equal(NUMBER_PERMS);
+            expect(result.permissions[0].grantor_account).to.equal(users[0].account);
+            expect(result.permissions[9].grantor_account).to.equal(users[9].account);
+            //check first and last grantor
+
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
         } catch (err) {
-            //console.log(err);
-            console.log(JSON.stringify(err.error, null, 4));
+            console.log(err);
+            //console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
@@ -2161,11 +2206,14 @@ describe(`G. chain_api endpoint get_grantee_permissions tests \n `, () => {
                 offset: 0
             }
             result = await callFioApi("get_grantee_permissions", json);
-            console.log('Result: ', result);
+         //   console.log('Result: ', result);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+            expect(result.permissions.length).to.equal(NUMBER_PERMS);
+            expect(result.permissions[0].grantor_account).to.equal(users[0].account);
+            expect(result.permissions[9].grantor_account).to.equal(users[9].account);
         } catch (err) {
-            //console.log(err);
-            console.log(JSON.stringify(err.error, null, 4));
+            console.log(err);
+           // console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
@@ -2179,11 +2227,14 @@ describe(`G. chain_api endpoint get_grantee_permissions tests \n `, () => {
                 offset: 3
             }
             result = await callFioApi("get_grantee_permissions", json);
-            console.log('Result: ', result);
+          //  console.log('Result: ', result);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+            expect(result.permissions.length).to.equal(2);
+            expect(result.permissions[0].grantor_account).to.equal(users[3].account);
+            expect(result.permissions[1].grantor_account).to.equal(users[4].account);
         } catch (err) {
-            //console.log(err);
-            console.log(JSON.stringify(err.error, null, 4));
+            console.log(err);
+           // console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
@@ -2196,14 +2247,21 @@ describe(`G. chain_api endpoint get_grantee_permissions tests \n `, () => {
                 offset: 3
             }
             result = await callFioApi("get_grantee_permissions", json);
-            console.log('Result: ', result);
+           // console.log('Result: ', result);
+            expect(result.permissions.length).to.equal(7);
+
+            expect(result.permissions[0].grantor_account).to.equal(users[3].account);
+
+            expect(result.permissions[6].grantor_account).to.equal(users[9].account);
+
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
         } catch (err) {
-            //console.log(err);
-            console.log(JSON.stringify(err.error, null, 4));
+            console.log(err);
+            //console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
+
     it(`SUCCESS -- call get_grantee_permissions with  limit 20 and offset 20`, async () => {
         try {
             const json = {
@@ -2212,14 +2270,16 @@ describe(`G. chain_api endpoint get_grantee_permissions tests \n `, () => {
                 offset: 20
             }
             result = await callFioApi("get_grantee_permissions", json);
-            console.log('Result: ', result);
+          //  console.log('Result: ', result);
+            expect(result.permissions.length).to.equal(0);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
         } catch (err) {
-            //console.log(err);
-            console.log(JSON.stringify(err.error, null, 4));
+            console.log(err);
+            //console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
+
 })
 
 describe(`H. chain_api endpoint get_object_permissions tests \n `, () => {
@@ -2276,14 +2336,14 @@ describe(`H. chain_api endpoint get_object_permissions tests \n `, () => {
 
                     for (let i = 0; i < NUMBER_PERMS; i++) {
                         console.log('          (Adding permission) #' + i);
-                        users[i] = await newUser(faucet);
+                        users[(step*NUMBER_PERMS)+i] = await newUser(faucet);
                         const result = await callFioApiSigned('add_fio_permission', {
                             action: 'addperm',
                             account: 'fio.perms',
                             actor: permuser1.account,
                             privKey: permuser1.privateKey,
                             data: {
-                                grantee_account: users[i].account,
+                                grantee_account: users[(step*NUMBER_PERMS)+i].account,
                                 permission_name: "register_address_on_domain",
                                 permission_info: "",
                                 object_name: domainGood,
@@ -2315,87 +2375,121 @@ describe(`H. chain_api endpoint get_object_permissions tests \n `, () => {
         try {
             const json = {
                 object_name: useDomain,
-                permission_name: "register_address_on_domain",
+                permission_name: "register_address_on_domain"
             }
             result = await callFioApi("get_object_permissions", json);
-            console.log('Result: ', result);
+          //  console.log('Result: ', result);
+            expect(result.permissions.length).to.equal(10);
+            expect(result.permissions[0].grantee_account).to.equal(users[10].account);
+            expect(result.permissions[0].object_name).to.equal(useDomain);
+            expect(result.permissions[9].grantee_account).to.equal(users[19].account);
+            expect(result.permissions[9].object_name).to.equal(useDomain);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
         } catch (err) {
-            //console.log(err);
-            console.log(JSON.stringify(err.error, null, 4));
+            console.log(err);
+          //  console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
 
-    /* Todo add QA tests for limit and offset.
-    it(`SUCCESS -- call get_grantee_permissions with 0 limit and offset`, async () => {
+
+
+    it(`SUCCESS -- call get_object_permissions with 0 limit and offset`, async () => {
         try {
             const json = {
-                grantee_account: permuser1.account,
+                object_name: useDomain,
+                permission_name: "register_address_on_domain",
                 limit: 0,
                 offset: 0
             }
-            result = await callFioApi("get_grantee_permissions", json);
-            console.log('Result: ', result);
+            result = await callFioApi("get_object_permissions", json);
+         //   console.log('Result: ', result);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+            expect(result.permissions.length).to.equal(10);
+            expect(result.permissions[0].grantee_account).to.equal(users[10].account);
+            expect(result.permissions[0].object_name).to.equal(useDomain);
+            expect(result.permissions[9].grantee_account).to.equal(users[19].account);
+            expect(result.permissions[9].object_name).to.equal(useDomain);
         } catch (err) {
-            //console.log(err);
-            console.log(JSON.stringify(err.error, null, 4));
+            console.log(err);
+           // console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
 
 
-    it(`SUCCESS -- call get_grantee_permissions with  limit 2 and offset 3`, async () => {
+    it(`SUCCESS -- call get_object_permissions with  limit 2 and offset 3`, async () => {
         try {
             const json = {
-                grantee_account: permuser1.account,
+                object_name: useDomain,
+                permission_name: "register_address_on_domain",
                 limit: 2,
                 offset: 3
             }
-            result = await callFioApi("get_grantee_permissions", json);
-            console.log('Result: ', result);
+            result = await callFioApi("get_object_permissions", json);
+          //  console.log('Result: ', result);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+
+
+            expect(result.permissions.length).to.equal(2);
+            expect(result.permissions[0].grantee_account).to.equal(users[13].account);
+            expect(result.permissions[0].object_name).to.equal(useDomain);
+            expect(result.permissions[1].grantee_account).to.equal(users[14].account);
+            expect(result.permissions[1].object_name).to.equal(useDomain);
+
         } catch (err) {
-            //console.log(err);
-            console.log(JSON.stringify(err.error, null, 4));
+            console.log(err);
+           // console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
 
-    it(`SUCCESS -- call get_grantee_permissions with  limit 20 and offset 3`, async () => {
+    it(`SUCCESS -- call get_object_permissions with  limit 20 and offset 3`, async () => {
         try {
             const json = {
-                grantee_account: permuser1.account,
+                object_name: useDomain,
+                permission_name: "register_address_on_domain",
                 limit: 20,
                 offset: 3
             }
-            result = await callFioApi("get_grantee_permissions", json);
-            console.log('Result: ', result);
+            result = await callFioApi("get_object_permissions", json);
+           // console.log('Result: ', result);
+
+            expect(result.permissions.length).to.equal(7);
+            expect(result.permissions[0].grantee_account).to.equal(users[13].account);
+            expect(result.permissions[0].object_name).to.equal(useDomain);
+            expect(result.permissions[6].grantee_account).to.equal(users[19].account);
+            expect(result.permissions[6].object_name).to.equal(useDomain);
+
+
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
         } catch (err) {
-            //console.log(err);
-            console.log(JSON.stringify(err.error, null, 4));
+            console.log(err);
+            //console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
-    it(`SUCCESS -- call get_grantee_permissions with  limit 20 and offset 20`, async () => {
+
+    it(`SUCCESS -- call get_object_permissions with  limit 20 and offset 20`, async () => {
         try {
             const json = {
-                grantee_account: permuser1.account,
+                object_name: useDomain,
+                permission_name: "register_address_on_domain",
                 limit: 20,
                 offset: 20
             }
-            result = await callFioApi("get_grantee_permissions", json);
-            console.log('Result: ', result);
+            result = await callFioApi("get_object_permissions", json);
+          //  console.log('Result: ', result);
+            expect(result.permissions.length).to.equal(0);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
         } catch (err) {
-            //console.log(err);
-            console.log(JSON.stringify(err.error, null, 4));
+            console.log(err);
+            //console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
-    */
+
+
 })
 
 
