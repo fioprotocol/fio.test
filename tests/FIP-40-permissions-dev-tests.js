@@ -91,7 +91,7 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
         try {
 
            // hash  object_type, object_name, and permission_name
-            let control_string = "domain"+permuser1.domain+"register_address_on_domain";
+            let control_string = permuser1.account + "domain"+permuser1.domain+"register_address_on_domain";
             const control_hash  = stringToHash(control_string);
             //search for record in permissions using index 5 (bypermissioncontrolhash)
             const json = {
@@ -226,7 +226,7 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
         try {
 
             // hash  object_type, object_name, and permission_name
-            let control_string = "domain"+permuser1.domain+"register_address_on_domain";
+            let control_string = permuser1.account + "domain"+permuser1.domain+"register_address_on_domain";
             const control_hash  = stringToHash(control_string);
             //search for record in permissions using index 5 (bypermissioncontrolhash)
             const json = {
@@ -333,7 +333,7 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
         try {
 
             // hash  object_type, object_name, and permission_name
-            let control_string = "domain"+permuser1.domain+"register_address_on_domain";
+            let control_string = permuser1.account + "domain"+permuser1.domain+"register_address_on_domain";
             const control_hash  = stringToHash(control_string);
             //search for record in permissions using index 5 (bypermissioncontrolhash)
             const json = {
@@ -366,7 +366,7 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
             //get the id for the record
             expect(result1.rows.length).to.equal(0);
 
-            //console.log('Result: ', result);
+            console.log('Result: ', result);
             //console.log('Result 1', result1);
             //console.log('periods : ', result.rows[0].periods)
 
@@ -412,7 +412,7 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
                     action: 'clearperm',
                     account: 'fio.perms',
                     data: {
-
+                        grantor_account: permuser1.account,
                         permission_name: "register_address_on_domain",
                         object_name: permuser1.domain,
                     }
@@ -445,7 +445,7 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
         try {
 
             // hash  object_type, object_name, and permission_name
-            let control_string = "domain"+permuser1.domain+"register_address_on_domain";
+            let control_string = permuser1.account + "domain"+permuser1.domain+"register_address_on_domain";
             const control_hash  = stringToHash(control_string);
             //search for record in permissions using index 5 (bypermissioncontrolhash)
             const json = {
@@ -478,6 +478,694 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
             let result1 = await callFioApi("get_table_rows", json1);
             //get the id for the record
             expect(result1.rows.length).to.equal(0);
+             */
+
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+
+
+})
+
+describe(` A.1 contract action smoke tests permissions add and remove, wildcard domain name tests \n `, () => {
+
+
+    let permuser1,
+        permuser2,
+        permuser3,
+        permuser4;
+
+    let domains = [];
+
+
+    before(async () => {
+        permuser1 = await newUser(faucet);
+        permuser2 = await newUser(faucet);
+        permuser3 = await newUser(faucet);
+        permuser4 = await newUser(faucet);
+        //now transfer 1k fio from the faucet to this account
+        let result = await faucet.genericAction('transferTokens', {
+            payeeFioPublicKey: permuser1.publicKey,
+            amount: 10000000000000,
+            maxFee: config.api.transfer_tokens_pub_key.fee,
+            technologyProviderId: ''
+        })
+        result = await faucet.genericAction('transferTokens', {
+            payeeFioPublicKey: permuser2.publicKey,
+            amount: 1000000000000,
+            maxFee: config.api.transfer_tokens_pub_key.fee,
+            technologyProviderId: ''
+        })
+        result = await faucet.genericAction('transferTokens', {
+            payeeFioPublicKey: permuser3.publicKey,
+            amount: 1000000000000,
+            maxFee: config.api.transfer_tokens_pub_key.fee,
+            technologyProviderId: ''
+        })
+        result = await faucet.genericAction('transferTokens', {
+            payeeFioPublicKey: permuser4.publicKey,
+            amount: 1000000000000,
+            maxFee: config.api.transfer_tokens_pub_key.fee,
+            technologyProviderId: ''
+        })
+
+        console.log('permuser1.publicKey: ', permuser1.publicKey)
+
+    })
+
+
+
+    it(`SUCCESS, call addperm, grant to user2 *`, async () => {
+        try {
+
+            const result = await permuser1.sdk.genericAction('pushTransaction', {
+                action: 'addperm',
+                account: 'fio.perms',
+                data: {
+                    grantee_account: permuser2.account,
+                    permission_name: "register_address_on_domain",
+                    permission_info: "",
+                    object_name: "*",
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser1.account
+                }
+            })
+
+
+            expect(result.fee_collected).to.equal(514287432);
+            // console.log("result ", result);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it('SUCCESS confirm permissions and accesses table contents', async () => {
+        try {
+
+            // hash  object_type, object_name, and permission_name
+            let control_string = permuser1.account + "domain*register_address_on_domain";
+            const control_hash  = stringToHash(control_string);
+            //search for record in permissions using index 5 (bypermissioncontrolhash)
+            const json = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'permissions',
+                lower_bound: control_hash,
+                upper_bound: control_hash,
+                key_type: 'i128',
+                index_position: '5'
+            }
+            result = await callFioApi("get_table_rows", json);
+            //get the id for the record
+            expect(result.rows.length).to.equal(1);
+            //hash account and id
+            let pid = result.rows[0].id;
+            let access_control = permuser2.account + pid.toString();
+            const access_hash = stringToHash(access_control);
+
+            //search for record in accesses using index 4 (byaccesscontrolhash)
+            const json1 = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'accesses',
+                lower_bound: access_hash,
+                upper_bound: access_hash,
+                key_type: 'i128',
+                index_position: '4'
+            }
+            result1 = await callFioApi("get_table_rows", json1);
+            //get the id for the record
+            expect(result1.rows.length).to.equal(1);
+
+            //console.log('Result: ', result);
+            //console.log('Result 1', result1);
+            //console.log('periods : ', result.rows[0].periods)
+
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`Waiting 3 seconds for no duplicate`, async () => {
+
+        console.log("      wait 3 seconds ")
+    })
+
+    it(`wait 3 seconds for unlock`, async () => {
+        await timeout(3 * 1000);
+    })
+
+    it(`FAILURE, call addperm again, permission exists`, async () => {
+        try {
+
+            const result = await permuser1.sdk.genericAction('pushTransaction', {
+                action: 'addperm',
+                account: 'fio.perms',
+                data: {
+                    grantee_account: permuser2.account,
+                    permission_name: "register_address_on_domain",
+                    permission_info: "",
+                    object_name: "*",
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser1.account
+                }
+            })
+
+
+            expect(result.status).to.equal(null);
+
+        } catch (err) {
+            // console.log('Error', err);
+            expect(err.json.fields[0].error).to.equal("Permission already exists")
+        }
+    })
+
+    it(`SUCCESS, call addperm for * to a second account, user3`, async () => {
+        try {
+
+            const result = await permuser1.sdk.genericAction('pushTransaction', {
+                action: 'addperm',
+                account: 'fio.perms',
+                data: {
+                    grantee_account: permuser3.account,
+                    permission_name: "register_address_on_domain",
+                    permission_info: "",
+                    object_name: "*",
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser1.account
+                }
+            })
+
+
+            expect(result.fee_collected).to.equal(514287432);
+            // console.log("result ", result);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`load user1  account with 6 domains`, async () => {
+        try {
+
+
+            for (let step = 0; step < 6; step++) {
+
+                try {
+
+                    domains[step] = generateFioDomain(7);
+
+
+                    const result = await permuser1.sdk.genericAction('registerFioDomain', {
+                        fioDomain: domains[step],
+                        maxFee: config.api.register_fio_domain.fee,
+                        technologyProviderId: ''
+                    })
+                    expect(result.status).to.equal('OK')
+
+                }catch(err1){
+                    console.log('failed iteraton ', err1)
+                }
+            }
+        }
+        catch
+            (err)
+        {
+            console.log('Error', err)
+        }
+
+    })
+
+    it(`SUCCESS user2 regaddress on first three user1 domains`, async () => {
+        try {
+
+            for (let step = 0; step < 3; step++) {
+
+                let addaddress3 = generateFioAddress(domains[step], 7);
+                const result = await permuser2.sdk.genericAction('pushTransaction', {
+                    action: 'regaddress',
+                    account: 'fio.address',
+                    data: {
+                        fio_address: addaddress3,
+                        owner_fio_public_key: permuser2.publicKey,
+                        max_fee: config.maxFee,
+                        tpid: '',
+                        actor: permuser2.account
+                    }
+                });
+                // console.log('Result: ', result)
+                expect(result.status).to.equal('OK');
+            }
+        } catch (err) {
+            // console.log(err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`FAIL user4 regaddress on user1 domain`, async () => {
+        try {
+
+                let addaddress3 = generateFioAddress(domains[1], 7);
+                const result = await permuser4.sdk.genericAction('pushTransaction', {
+                    action: 'regaddress',
+                    account: 'fio.address',
+                    data: {
+                        fio_address: addaddress3,
+                        owner_fio_public_key: permuser4.publicKey,
+                        max_fee: config.maxFee,
+                        tpid: '',
+                        actor: permuser4.account
+                    }
+                });
+                // console.log('Result: ', result)
+                expect(result).to.equal(null);
+
+        } catch (err) {
+            // console.log(err);
+            expect(err.json.fields[0].error).to.equal("FIO Domain is not public. Only owner can create FIO Addresses.");
+        }
+    })
+
+    it(`SUCCESS, call addperm, grant to user2 domain name perms first three domains`, async () => {
+        try {
+
+            for (let step = 0; step < 3; step++) {
+                const result = await permuser1.sdk.genericAction('pushTransaction', {
+                    action: 'addperm',
+                    account: 'fio.perms',
+                    data: {
+                        grantee_account: permuser2.account,
+                        permission_name: "register_address_on_domain",
+                        permission_info: "",
+                        object_name: domains[step],
+                        max_fee: config.maxFee,
+                        tpid: '',
+                        actor: permuser1.account
+                    }
+                })
+
+
+                expect(result.fee_collected).to.equal(514287432);
+            }
+            // console.log("result ", result);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`SUCCESS user2 regaddress on first three user1 domains`, async () => {
+        try {
+
+            for (let step = 0; step < 3; step++) {
+
+                let addaddress3 = generateFioAddress(domains[step], 7);
+                const result = await permuser2.sdk.genericAction('pushTransaction', {
+                    action: 'regaddress',
+                    account: 'fio.address',
+                    data: {
+                        fio_address: addaddress3,
+                        owner_fio_public_key: permuser2.publicKey,
+                        max_fee: config.maxFee,
+                        tpid: '',
+                        actor: permuser2.account
+                    }
+                });
+                // console.log('Result: ', result)
+                expect(result.status).to.equal('OK');
+            }
+        } catch (err) {
+            // console.log(err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`SUCCESS, call remperm for user2 for * `, async () => {
+        try {
+
+            const result = await permuser1.sdk.genericAction('pushTransaction', {
+                action: 'remperm',
+                account: 'fio.perms',
+                data: {
+                    grantee_account: permuser2.account,
+                    permission_name: "register_address_on_domain",
+                    object_name: "*",
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser1.account
+                }
+            })
+            expect(result.fee_collected).to.equal(212354321);
+
+            //console.log("result ", result);
+        } catch (err) {
+            console.log("Error : ", err)
+            // expect(err.json.fields[0].error).to.contain('has not voted')
+        }
+    })
+
+    it(`FAIL user2 regaddress on user1 domain without perm`, async () => {
+        try {
+
+            let addaddress3 = generateFioAddress(domains[4], 7);
+            const result = await permuser2.sdk.genericAction('pushTransaction', {
+                action: 'regaddress',
+                account: 'fio.address',
+                data: {
+                    fio_address: addaddress3,
+                    owner_fio_public_key: permuser2.publicKey,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser2.account
+                }
+            });
+            // console.log('Result: ', result)
+            expect(result).to.equal(null);
+
+        } catch (err) {
+            // console.log(err);
+            expect(err.json.fields[0].error).to.equal("FIO Domain is not public. Only owner can create FIO Addresses.");
+        }
+    })
+
+    it(`FAIL user4 regaddress on user1 domain`, async () => {
+        try {
+
+            let addaddress3 = generateFioAddress(domains[1], 7);
+            const result = await permuser4.sdk.genericAction('pushTransaction', {
+                action: 'regaddress',
+                account: 'fio.address',
+                data: {
+                    fio_address: addaddress3,
+                    owner_fio_public_key: permuser4.publicKey,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser4.account
+                }
+            });
+            // console.log('Result: ', result)
+            expect(result).to.equal(null);
+
+        } catch (err) {
+            // console.log(err);
+            expect(err.json.fields[0].error).to.equal("FIO Domain is not public. Only owner can create FIO Addresses.");
+        }
+    })
+
+    it(`SUCCESS user2 regaddress on first three user1 domains`, async () => {
+        try {
+
+            for (let step = 0; step < 3; step++) {
+
+                let addaddress3 = generateFioAddress(domains[step], 7);
+                const result = await permuser2.sdk.genericAction('pushTransaction', {
+                    action: 'regaddress',
+                    account: 'fio.address',
+                    data: {
+                        fio_address: addaddress3,
+                        owner_fio_public_key: permuser2.publicKey,
+                        max_fee: config.maxFee,
+                        tpid: '',
+                        actor: permuser2.account
+                    }
+                });
+                // console.log('Result: ', result)
+                expect(result.status).to.equal('OK');
+            }
+        } catch (err) {
+            // console.log(err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`SUCCESS, call remperm, for user2 for first three domains`, async () => {
+        try {
+
+            for (let step = 0; step < 3; step++) {
+                const result = await permuser1.sdk.genericAction('pushTransaction', {
+                    action: 'remperm',
+                    account: 'fio.perms',
+                    data: {
+                        grantee_account: permuser2.account,
+                        permission_name: "register_address_on_domain",
+                        object_name: domains[step],
+                        max_fee: config.maxFee,
+                        tpid: '',
+                        actor: permuser1.account
+                    }
+                })
+
+
+                expect(result.status).to.equal('OK');
+            }
+            // console.log("result ", result);
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+    it(`FAIL user2 regaddress on user1 domain without perm`, async () => {
+        try {
+
+            let addaddress3 = generateFioAddress(domains[1], 7);
+            const result = await permuser2.sdk.genericAction('pushTransaction', {
+                action: 'regaddress',
+                account: 'fio.address',
+                data: {
+                    fio_address: addaddress3,
+                    owner_fio_public_key: permuser2.publicKey,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser2.account
+                }
+            });
+            // console.log('Result: ', result)
+            expect(result).to.equal(null);
+
+        } catch (err) {
+            // console.log(err);
+            expect(err.json.fields[0].error).to.equal("FIO Domain is not public. Only owner can create FIO Addresses.");
+        }
+    })
+
+
+    it('SUCCESS confirm removal in accesses table contents, permissions record remains', async () => {
+        try {
+
+            // hash  object_type, object_name, and permission_name
+            let control_string = permuser1.account + "domain*register_address_on_domain";
+            const control_hash  = stringToHash(control_string);
+            //search for record in permissions using index 5 (bypermissioncontrolhash)
+            const json = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'permissions',
+                lower_bound: control_hash,
+                upper_bound: control_hash,
+                key_type: 'i128',
+                index_position: '5'
+            }
+            result = await callFioApi("get_table_rows", json);
+            //get the id for the record
+            expect(result.rows.length).to.equal(1);
+
+            let pid = result.rows[0].id;
+            let access_control = permuser2.account + pid.toString();
+            const access_hash = stringToHash(access_control);
+
+            //search for record in accesses using index 4 (byaccesscontrolhash)
+            const json1 = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'accesses',
+                lower_bound: access_hash,
+                upper_bound: access_hash,
+                key_type: 'i128',
+                index_position: '4'
+            }
+            result1 = await callFioApi("get_table_rows", json1);
+            //get the id for the record
+            expect(result1.rows.length).to.equal(0);
+
+            //console.log('Result: ', result);
+            //console.log('Result 1', result1);
+            //console.log('periods : ', result.rows[0].periods)
+
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`Waiting 3 seconds for no duplicate`, async () => {
+
+        console.log("      wait 3 seconds ")
+    })
+
+    it(`wait 3 seconds for unlock`, async () => {
+        await timeout(3 * 1000);
+    })
+
+    it(`FAILURE, call remperm again for first grantee, perm not existing`, async () => {
+        try {
+
+            const result = await permuser1.sdk.genericAction('pushTransaction', {
+                action: 'remperm',
+                account: 'fio.perms',
+                data: {
+                    grantee_account: permuser2.account,
+                    permission_name: "register_address_on_domain",
+                    object_name: "*",
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser1.account
+                }
+            })
+            expect(result.status).to.equal(null);
+
+            //console.log("result ", result);
+        } catch (err) {
+            //console.log("Error : ", err)
+            expect(err.json.fields[0].error).to.contain('Permission not found')
+        }
+    })
+
+    it(`SUCCESS, call remperm for second grantee`, async () => {
+        try {
+
+            const result = await permuser1.sdk.genericAction('pushTransaction', {
+                action: 'remperm',
+                account: 'fio.perms',
+                data: {
+                    grantee_account: permuser3.account,
+                    permission_name: "register_address_on_domain",
+                    object_name: "*",
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser1.account
+                }
+            })
+            expect(result.fee_collected).to.equal(212354321);
+
+            //console.log("result ", result);
+        } catch (err) {
+            console.log("Error : ", err)
+            // expect(err.json.fields[0].error).to.contain('has not voted')
+        }
+    })
+
+    it('SUCCESS confirm removal in accesses table contents, permissions record removed', async () => {
+        try {
+
+            // hash  object_type, object_name, and permission_name
+            let control_string = permuser1.account + "domain*register_address_on_domain";
+            const control_hash  = stringToHash(control_string);
+            //search for record in permissions using index 5 (bypermissioncontrolhash)
+            const json = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'permissions',
+                lower_bound: control_hash,
+                upper_bound: control_hash,
+                key_type: 'i128',
+                index_position: '5'
+            }
+            result = await callFioApi("get_table_rows", json);
+            //get the id for the record
+            expect(result.rows.length).to.equal(0);
+
+
+            //search for record in accesses using index 3 (bygrantee)
+            const json1 = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'accesses',
+                lower_bound: permuser3.account,
+                upper_bound: permuser3.account,
+                key_type: 'i64',
+                index_position: '3'
+            }
+            result1 = await callFioApi("get_table_rows", json1);
+            //get the id for the record
+            expect(result1.rows.length).to.equal(0);
+
+            console.log('Result: ', result);
+            //console.log('Result 1', result1);
+            //console.log('periods : ', result.rows[0].periods)
+
+        } catch (err) {
+            console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    //transfer the domain for permuser1.domain to new ownership verify all grantees are removed.
+    it(`permuser1 transfers domain to permuser3`, async () => {
+        try {
+            const result = await permuser1.sdk.genericAction('transferFioDomain', {
+                fioDomain: permuser1.domain,
+                newOwnerKey: permuser3.publicKey,
+                maxFee: config.api.transfer_fio_domain.fee,
+                technologyProviderId: ''
+            })
+            expect(result.status).to.equal('OK');
+        } catch (err) {
+            console.log('Error: ', err)
+            expect(err).to.equal(null);
+        }
+    })
+
+    it('SUCCESS confirm removal in accesses table contents, permissions record removed', async () => {
+        try {
+
+            // hash  object_type, object_name, and permission_name
+            let control_string = permuser1.account + "domain*register_address_on_domain";
+            const control_hash  = stringToHash(control_string);
+            //search for record in permissions using index 5 (bypermissioncontrolhash)
+            const json = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'permissions',
+                lower_bound: control_hash,
+                upper_bound: control_hash,
+                key_type: 'i128',
+                index_position: '5'
+            }
+            result = await callFioApi("get_table_rows", json);
+            //get the id for the record
+            expect(result.rows.length).to.equal(0);
+
+            //NOTE -- todo we could save the grantees and then check that the grantees are gone from accesses.
+            /**
+             //search for record in accesses using index 3 (bygrantee)
+             const json1 = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'accesses',
+                lower_bound: user[i].account,
+                upper_bound: user[i].account,
+                key_type: 'i64',
+                index_position: '3'
+            }
+             let result1 = await callFioApi("get_table_rows", json1);
+             //get the id for the record
+             expect(result1.rows.length).to.equal(0);
              */
 
         } catch (err) {
@@ -637,7 +1325,7 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
         try {
 
             // hash  object_type, object_name, and permission_name
-            let control_string = "domain"+permuser1.domain+"register_address_on_domain";
+            let control_string = permuser1.account + "domain"+permuser1.domain+"register_address_on_domain";
             const control_hash  = stringToHash(control_string);
             //search for record in permissions using index 5 (bypermissioncontrolhash)
             const json = {
@@ -725,8 +1413,106 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
         }
     })
 
-    //remove access for permuser2 see that regaddress now fails on permuser1 domain.
-    it(`SUCCESS, call remperm for user1 domain, remove access of user2`, async () => {
+    //add perm * forperm user2 from permuser1
+    it(`SUCCESS, call addperm for user1 domain, grant access user2 * access`, async () => {
+        try {
+
+            const result = await permuser1.sdk.genericAction('pushTransaction', {
+                action: 'addperm',
+                account: 'fio.perms',
+                data: {
+                    grantee_account: permuser2.account,
+                    permission_name: "register_address_on_domain",
+                    permission_info: "",
+                    object_name: "*",
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser1.account
+                }
+            })
+
+            expect(result.fee_collected).to.equal(514287432);
+            // console.log("result ", result);
+        } catch (err) {
+            // console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it('SUCCESS confirm permissions and accesses table contents', async () => {
+        try {
+
+            // hash  object_type, object_name, and permission_name
+            let control_string = permuser1.account + "domain*register_address_on_domain";
+            const control_hash  = stringToHash(control_string);
+            //search for record in permissions using index 5 (bypermissioncontrolhash)
+            const json = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'permissions',
+                lower_bound: control_hash,
+                upper_bound: control_hash,
+                key_type: 'i128',
+                index_position: '5'
+            }
+            result = await callFioApi("get_table_rows", json);
+            //get the id for the record
+            expect(result.rows.length).to.equal(1);
+            //hash account and id
+            let pid = result.rows[0].id;
+            let access_control = permuser2.account + pid.toString();
+            const access_hash = stringToHash(access_control);
+
+            //search for record in accesses using index 4 (byaccesscontrolhash)
+            const json1 = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'accesses',
+                lower_bound: access_hash,
+                upper_bound: access_hash,
+                key_type: 'i128',
+                index_position: '4'
+            }
+            result1 = await callFioApi("get_table_rows", json1);
+            //get the id for the record
+            expect(result1.rows.length).to.equal(1);
+
+            //console.log('Result: ', result);
+            //console.log('Result 1', result1);
+            //console.log('periods : ', result.rows[0].periods)
+
+        } catch (err) {
+            //console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`SUCCESS user2 try to regaddress on user1 domain with both * and domain access`, async () => {
+        try {
+            let addaddress3 = generateFioAddress(permuser1.domain, 7);
+            const result = await permuser2.sdk.genericAction('pushTransaction', {
+                action: 'regaddress',
+                account: 'fio.address',
+                data: {
+                    fio_address: addaddress3,
+                    owner_fio_public_key: permuser2.publicKey,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser2.account
+                }
+            });
+            // console.log('Result: ', result)
+            expect(result.status).to.equal('OK');
+        } catch (err) {
+            // console.log(err);
+            expect(err).to.equal(null);
+        }
+    })
+
+
+    it(`SUCCESS, call remperm for user1 domain, remove domain name access of user2, but * access remains`, async () => {
         try {
 
             const result = await permuser1.sdk.genericAction('pushTransaction', {
@@ -749,6 +1535,105 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
             expect(err).to.equal(null);
         }
     })
+
+    it('SUCCESS confirm permissions and accesses table contents', async () => {
+        try {
+
+            // hash  object_type, object_name, and permission_name
+            let control_string = permuser1.account + "domain*register_address_on_domain";
+            const control_hash  = stringToHash(control_string);
+            //search for record in permissions using index 5 (bypermissioncontrolhash)
+            const json = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'permissions',
+                lower_bound: control_hash,
+                upper_bound: control_hash,
+                key_type: 'i128',
+                index_position: '5'
+            }
+            result = await callFioApi("get_table_rows", json);
+            //get the id for the record
+            expect(result.rows.length).to.equal(1);
+            //hash account and id
+            let pid = result.rows[0].id;
+            let access_control = permuser2.account + pid.toString();
+            const access_hash = stringToHash(access_control);
+
+            //search for record in accesses using index 4 (byaccesscontrolhash)
+            const json1 = {
+                json: true,
+                code: 'fio.perms',
+                scope: 'fio.perms',
+                table: 'accesses',
+                lower_bound: access_hash,
+                upper_bound: access_hash,
+                key_type: 'i128',
+                index_position: '4'
+            }
+            result1 = await callFioApi("get_table_rows", json1);
+            //get the id for the record
+            expect(result1.rows.length).to.equal(1);
+
+            //console.log('Result: ', result);
+            //console.log('Result 1', result1);
+            //console.log('periods : ', result.rows[0].periods)
+
+        } catch (err) {
+            //console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+    it(`success user2 try to regaddress on user1 domain, * permission remains`, async () => {
+        try {
+            let addaddress3 = generateFioAddress(publicuser1.domain, 7);
+            const result = await permuser2.sdk.genericAction('pushTransaction', {
+                action: 'regaddress',
+                account: 'fio.address',
+                data: {
+                    fio_address: addaddress3,
+                    owner_fio_public_key: permuser3.publicKey,
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser2.account
+                }
+            });
+            // console.log('Result: ', result)
+            expect(result.status).to.equal('OK');
+        } catch (err) {
+            // console.log(err);
+            expect(err.json.fields[0].error).to.equal("FIO Domain is not public. Only owner can create FIO Addresses.");
+        }
+    })
+
+    //remove * permission
+    it(`SUCCESS, call remperm for user1 domain, remove access of user2`, async () => {
+        try {
+
+            const result = await permuser1.sdk.genericAction('pushTransaction', {
+                action: 'remperm',
+                account: 'fio.perms',
+                data: {
+                    grantee_account: permuser2.account,
+                    permission_name: "register_address_on_domain",
+                    object_name: "*",
+                    max_fee: config.maxFee,
+                    tpid: '',
+                    actor: permuser1.account
+                }
+            })
+
+            expect(result.fee_collected).to.equal(212354321);
+            // console.log("result ", result);
+        } catch (err) {
+            // console.log('Error', err);
+            expect(err).to.equal(null);
+        }
+    })
+
+
 
     it(`FAILURE user2 try to regaddress on user1 domain`, async () => {
         try {
@@ -841,7 +1726,7 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
         try {
 
             // hash  object_type, object_name, and permission_name
-            let control_string = "domain"+publicuser1.domain+"register_address_on_domain";
+            let control_string = publicuser1.account + "domain"+publicuser1.domain+"register_address_on_domain";
             const control_hash  = stringToHash(control_string);
             //search for record in permissions using index 5 (bypermissioncontrolhash)
             const json = {
@@ -991,7 +1876,7 @@ describe(`D. addperm -- argument validation tests`, () => {
                 expect(result.status).to.equal(null);
             } catch (err) {
                // console.log("Error ", err)
-                expect(err.json.fields[0].error).to.equal("grantee account is invalid")
+                expect(err.json.fields[0].error).to.equal("Account is invalid or does not exist.")
             }
     });
     it(`FAILURE -- grantee account too long `, async () => {
@@ -1013,7 +1898,7 @@ describe(`D. addperm -- argument validation tests`, () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("grantee account is invalid")
+            expect(err.json.fields[0].error).to.equal("Account is invalid or does not exist.")
         }
     });
     it(`FAILURE -- grantee account illegal chars `, async () => {
@@ -1035,7 +1920,7 @@ describe(`D. addperm -- argument validation tests`, () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("grantee account is invalid")
+            expect(err.json.fields[0].error).to.equal("Account is invalid or does not exist.")
         }
     });
     it(`FAILURE -- grantee account is actor `, async () => {
@@ -1057,7 +1942,7 @@ describe(`D. addperm -- argument validation tests`, () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("grantee account is invalid")
+            expect(err.json.fields[0].error).to.equal("Account is invalid or does not exist.")
         }
     });
     it(`FAILURE -- grantee account does not exist `, async () => {
@@ -1081,7 +1966,7 @@ describe(`D. addperm -- argument validation tests`, () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("grantee account is invalid")
+            expect(err.json.fields[0].error).to.equal("Account is invalid or does not exist.")
         }
     });
 
@@ -1129,7 +2014,7 @@ describe(`D. addperm -- argument validation tests`, () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("Permission name is invalid")
+            expect(err.json.fields[0].error).to.equal("Permission name is invalid.")
         }
     });
     it(`FAILURE -- invalid permission name, unkown name `, async () => {
@@ -1152,7 +2037,7 @@ describe(`D. addperm -- argument validation tests`, () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("Permission name is invalid")
+            expect(err.json.fields[0].error).to.equal("Permission name is invalid.")
         }
     });
 
@@ -1177,7 +2062,7 @@ describe(`D. addperm -- argument validation tests`, () => {
                     expect(result.status).to.equal(null);
         } catch (err) {
                     //console.log("Error ", err)
-                    expect(err.json.fields[0].error).to.equal("Permission info is invalid")
+                    expect(err.json.fields[0].error).to.equal("Permission Info is invalid.")
         }
     });
 
@@ -1202,7 +2087,7 @@ describe(`D. addperm -- argument validation tests`, () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("Invalid object name")
+            expect(err.json.fields[0].error).to.equal("Object Name is invalid.")
         }
     });
     it(`FAILURE -- object name, value not domain only `, async () => {
@@ -1225,7 +2110,7 @@ describe(`D. addperm -- argument validation tests`, () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("Invalid object name")
+            expect(err.json.fields[0].error).to.equal("Object Name is invalid.")
         }
     });
     it(`FAILURE -- object name, domain doesnt exist `, async () => {
@@ -1248,7 +2133,7 @@ describe(`D. addperm -- argument validation tests`, () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("Invalid object name")
+            expect(err.json.fields[0].error).to.equal("Object Name is invalid.")
         }
     });
     it(`SUCCESS -- object name, case change in domain is ignored `, async () => {
@@ -1294,7 +2179,7 @@ describe(`D. addperm -- argument validation tests`, () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("Invalid object name")
+            expect(err.json.fields[0].error).to.equal("Object Name is invalid.")
         }
     });
     it(`FAILURE -- object name, domain maxlen exceed `, async () => {
@@ -1317,7 +2202,7 @@ describe(`D. addperm -- argument validation tests`, () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("Invalid object name")
+            expect(err.json.fields[0].error).to.equal("Object Name is invalid.")
         }
     });
 
@@ -1396,7 +2281,7 @@ describe(`D. addperm -- argument validation tests`, () => {
                     actor: user3.account
                 }
             });
-            expect(result.status).to.equal('OK');
+            expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("TPID must be empty or valid FIO address")
@@ -1405,47 +2290,53 @@ describe(`D. addperm -- argument validation tests`, () => {
     it(`SUCCESS -- tpid, value domain only `, async () => {
 
         try {
+            let user3 = await newUser(faucet);
+            let user4 = await newUser(faucet);
 
-            let result = await user1.sdk.genericAction('pushTransaction', {
+
+            let result = await user3.sdk.genericAction('pushTransaction', {
                 action: 'addperm',
                 account: 'fio.perms',
                 data: {
-                    grantee_account: user2.account,
+                    grantee_account: user4.account,
                     permission_name: "register_address_on_domain",
                     permission_info: "",
-                    object_name: user1.address,
+                    object_name: user3.domain,
                     max_fee: config.maxFee,
                     tpid: user1.domain,
-                    actor: user1.account
+                    actor: user3.account
                 }
             });
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("Invalid object name")
+            expect(err.json.fields[0].error).to.equal("TPID must be empty or valid FIO address")
         }
     });
     it(`SUCCESS -- tpid, doesnt exist `, async () => {
 
         try {
+            let user3 = await newUser(faucet);
+            let user4 = await newUser(faucet);
 
-            let result = await user1.sdk.genericAction('pushTransaction', {
+
+            let result = await user3.sdk.genericAction('pushTransaction', {
                 action: 'addperm',
                 account: 'fio.perms',
                 data: {
-                    grantee_account: user2.account,
+                    grantee_account: user4.account,
                     permission_name: "register_address_on_domain",
                     permission_info: "",
-                    object_name: user2.domain,
+                    object_name: user3.domain,
                     max_fee: config.maxFee,
                     tpid: 'fiction@fiction',
-                    actor: user1.account
+                    actor: user3.account
                 }
             });
-            expect(result.status).to.equal(null);
+            expect(result.status).to.equal('OK');
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("Invalid object name")
+            expect(err).to.equal(null);
         }
     });
 
@@ -1486,7 +2377,7 @@ describe(`E. remperm -- argument validation tests`, () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("grantee account is invalid")
+            expect(err.json.fields[0].error).to.equal("Account is invalid or does not exist.")
         }
     });
     it(`FAILURE -- grantee account too long `, async () => {
@@ -1507,7 +2398,7 @@ describe(`E. remperm -- argument validation tests`, () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("grantee account is invalid")
+            expect(err.json.fields[0].error).to.equal("Account is invalid or does not exist.")
         }
     });
     it(`FAILURE -- grantee account illegal chars `, async () => {
@@ -1528,7 +2419,7 @@ describe(`E. remperm -- argument validation tests`, () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("grantee account is invalid")
+            expect(err.json.fields[0].error).to.equal("Account is invalid or does not exist.")
         }
     });
     it(`FAILURE -- grantee account is actor `, async () => {
@@ -1549,7 +2440,7 @@ describe(`E. remperm -- argument validation tests`, () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("grantee account is invalid")
+            expect(err.json.fields[0].error).to.equal("Account is invalid or does not exist.")
         }
     });
     it(`FAILURE -- grantee account does not exist `, async () => {
@@ -1572,7 +2463,7 @@ describe(`E. remperm -- argument validation tests`, () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("grantee account is invalid")
+            expect(err.json.fields[0].error).to.equal("Account is invalid or does not exist.")
         }
     });
 
@@ -1618,7 +2509,7 @@ describe(`E. remperm -- argument validation tests`, () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("Permission name is invalid")
+            expect(err.json.fields[0].error).to.equal("Permission name is invalid.")
         }
     });
     it(`FAILURE -- invalid permission name, unkown name `, async () => {
@@ -1640,7 +2531,7 @@ describe(`E. remperm -- argument validation tests`, () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("Permission name is invalid")
+            expect(err.json.fields[0].error).to.equal("Permission name is invalid.")
         }
     });
 
@@ -1665,7 +2556,7 @@ describe(`E. remperm -- argument validation tests`, () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("Invalid object name")
+            expect(err.json.fields[0].error).to.equal("Object Name is invalid.")
         }
     });
     it(`FAILURE -- object name, value not domain only `, async () => {
@@ -1687,7 +2578,7 @@ describe(`E. remperm -- argument validation tests`, () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("Invalid object name")
+            expect(err.json.fields[0].error).to.equal("Object Name is invalid.")
         }
     });
     it(`FAILURE -- object name, domain doesnt exist `, async () => {
@@ -1709,7 +2600,7 @@ describe(`E. remperm -- argument validation tests`, () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("Invalid object name")
+            expect(err.json.fields[0].error).to.equal("Object Name is invalid.")
         }
     });
     it(`SUCCESS -- object name, case change in domain is ignored `, async () => {
@@ -1753,7 +2644,7 @@ describe(`E. remperm -- argument validation tests`, () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("Invalid object name")
+            expect(err.json.fields[0].error).to.equal("Object Name is invalid.")
         }
     });
     it(`FAILURE -- object name, domain maxlen exceed `, async () => {
@@ -1775,7 +2666,7 @@ describe(`E. remperm -- argument validation tests`, () => {
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("Invalid object name")
+            expect(err.json.fields[0].error).to.equal("Object Name is invalid.")
         }
     });
 
@@ -1860,55 +2751,58 @@ describe(`E. remperm -- argument validation tests`, () => {
     it(`SUCCESS -- tpid, value domain only `, async () => {
 
         try {
+            let user3 = await newUser(faucet);
+            let user4 = await newUser(faucet);
 
-            let result = await user1.sdk.genericAction('pushTransaction', {
+            let result = await user3.sdk.genericAction('pushTransaction', {
                 action: 'addperm',
                 account: 'fio.perms',
                 data: {
-                    grantee_account: user2.account,
+                    grantee_account: user4.account,
                     permission_name: "register_address_on_domain",
                     permission_info: "",
-                    object_name: user1.address,
+                    object_name: user3.domain,
                     max_fee: config.maxFee,
                     tpid: user1.domain,
-                    actor: user1.account
+                    actor: user3.account
                 }
             });
             expect(result.status).to.equal(null);
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("Invalid object name")
+            expect(err.json.fields[0].error).to.equal("TPID must be empty or valid FIO address")
         }
     });
     it(`SUCCESS -- tpid, doesnt exist `, async () => {
 
         try {
 
-            let result = await user1.sdk.genericAction('pushTransaction', {
+            let user3 = await newUser(faucet);
+            let user4 = await newUser(faucet);
+
+            let result = await user3.sdk.genericAction('pushTransaction', {
                 action: 'addperm',
                 account: 'fio.perms',
                 data: {
-                    grantee_account: user2.account,
+                    grantee_account: user4.account,
                     permission_name: "register_address_on_domain",
                     permission_info: "",
-                    object_name: user2.domain,
+                    object_name: user3.domain,
                     max_fee: config.maxFee,
                     tpid: 'fiction@fiction',
-                    actor: user1.account
+                    actor: user3.account
                 }
             });
-            expect(result.status).to.equal(null);
+            expect(result.status).to.equal('OK');
         } catch (err) {
             //console.log("Error ", err)
-            expect(err.json.fields[0].error).to.equal("Invalid object name")
+            expect(err).to.equal(null)
         }
     });
 
 })
 
-describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
-
-
+describe(`F. chain_api endpoint get_grantor_permissions wildcard tests \n `, () => {
     let permuser1,
         permuser2,
         permuser3;
@@ -1972,7 +2866,7 @@ describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
                                 grantee_account: users[(step*NUMBER_PERMS)+i].account,
                                 permission_name: "register_address_on_domain",
                                 permission_info: "",
-                                object_name: domainGood,
+                                object_name: "*",
                                 max_fee: config.maxFee,
                                 tpid: '',
                                 actor: permuser1.account
@@ -2007,10 +2901,10 @@ describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
 
             //expect item 0 to be the first user.
             expect(result.permissions[0].grantee_account).to.equal(users[0].account);
-            expect(result.permissions[0].object_name).to.equal(domains[0]);
+            expect(result.permissions[0].object_name).to.equal("*");
             //expect item 29 for be the last user.
             expect(result.permissions[DOMAINS_PER_ACCOUNT*NUMBER_PERMS-1].grantee_account).to.equal(users[DOMAINS_PER_ACCOUNT*NUMBER_PERMS-1].account);
-            expect(result.permissions[DOMAINS_PER_ACCOUNT*NUMBER_PERMS-1].object_name).to.equal(domains[DOMAINS_PER_ACCOUNT-1]);
+            expect(result.permissions[DOMAINS_PER_ACCOUNT*NUMBER_PERMS-1].object_name).to.equal("*");
         } catch (err) {
             console.log(err);
             expect(err).to.equal(null);
@@ -2028,10 +2922,10 @@ describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
           //  console.log('Result: ', result);
             //expect item 0 to be the first user.
             expect(result.permissions[0].grantee_account).to.equal(users[0].account);
-            expect(result.permissions[0].object_name).to.equal(domains[0]);
+            expect(result.permissions[0].object_name).to.equal("*");
             //expect item 29 for be the last user.
             expect(result.permissions[DOMAINS_PER_ACCOUNT*NUMBER_PERMS-1].grantee_account).to.equal(users[DOMAINS_PER_ACCOUNT*NUMBER_PERMS-1].account);
-            expect(result.permissions[DOMAINS_PER_ACCOUNT*NUMBER_PERMS-1].object_name).to.equal(domains[DOMAINS_PER_ACCOUNT-1]);
+            expect(result.permissions[DOMAINS_PER_ACCOUNT*NUMBER_PERMS-1].object_name).to.equal("*");
 
         } catch (err) {
             console.log(err);
@@ -2051,6 +2945,217 @@ describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
             }
             result = await callFioApi("get_grantor_permissions", json);
            // console.log('Result: ', result);
+            //expect item 0 to be  user[NUMBER_PERMS*DOMAINS_PER_ACCOUNT-1].
+
+            expect(result.permissions[0].grantee_account).to.equal(users[offsetval].account);
+            expect(result.permissions[0].object_name).to.equal("*");
+            //expect item NUMBER_PERMS*DOMAINS_PER_ACCOUNT-1 be the user[NUMBER_PERMS*2-1].
+            expect(result.permissions[NUMBER_PERMS-1].grantee_account).to.equal(users[offsetval+NUMBER_PERMS-1].account);
+            expect(result.permissions[NUMBER_PERMS-1].object_name).to.equal("*");
+
+            //console.log('Result: ', result);
+            //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+        } catch (err) {
+            console.log(err);
+            //console.log(JSON.stringify(err.error, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`SUCCESS -- call get_grantor_permissions with  limit 20 and offset 3`, async () => {
+        try {
+            const json = {
+                grantor_account: permuser1.account,
+                limit: 20,
+                offset: 3
+            }
+            result = await callFioApi("get_grantor_permissions", json);
+           // console.log('Result: ', result);
+            //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+            expect(result.permissions[0].grantee_account).to.equal(users[3].account);
+            expect(result.permissions[0].object_name).to.equal("*");
+            //expect item NUMBER_PERMS*DOMAINS_PER_ACCOUNT-1 be the user[NUMBER_PERMS*2-1].
+            expect(result.permissions[19].grantee_account).to.equal(users[22].account);
+            expect(result.permissions[19].object_name).to.equal("*");
+
+        } catch (err) {
+            console.log(err);
+           // console.log(JSON.stringify(err.error, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`SUCCESS -- call get_grantor_permissions with  limit 20 and offset 20`, async () => {
+        try {
+            const json = {
+                grantor_account: permuser1.account,
+                limit: 20,
+                offset: 20
+            }
+            result = await callFioApi("get_grantor_permissions", json);
+           // console.log('Result: ', result);
+            //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+            //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
+            expect(result.permissions[0].grantee_account).to.equal(users[20].account);
+            expect(result.permissions[0].object_name).to.equal("*");
+            //expect item NUMBER_PERMS*DOMAINS_PER_ACCOUNT-1 be the user[NUMBER_PERMS*2-1].
+            expect(result.permissions[19].grantee_account).to.equal(users[39].account);
+            expect(result.permissions[19].object_name).to.equal("*");
+
+        } catch (err) {
+            console.log(err);
+            //console.log(JSON.stringify(err.error, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+
+})
+
+describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
+
+
+    let permuser1,
+        permuser2,
+        permuser3;
+    let users = [];
+    const domains = [];
+
+    const NUMBER_PERMS = 10;
+    const DOMAINS_PER_ACCOUNT = 5;
+
+
+    before(async () => {
+        permuser1 = await newUser(faucet);
+        permuser2 = await newUser(faucet);
+        permuser3 = await newUser(faucet);
+        //now transfer 1k fio from the faucet to this account
+        const result = await faucet.genericAction('transferTokens', {
+            payeeFioPublicKey: permuser1.publicKey,
+            amount: 4000000000000,
+            maxFee: config.api.transfer_tokens_pub_key.fee,
+            technologyProviderId: ''
+        })
+
+        console.log('permuser1.publicKey: ', permuser1.publicKey)
+
+    })
+
+
+    it(`SUCCESS load the permuser1 account with multiple domains and multiple grantees per domain`, async () => {
+        try {
+
+
+            for (let step = 0; step < DOMAINS_PER_ACCOUNT; step++) {
+
+                try {
+
+                    domainGood = generateFioDomain(7);
+                    domains[step] = domainGood;
+                    // console.log()
+
+
+                    const result = await permuser1.sdk.genericAction('registerFioDomain', {
+                        fioDomain: domainGood,
+                        maxFee: config.api.register_fio_domain.fee,
+                        technologyProviderId: ''
+                    })
+
+                    console.log('created domain: ', step);
+                    expect(result.status).to.equal('OK')
+
+                    //users holds grantees every ten is for another domain.
+                    for (let i = 0; i < NUMBER_PERMS; i++) {
+                        console.log('          (Adding permission) #' + i);
+                        users[(step*NUMBER_PERMS)+i] = await newUser(faucet);
+
+                        const result = await callFioApiSigned('add_fio_permission', {
+                            action: 'addperm',
+                            account: 'fio.perms',
+                            actor: permuser1.account,
+                            privKey: permuser1.privateKey,
+                            data: {
+                                grantee_account: users[(step*NUMBER_PERMS)+i].account,
+                                permission_name: "register_address_on_domain",
+                                permission_info: "",
+                                object_name: domainGood,
+                                max_fee: config.maxFee,
+                                tpid: '',
+                                actor: permuser1.account
+                            }
+                        })
+
+                        //console.log("result ", result);
+                        expect(result.processed.action_traces[0].receipt.response).to.contain("514287432");
+                    }
+
+                }catch(err1){
+                    console.log('failed iteraton ', err1)
+                }
+            }
+        }
+        catch
+            (err)
+        {
+            console.log('Error', err)
+        }
+
+    })
+
+
+    it(`SUCCESS -- call get_grantor_permissions with no limit and offset`, async () => {
+        try {
+            const json = {
+                grantor_account: permuser1.account
+            }
+            result = await callFioApi("get_grantor_permissions", json);
+            // console.log('Result: ', result);
+
+            //expect item 0 to be the first user.
+            expect(result.permissions[0].grantee_account).to.equal(users[0].account);
+            expect(result.permissions[0].object_name).to.equal(domains[0]);
+            //expect item 29 for be the last user.
+            expect(result.permissions[DOMAINS_PER_ACCOUNT*NUMBER_PERMS-1].grantee_account).to.equal(users[DOMAINS_PER_ACCOUNT*NUMBER_PERMS-1].account);
+            expect(result.permissions[DOMAINS_PER_ACCOUNT*NUMBER_PERMS-1].object_name).to.equal(domains[DOMAINS_PER_ACCOUNT-1]);
+        } catch (err) {
+            console.log(err);
+            expect(err).to.equal(null);
+        }
+    });
+
+    it(`SUCCESS -- call get_grantor_permissions with 0 limit and offset`, async () => {
+        try {
+            const json = {
+                grantor_account: permuser1.account,
+                limit: 0,
+                offset: 0
+            }
+            result = await callFioApi("get_grantor_permissions", json);
+            //  console.log('Result: ', result);
+            //expect item 0 to be the first user.
+            expect(result.permissions[0].grantee_account).to.equal(users[0].account);
+            expect(result.permissions[0].object_name).to.equal(domains[0]);
+            //expect item 29 for be the last user.
+            expect(result.permissions[DOMAINS_PER_ACCOUNT*NUMBER_PERMS-1].grantee_account).to.equal(users[DOMAINS_PER_ACCOUNT*NUMBER_PERMS-1].account);
+            expect(result.permissions[DOMAINS_PER_ACCOUNT*NUMBER_PERMS-1].object_name).to.equal(domains[DOMAINS_PER_ACCOUNT-1]);
+
+        } catch (err) {
+            console.log(err);
+            // console.log(JSON.stringify(err.error, null, 4));
+            expect(err).to.equal(null);
+        }
+    });
+
+
+    it(`SUCCESS -- call get_grantor_permissions with  limit and offset in the middle of the table contents`, async () => {
+        try {
+            let offsetval = 30; //must be the beginning of a block of domains for this to work.
+            const json = {
+                grantor_account: permuser1.account,
+                limit: NUMBER_PERMS,
+                offset: offsetval
+            }
+            result = await callFioApi("get_grantor_permissions", json);
+            // console.log('Result: ', result);
             //expect item 0 to be  user[NUMBER_PERMS*DOMAINS_PER_ACCOUNT-1].
 
             expect(result.permissions[0].grantee_account).to.equal(users[offsetval].account);
@@ -2076,7 +3181,7 @@ describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
                 offset: 3
             }
             result = await callFioApi("get_grantor_permissions", json);
-           // console.log('Result: ', result);
+            // console.log('Result: ', result);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
             expect(result.permissions[0].grantee_account).to.equal(users[3].account);
             expect(result.permissions[0].object_name).to.equal(domains[0]);
@@ -2086,7 +3191,7 @@ describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
 
         } catch (err) {
             console.log(err);
-           // console.log(JSON.stringify(err.error, null, 4));
+            // console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
@@ -2099,7 +3204,7 @@ describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
                 offset: 20
             }
             result = await callFioApi("get_grantor_permissions", json);
-           // console.log('Result: ', result);
+            // console.log('Result: ', result);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
             expect(result.permissions[0].grantee_account).to.equal(users[20].account);
@@ -2978,7 +4083,7 @@ describe.skip('D. Burn large number of expired domains with gaps between expired
 
             for (let i = 0; i < domainBlockCount; i++) {
                 // hash  object_type, object_name, and permission_name
-                let control_string = "domain" + user[i].domain + "register_address_on_domain";
+                let control_string = user[i].account + "domain" + user[i].domain + "register_address_on_domain";
                 const control_hash = stringToHash(control_string);
                 //search for record in permissions using index 5 (bypermissioncontrolhash)
                 const json = {
@@ -3259,7 +4364,7 @@ describe.skip(`AB. permissions performance tests \n `, () => {
         try {
 
             // hash  object_type, object_name, and permission_name
-            let control_string = "domain"+permuser1.domain+"register_address_on_domain";
+            let control_string = permuser1.account + "domain"+permuser1.domain+"register_address_on_domain";
             const control_hash  = stringToHash(control_string);
             //search for record in permissions using index 5 (bypermissioncontrolhash)
             const json = {

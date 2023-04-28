@@ -1071,11 +1071,11 @@ describe(`F. Tests with bad tpid parameters - confirm txn still works (push tran
               actor: user1.account
             }
         });
-        //console.log('Result: ', result);
-        expect(result.processed.receipt.status).to.equal('executed');
+        console.log('Result: ', result);
+        expect(result).to.equal(null);
     } catch (err) {
         console.log(err);
-        expect(err).to.equal(null);
+        expect(err.json.fields[0].error).to.equal("TPID must be empty or valid FIO address");
     }
 });
 
