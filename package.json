@@ -39,7 +39,7 @@
         "typescript": "^3.8.2"
     },
     "scripts": {
-        "test": "node node_modules/mocha/bin/_mocha -t 5000000 index.js",
+        "test": "node node_modules/mocha/bin/_mocha --no-timeout index.js",
         "testnet": "mocha -t 5000000 tests/testnet-smoketest.js",
         "hardhat-contract-dir": "mkdir -p hardhat-contracts/",
         "hardhat-copy-erc20": "cp -R ../fio.erc20/contracts/wfio.sol hardhat-contracts/",

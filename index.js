@@ -5,7 +5,6 @@ describe('TEST SUITE', () => {
 
   describe(`Run only...`, function () {
     // Use this to run only a few tests
-
   });
 
   /**
@@ -88,6 +87,8 @@ describe('TEST SUITE', () => {
 
   describe('** GENERAL TESTS - NO SETUP **', () => {
 
+    //FIP-40 tests
+    require("./tests/FIP-40-permissions-dev-tests.js");
     /**
      * General Tests. Should work against all builds. Do not require additional configuration.
      */
