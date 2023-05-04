@@ -1072,7 +1072,15 @@ describe(`F. Tests with bad tpid parameters - confirm txn still works (push tran
             }
         });
         console.log('Result: ', result);
-        expect(result).to.equal(null);
+      expect(result.type).to.equal('invalid_input');
+   //   console.log ("pass 1");
+      expect(result.fields[0].name).to.equal('tpid');
+    //  console.log ("pass 2");
+      expect(result.fields[0].value).to.equal('notvalidfioaddress');
+    //  console.log ("pass 3");
+      expect(result.fields[0].error).to.equal('TPID must be empty or valid FIO address');
+      //console.log ("pass 4");
+
     } catch (err) {
         console.log(err);
         expect(err.json.fields[0].error).to.equal("TPID must be empty or valid FIO address");

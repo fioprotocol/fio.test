@@ -9,6 +9,7 @@ const {
   generateFioAddress,
   callFioApi,
   callFioApiSigned,
+    timeout,
   getRamForUser
 } = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk');
@@ -337,6 +338,16 @@ describe(`************************** register-fio-domain-address.js ************
     expect(fionameRows.rows[0].addresses[0].public_address).to.equal(user3.publicKey);
   });
 
+  //add wait to avoid dup tx error
+  it(`Waiting 2 seconds for no duplicate`, async () => {
+
+    console.log("      wait 2 seconds ")
+  })
+
+  it(`wait 2 seconds for unlock`, async () => {
+    await timeout(2 * 1000);
+  })
+
   // unhappy
   it(`(domain already registered) try to register a FIO address and a public FIO domain`, async function () {
     const result = await callFioApiSigned('push_transaction', {
@@ -354,9 +365,13 @@ describe(`************************** register-fio-domain-address.js ************
       }
     });
     expect(result.type).to.equal('invalid_input');
+   // console.log ("pass 1");
     expect(result.fields[0].name).to.equal('fio_name');
+   // console.log ("pass 2");
     expect(result.fields[0].value).to.equal(address1);
+   // console.log ("pass 3");
     expect(result.fields[0].error).to.equal('Domain already registered, use regaddress instead.');
+    //console.log ("pass 4");
   });
 
   it(`(fee exceeds supplied maximum) try to register a FIO address and a public FIO domain`, async function () {
