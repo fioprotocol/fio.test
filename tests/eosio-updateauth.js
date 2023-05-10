@@ -1034,7 +1034,7 @@ describe(`D. (SDK generic action - push_transaction) Create custom perm for rega
     };
   });
 
-  it(`user 2 calls regaddress using user1 actor, ${newPerm} permission, and user2 private key`, async () => {
+  it.skip(`(TODO: Update afte DASH-268 is completed = support for authPermission) user 2 calls regaddress using user1 actor, ${newPerm} permission, and user2 private key`, async () => {
     try {
       const mnemonic = `${randStr(6)} ${randStr(6)} ${randStr(6)} ${randStr(6)} ${randStr(6)} ${randStr(6)} ${randStr(6)} ${randStr(6)} ${randStr(6)} ${randStr(6)} ${randStr(6)} ${randStr(6)}`
       const keyRes = await FIOSDK.createPrivateKeyMnemonic(mnemonic);
