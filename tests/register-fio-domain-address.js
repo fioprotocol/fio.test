@@ -9,6 +9,7 @@ const {
   generateFioAddress,
   callFioApi,
   callFioApiSigned,
+    timeout,
   getRamForUser
 } = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk');
@@ -67,15 +68,12 @@ describe(`************************** register-fio-domain-address.js ************
     expect(regDomAddObj.processed.action_traces[0].act.data.owner_fio_public_key).to.equal(user1.publicKey);
   });
 
-  // This test is flaky and needs to be updated
-  it.skip(`(BUG BD-4244) date in the response is getting incremented an extra year. confirm response contains correct domain expiration date`, async function () {
+  it(`Date in the response is getting incremented an extra year. confirm response contains correct domain expiration date (BD-4244)`, async function () {
     blockTime = regDomAddObj.processed.block_time.split('.')[0];
     expDateObj = JSON.parse(regDomAddObj.processed.action_traces[0].receipt.response);
     let blockTimeStamp = new Date(Date(blockTime)).getTime();
     let expDateTimeStamp = new Date(expDateObj.expiration).getTime();
-    let timeDelta = expDateTimeStamp - blockTimeStamp;
-    let window = MS_YEAR - timeDelta;   // allow an ~hour window
-    expect(timeDelta).to.be.greaterThanOrEqual(MS_YEAR - window).and.lessThanOrEqual(MS_YEAR);
+    expect(expDateTimeStamp).to.be.greaterThanOrEqual(blockTimeStamp + MS_YEAR - 5000).and.lessThanOrEqual(blockTimeStamp + MS_YEAR + 5000);
   });
 
   it(`confirm fee charged to user1`, async function () {
@@ -164,15 +162,12 @@ describe(`************************** register-fio-domain-address.js ************
     expect(regDomAddObj.processed.action_traces[0].act.data.owner_fio_public_key).to.equal(user1.publicKey);
   });
 
-   // This test is flaky and needs to be updated
-  it.skip(`(BUG the date in the response is getting incremented an extra year) confirm response contains correct domain expiration date`, async function () {
+  it(`Confirm response contains correct domain expiration date`, async function () {
     blockTime = regDomAddObj.processed.block_time.split('.')[0];
     expDateObj = JSON.parse(regDomAddObj.processed.action_traces[0].receipt.response);
     let blockTimeStamp = new Date(Date(blockTime)).getTime();
     let expDateTimeStamp = new Date(expDateObj.expiration).getTime();
-    let timeDelta = expDateTimeStamp - blockTimeStamp;
-    let window = MS_YEAR - timeDelta;   // allow an ~hour window
-    expect(timeDelta).to.be.greaterThanOrEqual(MS_YEAR - window).and.lessThanOrEqual(MS_YEAR);
+    expect(expDateTimeStamp).to.be.greaterThanOrEqual(blockTimeStamp + MS_YEAR - 5000).and.lessThanOrEqual(blockTimeStamp + MS_YEAR + 5000);
   });
 
   it(`confirm fee charged to user1`, async function () {
@@ -258,6 +253,7 @@ describe(`************************** register-fio-domain-address.js ************
         actor: user4.account
       }
     });
+    //console.log(JSON.stringify(regDomAddObj, null, 4));
     expect(regDomAddObj).to.have.all.keys('transaction_id', 'processed');
     expect(regDomAddObj.processed.receipt.status).to.equal('executed');
     expect(regDomAddObj.processed.action_traces[0].receipt.response).to.contain('"status": "OK"').and.contain('"fee_collected":800000000000').and.contain('"expiration":');
@@ -266,15 +262,12 @@ describe(`************************** register-fio-domain-address.js ************
     expect(regDomAddObj.processed.action_traces[0].act.data.owner_fio_public_key).to.equal(user3.publicKey);
   });
 
-  // Test is flaky and needs to be updated.
-  it.skip(`(BUG the date in the response is getting incremented an extra year) confirm response contains correct domain expiration date`, async function () {
+  it(`Confirm response contains correct domain expiration date`, async function () {
     blockTime = regDomAddObj.processed.block_time.split('.')[0];
     expDateObj = JSON.parse(regDomAddObj.processed.action_traces[0].receipt.response);
     let blockTimeStamp = new Date(Date(blockTime)).getTime();
     let expDateTimeStamp = new Date(expDateObj.expiration).getTime();
-    let timeDelta = expDateTimeStamp - blockTimeStamp;
-    let window = MS_YEAR - timeDelta;   // allow an ~hour window
-    expect(timeDelta).to.be.greaterThanOrEqual(MS_YEAR - window).and.lessThanOrEqual(MS_YEAR);
+    expect(expDateTimeStamp).to.be.greaterThanOrEqual(blockTimeStamp + MS_YEAR - 5000).and.lessThanOrEqual(blockTimeStamp + MS_YEAR + 5000);
   });
 
   it(`confirm fee charged to user4`, async function () {
@@ -346,6 +339,16 @@ describe(`************************** register-fio-domain-address.js ************
     expect(fionameRows.rows[0].addresses[0].public_address).to.equal(user3.publicKey);
   });
 
+  //add wait to avoid dup tx error
+  it(`Waiting 2 seconds for no duplicate`, async () => {
+
+    console.log("      wait 2 seconds ")
+  })
+
+  it(`wait 2 seconds for unlock`, async () => {
+    await timeout(2 * 1000);
+  })
+
   // unhappy
   it(`(domain already registered) try to register a FIO address and a public FIO domain`, async function () {
     const result = await callFioApiSigned('push_transaction', {
@@ -363,9 +366,13 @@ describe(`************************** register-fio-domain-address.js ************
       }
     });
     expect(result.type).to.equal('invalid_input');
+   // console.log ("pass 1");
     expect(result.fields[0].name).to.equal('fio_name');
+   // console.log ("pass 2");
     expect(result.fields[0].value).to.equal(address1);
+   // console.log ("pass 3");
     expect(result.fields[0].error).to.equal('Domain already registered, use regaddress instead.');
+    //console.log ("pass 4");
   });
 
   it(`(fee exceeds supplied maximum) try to register a FIO address and a public FIO domain`, async function () {

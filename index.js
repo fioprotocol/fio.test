@@ -5,7 +5,6 @@ describe('TEST SUITE', () => {
 
   describe(`Run only...`, function () {
     // Use this to run only a few tests
-
   });
 
   /**
@@ -88,10 +87,13 @@ describe('TEST SUITE', () => {
 
   describe('** GENERAL TESTS - NO SETUP **', () => {
 
+    //FIP-40 tests
+    require("./tests/FIP-40-permissions-dev-tests.js");
     /**
      * General Tests. Should work against all builds. Do not require additional configuration.
      */
     require('./tests/addaddress.js'); // v1.0.x  Also includes FIP-13 tests.
+    require('./tests/get-address.js');
     require('./tests/fees.js'); // v1.0.x
     require('./tests/fio-request.js'); // v1.0.x
     require('./tests/producer.js'); // v1.0.x

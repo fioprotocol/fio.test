@@ -5,6 +5,8 @@ const {
   callFioApiSigned,
   callFioApi,
   fetchJson,
+  generateFioAddress,
+  timeout,
   randStr
 } = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
@@ -137,7 +139,7 @@ describe(`************************** eosio-updateauth.js ***********************
       expect(result.permissions[0].required_auth.accounts[0].permission.permission).to.equal(permission);
       expect(result.permissions[1].required_auth.keys[0].key).to.equal(user1.publicKey);
     } catch (err) {
-      console.log('Error', err);
+      console.log(JSON.stringify(err, null, 4));
       expect(err).to.equal(null);
     }
   });
@@ -844,12 +846,126 @@ describe(`B. Create a new permission (permission: owner) `, () => {
 
 });
 
+describe(`C. Create custom perm for regaddress to enable secondary account to register addresses on private domain of primary account `, () => {
+
+  let user1, user2;
+  const newPerm = "regmyadd";
+  const count = 5;
+
+  it(`Create users`, async () => {
+    user1 = await newUser(faucet);
+    user2 = await newUser(faucet);
+  });
+
+  it(`Create regmyadd permission on user1 active account and link it to user2 'active' account`, async () => {
+    try {
+
+      const authorization = {
+        threshold: 1,
+        accounts: [
+          {
+            permission: {
+              actor: user2.account,
+              permission: 'active'
+            },
+            weight: 1
+          }
+        ],
+        keys: [],
+        waits: [],
+      };
+
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'updateauth',
+        account: 'eosio',
+        actor: user1.account,
+        privKey: user1.privateKey,
+        data: {
+          permission: newPerm,
+          parent: 'active',
+          auth: authorization,
+          max_fee: config.maxFee,
+          account: user1.account
+        }
+      });
+      //console.log('Result: ', result);
+      expect(result.processed.receipt.status).to.equal('executed');
+    } catch (err) {
+        console.log('Error: ', err);
+        expect(err).to.equal(null);
+    };
+  });
+
+  it(`user1 links ${newPerm} permission to regaddress`, async () => {
+    try {
+      const result = await callFioApiSigned('push_transaction', {
+        action: 'linkauth',
+        account: 'eosio',
+        actor: user1.account,
+        privKey: user1.privateKey,
+        data: {
+          account: user1.account,                 // the owner of the permission to be linked, this account will sign the transaction
+          code: 'fio.address',                    // the contract owner of the action to be linked
+          type: 'regaddress',                     // the action to be linked
+          requirement: newPerm,                   // the name of the custom permission (created by updateauth)
+          max_fee: config.maxFee
+        }
+      });
+      //console.log('Result: ', result);
+      expect(result.processed.receipt.status).to.equal('executed');
+    } catch (err) {
+        console.log('Error: ', err);
+        expect(err).to.equal(null);
+    };
+  });
+
+  it(`Call regaddress ${count} times using user1 info, ${newPerm} permission, and user2 private key`, async () => {
+    for (i = 0; i < count; i++) {
+      try {
+        const mnemonic = `${randStr(6)} ${randStr(6)} ${randStr(6)} ${randStr(6)} ${randStr(6)} ${randStr(6)} ${randStr(6)} ${randStr(6)} ${randStr(6)} ${randStr(6)} ${randStr(6)} ${randStr(6)}`
+        const keyRes = await FIOSDK.createPrivateKeyMnemonic(mnemonic);
+        const privateKey = keyRes.fioKey;
+        const publicKey = FIOSDK.derivedPublicKey(privateKey).publicKey;
+        newAddress = generateFioAddress(user1.domain, 7);
+        const result = await callFioApiSigned('push_transaction', {
+          action: 'regaddress',
+          account: 'fio.address',
+          actor: user1.account,
+          privKey: user2.privateKey,
+          data: {
+            fio_address: newAddress,
+            owner_fio_public_key: publicKey,
+            max_fee: config.maxFee,
+            tpid: '',
+            actor: user1.account
+          }
+        }, newPerm);
+        //console.log(JSON.stringify(result, null, 4));
+        expect(result.processed.receipt.status).to.equal('executed');
+
+        timeout(1000);
+
+        // confirm new address
+        const json = {
+          "fio_public_key": publicKey
+        }
+        const addresses = await callFioApi("get_fio_addresses", json);
+        //console.log('get_fio_addresses', result);
+        expect(addresses.fio_addresses[0].fio_address).to.equal(newAddress);
+
+      } catch (err) {
+          console.log('Error: ', err);
+          expect(err).to.equal(null);
+      };
+    };
+  });
+
+});
 
 describe(`D. (SDK generic action - push_transaction) Create custom perm for regaddress to enable secondary account to register addresses on private domain of primary account `, () => {
 
   let user1, user2;
   const newPerm = "regmyadd";
-  const count = 5;
 
   it(`Create users`, async () => {
     user1 = await newUser(faucet);
@@ -956,79 +1072,6 @@ describe(`D. (SDK generic action - push_transaction) Create custom perm for rega
         console.log('Error: ', err);
         expect(err).to.equal(null);
     };
-  });
-
-});
-
-/**
- * We want to allow user2 to be able to execute a regaddress on user1's account. To do this:
- * - user1 creates a permission called "regnewadd" and assigns authorization to user2.account active
- * - user1 links the new permission to the regaddress action
- */
-describe(`E. NEED to complete after SDK update. user1 creates a new permission (permission: regnewadd), links it to the regaddress action, and gives user2 permissions for regnewadd`, () => {
-
-  let user1, user2;
-
-  it(`Create users`, async () => {
-      user1 = await newUser(faucet);
-      user2 = await newUser(faucet);
-
-      console.log(user1.privateKey, user1.publicKey, user1.account)
-    });
-
-  it.skip(`user1 creates a permission called "regnewadd" and assigns authorization to user2.account active`, async () => {
-    try {
-      const result = await user1.sdk.genericAction('pushTransaction', {
-        action: 'updateauth',
-        account: 'eosio',
-        data: {
-          account: user1.account,
-          permission: 'regnewadd',
-          parent: 'active',
-          auth: {
-            threshold: 1,
-            keys: [],
-            waits: [],
-            accounts: [
-              {
-                permission: {
-                  actor: user2.account,
-                  permission: 'active'
-                },
-                weight: 1
-              }
-            ]
-          },
-          max_fee: config.maxFee
-        }
-      });
-      console.log('Result: ', result);
-      expect(result.status).to.equal('OK');
-    } catch (err) {
-      console.log(JSON.stringify(err, null, 4));
-      expect(err).to.equal(null);
-    };
-  });
-
-  it.skip(`user1 links the new permission to the regaddress action`, async () => {
-    try {
-      const result = await user1.sdk.genericAction('pushTransaction', {
-        action: 'linkauth',
-        account: 'eosio',
-        data: {
-          account: user1.account,            // The name of the account containing the permission to link
-          code: 'fio.address',               // System contract that owns the action to be linked
-          type: 'regaddress',                // The action to be linked
-          requirement: 'regnewadd',          // The permission to be linked
-          max_fee: config.maxFee
-        }
-      });
-      console.log('Result: ', result);
-      expect(result.status).to.equal('OK');
-    } catch (err) {
-      console.log(JSON.stringify(err, null, 4));
-      expect(err).to.equal(null);
-    }
   });
 
 });

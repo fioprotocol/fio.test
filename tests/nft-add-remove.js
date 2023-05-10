@@ -3701,6 +3701,9 @@ describe(`J. (api) Confirm that get_nfts_hash returns NFTs with a specific hash`
         tpid: ""
       }
     });
+
+    await timeout(2000);
+
     await user2.sdk.genericAction('pushTransaction', {
       action: 'addnft',
       account: 'fio.address',
@@ -3712,6 +3715,9 @@ describe(`J. (api) Confirm that get_nfts_hash returns NFTs with a specific hash`
         tpid: ""
       }
     });
+
+    await timeout(2000);
+
     await user2.sdk.genericAction('pushTransaction', {
       action: 'addnft',
       account: 'fio.address',
@@ -3744,6 +3750,9 @@ describe(`J. (api) Confirm that get_nfts_hash returns NFTs with a specific hash`
         tpid: ""
       }
     });
+
+    await timeout(2000);
+
     await user3.sdk.genericAction('pushTransaction', {
       action: 'addnft',
       account: 'fio.address',
@@ -3776,6 +3785,8 @@ describe(`J. (api) Confirm that get_nfts_hash returns NFTs with a specific hash`
         tpid: ""
       }
     });
+
+    await timeout(2000);
 
     //verify user1 and user2 NFTs are present in table
     const user1Nfts = await callFioApi("get_nfts_fio_address", {
