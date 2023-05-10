@@ -164,7 +164,7 @@ describe('TEST SUITE', () => {
     //require('./tests/register-domains-one-account-max-load.js');
 
     /**
-     * FIP-39 - Creats accounts with now encryption keys on old 2.8 fio.contracts version, then runs with latest fio.contracts
+     * FIP-39 - Creates accounts with new encryption keys on old 2.8 fio.contracts version, then runs with latest fio.contracts
      */
     //require('./tests/fio.address-updcryptkey-back-compat.js');
 
