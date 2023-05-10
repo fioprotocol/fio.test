@@ -345,12 +345,6 @@ describe('C. (user1 no encrypt key, user2 encrypt key) Add encryption key, encry
             publicKey: keypair.publicKey,
             privateKey: keypair.privateKey,
         };
-
-        console.log('User1 account: ', user1.account);
-        console.log('User1 pub key: ', user1.publicKey);
-        console.log('User2 account: ', user2.account);
-        console.log('User2 pub key: ', user2.publicKey);
-        console.log('encryptKeys pub key: ', encryptKeys.publicKey);
     });
 
     it(`Add new encrypt key for user2`, async () => {
@@ -492,7 +486,7 @@ describe('C. (user1 no encrypt key, user2 encrypt key) Add encryption key, encry
         }
     });
 
-    it.skip(`(sdk ISUP-44) Call get_pending_fio_requests for user2 (payer) (uses encryption key)`, async () => {
+    it.skip(`(sdk DASH-625) Call get_pending_fio_requests for user2 (payer) (uses encryption key)`, async () => {
         try {
           const result = await user2.sdk.genericAction('getPendingFioRequests', {  })
           //console.log('result: ', result)
@@ -567,13 +561,6 @@ describe('C.2. RequestNewFunds SDK testing (user1 and user2 encrypt key) Add enc
             publicKey: keypair2.publicKey,
             privateKey: keypair2.privateKey,
         };
-
-        console.log('User1 account: ', user1.account);
-        console.log('User1 pub key: ', user1.publicKey);
-        console.log('User2 account: ', user2.account);
-        console.log('User2 pub key: ', user2.publicKey);
-        console.log('encryptKeys1 pub key: ', encryptKeys1.publicKey);
-        console.log('encryptKeys2 pub key: ', encryptKeys2.publicKey);
     });
 
     it(`Add new encrypt key for user1`, async () => {
@@ -722,7 +709,7 @@ describe('C.2. RequestNewFunds SDK testing (user1 and user2 encrypt key) Add enc
             const result = await callFioApi("get_pending_fio_requests", {
             fio_public_key: user2.publicKey
           })
-          console.log('result', result);
+          //console.log('result', result);
           cipherContent = result.requests[0].content;
           expect(result.requests[0].fio_request_id).to.equal(requestId);
           expect(result.requests[0].payer_fio_address).to.equal(user2.address);
@@ -738,8 +725,8 @@ describe('C.2. RequestNewFunds SDK testing (user1 and user2 encrypt key) Add enc
 
     // Right now, it is possible to pass in payerFioPublicKey and that is used as the encrypt key
     // This will cause problems since the keys in the table might be set to something different from the encrypt key
-    // ISUP-43 will update the SDK to ALWAYS override payerFioPublicKey and will use the encrypt key for encryption (if one exists)
-    it.skip(`(Waiting on ISUP-43) Verify user1 and user2 encryption keys were used to encrypt content`, async () => {
+    // DASH-624 will update the SDK to ALWAYS override payerFioPublicKey and will use the encrypt key for encryption (if one exists)
+    it.skip(`(Waiting on DASH-624) Verify user1 and user2 encryption keys were used to encrypt content`, async () => {
         try {
             expect(cipherContent).to.be.a('string')
         
@@ -756,7 +743,7 @@ describe('C.2. RequestNewFunds SDK testing (user1 and user2 encrypt key) Add enc
         }
     });
 
-    it.skip(`(sdk waiting on ISUP-44) Call getPendingFioRequests for user2 (payer) (uses encryption key)`, async () => {
+    it.skip(`(sdk waiting on DASH-625) Call getPendingFioRequests for user2 (payer) (uses encryption key)`, async () => {
         try {
           const result = await user2.sdk.genericAction('getPendingFioRequests', {  })
           console.log('result: ', result)
@@ -790,7 +777,7 @@ describe('C.2. RequestNewFunds SDK testing (user1 and user2 encrypt key) Add enc
         }
     });
 
-    it.skip(`(sdk waiting on ISUP-44) Call getReceivedFioRequests for user2 (payer) (uses encryption key)`, async () => {
+    it.skip(`(sdk waiting on DASH-625) Call getReceivedFioRequests for user2 (payer) (uses encryption key)`, async () => {
         try {
           const result = await user2.sdk.genericAction('getReceivedFioRequests', {  })
           console.log('result: ', result)
@@ -826,7 +813,7 @@ describe('C.2. RequestNewFunds SDK testing (user1 and user2 encrypt key) Add enc
         }
     });
 
-    it.skip(`(sdk waiting on ISUP-44) getSentFioRequests for user1 (payee). Expect `, async () => {
+    it.skip(`(sdk waiting on DASH-625) getSentFioRequests for user1 (payee). Expect `, async () => {
         try {
           const result = await user1.sdk.genericAction('getSentFioRequests', {
             limit: '',
@@ -869,15 +856,6 @@ describe('C.3. RecordObtData testing (user1 and user2 encrypt key) Add encryptio
             publicKey: keypair2.publicKey,
             privateKey: keypair2.privateKey,
         };
-
-        console.log('User1 account: ', user1.account);
-        console.log('User1 pub key: ', user1.publicKey);
-        console.log('User1 priv key: ', user1.privateKey);
-        console.log('User2 account: ', user2.account);
-        console.log('User2 priv key: ', user2.privateKey);
-        console.log('User2 pub key: ', user2.publicKey);
-        console.log('encryptKeys1 pub key: ', encryptKeys1.publicKey);
-        console.log('encryptKeys2 pub key: ', encryptKeys2.publicKey);
     });
 
     it(`Add new encrypt key for user1`, async () => {
@@ -1070,8 +1048,8 @@ describe('C.3. RecordObtData testing (user1 and user2 encrypt key) Add encryptio
 
     // Right now, it is possible to pass in payerFioPublicKey and that is used as the encrypt key
     // This will cause problems since the keys in the table might be set to something different from the encrypt key
-    // ISUP-43 will update the SDK to ALWAYS override payerFioPublicKey and will use the encrypt key for encryption (if one exists)
-    it.skip(`(Waiting on ISUP-43, currently still uses user1.privateKey, etc. ) Verify user1 and user2 encryption keys were used to encrypt content`, async () => {
+    // DASH-624 will update the SDK to ALWAYS override payerFioPublicKey and will use the encrypt key for encryption (if one exists)
+    it.skip(`(Waiting on DASH-624, currently still uses user1.privateKey, etc. ) Verify user1 and user2 encryption keys were used to encrypt content`, async () => {
         try {
             expect(cipherContent).to.be.a('string')
         
@@ -1088,7 +1066,7 @@ describe('C.3. RecordObtData testing (user1 and user2 encrypt key) Add encryptio
         }
     });
 
-    it.skip(`(sdk waiting on ISUP-44, not decrypting content) Call getObtData for user1 (payer) (uses encryption key)`, async () => {
+    it.skip(`(sdk waiting on DASH-625, not decrypting content) Call getObtData for user1 (payer) (uses encryption key)`, async () => {
         try {
           const result = await user1.sdk.genericAction('getObtData', {  })
           console.log('result: ', result)
@@ -1594,8 +1572,8 @@ describe('H. Test newfioacc - Sad Path', () => {
         userNoFunds.domain = generateFioDomain(10);
         userNoFunds.address = generateFioAddress(userNoFunds.domain, 10);
 
-        console.log('user1.publicKey: ', user1.publicKey);
-        console.log('encryptKeys.publicKey: ', encryptKeys.publicKey);
+        //console.log('user1.publicKey: ', user1.publicKey);
+        //console.log('encryptKeys.publicKey: ', encryptKeys.publicKey);
     });
 
     it(`(failure) actor - Not owner of FIO Address. Expect: ${config.error2.invalidSignature.statusCode} ${config.error2.invalidSignature.message}`, async () => {
