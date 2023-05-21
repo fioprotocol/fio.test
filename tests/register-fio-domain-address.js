@@ -69,10 +69,15 @@ describe(`************************** register-fio-domain-address.js ************
 
   it(`Date in the response is getting incremented an extra year. confirm response contains correct domain expiration date (BD-4244)`, async function () {
     blockTime = regDomAddObj.processed.block_time.split('.')[0];
+    console.log("processed block time ",regDomAddObj.processed.block_time);
+    console.log("response ",regDomAddObj.processed.action_traces[0].receipt.response);
     expDateObj = JSON.parse(regDomAddObj.processed.action_traces[0].receipt.response);
     let blockTimeStamp = new Date(Date(blockTime)).getTime();
     let expDateTimeStamp = new Date(expDateObj.expiration).getTime();
-    expect(expDateTimeStamp).to.be.greaterThanOrEqual(blockTimeStamp + MS_YEAR - 5000).and.lessThanOrEqual(blockTimeStamp + MS_YEAR + 5000);
+    console.log("blocktimestamp ",blockTimeStamp);
+    console.log("exptimestamp ",expDateTimeStamp);
+    console.log("diff is ",expDateTimeStamp - blockTimeStamp);
+    expect(expDateTimeStamp).to.be.greaterThan(blockTimeStamp + MS_YEAR - 5000).and.lessThan(blockTimeStamp + MS_YEAR + 5000);
   });
 
   it(`confirm fee charged to user1`, async function () {
@@ -106,7 +111,7 @@ describe(`************************** register-fio-domain-address.js ************
     let expDateTimeStamp = new Date(domainRows.rows[0].expiration).getTime();
     let timeDelta = expDateTimeStamp - blockTimeStamp;
     let window = MS_YEAR - timeDelta;   // allow an ~hour window
-    expect(timeDelta).to.be.greaterThanOrEqual(MS_YEAR - window).and.lessThanOrEqual(MS_YEAR);
+    expect(timeDelta).to.be.greaterThan(MS_YEAR - window-1).and.lessThan(MS_YEAR+1);
   });
 
   it(`get_table_rows (fio.address - fionames)`, async function () {
@@ -166,7 +171,7 @@ describe(`************************** register-fio-domain-address.js ************
     expDateObj = JSON.parse(regDomAddObj.processed.action_traces[0].receipt.response);
     let blockTimeStamp = new Date(Date(blockTime)).getTime();
     let expDateTimeStamp = new Date(expDateObj.expiration).getTime();
-    expect(expDateTimeStamp).to.be.greaterThanOrEqual(blockTimeStamp + MS_YEAR - 5000).and.lessThanOrEqual(blockTimeStamp + MS_YEAR + 5000);
+    expect(expDateTimeStamp).to.be.greaterThan(blockTimeStamp + MS_YEAR - 1  - 5000).and.lessThan(blockTimeStamp + MS_YEAR + 1 + 5000);
   });
 
   it(`confirm fee charged to user1`, async function () {
@@ -200,7 +205,7 @@ describe(`************************** register-fio-domain-address.js ************
     let expDateTimeStamp = new Date(domainRows.rows[0].expiration).getTime();
     let timeDelta = expDateTimeStamp - blockTimeStamp;
     let window = MS_YEAR - timeDelta;   // allow an ~hour window
-    expect(timeDelta).to.be.greaterThanOrEqual(MS_YEAR - window).and.lessThanOrEqual(MS_YEAR);
+    expect(timeDelta).to.be.greaterThan(MS_YEAR - window -1).and.lessThan(MS_YEAR+1);
   });
 
   it(`get_table_rows (fio.address - fionames)`, async function () {
@@ -266,7 +271,7 @@ describe(`************************** register-fio-domain-address.js ************
     expDateObj = JSON.parse(regDomAddObj.processed.action_traces[0].receipt.response);
     let blockTimeStamp = new Date(Date(blockTime)).getTime();
     let expDateTimeStamp = new Date(expDateObj.expiration).getTime();
-    expect(expDateTimeStamp).to.be.greaterThanOrEqual(blockTimeStamp + MS_YEAR - 5000).and.lessThanOrEqual(blockTimeStamp + MS_YEAR + 5000);
+    expect(expDateTimeStamp).to.be.greaterThan(blockTimeStamp + MS_YEAR - 1 - 5000).and.lessThan(blockTimeStamp + MS_YEAR + 1 + 5000);
   });
 
   it(`confirm fee charged to user4`, async function () {
@@ -325,7 +330,7 @@ describe(`************************** register-fio-domain-address.js ************
     let expDateTimeStamp = new Date(domainRows.rows[0].expiration).getTime();
     let timeDelta = expDateTimeStamp - blockTimeStamp;
     let window = MS_YEAR - timeDelta;   // allow an ~hour window
-    expect(timeDelta).to.be.greaterThanOrEqual(MS_YEAR - window).and.lessThanOrEqual(MS_YEAR);
+    expect(timeDelta).to.be.greaterThan(MS_YEAR - window - 1).and.lessThan(MS_YEAR + 1);
   });
 
   it(`confirm owner_fio_public_key is user3.publicKey`, async function () {

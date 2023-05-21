@@ -294,7 +294,7 @@ describe('B. Transfer an address to FIO Public Key which does not map to existin
         } catch (err) {
             console.log('Error: ', err.json)
             expect(err.json.message).to.equal(config.error.keyNotFound)
-            expect(err.errorCode).to.equal(500);
+            expect(err.code).to.equal(500);
         }
     })
 
@@ -588,7 +588,7 @@ describe('D. transferFioAddress Error testing', () => {
         }
     })
 
-    it(`(push_transaction) Transfer address with invalid address format. Expect error code ${config.error2.invalidFioAddress.statusCode}: ${config.error2.invalidFioAddress.message}`, async () => {
+    it(`(push_transaction) Transfer address with invalid address format. Expect code ${config.error2.invalidFioAddress.statusCode}: ${config.error2.invalidFioAddress.message}`, async () => {
         try{
             const result = await userD1.sdk.genericAction('pushTransaction', {
                 action: 'xferaddress',
@@ -605,7 +605,7 @@ describe('D. transferFioAddress Error testing', () => {
         } catch (err) {
             //console.log('Error: ', err.json.fields[0].error)
             expect(err.json.fields[0].error).to.equal(config.error2.invalidFioAddress.message);
-            expect(err.errorCode).to.equal(config.error2.invalidFioAddress.statusCode);
+            expect(err.code).to.equal(config.error2.invalidFioAddress.statusCode);
         }
     })
 
@@ -621,7 +621,7 @@ describe('D. transferFioAddress Error testing', () => {
         } catch (err) {
             //console.log('Error: ', err)
             expect(err.json.fields[0].error).to.equal(config.error.invalidKey)
-            expect(err.errorCode).to.equal(400);
+            expect(err.code).to.equal(400);
         }
     })
 
@@ -637,7 +637,7 @@ describe('D. transferFioAddress Error testing', () => {
         } catch (err) {
             //console.log('Error: ', err)
             expect(err.json.fields[0].error).to.equal(config.error.invalidFeeValue)
-            expect(err.errorCode).to.equal(400);
+            expect(err.code).to.equal(400);
         }
     })
 
@@ -673,7 +673,7 @@ describe('D. transferFioAddress Error testing', () => {
         } catch (err) {
             //console.log('Error: ', err)
             expect(err.json.fields[0].error).to.equal(config.error.invalidTpid);
-            expect(err.errorCode).to.equal(400);
+            expect(err.code).to.equal(400);
         }
     })
 
@@ -689,7 +689,7 @@ describe('D. transferFioAddress Error testing', () => {
         } catch (err) {
             //console.log(JSON.stringify(err, null, 4));
             expect(err.json.fields[0].error).to.equal(config.error.feeExceedsMax)
-            expect(err.errorCode).to.equal(400);
+            expect(err.code).to.equal(400);
         }
     })
 
@@ -705,7 +705,7 @@ describe('D. transferFioAddress Error testing', () => {
         } catch (err) {
             //console.log('Error: ', err)
             expect(err.json.message).to.equal(config.error.signatureError);
-            expect(err.errorCode).to.equal(403);
+            expect(err.code).to.equal(403);
         }
     })
 
@@ -736,7 +736,7 @@ describe('D. transferFioAddress Error testing', () => {
         } catch (err) {
             //console.log(JSON.stringify(err, null, 4));
             expect(err.json.message).to.equal(config.error.signatureError);
-            expect(err.errorCode).to.equal(403);
+            expect(err.code).to.equal(403);
         }
     })
 
@@ -752,7 +752,7 @@ describe('D. transferFioAddress Error testing', () => {
         } catch (err) {
             //console.log('Error: ', err)
             expect(err.json.fields[0].error).to.equal(config.error.fioAddressNotRegistered)
-            expect(err.errorCode).to.equal(400);
+            expect(err.code).to.equal(400);
         }
     })
 
@@ -847,7 +847,7 @@ describe('D. transferFioAddress Error testing', () => {
         } catch (err) {
             //console.log('Error: ', err.json.fields[0])
             expect(err.json.fields[0].error).to.equal(config.error.insufficientFunds)
-            expect(err.errorCode).to.equal(400);
+            expect(err.code).to.equal(400);
         }
     })
 
@@ -910,7 +910,7 @@ describe('E. Confirm active producers and proxy cannot transfer address', () => 
         } catch (err) {
             //console.log('Error: ', err.json.fields)
             expect(err.json.fields[0].error).to.equal(config.error.activeProducer)
-            expect(err.errorCode).to.equal(400)
+            expect(err.code).to.equal(400)
         }
     })
 
@@ -975,7 +975,7 @@ describe('E. Confirm active producers and proxy cannot transfer address', () => 
         } catch (err) {
             //console.log('Error: ', err.json.fields)
             expect(err.json.fields[0].error).to.equal(config.error.activeProxy)
-            expect(err.errorCode).to.equal(400)
+            expect(err.code).to.equal(400)
         }
     })
 
@@ -1465,7 +1465,7 @@ describe('G. Transfer Addresses with NFTs.', () => {
             }
         } catch (err) {
             //console.log(err.json);
-            expect(err.errorCode).to.equal(400);
+            expect(err.code).to.equal(400);
             expect(err.json.fields[0].error).to.equal('Nothing to burn');
         }
     })
@@ -1614,7 +1614,7 @@ describe('H. Transfer Address with NFTs, confirm cannot add new NFT', () => {
             expect(addnftResult).to.not.equal('OK');
         } catch (err) {
             //console.log('Error', err);
-            expect(err.errorCode).to.equal(403);
+            expect(err.code).to.equal(403);
             expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
         }
     })
@@ -1637,7 +1637,7 @@ describe('H. Transfer Address with NFTs, confirm cannot add new NFT', () => {
             expect(addnftResult).to.not.equal('OK');
         } catch (err) {
             //console.log(err);
-            expect(err.errorCode).to.equal(400);
+            expect(err.code).to.equal(400);
             expect(err.json.fields[0].error).to.equal('FIO Address NFTs are being burned');
         }
     })
@@ -1659,7 +1659,7 @@ describe('H. Transfer Address with NFTs, confirm cannot add new NFT', () => {
             }
         } catch (err) {
             //console.log(err.json);
-            expect(err.errorCode).to.equal(400);
+            expect(err.code).to.equal(400);
             expect(err.json.fields[0].error).to.equal('Nothing to burn');
         }
     })
@@ -1702,7 +1702,7 @@ describe('H. Transfer Address with NFTs, confirm cannot add new NFT', () => {
             expect(addnftResult).to.not.equal('OK');
         } catch (err) {
             //console.log('Error', err);
-            expect(err.errorCode).to.equal(403);
+            expect(err.code).to.equal(403);
             expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
         }
     })
@@ -1822,7 +1822,7 @@ describe('I. transfer FIO Address with existing FIO Requests, test getters ', ()
         expect(result.status).to.equal('OK');
       } catch (err) {
         console.log('Error: ', err)
-        expect(err.errorCode).to.equal(null);
+        expect(err.code).to.equal(null);
       };
     })
 

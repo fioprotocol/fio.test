@@ -4949,7 +4949,7 @@ account  vtqxekjknjyp
     } catch (err) {
       //console.log('Error', err)
       expect(err.json.message).to.equal(config.error.noFioDomains);
-      expect(err.errorCode).to.equal(404);
+      expect(err.code).to.equal(404);
     }
   })
 

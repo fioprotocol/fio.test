@@ -87,7 +87,7 @@ describe('************************** expired-domain.js *************************
     } catch (err) {
       //console.log(JSON.stringify(err, null, 4));
       expect(err.json.fields[0].error).to.equal(config.error2.domainExpired.message);
-      expect(err.errorCode).to.equal(config.error2.domainExpired.statusCode);
+      expect(err.code).to.equal(config.error2.domainExpired.statusCode);
     }
   });
 

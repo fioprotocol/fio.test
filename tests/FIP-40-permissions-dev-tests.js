@@ -3940,10 +3940,10 @@ describe.skip('D. Burn large number of expired domains with gaps between expired
             } catch (err) {
                 workDoneThisOffset = false;
                 //console.log('Error: ', err);
-                if (err.errorCode == 400 && err.json.fields[0].error == 'No work.') {
+                if (err.code == 400 && err.json.fields[0].error == 'No work.') {
                     retryCount = 0;
                     console.log('Offset = ' + offset + ', Limit = ' + limit + ', Result: ' + err.json.fields[0].error);
-                    expect(err.errorCode).to.equal(400);
+                    expect(err.code).to.equal(400);
                     expect(err.json.fields[0].error).to.equal('No work.');
                 } else if (err.json.code == 500 && err.json.error.what == 'Transaction exceeded the current CPU usage limit imposed on the transaction') {
                     console.log('Offset = ' + offset + ', Limit = ' + limit + ', Result: Transaction exceeded the current CPU usage limit imposed on the transaction');
@@ -4025,10 +4025,10 @@ describe.skip('D. Burn large number of expired domains with gaps between expired
             } catch (err) {
                 workDoneThisOffset = false;
                 //console.log('Error: ', err);
-                if (err.errorCode == 400 && err.json.fields[0].error == 'No work.') {
+                if (err.code == 400 && err.json.fields[0].error == 'No work.') {
                     retryCount = 0;
                     console.log('Offset = ' + offset + ', Limit = ' + limit + ', Result: ' + err.json.fields[0].error);
-                    expect(err.errorCode).to.equal(400);
+                    expect(err.code).to.equal(400);
                     expect(err.json.fields[0].error).to.equal('No work.');
                 } else if (err.json.code == 500 && err.json.error.what == 'Transaction exceeded the current CPU usage limit imposed on the transaction') {
                     console.log('Offset = ' + offset + ', Limit = ' + limit + ', Result: Transaction exceeded the current CPU usage limit imposed on the transaction');

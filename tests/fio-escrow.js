@@ -254,7 +254,7 @@ describe(`************************** fio-escrow.js **************************`, 
 						data
 					})
 				} catch (err) {
-					expect(err.errorCode).to.equal(400)
+					expect(err.code).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('listing_fee')
 					expect(err.json.fields[0].value).to.equal('50000000000000000')
 					expect(err.json.fields[0].error).to.equal('Listing fee should be between 0 and 25,000,000,000 (25 FIO in SUF)')
@@ -280,7 +280,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					console.log(result);
 
 				} catch (err) {
-					expect(err.errorCode).to.equal(400)
+					expect(err.code).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('actor')
 					expect(err.json.fields[0].value).to.equal(userA1.account)
 					expect(err.json.fields[0].error).to.equal('Only owner of marketplace can modify config')
@@ -303,7 +303,7 @@ describe(`************************** fio-escrow.js **************************`, 
 						data
 					})
 				} catch (err) {
-					expect(err.errorCode).to.equal(400)
+					expect(err.code).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('commission_fee')
 					expect(err.json.fields[0].value).to.equal('26.000000')
 					expect(err.json.fields[0].error).to.equal('Commission fee should be between 0 and 25')
@@ -326,7 +326,7 @@ describe(`************************** fio-escrow.js **************************`, 
 						data
 					})
 				} catch (err) {
-					expect(err.errorCode).to.equal(400)
+					expect(err.code).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('e_break')
 					expect(err.json.fields[0].value).to.equal('2')
 					expect(err.json.fields[0].error).to.equal('E-break setting must be either 0 for disabled or 1 for enabled')
@@ -506,10 +506,10 @@ describe(`************************** fio-escrow.js **************************`, 
 					expect(domainSaleRow.rows.length).to.equal(0);
 
 				} catch (err) {
-					if (err.errorCode == 400 && err.json.fields[0].error == 'No work.') {
+					if (err.code == 400 && err.json.fields[0].error == 'No work.') {
 						retryCount = 0;
 						console.log('Offset = ' + offset + ', Limit = ' + limit + ', Result: ' + err.json.fields[0].error);
-						expect(err.errorCode).to.equal(400);
+						expect(err.code).to.equal(400);
 						expect(err.json.fields[0].error).to.equal('No work.');
 					} else {
 						console.log('UNEXPECTED ERROR: ', err);
@@ -740,7 +740,7 @@ describe(`************************** fio-escrow.js **************************`, 
 						data   : dataA1
 					})
 				} catch (err) {
-					expect(err.errorCode).to.equal(400)
+					expect(err.code).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('sale_price')
 					expect(err.json.fields[0].value).to.equal('1000000000000000')
 					expect(err.json.fields[0].error).to.equal('Sale price should be less than 999,999 FIO (999,999,000,000,000 SUF)')
@@ -772,7 +772,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					})
 				} catch (err) {
 					// console.log(err.json);
-					expect(err.errorCode).to.equal(400)
+					expect(err.code).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('sale_price')
 					expect(err.json.fields[0].value).to.equal('100000')
 					expect(err.json.fields[0].error).to.equal('Sale price should be greater than 1 FIO (1,000,000,000 SUF)')
@@ -803,7 +803,7 @@ describe(`************************** fio-escrow.js **************************`, 
 						data   : dataA1
 					})
 				} catch (err) {
-					expect(err.errorCode).to.equal(400)
+					expect(err.code).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('max_fee')
 					expect(err.json.fields[0].value).to.equal('-1')
 					expect(err.json.fields[0].error).to.equal('Invalid fee value')
@@ -834,7 +834,7 @@ describe(`************************** fio-escrow.js **************************`, 
 
 				} catch (err) {
 					// console.log(err.json)
-					expect(err.errorCode).to.equal(400)
+					expect(err.code).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('max_fee')
 					expect(err.json.fields[0].value).to.equal((config.api.list_domain.fee / 2).toString())
 					expect(err.json.fields[0].error).to.equal('Fee exceeds supplied maximum.')
@@ -868,7 +868,7 @@ describe(`************************** fio-escrow.js **************************`, 
 						data   : dataA1
 					})
 				} catch (err) {
-					expect(err.errorCode).to.equal(400)
+					expect(err.code).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('fio_domain')
 					expect(err.json.fields[0].value).to.equal(domain63Bad)
 					expect(err.json.fields[0].error).to.equal('FIO domain not found')
@@ -949,7 +949,7 @@ describe(`************************** fio-escrow.js **************************`, 
 						data   : dataA1
 					})
 				} catch (err) {
-					expect(err.errorCode).to.equal(403);
+					expect(err.code).to.equal(403);
 					expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
 				}
 			})
@@ -983,7 +983,7 @@ describe(`************************** fio-escrow.js **************************`, 
 						data   : dataA1
 					})
 				} catch (err) {
-					expect(err.errorCode).to.equal(403)
+					expect(err.code).to.equal(403)
 					expect(err.json.fields[0].name).to.equal('fio_domain')
 					expect(err.json.fields[0].value).to.equal(domainSadPath2)
 					expect(err.json.fields[0].error).to.equal('FIO domain not owned by actor')
@@ -1092,7 +1092,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					// list domain
 					await listDomain(errorUser2, errorUser2.domain)
 				} catch (err) {
-					expect(err.errorCode).to.equal(400);
+					expect(err.code).to.equal(400);
 					expect(err.json.fields[0].name).to.equal('max_fee');
 					expect(err.json.fields[0].value).to.equal('5000000000');
 					expect(err.json.fields[0].error).to.equal('Insufficient funds to cover fee');
@@ -1246,11 +1246,11 @@ describe(`************************** fio-escrow.js **************************`, 
 						action: 'buydomain', account: 'fio.escrow', data: data
 					})
 				} catch (err) {
-					// console.log(err.errorCode)
+					// console.log(err.code)
 					// if(err.json.error) {
 					// 	console.log(err.json.error.details)
 					// }
-					expect(err.errorCode).to.equal(403)
+					expect(err.code).to.equal(403)
 					expect(err.json.fields[0].name).to.equal('fio_domain')
 					expect(err.json.fields[0].value).to.equal(domain + '123')
 					expect(err.json.fields[0].error).to.equal('Domain does not match')
@@ -1291,7 +1291,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					await buyDomain(buydomainErrorUser2, buydomainErrorUser1.domain, listDomainResult.domainsale_id)
 				} catch (err) {
 					// console.log(err.json)
-					expect(err.errorCode).to.equal(400);
+					expect(err.code).to.equal(400);
 					expect(err.json.fields[0].name).to.equal('max_fee');
 					expect(err.json.fields[0].value).to.equal('1880000000000');
 					expect(err.json.fields[0].error).to.equal('Insufficient funds to cover fee');
@@ -1324,9 +1324,9 @@ describe(`************************** fio-escrow.js **************************`, 
 
 					// console.log(result);
 				} catch (err) {
-					// console.log(err.errorCode)
+					// console.log(err.code)
 					// console.log(err.json.fields[0])
-					expect(err.errorCode).to.equal(400)
+					expect(err.code).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('max_fee')
 					expect(err.json.fields[0].value).to.equal('-1')
 					expect(err.json.fields[0].error).to.equal('Invalid fee value')
@@ -1363,7 +1363,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					// 	console.log(err.json)
 					// else
 					// 	console.log(err);
-					expect(err.errorCode).to.equal(400)
+					expect(err.code).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('max_fee')
 					expect(err.json.fields[0].value).to.equal((config.api.buy_domain.fee / 2).toString())
 					expect(err.json.fields[0].error).to.equal('Fee exceeds supplied maximum. 2000000000')
@@ -1397,9 +1397,9 @@ describe(`************************** fio-escrow.js **************************`, 
 					})
 				} catch (err) {
 					// console.log(err);
-					// console.log(err.errorCode)
+					// console.log(err.code)
 					// console.log(err.json.fields[0])
-					expect(err.errorCode).to.equal(400)
+					expect(err.code).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('max_buy_price')
 					expect(err.json.fields[0].value).to.equal('1')
 					expect(err.json.fields[0].error).to.equal('Sale Price is greater than submitted buyer max buy price')
@@ -1432,9 +1432,9 @@ describe(`************************** fio-escrow.js **************************`, 
 					})
 				} catch (err) {
 					// console.log(err);
-					// console.log(err.errorCode)
+					// console.log(err.code)
 					// console.log(err.json.fields[0])
-					expect(err.errorCode).to.equal(403)
+					expect(err.code).to.equal(403)
 					expect(err.json.fields[0].name).to.equal('sale_id')
 					expect(err.json.fields[0].value).to.equal((listDomainResult.domainsale_id + 50).toString())
 					expect(err.json.fields[0].error).to.equal('Sale ID not found')
@@ -1497,7 +1497,7 @@ describe(`************************** fio-escrow.js **************************`, 
 				} catch (err) {
 					// console.log(err);
 					// console.log(err.json.error.details);
-					expect(err.errorCode).to.equal(400)
+					expect(err.code).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('e_break')
 					expect(err.json.fields[0].value).to.equal('1')
 					expect(err.json.fields[0].error).to.equal('E-Break Enabled, action disabled')
@@ -1822,7 +1822,7 @@ describe(`************************** fio-escrow.js **************************`, 
 				} catch (err) {
 					// console.log(err);
 					// console.log(err.json);
-					expect(err.errorCode).to.equal(400)
+					expect(err.code).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('max_fee')
 					expect(err.json.fields[0].value).to.equal('0')
 				}
@@ -1857,7 +1857,7 @@ describe(`************************** fio-escrow.js **************************`, 
 				} catch (err) {
 					// console.log(err);
 					// console.log(err.json);
-					expect(err.errorCode).to.equal(400)
+					expect(err.code).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('max_fee')
 					expect(err.json.fields[0].value).to.equal('500000000')
 				}
@@ -1912,7 +1912,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					// 	console.log(err.json)
 					// else
 					// 	console.log(err);
-					expect(err.errorCode).to.equal(400);
+					expect(err.code).to.equal(400);
 					expect(err.json.fields[0].name).to.equal('max_fee');
 					expect(err.json.fields[0].value).to.equal('1000000000');
 					expect(err.json.fields[0].error).to.equal('Insufficient funds to cover fee');
@@ -1982,7 +1982,7 @@ describe(`************************** fio-escrow.js **************************`, 
 					// console.log(err);
 					// console.log(err.json.fields);
 
-					expect(err.errorCode).to.equal(400)
+					expect(err.code).to.equal(400)
 					expect(err.json.fields[0].name).to.equal('e_break')
 					expect(err.json.fields[0].value).to.equal('1')
 					expect(err.json.fields[0].error).to.equal('E-Break Enabled, action disabled')

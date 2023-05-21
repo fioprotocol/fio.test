@@ -111,7 +111,7 @@ describe(`B. Parameter tests`, () => {
       } catch (err) {
         //console.log(JSON.stringify(err, null, 4));
         expect(err.json.fields[0].error).to.equal(config.error2.invalidUnlockPeriodTotal.message);
-        expect(err.errorCode).to.equal(config.error2.invalidUnlockPeriodTotal.statusCode);
+        expect(err.code).to.equal(config.error2.invalidUnlockPeriodTotal.statusCode);
       }
     }
   })
@@ -174,7 +174,7 @@ describe(`B. Parameter tests`, () => {
       } catch (err) {
         //console.log(JSON.stringify(err, null, 4));
         expect(err.json.fields[0].error).to.equal(config.error2.invalidUnlockPeriodSorted.message);
-        expect(err.errorCode).to.equal(config.error2.invalidUnlockPeriodSorted.statusCode);
+        expect(err.code).to.equal(config.error2.invalidUnlockPeriodSorted.statusCode);
       }
     }
   })
@@ -235,7 +235,7 @@ describe(`B. Parameter tests`, () => {
       } catch (err) {
         //console.log(JSON.stringify(err, null, 4));
         expect(err.json.fields[0].error).to.equal(config.error2.invalidUnlockPeriodDuration.message);
-        expect(err.errorCode).to.equal(config.error2.invalidUnlockPeriodDuration.statusCode);
+        expect(err.code).to.equal(config.error2.invalidUnlockPeriodDuration.statusCode);
       }
     }
   })
@@ -835,7 +835,7 @@ describe(`C. transfer with 2 unlock periods, canvote = false`, () => {
     } catch (err) {
       //console.log(err)
       expect(err.json.fields[0].error).to.equal('Funds locked');
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
     }
   })
 
@@ -2165,7 +2165,7 @@ describe(`E. Token unlocking tests`, () => {
   } catch (err) {
     //console.log(JSON.stringify(err, null, 4));
     expect(err.json.fields[0].error).to.equal('Funds locked');
-    expect(err.errorCode).to.equal(400);
+    expect(err.code).to.equal(400);
   }
   })
 
