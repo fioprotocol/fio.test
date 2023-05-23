@@ -1594,7 +1594,7 @@ describe('H. Test newfioacc - Sad Path', () => {
         } catch (err) {
             //console.log('Error: ', err);
             expect(err.json.message).to.equal(config.error2.invalidSignature.message);
-            expect(err.errorCode).to.equal(config.error2.invalidSignature.statusCode);
+            expect(err.code).to.equal(config.error2.invalidSignature.statusCode);
         }
     });
 
@@ -1616,7 +1616,7 @@ describe('H. Test newfioacc - Sad Path', () => {
         } catch (err) {
             //console.log(JSON.stringify(err, null, 4));
             expect(err.json.fields[0].error).to.equal(config.error2.fioAddressNotExist.message);
-            expect(err.errorCode).to.equal(config.error2.fioAddressNotExist.statusCode);
+            expect(err.code).to.equal(config.error2.fioAddressNotExist.statusCode);
         }
     });
 
@@ -1637,7 +1637,7 @@ describe('H. Test newfioacc - Sad Path', () => {
         } catch (err) {
             //console.log(JSON.stringify(err, null, 4));
             expect(err.json.fields[0].error).to.equal(config.error2.invalidEncryptKey.message);
-            expect(err.errorCode).to.equal(config.error2.invalidEncryptKey.statusCode);
+            expect(err.code).to.equal(config.error2.invalidEncryptKey.statusCode);
         }
     });
 
@@ -1680,7 +1680,7 @@ describe('H. Test newfioacc - Sad Path', () => {
         } catch (err) {
             //console.log(JSON.stringify(err, null, 4));
             expect(err.json.fields[0].error).to.equal(config.error2.invalidTpid.message);
-            expect(err.errorCode).to.equal(config.error2.invalidTpid.statusCode);
+            expect(err.code).to.equal(config.error2.invalidTpid.statusCode);
         }
     });
 
@@ -1730,7 +1730,7 @@ describe('H. Test newfioacc - Sad Path', () => {
         } catch (err) {
             //console.log(JSON.stringify(err, null, 4));
             expect(err.json.fields[0].error).to.equal(config.error2.feeExceedsMax.message);
-            expect(err.errorCode).to.equal(config.error2.feeExceedsMax.statusCode);
+            expect(err.code).to.equal(config.error2.feeExceedsMax.statusCode);
         }
     });
 
@@ -1774,7 +1774,7 @@ describe('H. Test newfioacc - Sad Path', () => {
         } catch (err) {
             //console.log(JSON.stringify(err, null, 4));
             expect(err.json.fields[0].error).to.equal(config.error2.insufficientFunds.message);
-            expect(err.errorCode).to.equal(config.error2.insufficientFunds.statusCode);
+            expect(err.code).to.equal(config.error2.insufficientFunds.statusCode);
         }
     });
 
