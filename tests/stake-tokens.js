@@ -252,9 +252,9 @@ describe(`************************** stake-tokens.js ************************** 
       })
       expect(result.status).to.not.equal('OK')
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.contain('Funds locked');
     }
   });
@@ -497,12 +497,12 @@ describe(`************************** stake-tokens.js ************************** 
 
   it(`Get total_voted_fio`, async () => {
     total_voted_fio = await getTotalVotedFio();
-    expect(total_voted_fio).to.be.a('number').and.greaterThanOrEqual(0);
+    expect(total_voted_fio).to.be.a('number').and.greaterThan(-1);
   });
 
   it(`Get bp1@dapixdev total_votes`, async () => {
     total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-    expect(total_bp_votes).to.be.a('number').and.greaterThanOrEqual(0);
+    expect(total_bp_votes).to.be.a('number').and.greaterThan(-1);
   });
 
   it(`userB proxy votes to userP`, async () => {
@@ -700,7 +700,7 @@ describe(`A2. Stake some FIO from userA`, () => {
     expect(newBalA.staked - balA.staked).to.equal(stakeAmt);
     expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
     expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
-    expect(newCombinedTokenPool - combinedTokenPool).to.be.greaterThanOrEqual(stakeAmt);
+    expect(newCombinedTokenPool - combinedTokenPool).to.be.greaterThan(stakeAmt-1);
     expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt * 2);
   });
 });
@@ -1149,7 +1149,7 @@ describe(`A5. Stake some FIO from userB, observe staking reward changes`, () => 
     expect(newBal.staked - bal.staked).to.equal(stakeAmt);
     expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
     expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
-    expect(newCombinedTokenPool - combinedTokenPool).to.be.greaterThanOrEqual(stakeAmt);
+    expect(newCombinedTokenPool - combinedTokenPool).to.be.greaterThan(stakeAmt-1);
     expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt * 2);
   });
 });
@@ -1726,7 +1726,7 @@ describe(`A11. Stake some FIO from userC, observe staking reward changes`, () =>
     expect(newBal.staked - bal.staked).to.equal(stakeAmt);
     expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
     expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
-    expect(newCombinedTokenPool - combinedTokenPool).to.be.greaterThanOrEqual(stakeAmt);
+    expect(newCombinedTokenPool - combinedTokenPool).to.be.greaterThan(stakeAmt-1);
     expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt * 2);
   });
 });
@@ -1794,7 +1794,7 @@ describe('B. Test stakefio Bundled transactions', () => {
     try {
       bundleCount2 = await getBundleCount(user2);
     } catch (err) {
-      expect(err.errorCode).to.equal(404);
+      expect(err.code).to.equal(404);
       expect(err.json.message).to.equal('No FIO names');
     }
   });
@@ -1871,7 +1871,7 @@ describe('B. Test stakefio Bundled transactions', () => {
     expect(newBal.staked - bal.staked).to.equal(stakeAmt);
     expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
     expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
-    expect(newCombinedTokenPool - combinedTokenPool).to.be.greaterThanOrEqual(stakeAmt);
+    expect(newCombinedTokenPool - combinedTokenPool).to.be.greaterThan(stakeAmt-1);
     expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt * 2);
 
     try {
@@ -1879,7 +1879,7 @@ describe('B. Test stakefio Bundled transactions', () => {
       let bundleCount = fioNames.fio_addresses[0].remaining_bundled_tx;
       expect(bundleCount).to.equal(100);
     } catch (err) {
-      expect(err.errorCode).to.equal(404);
+      expect(err.code).to.equal(404);
       expect(err.json.message).to.equal('No FIO names');
     }
   });
@@ -1992,7 +1992,7 @@ describe('B. Test stakefio Bundled transactions', () => {
     expect(newBal.staked - bal.staked).to.equal(stakeAmt);
     expect(newStakedTokenPool).to.be.greaterThan(stakedTokenPool);
     expect(newStakedTokenPool - stakedTokenPool).to.equal(stakeAmt);
-    expect(newCombinedTokenPool - combinedTokenPool).to.be.greaterThanOrEqual(stakeAmt);
+    expect(newCombinedTokenPool - combinedTokenPool).to.be.greaterThan(stakeAmt-1);
     expect(newGlobalSrpCount - globalSrpCount).to.equal(stakeAmt * 2);
   });
 });
@@ -2077,7 +2077,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
       const locks = await user1.sdk.genericAction('getLocks', {fioPublicKey: user1.publicKey});
       expect(locks).to.have.all.keys('lock_amount', 'remaining_lock_amount', 'time_stamp', 'payouts_performed', 'can_vote', 'unlock_periods')
     } catch (err) {
-      expect(err.errorCode).to.equal(404);
+      expect(err.code).to.equal(404);
       expect(err.json.message).to.equal('No lock tokens in account');
     }
   });
@@ -2124,8 +2124,8 @@ describe('C. Test unstakefio Bundled transactions', () => {
     try {
       const locks = await user1.sdk.genericAction('getLocks', {fioPublicKey: user1.publicKey});
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(404);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(404);
       expect(err.json.message).to.equal('No lock tokens in account');
     }
   });
@@ -2208,7 +2208,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
     combinedTokenPool = await getCombinedTokenPool();
     globalSrpCount = await getGlobalSrpCount();
     let bal = await user1.sdk.genericAction('getFioBalance', { });
-    expect(bal.staked).to.be.greaterThanOrEqual(stakeAmt);
+    expect(bal.staked).to.be.greaterThan(stakeAmt-1);
 
     const result = await user1.sdk.genericAction('pushTransaction', {
       action: 'unstakefio',
@@ -2230,7 +2230,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
     expect(bal.staked - newBal.staked).to.equal(stakeAmt);
     expect(newStakedTokenPool).to.be.lessThan(stakedTokenPool);
     expect(stakedTokenPool - newStakedTokenPool).to.equal(stakeAmt);
-    expect(combinedTokenPool - newCombinedTokenPool).to.be.lessThanOrEqual(stakeAmt);
+    expect(combinedTokenPool - newCombinedTokenPool).to.be.lessThan(stakeAmt+1);
     expect(globalSrpCount - newGlobalSrpCount).to.equal(stakeAmt * 2);
 
     let bundleCount = await getBundleCount(user1.sdk);
@@ -2255,7 +2255,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
     combinedTokenPool = await getCombinedTokenPool();
     globalSrpCount = await getGlobalSrpCount();
     bal = await user3.sdk.genericAction('getFioBalance', { });
-    expect(bal.staked).to.be.greaterThanOrEqual(0);
+    expect(bal.staked).to.be.greaterThan(-1);
 
     try {
       const result = await user3.sdk.genericAction('pushTransaction', {
@@ -2274,7 +2274,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
       newCombinedTokenPool = await getCombinedTokenPool();
       newGlobalSrpCount = await getGlobalSrpCount();
       newBal = await user3.sdk.genericAction('getFioBalance', {});
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
       expect(err.json).to.have.all.keys('code', 'message', 'error');
       expect(err.json.error.details[0].message).to.contain('incacctstake, actor has no accountstake record');
       expect(newStakedTokenPool).to.equal(stakedTokenPool);
@@ -2326,7 +2326,7 @@ describe('C. Test unstakefio Bundled transactions', () => {
       newCombinedTokenPool = await getCombinedTokenPool();
       newGlobalSrpCount = await getGlobalSrpCount();
       newBal = await user1.sdk.genericAction('getFioBalance', {});
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.json.fields[0].error).to.equal('Cannot unstake more than staked.');
       expect(newStakedTokenPool).to.equal(stakedTokenPool);
@@ -2714,9 +2714,9 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
         }
       });
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Account has not voted and has not proxied.');
     }
   });
@@ -2748,8 +2748,8 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
         }
       });
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.json.fields[0].error).to.equal('Invalid amount value');
     }
@@ -2791,8 +2791,8 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
       let newLockBal = await locksdk.genericAction('getFioBalance', {});
       expect(newBal.staked).to.equal(bal.staked);
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.json.fields[0].error).to.equal('Invalid fee value');
     }
@@ -2828,7 +2828,7 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
     } catch (err) {
       let newBal = await userC.sdk.genericAction('getFioBalance', {});
       expect(newBal.staked).to.equal(0);
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.json.fields[0].name).to.equal('amount');
       expect(err.json.fields[0].error).to.equal('Insufficient balance.');
@@ -2850,8 +2850,8 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.json.fields[0].error).to.equal('FIO Address not registered');
     }
@@ -2871,8 +2871,8 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
         }
       });
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(403);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(403);
       expect(err.json).to.have.all.keys('type', 'message');
       expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
     }
@@ -2892,8 +2892,8 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
         }
       });
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.json.fields[0].error).to.equal('Invalid amount value');
     }
@@ -2928,8 +2928,8 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
         }
       });
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.json.fields[0].error).to.equal('Cannot unstake more than staked.');
     }
@@ -2949,8 +2949,8 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
         }
       });
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.json.fields[0].error).to.equal('Invalid fee value');
     }
@@ -3020,8 +3020,8 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
       let newUserDBal = await userD.sdk.genericAction('getFioBalance', {});
       expect(newUserDBal.balance).to.equal(0);
       expect(newUserDBal.available).to.equal(0);
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.json.fields[0].error).to.equal('Invalid amount value');
     }
@@ -3097,8 +3097,8 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
       let newBalLock = await locksdk.genericAction('getFioBalance', {});
     } catch(err) {
       let newUserDBal = await userD.sdk.genericAction('getFioBalance', {});
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(500);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(500);
       expect(err.json).to.have.all.keys('code', 'message', 'error');
       expect(err.json.error.details[0].message).to.equal('assertion failure with message: incacctstake, actor has no accountstake record.');
     }
@@ -3118,8 +3118,8 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
         }
       });
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.json.fields[0].error).to.equal('TPID must be empty or valid FIO address');
     }
@@ -3139,8 +3139,8 @@ describe(`E. (unhappy tests) stake and unstake FIO with invalid input parameters
         }
       });
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(403);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(403);
       expect(err.json).to.have.all.keys('type', 'message');
       expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
     }
@@ -3318,8 +3318,8 @@ describe(`F. (unhappy tests) Stake and unstake some FIO with no bundles tx remai
     } catch (err) {
       let newBal = await userC.sdk.genericAction('getFioBalance', {});
       expect(newBal.staked).to.equal(bal.staked);
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.json.fields[0].error).to.equal('Fee exceeds supplied maximum.');
     }
@@ -3386,8 +3386,8 @@ describe(`F. (unhappy tests) Stake and unstake some FIO with no bundles tx remai
       let newBundles = await getBundleCount(userC.sdk);
       expect(newBundles).to.equal(bundles);
       expect(newBal.staked).to.equal(bal.staked);
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.json.fields[0].error).to.equal('Fee exceeds supplied maximum.');
     }
@@ -3586,7 +3586,7 @@ describe(`G1. Stake and unstake a single FIO`, () => {
     expect(result.rows[0].payouts_performed).to.equal(0);
     expect(result.rows[0].periods.length).to.equal(1);
     expect(result.rows[0].periods[0].amount).to.equal(unstakeAmt);
-    expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(UNSTAKELOCKDURATIONSECONDS);
+    expect(result.rows[0].periods[0].duration).is.greaterThan(UNSTAKELOCKDURATIONSECONDS-1);
   });
 
   it(`consume remaining bundled transactions`, async () => {
@@ -3687,9 +3687,8 @@ describe(`G1. Stake and unstake a single FIO`, () => {
     expect(result.rows[0].periods.length).to.equal(2);
     expect(result.rows[0].periods[0].amount).to.equal(unstakeAmt);
     expect(result.rows[0].periods[1].amount).to.equal(unstakeAmt);
-    expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(UNSTAKELOCKDURATIONSECONDS);
-    // expect(result.rows[0].periods[1].duration).is.greaterThanOrEqual(UNSTAKELOCKDURATIONSECONDS + 10);
-  });
+    expect(result.rows[0].periods[0].duration).is.greaterThan(UNSTAKELOCKDURATIONSECONDS-1);
+    });
 });
 
 describe(`G2. Stake and unstake an unreasonably samll (sub-FIO) denomination of tokens`, () => {
@@ -3865,8 +3864,8 @@ describe(`G2. Stake and unstake an unreasonably samll (sub-FIO) denomination of 
       expect(newCombinedTokenPool).to.equal(combinedTokenPool);
       expect(newGlobalSrpCount).to.equal(globalSrpCount);
 
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid amount value');
     }
   });
@@ -3965,8 +3964,8 @@ describe(`G2. Stake and unstake an unreasonably samll (sub-FIO) denomination of 
       expect(newCombinedTokenPool).to.equal(combinedTokenPool);
       expect(newGlobalSrpCount).to.equal(globalSrpCount);
 
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid amount value');
     }
   });
@@ -4037,8 +4036,8 @@ describe(`G2. Stake and unstake an unreasonably samll (sub-FIO) denomination of 
       // expect(newCombinedTokenPool).to.equal(combinedTokenPool);
       // expect(newGlobalSrpCount).to.equal(globalSrpCount);
 
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid amount value');
     }
   });
@@ -4074,8 +4073,8 @@ describe(`G2. Stake and unstake an unreasonably samll (sub-FIO) denomination of 
       // expect(newCombinedTokenPool).to.equal(combinedTokenPool);
       // expect(newGlobalSrpCount).to.equal(globalSrpCount);
 
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid amount value');
     }
   });
@@ -4315,8 +4314,8 @@ describe(`G3. Stake some FIO, then try to unstake an unreasonably small amount (
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.json.fields.length).to.be.greaterThan(0);
       expect(err.json.fields[0].error).to.equal('Invalid amount value');
@@ -4370,8 +4369,8 @@ describe(`G3. Stake some FIO, then try to unstake an unreasonably small amount (
       expect(result.status).to.equal('OK');
     } catch (err) {
       // expect(err).to.equal(null);
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.json.fields.length).to.be.greaterThan(0);
       expect(err.json.fields[0].error).to.equal('Invalid amount value');
@@ -4540,8 +4539,7 @@ describe(`G4. Stake some FIO, then try to unstake an unreasonably small amount (
       // expect(result.rows[0].remaining_lock_amount).to.equal(unstakeAmt)
       // expect(result.rows[0].payouts_performed).to.equal(0)
       // expect(result.rows[0].periods[0].amount).to.equal(unstakeAmt)
-      // expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(UNSTAKELOCKDURATIONSECONDS)  // Hard to know this. It is 7 days + the time that has elapsed since the original record was created (the timestamp)
-      // lockDuration = result.rows[0].periods[0].duration  // Grab this to make sure it does not change later
+        // lockDuration = result.rows[0].periods[0].duration  // Grab this to make sure it does not change later
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -4574,8 +4572,8 @@ describe(`G4. Stake some FIO, then try to unstake an unreasonably small amount (
       expect(result.status).to.equal('OK');
     } catch (err) {
       expect(err).to.equal(null);
-      // expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      // expect(err.errorCode).to.equal(400);
+      // expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      // expect(err.code).to.equal(400);
       // expect(err.json).to.have.all.keys('type', 'message', 'fields');
       // expect(err.json.fields.length).to.be.greaterThan(0);
       // expect(err.json.fields[0].error).to.equal('Invalid amount value');
@@ -4611,7 +4609,7 @@ describe(`G4. Stake some FIO, then try to unstake an unreasonably small amount (
       expect(result.rows[0].remaining_lock_amount).to.equal(unstakeAmt)
       expect(result.rows[0].payouts_performed).to.equal(0)
       expect(result.rows[0].periods[0].amount).to.equal(unstakeAmt)
-      expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(UNSTAKELOCKDURATIONSECONDS)  // Hard to know this. It is 7 days + the time that has elapsed since the original record was created (the timestamp)
+      expect(result.rows[0].periods[0].duration).is.greaterThan(UNSTAKELOCKDURATIONSECONDS-1)  // Hard to know this. It is 7 days + the time that has elapsed since the original record was created (the timestamp)
       // lockDuration = result.rows[0].periods[0].duration  // Grab this to make sure it does not change later
     } catch (err) {
       console.log('Error', err);
@@ -4892,7 +4890,7 @@ describe(`G5. Stake some FIO, then try to unstake an unreasonably small amount (
     expect(result.rows[0].remaining_lock_amount).to.equal(unstakeAmt);
     expect(result.rows[0].payouts_performed).to.equal(0);
     expect(result.rows[0].periods[0].amount).to.equal(unstakeAmt);
-    expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(UNSTAKELOCKDURATIONSECONDS);
+    expect(result.rows[0].periods[0].duration).is.greaterThan(UNSTAKELOCKDURATIONSECONDS-1);
   });
 
   it(`consume remaining bundled transactions`, async () => {
@@ -4930,8 +4928,8 @@ describe(`G5. Stake some FIO, then try to unstake an unreasonably small amount (
       newGlobalSrpCount = await getGlobalSrpCount();
       expect(newBal.staked).to.equal(bal.staked - unstakeAmt);
       expect(newStakedTokenPool).to.equal(stakedTokenPool - unstakeAmt);
-      expect(newCombinedTokenPool).to.be.lessThanOrEqual(combinedTokenPool)// + unstakeAmt);
-      expect(newCombinedTokenPool).to.be.lessThanOrEqual(combinedTokenPool + unstakeAmt)// + unstakeAmt);
+      expect(newCombinedTokenPool).to.be.lessThan(combinedTokenPool+1)// + unstakeAmt);
+      expect(newCombinedTokenPool).to.be.lessThan(combinedTokenPool + unstakeAmt+1)// + unstakeAmt);
       expect(globalSrpCount - newGlobalSrpCount).to.equal(unstakeAmt * 2)
       expect(result.status).to.equal('OK');
       expect(result.fee_collected).to.equal(config.api.unstake_fio_tokens.fee);
@@ -4959,9 +4957,8 @@ describe(`G5. Stake some FIO, then try to unstake an unreasonably small amount (
     expect(result.rows[0].payouts_performed).to.equal(0);
     expect(result.rows[0].periods[0].amount).to.equal(unstakeAmt);
     expect(result.rows[0].periods[1].amount).to.equal(unstakeAmt);
-    expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(UNSTAKELOCKDURATIONSECONDS);
-    // expect(result.rows[0].periods[1].duration).is.greaterThanOrEqual(UNSTAKELOCKDURATIONSECONDS + 10);
-  });
+    expect(result.rows[0].periods[0].duration).is.greaterThan(UNSTAKELOCKDURATIONSECONDS-1);
+     });
 });
 
 describe(`G6. Stake some FIO, then try to unstake an unreasonably small amount (1000000001 SUF)`, () => {
@@ -5156,7 +5153,7 @@ describe(`G6. Stake some FIO, then try to unstake an unreasonably small amount (
     expect(result.rows[0].remaining_lock_amount).to.equal(unstakeAmt);
     expect(result.rows[0].payouts_performed).to.equal(0);
     expect(result.rows[0].periods[0].amount).to.equal(unstakeAmt);
-    expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(UNSTAKELOCKDURATIONSECONDS);
+    expect(result.rows[0].periods[0].duration).is.greaterThan(UNSTAKELOCKDURATIONSECONDS-1);
   })
 
   it(`consume remaining bundled transactions`, async () => {
@@ -5196,8 +5193,8 @@ describe(`G6. Stake some FIO, then try to unstake an unreasonably small amount (
 
     expect(newBal.staked).to.equal(bal.staked - unstakeAmt);
     expect(newStakedTokenPool).to.equal(stakedTokenPool - unstakeAmt);
-    expect(newCombinedTokenPool).to.be.lessThanOrEqual(combinedTokenPool)// + unstakeAmt);
-    expect(newCombinedTokenPool).to.be.lessThanOrEqual(combinedTokenPool + unstakeAmt)// + unstakeAmt);
+    expect(newCombinedTokenPool).to.be.lessThan(combinedTokenPool+1)// + unstakeAmt);
+    expect(newCombinedTokenPool).to.be.lessThan(combinedTokenPool + 1 + unstakeAmt)// + unstakeAmt);
     expect(globalSrpCount - newGlobalSrpCount).to.equal(unstakeAmt * 2)
     expect(result.status).to.equal('OK');
     expect(result.fee_collected).to.equal(config.api.unstake_fio_tokens.fee);
@@ -5222,9 +5219,8 @@ describe(`G6. Stake some FIO, then try to unstake an unreasonably small amount (
     expect(result.rows[0].payouts_performed).to.equal(0);
     expect(result.rows[0].periods[0].amount).to.equal(unstakeAmt);
     expect(result.rows[0].periods[1].amount).to.equal(unstakeAmt);
-    expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(UNSTAKELOCKDURATIONSECONDS);
-    // expect(result.rows[0].periods[1].duration).is.greaterThanOrEqual(UNSTAKELOCKDURATIONSECONDS + 10);
-  });
+    expect(result.rows[0].periods[0].duration).is.greaterThan(UNSTAKELOCKDURATIONSECONDS-1);
+   });
 });
 
 describe(`H. Malicious staking actions`, () => {
@@ -5328,7 +5324,7 @@ describe(`H. Malicious staking actions`, () => {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(403);
+      expect(err.code).to.equal(403);
       expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
     }
   });
@@ -5359,7 +5355,7 @@ describe(`H. Malicious staking actions`, () => {
         }
       });
     } catch (err) {
-      expect(err.errorCode).to.equal(403);
+      expect(err.code).to.equal(403);
       expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
     }
   });
@@ -5479,7 +5475,7 @@ describe(`I. Malicious unstaking actions`, () => {
         }
       });
     } catch (err) {
-      expect(err.errorCode).to.equal(403);
+      expect(err.code).to.equal(403);
       expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
     }
   })
@@ -5510,7 +5506,7 @@ describe(`I. Malicious unstaking actions`, () => {
         }
       });
     } catch (err) {
-      expect(err.errorCode).to.equal(403);
+      expect(err.code).to.equal(403);
       expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
     }
   })

@@ -584,7 +584,7 @@ describe(`C. Insert stake period in middle of locktokensv2 general locks, then u
     expect(result.lock_amount).to.equal(genLockTotal - genLock1Amount - genLock2Amount + unstake1)
     expect(result.remaining_lock_amount).to.equal(genLockTotal - genLock1Amount - genLock2Amount + unstake1)
     expect(result.payouts_performed).to.equal(0)
-    expect(result.unlock_periods[0].duration).is.greaterThanOrEqual(config.UNSTAKELOCKDURATIONSECONDS);   //(UNSTAKELOCKDURATIONSECONDS)
+    expect(result.unlock_periods[0].duration).is.greaterThan(config.UNSTAKELOCKDURATIONSECONDS-1);   //(UNSTAKELOCKDURATIONSECONDS)
     lockDuration = result.unlock_periods[0].duration  // Grab this to make sure it does not change later
     expect(result.unlock_periods[0].amount).to.equal(unstake1)
     expect(result.unlock_periods[1].duration).to.equal(genLock3Dur)

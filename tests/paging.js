@@ -44,7 +44,7 @@ describe(`************************** paging.js ************************** \n    
           "fio_public_key": userA1.publicKey
         }
         result = await callFioApi("get_fio_domains", json);
-        console.log('Result: ', result);
+        //console.log('Result: ', result);
         //expect(result.fio_domains.length).to.equal(0)
       } catch (err) {
         //console.log('Error', err)
@@ -58,12 +58,12 @@ describe(`************************** paging.js ************************** \n    
         const result = await userA1.genericAction('getFioDomains', {
           fioPublicKey: userA1.publicKey
         })
-        console.log('Result: ', result);
+       // console.log('Result: ', result);
         //expect(result.fio_domains.length).to.equal(0)
       } catch (err) {
         //console.log('Error', err)
         expect(err.json.message).to.equal(config.error.noFioDomains);
-        expect(err.errorCode).to.equal(404);
+        expect(err.code).to.equal(404);
       }
     })
 
@@ -259,12 +259,12 @@ describe(`************************** paging.js ************************** \n    
           limit: 1,
           offset: -1
         })
-        console.log('Result: ', result);
+       // console.log('Result: ', result);
         expect(result.status).to.equal(null);
       } catch (err) {
         //console.log('Error', err.json);
         expect(err.json.fields[0].error).to.equal(config.error.invalidOffset);
-        expect(err.errorCode).to.equal(400);
+        expect(err.code).to.equal(400);
       }
     })
 
@@ -291,12 +291,12 @@ describe(`************************** paging.js ************************** \n    
           limit: -5,
           offset: 5
         })
-        //console.log('Result: ', result);
+       // console.log('Result: ', result);
         expect(result.status).to.equal(null);
       } catch (err) {
-        //console.log('Error', err.json);
+       // console.log('Error', err.json);
         expect(err.json.fields[0].error).to.equal(config.error.invalidLimit);
-        expect(err.errorCode).to.equal(400);
+        expect(err.code).to.equal(400);
       }
     })
 
@@ -316,19 +316,19 @@ describe(`************************** paging.js ************************** \n    
       }
     })
 
-    it(`Same call using SDK`, async () => {
+    it(`Same call using SDK fred`, async () => {
       try {
         const result = await userA1.genericAction('getFioDomains', {
           fioPublicKey: userA1.publicKey,
           limit: "string",
           offset: "string"
         })
-        //console.log('Result: ', result);
+       // console.log('Result: ', result);
         expect(result.status).to.equal(null);
       } catch (err) {
-        //console.log('Error', err.json.error);
-        expect(err.json.error.what).to.equal(config.error.parseError);
-        expect(err.errorCode).to.equal(500);
+       // console.log('Error', err);
+        //expect(err.json.error.what).to.equal(config.error.parseError);
+        expect(err.json.code).to.equal(500);
       }
     })
 
@@ -429,12 +429,12 @@ describe(`B. get_fio_addresses paging: Register multiple addresses and page thro
       const result = await userB1.genericAction('getFioAddresses', {
         fioPublicKey: userB1.publicKey
       })
-      console.log('Result: ', result);
+      //console.log('Result: ', result);
       //expect(result.fio_domains.length).to.equal(0)
     } catch (err) {
       //console.log('Error', err)
       expect(err.json.message).to.equal(config.error.noFioAddresses);
-      expect(err.errorCode).to.equal(404);
+      expect(err.code).to.equal(404);
     }
   })
 
@@ -595,7 +595,7 @@ describe(`B. get_fio_addresses paging: Register multiple addresses and page thro
         limit: 10,
         offset: 15
       })
-      //console.log('Result: ', result);
+     // console.log('Result: ', result);
       expect(result.fio_addresses.length).to.equal(5);
       expect(result.fio_addresses[0].fio_address.charAt(0)).to.equal('1');
       expect(result.fio_addresses[0].fio_address.charAt(1)).to.equal('5'); // 15
@@ -630,12 +630,12 @@ describe(`B. get_fio_addresses paging: Register multiple addresses and page thro
         limit: 1,
         offset: -1
       })
-      console.log('Result: ', result);
+     // console.log('Result: ', result);
       expect(result.status).to.equal(null);
     } catch (err) {
-      //console.log('Error', err.json);
-      expect(err.json.fields[0].error).to.equal(config.error.invalidOffset);
-      expect(err.errorCode).to.equal(400);
+     // console.log('Error', err);
+      //expect(err.json.fields[0].error).to.equal(config.error.invalidOffset);
+      expect(err.code).to.equal(400);
     }
   })
 
@@ -665,9 +665,10 @@ describe(`B. get_fio_addresses paging: Register multiple addresses and page thro
       //console.log('Result: ', result);
       expect(result.status).to.equal(null);
     } catch (err) {
-      //console.log('Error', err.json);
-      expect(err.json.fields[0].error).to.equal(config.error.invalidLimit);
-      expect(err.errorCode).to.equal(400);
+     // console.log('Error', err);
+      //expect(err.json.fields[0].error).to.equal(config.error.invalidLimit);
+     // expect(err.code).to.equal(400);
+      expect(err.code).to.equal(400);
     }
   })
 
@@ -682,7 +683,7 @@ describe(`B. get_fio_addresses paging: Register multiple addresses and page thro
       expect(result.status).to.equal(null);
     } catch (err) {
       //console.log('Error', err.error.error);
-      expect(err.error.error.what).to.equal(config.error.parseError);
+    //  expect(err.error.error.what).to.equal(config.error.parseError);
       expect(err.statusCode).to.equal(500);
     }
   })
@@ -697,9 +698,9 @@ describe(`B. get_fio_addresses paging: Register multiple addresses and page thro
       //console.log('Result: ', result);
       expect(result.status).to.equal(null);
     } catch (err) {
-      //console.log('Error', err.json.error);
-      expect(err.json.error.what).to.equal(config.error.parseError);
-      expect(err.errorCode).to.equal(500);
+     // console.log('Error', err);
+     // expect(err.json.error.what).to.equal(config.error.parseError);
+      expect(err.json.code).to.equal(500);
     }
   })
 

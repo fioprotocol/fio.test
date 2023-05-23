@@ -139,7 +139,7 @@ describe(`************************** remove-address.js *************************
     }
   })
 
-  it(`(SDK) removePublicAddress Fail, address doesn't exist. Expect error code 404: Invalid FIO Address`, async () => {
+  it(`(SDK) removePublicAddress Fail, address doesn't exist. Expect code 404: Invalid FIO Address`, async () => {
     try {
       const result = await userA1.sdk.genericAction('removePublicAddresses', {
         fioAddress: "ed@dapixtt",
@@ -151,7 +151,7 @@ describe(`************************** remove-address.js *************************
     } catch (err) {
       //console.log('err: ', err)
       expect(err.json.fields[0].error).to.equal('Invalid FIO Address')
-      expect(err.errorCode).to.equal(404);
+      expect(err.code).to.equal(404);
     }
   })
 })
@@ -177,7 +177,7 @@ describe(`B. Remove public addresses, public adresses parameter tests`, () => {
     } catch (err) {
       //console.log(JSON.stringify(err, null, 4));
       expect(err.json.fields[0].error).to.equal(config.error2.addaddressMinMax.message);
-      expect(err.errorCode).to.equal(config.error2.addaddressMinMax.statusCode);
+      expect(err.code).to.equal(config.error2.addaddressMinMax.statusCode);
     }
   })
 
@@ -193,7 +193,7 @@ describe(`B. Remove public addresses, public adresses parameter tests`, () => {
     } catch (err) {
       //console.log(JSON.stringify(err, null, 4));
       expect(err.json.fields[0].error).to.equal(config.error2.addaddressMinMax.message);
-      expect(err.errorCode).to.equal(config.error2.addaddressMinMax.statusCode);
+      expect(err.code).to.equal(config.error2.addaddressMinMax.statusCode);
     }
   })
 
@@ -221,7 +221,7 @@ describe(`B. Remove public addresses, public adresses parameter tests`, () => {
     } catch (err) {
       //console.log(JSON.stringify(err, null, 4));
       expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message);
-      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
+      expect(err.code).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   });
   
@@ -347,7 +347,7 @@ describe(`B. Remove public addresses, public adresses parameter tests`, () => {
     } catch (err) {
       //console.log(JSON.stringify(err, null, 4));
       expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message);
-      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
+      expect(err.code).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   })
 
@@ -374,7 +374,7 @@ describe(`B. Remove public addresses, public adresses parameter tests`, () => {
     } catch (err) {
       //console.log(JSON.stringify(err, null, 4));
       expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message);
-      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
+      expect(err.code).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   })
 
@@ -401,7 +401,7 @@ describe(`B. Remove public addresses, public adresses parameter tests`, () => {
     } catch (err) {
       //console.log(JSON.stringify(err, null, 4));
       expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message);
-      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
+      expect(err.code).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   })
 })
@@ -495,7 +495,7 @@ describe(`D. Remove public address, tpid parameter tests`, () => {
     } catch (err) {
       //console.log(JSON.stringify(err, null, 4));
       expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message);
-      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
+      expect(err.code).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   })
 
@@ -511,7 +511,7 @@ describe(`D. Remove public address, tpid parameter tests`, () => {
     } catch (err) {
       //console.log(JSON.stringify(err, null, 4));
       expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message);
-      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
+      expect(err.code).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   })
 
@@ -527,7 +527,7 @@ describe(`D. Remove public address, tpid parameter tests`, () => {
     } catch (err) {
       //console.log(JSON.stringify(err, null, 4));
       expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message);
-      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
+      expect(err.code).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   })
 
@@ -543,7 +543,7 @@ describe(`D. Remove public address, tpid parameter tests`, () => {
     } catch (err) {
       //console.log(JSON.stringify(err, null, 4));
       expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message);
-      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
+      expect(err.code).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   })
 
@@ -559,7 +559,7 @@ describe(`D. Remove public address, tpid parameter tests`, () => {
     } catch (err) {
       //console.log(JSON.stringify(err, null, 4));
       expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message);
-      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
+      expect(err.code).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   })
 
@@ -575,7 +575,7 @@ describe(`D. Remove public address, tpid parameter tests`, () => {
     } catch (err) {
       //console.log(JSON.stringify(err, null, 4));
       expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message);
-      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
+      expect(err.code).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   })
 
@@ -591,7 +591,7 @@ describe(`D. Remove public address, tpid parameter tests`, () => {
     } catch (err) {
       //console.log(JSON.stringify(err, null, 4));
       expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message);
-      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
+      expect(err.code).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   })
 
@@ -607,7 +607,7 @@ describe(`D. Remove public address, tpid parameter tests`, () => {
     } catch (err) {
       //console.log(JSON.stringify(err, null, 4));
       expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message);
-      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
+      expect(err.code).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   })
 })
@@ -1136,7 +1136,7 @@ describe(`F. Sad - result in error`, () => {
     } catch (err) {
       //console.log('Error: ', err.json)
       expect(err.json.fields[0].error).to.equal(config.error2.invalidFioAddress.message)
-      expect(err.errorCode).to.equal(config.error2.invalidFioAddress.statusCode);
+      expect(err.code).to.equal(config.error2.invalidFioAddress.statusCode);
     }
   })
 
@@ -1168,7 +1168,7 @@ describe(`F. Sad - result in error`, () => {
     } catch (err) {
       //console.log('Err: ', err.json);
       expect(err.json.fields[0].error).to.equal(config.error2.invalidPublicAddress.message)
-      expect(err.errorCode).to.equal(config.error2.invalidPublicAddress.statusCode);
+      expect(err.code).to.equal(config.error2.invalidPublicAddress.statusCode);
     }
   })
 
@@ -1200,7 +1200,7 @@ describe(`F. Sad - result in error`, () => {
       expect(result.status).to.equal(null);
     } catch (err) {
       expect(err.json.fields[0].error).to.equal(config.error2.invalidTpid.message)
-      expect(err.errorCode).to.equal(config.error2.invalidTpid.statusCode);
+      expect(err.code).to.equal(config.error2.invalidTpid.statusCode);
     }
   })
 
@@ -1272,7 +1272,7 @@ describe(`F. Sad - result in error`, () => {
     } catch (err) {
       //console.log('Error', err)
       expect(err.json.message).to.contain('Request signature is not valid or this user is not allowed to sign this transaction.');
-      expect(err.errorCode).to.equal(403);
+      expect(err.code).to.equal(403);
     }
   })
 
@@ -1394,7 +1394,7 @@ describe(`F. Sad - result in error`, () => {
     } catch (err) {
       //console.log('Error: ', err.json)
       expect(err.json.fields[0].error).to.equal(config.error.feeExceedsMax)
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
     }
   })
 
@@ -1415,7 +1415,7 @@ describe(`F. Sad - result in error`, () => {
     } catch (err) {
       //console.log('Error: ', err.json)
       expect(err.json.fields[0].error).to.equal(config.error.insufficientFunds)
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
     }
   })
 })

@@ -363,7 +363,7 @@ describe(`************************** stake-general-locked-tokens.js ************
       expect(result.rows[0].payouts_performed).to.equal(0)  // Reset to 0 because genLock1 was removed and there are no longer any past payouts
       expect(result.rows[0].periods[0].duration).to.equal(genLock2Dur)
       expect(result.rows[0].periods[0].amount).to.equal(genLock2Amount)
-      expect(result.rows[0].periods[1].duration).is.greaterThanOrEqual(UNSTAKELOCKDURATIONSECONDS)  // Hard to know this. It is 7 days + the time that has elapsed since the original record was created (the timestamp)
+      expect(result.rows[0].periods[1].duration).is.greaterThan(UNSTAKELOCKDURATIONSECONDS-1)  // Hard to know this. It is 7 days + the time that has elapsed since the original record was created (the timestamp)
       lockDuration = result.rows[0].periods[1].duration  // Grab this to make sure it does not change later
       expect(result.rows[0].periods[1].amount).to.equal(unstake1)
       expect(result.rows[0].periods[2].duration).to.equal(genLock3Dur)
@@ -1315,7 +1315,7 @@ describe(`B. Insert stake period in middle of locktokensv2 general locks, then u
       expect(result.rows[0].lock_amount).to.equal(genLockTotal - genLock1Amount - genLock2Amount + unstake1)  // Unstake removes old locks, so this should update
       expect(result.rows[0].remaining_lock_amount).to.equal(genLockTotal - genLock1Amount - genLock2Amount + unstake1)  // Updated to reflect new amount. Will be same as lock_amount.
       expect(result.rows[0].payouts_performed).to.equal(0)  // Reset to 0 because genLock1 was removed and there are no longer any past payouts
-      expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(UNSTAKELOCKDURATIONSECONDS)  // Hard to know this. It is 7 days + the time that has elapsed since the original record was created (the timestamp)
+      expect(result.rows[0].periods[0].duration).is.greaterThan(UNSTAKELOCKDURATIONSECONDS-1)  // Hard to know this. It is 7 days + the time that has elapsed since the original record was created (the timestamp)
       lockDuration = result.rows[0].periods[0].duration  // Grab this to make sure it does not change later
       expect(result.rows[0].periods[0].amount).to.equal(unstake1)
       expect(result.rows[0].periods[1].duration).to.equal(genLock3Dur)
@@ -1663,7 +1663,7 @@ describe(`C. Insert stake period at END of locktokensv2 general locks, then unlo
       expect(result.rows[0].periods[0].amount).to.equal(genLock1Amount)
       expect(result.rows[0].periods[1].duration).to.equal(genLock2Dur)
       expect(result.rows[0].periods[1].amount).to.equal(genLock2Amount)
-      expect(result.rows[0].periods[2].duration).is.greaterThanOrEqual(UNSTAKELOCKDURATIONSECONDS)  // Hard to know this. It is 7 days + the time that has elapsed since the original record was created (the timestamp)
+      expect(result.rows[0].periods[2].duration).is.greaterThan(UNSTAKELOCKDURATIONSECONDS-1)  // Hard to know this. It is 7 days + the time that has elapsed since the original record was created (the timestamp)
       lockDuration = result.rows[0].periods[2].duration  // Grab this to make sure it does not change later
       expect(result.rows[0].periods[2].amount).to.equal(unstake1)
     } catch (err) {
@@ -1728,7 +1728,7 @@ describe(`C. Insert stake period at END of locktokensv2 general locks, then unlo
       expect(result.rows[0].periods[0].amount).to.equal(genLock1Amount)
       expect(result.rows[0].periods[1].duration).to.equal(genLock2Dur)
       expect(result.rows[0].periods[1].amount).to.equal(genLock2Amount)
-      expect(result.rows[0].periods[2].duration).is.greaterThanOrEqual(lockDuration)
+      expect(result.rows[0].periods[2].duration).is.greaterThan(lockDuration-1)
       expect(result.rows[0].periods[2].amount).to.equal(unstake1)
     } catch (err) {
       console.log('Error', err);
@@ -1774,7 +1774,7 @@ describe(`C. Insert stake period at END of locktokensv2 general locks, then unlo
       expect(result.rows[0].payouts_performed).to.equal(0)  // Changed to 0 since unstake removes old locks.
       expect(result.rows[0].periods[0].duration).to.equal(genLock2Dur)
       expect(result.rows[0].periods[0].amount).to.equal(genLock2Amount)
-      expect(result.rows[0].periods[1].duration).is.greaterThanOrEqual(lockDuration)
+      expect(result.rows[0].periods[1].duration).is.greaterThan(lockDuration-1)
       expect(result.rows[0].periods[1].amount).to.equal(unstake1 + unstake2)
     } catch (err) {
       console.log('Error', err);
@@ -1824,7 +1824,7 @@ describe(`C. Insert stake period at END of locktokensv2 general locks, then unlo
       expect(result.rows[0].payouts_performed).to.equal(1) 
       expect(result.rows[0].periods[0].duration).to.equal(genLock2Dur)
       expect(result.rows[0].periods[0].amount).to.equal(genLock2Amount)
-      expect(result.rows[0].periods[1].duration).is.greaterThanOrEqual(lockDuration)
+      expect(result.rows[0].periods[1].duration).is.greaterThan(lockDuration-1)
       expect(result.rows[0].periods[1].amount).to.equal(unstake1 + unstake2)
     } catch (err) {
       console.log('Error', err);
@@ -1873,7 +1873,7 @@ describe(`C. Insert stake period at END of locktokensv2 general locks, then unlo
       expect(result.rows[0].lock_amount).to.equal(genLockTotal + unstake1 + unstake2 + unstake3 - genLock1Amount - genLock2Amount)
       expect(result.rows[0].remaining_lock_amount).to.equal(genLockTotal + unstake1 + unstake2 + unstake3 - genLock1Amount - genLock2Amount)
       expect(result.rows[0].payouts_performed).to.equal(0)  // Changed to 0 since unstake removes old locks.
-      expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(lockDuration)
+      expect(result.rows[0].periods[0].duration).is.greaterThan(lockDuration-1)
       expect(result.rows[0].periods[0].amount).to.equal(unstake1 + unstake2 + unstake3)
     } catch (err) {
       console.log('Error', err);
@@ -2096,7 +2096,7 @@ describe(`D. Insert stake period at BEGINNING of locktokensv2 general locks. No 
       expect(result.rows[0].lock_amount).to.equal(genLockTotal + unstake1)
       expect(result.rows[0].remaining_lock_amount).to.equal(genLockTotal + unstake1)
       expect(result.rows[0].payouts_performed).to.equal(0)
-      expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(UNSTAKELOCKDURATIONSECONDS)  // Hard to know this. It is 7 days + the time that has elapsed since the original record was created (the timestamp)
+      expect(result.rows[0].periods[0].duration).is.greaterThan(UNSTAKELOCKDURATIONSECONDS-1)  // Hard to know this. It is 7 days + the time that has elapsed since the original record was created (the timestamp)
       expect(result.rows[0].periods[0].amount).to.equal(unstake1)
       expect(result.rows[0].periods[1].duration).to.equal(genLock1Dur)
       expect(result.rows[0].periods[1].amount).to.equal(genLock1Amount)

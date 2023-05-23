@@ -89,6 +89,9 @@ describe('TEST SUITE', () => {
 
     //FIP-40 tests
     require("./tests/FIP-40-permissions-dev-tests.js");
+
+    //use fio authorizations, use permission, and signingaccount
+    require("./tests/fio-account-authorization.js");
     /**
      * General Tests. Should work against all builds. Do not require additional configuration.
      */
