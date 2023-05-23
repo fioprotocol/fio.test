@@ -124,6 +124,7 @@ describe('TEST SUITE', () => {
     require('./tests/eosio-updateauth.js');  // FIP-37
     require('./tests/newfioacc.js');  // FIP-38
     require('./tests/multicast-servers.js');  // Update to SDK to support backup servers
+    require('./tests/fio.address-updcryptkey.js');  // FIP-39
 
     /**
      * Bugs
@@ -166,6 +167,11 @@ describe('TEST SUITE', () => {
      * FIP-47 - Loads up an account with 21K domains for getter testing
      */
     //require('./tests/register-domains-one-account-max-load.js');
+
+    /**
+     * FIP-39 - Creates accounts with new encryption keys on old 2.8 fio.contracts version, then runs with latest fio.contracts
+     */
+    //require('./tests/fio.address-updcryptkey-back-compat.js');
 
     /**
      * FIP-27 - Takes a long time and requires monitoring

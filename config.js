@@ -202,6 +202,18 @@ const config = {
         invalidUnlockPeriodDuration: {
             message: 'Invalid duration value in unlock periods',
             statusCode: 400
+        },
+        noEncryptionAddress: {
+            message: 'No such FIO address',
+            statusCode: 400
+        },
+        invalidEncryptKey: {
+            message: 'Encrypt key not a valid FIO Public Key',
+            statusCode: 400
+        },
+        fioAddressNotExist: {
+            message: 'FIO Address invalid or does not exist',
+            statusCode: 400
         }
     },
 
@@ -432,7 +444,8 @@ const config = {
         WRAPTOKENRAM: 512,
         WRAPDOMAINRAM: 512,
         TRANSLOCTOKSRAM: 1200,
-        NEWFIOCHAINACCOUNTRAM: 0
+        NEWFIOCHAINACCOUNTRAM: 0,
+        UPDENCRYPTKEYRAM: 2560
     },
 
     public_addresses: [
