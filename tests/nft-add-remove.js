@@ -183,7 +183,7 @@ describe(`************************** nft-add-remove.js *************************
       expect(result.status).to.not.equal('OK')
     } catch (err) {
       //console.log(err.json)
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Nothing to update for this token_id');
     }
   })
@@ -352,7 +352,7 @@ describe(`************************** nft-add-remove.js *************************
       expect(addnftResult).to.not.equal('OK');
     } catch (err) {
       //console.log('Error', err.json);
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('FIO Address NFTs are being burned');
     }
   })
@@ -448,7 +448,7 @@ describe(`************************** nft-add-remove.js *************************
       }
     } catch (err) {
       console.log(err.json.error);
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Nothing to burn');
     }
   })
@@ -700,7 +700,7 @@ describe(`************************** nft-add-remove.js *************************
       expect(result.status).to.not.equal('OK');
     } catch (err) {
       //console.log('Error: ', err.json);
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid Token ID');
     }
   });
@@ -1147,7 +1147,7 @@ describe(`C. (sdk)(unhappy) Try to add NFTs with invalid user input`, () => {
       expect(result.status).to.not.equal('OK')
     } catch (err) {
       //console.log(JSON.stringify(err, null, 4));
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid chain code format');
     }
   });
@@ -1253,7 +1253,7 @@ describe(`C. (sdk)(unhappy) Try to add NFTs with invalid user input`, () => {
       expect(result.status).to.not.equal('OK')
     } catch (err) {
       //console.log(JSON.stringify(err, null, 4));
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid hash');
     }
   });
@@ -1281,7 +1281,7 @@ describe(`C. (sdk)(unhappy) Try to add NFTs with invalid user input`, () => {
       expect(result.status).to.not.equal('OK')
     } catch (err) {
       //console.log('Error: ', err.json)
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid metadata');
     }
   });
@@ -1309,7 +1309,7 @@ describe(`C. (sdk)(unhappy) Try to add NFTs with invalid user input`, () => {
       })
       expect(result.status).to.not.equal('OK')
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid chain code format');
     }
   });
@@ -1336,7 +1336,7 @@ describe(`C. (sdk)(unhappy) Try to add NFTs with invalid user input`, () => {
       })
       expect(result.status).to.not.equal('OK')
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid Contract Address');
     }
   });
@@ -1390,7 +1390,7 @@ describe(`C. (sdk)(unhappy) Try to add NFTs with invalid user input`, () => {
       })
       expect(result.status).to.not.equal('OK')
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid chain code format');
     }
   });
@@ -1417,7 +1417,7 @@ describe(`C. (sdk)(unhappy) Try to add NFTs with invalid user input`, () => {
       })
       expect(result.status).to.not.equal('OK')
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid Contract Address');    }
   });
   it.skip(`(negative token_id) Try to add an NFT to user1 FIO Address, expect Error`, async () => {
@@ -1480,7 +1480,7 @@ describe(`C. (sdk)(unhappy) Try to add NFTs with invalid user input`, () => {
       })
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid FIO Address');
     }
   });
@@ -1499,7 +1499,7 @@ describe(`C. (sdk)(unhappy) Try to add NFTs with invalid user input`, () => {
       })
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid FIO Address');
     }
   });
@@ -1518,7 +1518,7 @@ describe(`C. (sdk)(unhappy) Try to add NFTs with invalid user input`, () => {
       })
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid FIO Address');
     }
   });
@@ -1593,7 +1593,7 @@ describe(`C. (sdk)(unhappy) Try to add NFTs with invalid user input`, () => {
       })
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid fee value');
     }
   });
@@ -1642,7 +1642,7 @@ describe(`C. (sdk)(unhappy) Try to add NFTs with invalid user input`, () => {
       })
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Fee exceeds supplied maximum.');
     }
   });
@@ -1679,7 +1679,7 @@ describe(`C. (sdk)(unhappy) Try to add NFTs with invalid user input`, () => {
       })
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Fee exceeds supplied maximum.');
     }
   });
@@ -1716,7 +1716,7 @@ describe(`C. (sdk)(unhappy) Try to add NFTs with invalid user input`, () => {
       })
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Fee exceeds supplied maximum.');
     }
   });
@@ -1762,7 +1762,7 @@ describe(`D. (sdk)(unhappy) Try to add an unreasonable number of NFTs`, () => {
       })
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Min 1, Max 3 NFTs are allowed');
     }
   });
@@ -1782,7 +1782,7 @@ describe(`D. (sdk)(unhappy) Try to add an unreasonable number of NFTs`, () => {
       })
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Min 1, Max 3 NFTs are allowed');
     }
   });
@@ -1802,7 +1802,7 @@ describe(`D. (sdk)(unhappy) Try to add an unreasonable number of NFTs`, () => {
       })
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Min 1, Max 3 NFTs are allowed');
     }
   });
@@ -2031,7 +2031,7 @@ describe(`E. (sdk)(unhappy) Try to remove more NFTs than minted`, () => {
       expect(result.status).to.not.equal('OK');
     } catch (err) {
       //console.log(err.json);
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('NFT not found');
     }
   });
@@ -2054,7 +2054,7 @@ describe(`E. (sdk)(unhappy) Try to remove more NFTs than minted`, () => {
       expect(result.status).to.not.equal('OK')
     } catch (err) {
       //console.log(err.json);
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].value).to.equal(user1.address);
       expect(err.json.fields[0].error).to.equal('NFT not found');
     }
@@ -2233,9 +2233,9 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].value).to.equal(user1.address);
       expect(err.json.fields[0].error).to.equal('NFT not currently mapped')
     }
@@ -2262,9 +2262,9 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].value).to.equal(user1.address);
       expect(err.json.fields[0].error).to.equal('NFT not currently mapped')
     }
@@ -2291,7 +2291,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].value).to.equal(user1.address);
       expect(err.json.fields[0].error).to.equal('NFT not currently mapped')
     }
@@ -2319,7 +2319,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid chain code format');
     }
   });
@@ -2347,7 +2347,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       expect(result.status).to.not.equal('OK');
     } catch (err) {
       //console.log('Error: ', err.json);
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('NFT not found');
     }
   });
@@ -2373,7 +2373,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('NFT not found');
     }
   });
@@ -2399,7 +2399,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].value).to.equal(user1.address);
       expect(err.json.fields[0].error).to.equal('NFT not currently mapped')
     }
@@ -2426,7 +2426,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].value).to.equal(user1.address);
       expect(err.json.fields[0].error).to.equal('NFT not currently mapped')
     }
@@ -2453,7 +2453,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].value).to.equal(user1.address);
       expect(err.json.fields[0].error).to.equal('NFT not currently mapped');
     }
@@ -2481,7 +2481,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid chain code format');
     }
   });
@@ -2507,7 +2507,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid Contract Address');
     }
   });
@@ -2534,7 +2534,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid chain code format');
     }
   });
@@ -2560,7 +2560,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('NFT not found');   //('Invalid Contract Address');
     }
   });
@@ -2586,7 +2586,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].value).to.equal(user1.address);
       expect(err.json.fields[0].error).to.equal('NFT not found');
     }
@@ -2639,7 +2639,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       })
       expect(result.status).to.not.equal('OK')
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid FIO Address');
     }
   });
@@ -2665,7 +2665,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       })
       expect(result.status).to.not.equal('OK')
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid FIO Address');
     }
   });
@@ -2691,7 +2691,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       })
       expect(result.status).to.not.equal('OK')
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid FIO Address');
     }
   });
@@ -2787,7 +2787,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid fee value');
     }
   });
@@ -2850,7 +2850,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       })
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Fee exceeds supplied maximum.');
     }
   });
@@ -2901,7 +2901,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       })
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Fee exceeds supplied maximum.');
     }
   });
@@ -2942,7 +2942,7 @@ describe(`F. (sdk)(unhappy) Try to remove NFTs with invalid user input`, () => {
       })
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Fee exceeds supplied maximum.');   //('Insufficient funds to cover fee');
     }
   });
@@ -3855,7 +3855,7 @@ describe(`J. (api) Confirm that get_nfts_hash returns NFTs with a specific hash`
         hash: nftHash,
         limit: 5
       });
-      expect(result.nfts.length).to.be.lessThanOrEqual(5);
+      expect(result.nfts.length).to.be.lessThan(6);
     } catch (err) {
       expect(err).to.equal(null);
     }
@@ -3868,7 +3868,7 @@ describe(`J. (api) Confirm that get_nfts_hash returns NFTs with a specific hash`
         limit: 5,
         offset: 3
       });
-      expect(result.nfts.length).to.be.lessThanOrEqual(5);
+      expect(result.nfts.length).to.be.lessThan(6);
     } catch (err) {
       expect(err).to.equal(null);
     }
@@ -3880,7 +3880,7 @@ describe(`J. (api) Confirm that get_nfts_hash returns NFTs with a specific hash`
         hash: nftHash,
         limit: -10
       });
-      expect(result.nfts.length).to.be.lessThanOrEqual(5);
+      expect(result.nfts.length).to.be.lessThan(6);
     } catch (err) {
       expect(err.message).to.contain('Invalid limit');
     }
@@ -3892,7 +3892,7 @@ describe(`J. (api) Confirm that get_nfts_hash returns NFTs with a specific hash`
         hash: nftHash,
         limit: "!invalid#$@"
       });
-      expect(result.nfts.length).to.be.lessThanOrEqual(5);
+      expect(result.nfts.length).to.be.lessThan(6);
     } catch (err) {
       expect(err.message).to.contain('Couldn\'t parse int64_t');
     }
@@ -3905,7 +3905,7 @@ describe(`J. (api) Confirm that get_nfts_hash returns NFTs with a specific hash`
         limit: 5,
         offset: -5
       });
-      expect(result.nfts.length).to.be.lessThanOrEqual(5);
+      expect(result.nfts.length).to.be.lessThan(6);
     } catch (err) {
       expect(err.message).to.contain('Invalid offset');
     }

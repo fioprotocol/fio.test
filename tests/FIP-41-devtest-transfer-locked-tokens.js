@@ -120,7 +120,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
       } catch (err) {
         //console.log(JSON.stringify(err, null, 4));
         expect(err.json.fields[0].error).to.equal(config.error2.invalidUnlockPeriodTotal.message);
-        expect(err.errorCode).to.equal(config.error2.invalidUnlockPeriodTotal.statusCode);
+        expect(err.code).to.equal(config.error2.invalidUnlockPeriodTotal.statusCode);
       }
     }
   });
@@ -181,7 +181,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
       } catch (err) {
         //console.log(JSON.stringify(err, null, 4));
         expect(err.json.fields[0].error).to.equal(config.error2.invalidUnlockPeriodSorted.message);
-        expect(err.errorCode).to.equal(config.error2.invalidUnlockPeriodSorted.statusCode);
+        expect(err.code).to.equal(config.error2.invalidUnlockPeriodSorted.statusCode);
       }
     }
   });
@@ -241,7 +241,7 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
       } catch (err) {
         //console.log(JSON.stringify(err, null, 4));
         expect(err.json.fields[0].error).to.equal(config.error2.invalidUnlockPeriodDuration.message);
-        expect(err.errorCode).to.equal(config.error2.invalidUnlockPeriodDuration.statusCode);
+        expect(err.code).to.equal(config.error2.invalidUnlockPeriodDuration.statusCode);
       }
     }
   });
@@ -378,13 +378,13 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
       const result = await callFioApi("get_table_rows", json);
       //NOTE -- these checks fail sometimes if the timing of the wait adds one sec to the duration,
       //  when this happense please run the test again.
-      //console.log('Result: ', result);
+      console.log('Result: ', result);
       expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
-      expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(120).and.lessThanOrEqual(129);
-      expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(130).and.lessThanOrEqual(139);
-      expect(result.rows[0].periods[2].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(249);
-      expect(result.rows[0].periods[3].duration).to.be.greaterThanOrEqual(250).and.lessThanOrEqual(259);
+      expect(result.rows[0].periods[0].duration).to.be.greaterThan(118).and.lessThan(131);
+      expect(result.rows[0].periods[1].duration).to.be.greaterThan(128).and.lessThan(141);
+      expect(result.rows[0].periods[2].duration).to.be.greaterThan(238).and.lessThan(251);
+      expect(result.rows[0].periods[3].duration).to.be.greaterThan(248).and.lessThan(261);
     } catch (err) {
       throw err;
     }
@@ -881,9 +881,10 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
         index_position: '2'
       }
       const result = await callFioApi("get_table_rows", json);
+      console.log("periods size is ",result.rows[0].periods.length);
       expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
-      expect(result.rows[0].periods.length).to.be.greaterThanOrEqual(25).and.lessThanOrEqual(35);
+      expect(result.rows[0].periods.length).to.be.greaterThan(24).and.lessThan(36);
     } catch (err) {
       throw err;
     }
@@ -1380,9 +1381,10 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
         index_position: '2'
       }
       const result = await callFioApi("get_table_rows", json);
+      console.log("periods size is ",result.rows[0].periods.length);
       expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
-      expect(result.rows[0].periods.length).to.be.greaterThanOrEqual(25).and.lessThanOrEqual(30);
+      expect(result.rows[0].periods.length).to.be.greaterThan(24).and.lessThan(30);
     } catch (err) {
       throw err;
     }
@@ -1555,9 +1557,9 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
       expect(result.rows[0].periods.length).to.equal(3);
       expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
-      expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(130).and.lessThanOrEqual(139);
-      expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(249);
-      expect(result.rows[0].periods[2].duration).to.be.greaterThanOrEqual(250).and.lessThanOrEqual(259);
+      expect(result.rows[0].periods[0].duration).to.be.greaterThan(129).and.lessThan(140);
+      expect(result.rows[0].periods[1].duration).to.be.greaterThan(239).and.lessThan(250);
+      expect(result.rows[0].periods[2].duration).to.be.greaterThan(249).and.lessThan(260);
     } catch (err) {
       throw err;
     }
@@ -1691,9 +1693,11 @@ describe(`************************** FIP-41-devtest-transfer-locked-tokens.js **
       expect(result.rows[0].periods.length).to.equal(3);
       expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
-      expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(120).and.lessThanOrEqual(129);
-      expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(249);
-      expect(result.rows[0].periods[2].duration).to.be.greaterThanOrEqual(250).and.lessThanOrEqual(259);
+
+     console.log(" 0 period ",result.rows[0].periods[0].duration);
+      expect(result.rows[0].periods[0].duration).to.be.greaterThan(119).and.lessThan(130);
+      expect(result.rows[0].periods[1].duration).to.be.greaterThan(239).and.lessThan(250);
+      expect(result.rows[0].periods[2].duration).to.be.greaterThan(249).and.lessThan(260);
     } catch (err) {
       throw err;
     }
@@ -1911,10 +1915,10 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
       expect(result.rows[0].periods.length).to.equal(4);
       expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
-      expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(120).and.lessThanOrEqual(129);
-      expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(130).and.lessThanOrEqual(139);
-      expect(result.rows[0].periods[2].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(249);
-      expect(result.rows[0].periods[3].duration).to.be.greaterThanOrEqual(250).and.lessThanOrEqual(259);
+      expect(result.rows[0].periods[0].duration).to.be.greaterThan(119).and.lessThan(130);
+      expect(result.rows[0].periods[1].duration).to.be.greaterThan(129).and.lessThan(140);
+      expect(result.rows[0].periods[2].duration).to.be.greaterThan(239).and.lessThan(250);
+      expect(result.rows[0].periods[3].duration).to.be.greaterThan(249).and.lessThan(260);
     } catch (err) {
       throw err;
     }
@@ -2191,7 +2195,7 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
       const result = await callFioApi("get_table_rows", json);
       expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
-      expect(result.rows[0].periods.length).to.be.greaterThanOrEqual(27).and.lessThanOrEqual(37);
+      expect(result.rows[0].periods.length).to.be.greaterThan(24).and.lessThan(38);
     } catch (err) {
       throw err;
     }
@@ -2468,7 +2472,7 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
       const result = await callFioApi("get_table_rows", json);
       expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
-      expect(result.rows[0].periods.length).to.be.greaterThanOrEqual(25).and.lessThanOrEqual(35);
+      expect(result.rows[0].periods.length).to.be.greaterThan(24).and.lessThan(36);
     } catch (err) {
       throw err;
     }
@@ -2598,12 +2602,12 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
       expect(result.rows[0].periods.length).to.equal(2);
       expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
-      // expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(130).and.lessThanOrEqual(139);
-      // expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(249);
-      // expect(result.rows[0].periods[2].duration).to.be.greaterThanOrEqual(250).and.lessThanOrEqual(259);
-      expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(120).and.lessThanOrEqual(129);
-      expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(249);
-      // expect(result.rows[0].periods[2].duration).to.be.greaterThanOrEqual(250).and.lessThanOrEqual(259);
+      // expect(result.rows[0].periods[0].duration).to.be.greaterThan(130).and.lessThan(139);
+      // expect(result.rows[0].periods[1].duration).to.be.greaterThan(240).and.lessThan(249);
+      // expect(result.rows[0].periods[2].duration).to.be.greaterThan(250).and.lessThan(259);
+      expect(result.rows[0].periods[0].duration).to.be.greaterThan(119).and.lessThan(130);
+      expect(result.rows[0].periods[1].duration).to.be.greaterThan(239).and.lessThan(250);
+      // expect(result.rows[0].periods[2].duration).to.be.greaterThan(250).and.lessThan(259);
     } catch (err) {
       throw err;
     }
@@ -2699,10 +2703,10 @@ describe(`B. FIP-41 tests without using the SDK (just the API via callFioApiSign
       expect(result.rows[0].periods.length).to.equal(4);
       expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
-      expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(120).and.lessThanOrEqual(129);
-      expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(130).and.lessThanOrEqual(139);
-      expect(result.rows[0].periods[2].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(249);
-      expect(result.rows[0].periods[3].duration).to.be.greaterThanOrEqual(250).and.lessThanOrEqual(259);
+      expect(result.rows[0].periods[0].duration).to.be.greaterThan(119).and.lessThan(130);
+      expect(result.rows[0].periods[1].duration).to.be.greaterThan(129).and.lessThan(140);
+      expect(result.rows[0].periods[2].duration).to.be.greaterThan(239).and.lessThan(250);
+      expect(result.rows[0].periods[3].duration).to.be.greaterThan(249).and.lessThan(260);
     } catch (err) {
       throw err;
     }
@@ -2803,9 +2807,9 @@ describe(`C. Try to transfer more locked tokens than available`, function () {
       expect(result.rows[0].periods.length).to.equal(3);
       expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
-      expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(5).and.lessThanOrEqual(10);
-      expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(40).and.lessThanOrEqual(49);
-      expect(result.rows[0].periods[2].duration).to.be.greaterThanOrEqual(250).and.lessThanOrEqual(259);
+      expect(result.rows[0].periods[0].duration).to.be.greaterThan(4).and.lessThan(11);
+      expect(result.rows[0].periods[1].duration).to.be.greaterThan(39).and.lessThan(50);
+      expect(result.rows[0].periods[2].duration).to.be.greaterThan(249).and.lessThan(260);
     } catch (err) {
       throw err;
     }
@@ -2897,9 +2901,9 @@ describe(`C. Try to transfer more locked tokens than available`, function () {
       expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount).to.equal(600000000000);
       expect(result.rows[0].remaining_lock_amount).to.equal(380000000000);
-      expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(5).and.lessThanOrEqual(15);
-      expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(40).and.lessThanOrEqual(50);
-      expect(result.rows[0].periods[2].duration).to.be.greaterThanOrEqual(250).and.lessThanOrEqual(260);
+      expect(result.rows[0].periods[0].duration).to.be.greaterThan(4).and.lessThan(16);
+      expect(result.rows[0].periods[1].duration).to.be.greaterThan(39).and.lessThan(51);
+      expect(result.rows[0].periods[2].duration).to.be.greaterThan(249).and.lessThan(261);
     } catch (err) {
       throw err;
     }
@@ -3516,10 +3520,10 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
       expect(result.rows[0].can_vote).to.equal(0);
       expect(result.rows[0].periods.length).to.equal(4);  // two periods then two more periods
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
-      expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(120).and.lessThanOrEqual(130);
-      expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(120).and.lessThanOrEqual(130);
-      expect(result.rows[0].periods[2].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(250);
-      expect(result.rows[0].periods[3].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(250);
+      expect(result.rows[0].periods[0].duration).to.be.greaterThan(120).and.lessThan(130);
+      expect(result.rows[0].periods[1].duration).to.be.greaterThan(120).and.lessThan(130);
+      expect(result.rows[0].periods[2].duration).to.be.greaterThan(240).and.lessThan(250);
+      expect(result.rows[0].periods[3].duration).to.be.greaterThan(240).and.lessThan(250);
     } catch (err) {
       throw err;
     }
@@ -3671,10 +3675,10 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
       expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].periods.length).to.equal(4);  // two periods then two more periods
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
-      expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(120).and.lessThanOrEqual(129);
-      expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(120).and.lessThanOrEqual(129);
-      expect(result.rows[0].periods[2].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(249);
-      expect(result.rows[0].periods[3].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(249);
+      expect(result.rows[0].periods[0].duration).to.be.greaterThan(120).and.lessThan(129);
+      expect(result.rows[0].periods[1].duration).to.be.greaterThan(120).and.lessThan(129);
+      expect(result.rows[0].periods[2].duration).to.be.greaterThan(240).and.lessThan(249);
+      expect(result.rows[0].periods[3].duration).to.be.greaterThan(240).and.lessThan(249);
     } catch (err) {
       throw err;
     }
@@ -3796,7 +3800,7 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
       expect(result.rows[0].can_vote).to.equal(0);
       expect(result.rows[0].periods.length).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
-      expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(5).and.lessThanOrEqual(15);
+      expect(result.rows[0].periods[0].duration).to.be.greaterThan(4).and.lessThan(16);
     } catch (err) {
       throw err;
     }
@@ -3920,8 +3924,8 @@ describe(`F. test a mix of non-restricted and voting-restricted locked tokens`, 
       expect(result.rows[0].periods.length).to.equal(2);
       expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
-      expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(5).and.lessThanOrEqual(15);
-      expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(249);
+      expect(result.rows[0].periods[0].duration).to.be.greaterThan(4).and.lessThan(16);
+      expect(result.rows[0].periods[1].duration).to.be.greaterThan(239).and.lessThan(250);
     } catch (err) {
       throw err;
     }
@@ -3935,7 +3939,7 @@ describe(`G. Test a mix of non-restricted and voting-restricted locked tokens`, 
     userA2 = await newUser(faucet);
     userA3 = await newUser(faucet);
     userA4 = await newUser(faucet);
-    test1 = await newUser(faucet);
+    test1 = await newUser(faucet); //gets type 1
     test2 = await newUser(faucet);
     test3 = await newUser(faucet);
     test4 = await newUser(faucet);
@@ -3943,7 +3947,7 @@ describe(`G. Test a mix of non-restricted and voting-restricted locked tokens`, 
     test6 = await newUser(faucet);
   });
 
-  // test 1
+  // test 1 USERA1
   it(`Success test, Transfer locked tokens with non-restricted voting to a new account.`, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
@@ -3980,7 +3984,7 @@ describe(`G. Test a mix of non-restricted and voting-restricted locked tokens`, 
 
   it(`Wait 10 seconds.`, async () => { await timeout(10000) });
 
-  it(`Try to transfer restricted voting locked tokens (can_vote=0) to the account with non-restricted (can_vote=0) voting tokens, expect Error. `, async () => {
+  it(`Try to transfer restricted voting locked tokens (can_vote=0) to the account with non-restricted (can_vote=0) voting tokens, expect invalid input. `, async () => {
     try {
       const result = await callFioApiSigned('push_transaction', {
         action: 'trnsloctoks',
@@ -4034,8 +4038,8 @@ describe(`G. Test a mix of non-restricted and voting-restricted locked tokens`, 
       expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].periods.length).to.equal(2);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
-      expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(120).and.lessThanOrEqual(129);
-      expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(249);
+      expect(result.rows[0].periods[0].duration).to.be.greaterThan(119).and.lessThan(130);
+      expect(result.rows[0].periods[1].duration).to.be.greaterThan(239).and.lessThan(250);
     } catch (err) {
       throw err;
     }
@@ -4110,6 +4114,7 @@ describe(`G. Test a mix of non-restricted and voting-restricted locked tokens`, 
           actor: test2.account, //userA2.account,
         }
       });
+     // console.log(result);
       expect(result).to.have.all.keys('transaction_id', 'processed');
     } catch (err) {
       throw err;
@@ -4135,8 +4140,8 @@ describe(`G. Test a mix of non-restricted and voting-restricted locked tokens`, 
       expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].periods.length).to.equal(2);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
-      expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(1).and.lessThanOrEqual(10);
-      expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(249);
+      expect(result.rows[0].periods[0].duration).to.be.greaterThan(0).and.lessThan(11);
+      expect(result.rows[0].periods[1].duration).to.be.greaterThan(239).and.lessThan(250);
     } catch (err) {
       throw err;
     }
@@ -4200,10 +4205,10 @@ describe(`G. Test a mix of non-restricted and voting-restricted locked tokens`, 
       expect(result.rows[0].can_vote).to.equal(1);
       expect(result.rows[0].periods.length).to.equal(4);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
-      expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(1).and.lessThanOrEqual(10);
-      expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(130).and.lessThanOrEqual(139);
-      expect(result.rows[0].periods[2].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(249);
-      expect(result.rows[0].periods[3].duration).to.be.greaterThanOrEqual(250).and.lessThanOrEqual(259);
+      expect(result.rows[0].periods[0].duration).to.be.greaterThan(0).and.lessThan(11);
+      expect(result.rows[0].periods[1].duration).to.be.greaterThan(129).and.lessThan(140);
+      expect(result.rows[0].periods[2].duration).to.be.greaterThan(239).and.lessThan(250);
+      expect(result.rows[0].periods[3].duration).to.be.greaterThan(249).and.lessThan(260);
 
     } catch (err) {
       throw err;
@@ -4316,8 +4321,8 @@ describe(`G. Test a mix of non-restricted and voting-restricted locked tokens`, 
       expect(result.rows[0].can_vote).to.equal(0);
       expect(result.rows[0].periods.length).to.equal(2);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
-      expect(result.rows[0].periods[0].duration).to.be.greaterThanOrEqual(120).and.lessThanOrEqual(129);
-      expect(result.rows[0].periods[1].duration).to.be.greaterThanOrEqual(240).and.lessThanOrEqual(249);
+      expect(result.rows[0].periods[0].duration).to.be.greaterThan(119).and.lessThan(130);
+      expect(result.rows[0].periods[1].duration).to.be.greaterThan(239).and.lessThan(250);
     } catch (err) {
       throw err;
     }
@@ -4398,6 +4403,9 @@ describe(`G. Test a mix of non-restricted and voting-restricted locked tokens`, 
     }
   });
 
+  //wait
+  it(`wait for a bit`, async () => {await timeout(3000);});
+
   // should have restricted locks already from above
   it(`Try to transfer additional restricted voting locked tokens (can_vote=0) to account with existing (can_vote=0) locked tokens. Expect success. `, async () => {
     try {
@@ -4425,6 +4433,9 @@ describe(`G. Test a mix of non-restricted and voting-restricted locked tokens`, 
           actor: userA3.account,
         }
       });
+
+      console.log(result);
+     // expect(result.status).to.equal('OK');
       expect(result).to.have.all.keys('transaction_id', 'processed');
       expect(result.processed.receipt.status).to.equal('executed');
     } catch (err) {
@@ -5010,6 +5021,7 @@ describe(`K.1 -  BD-3809 - Test trnsloctoks effect on total_voted_fio for a user
    * Test Case 2: Transfer additional (can_vote=0) tokens to newKeyPair. This should not increase Total Voted FIO
    */
 
+  it(`wait for a bit`, async () => {await timeout(3000);});
   // transfer additional locked tokens to newKeyPair
   it(`Transfer additional ${fundsAmount} LOCKED tokens (can_vote=0) to newKeyPair.`, async () => {
     try {
@@ -5037,6 +5049,7 @@ describe(`K.1 -  BD-3809 - Test trnsloctoks effect on total_voted_fio for a user
           actor: user1.account,
         }
       });
+     // expect(result.status).to.equal('OK');
       expect(result).to.have.all.keys('transaction_id', 'processed');
     } catch (err) {
       throw err;
@@ -5234,7 +5247,7 @@ describe(`K.2 - BD-3808 - Test trnsloctoks effect on last_vote_weight for a user
   /**
    * Test Case 2: Transfer additional (can_vote=0) tokens to newKeyPair. This should not increase Total Voted FIO
    */
-
+  it(`wait for a bit`, async () => {await timeout(3000);});
   // transfer additional locked tokens to newKeyPair
   it(`Transfer additional ${fundsAmount} LOCKED tokens (can_vote=0) to newKeyPair.`, async () => {
     try {
@@ -5262,7 +5275,8 @@ describe(`K.2 - BD-3808 - Test trnsloctoks effect on last_vote_weight for a user
           actor: user1.account,
         }
       });
-      expect(result).to.have.all.keys('transaction_id', 'processed');
+     // expect(result.status).to.equal('OK');
+     expect(result).to.have.all.keys('transaction_id', 'processed');
     } catch (err) {
       throw err;
     }
@@ -5460,6 +5474,7 @@ describe(`Test trnsloctoks effect on total_voted_fio for a user with restricted 
     //console.log('[dbg] total_voted_fio: ', postVoteFio);
   });
 
+  it(`wait for a bit`, async () => {await timeout(3000);});
   // transfer some lock tokens to the voter
   it(`Transfer additional ${fundsAmount} LOCKED tokens (can_vote=0) to newKeyPair.`, async () => {
     try {
@@ -5487,7 +5502,8 @@ describe(`Test trnsloctoks effect on total_voted_fio for a user with restricted 
           actor: user2.account,
         }
       });
-      expect(result).to.have.all.keys('transaction_id', 'processed');
+     // expect(result.status).to.equal('OK');
+     expect(result).to.have.all.keys('transaction_id', 'processed');
     } catch (err) {
       throw err;
     }

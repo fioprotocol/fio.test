@@ -148,7 +148,7 @@ describe(`************************** fio-token-wrapping-sdk.js *****************
   it(`userA queries the oracless table, expects results to contain oracle1`, async function () {
     try {
       const oracleRecords = await getOracleRecords();
-      expect(oracleRecords.rows.length).to.be.greaterThanOrEqual(3);
+      expect(oracleRecords.rows.length).to.be.greaterThan(2);
       let existingOracles = [];
       for (let row in oracleRecords.rows) {
         row = oracleRecords.rows[row]
@@ -263,8 +263,8 @@ describe(`B. [FIO] Oracles (register)`, function () {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.json.fields[0].error).to.equal('Oracle not active producer');
     }
@@ -283,8 +283,8 @@ describe(`B. [FIO] Oracles (register)`, function () {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.json.fields[0].error).to.equal('Account is not bound on the fio chain');
     }
@@ -319,7 +319,7 @@ describe(`B. [FIO] Oracles (register)`, function () {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Account is not bound on the fio chain');
     }
   });
@@ -491,8 +491,8 @@ describe(`C. [FIO] Oracles (unregister)`, function () {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.json.fields[0].error).to.equal('Oracle is not registered');
     }
@@ -511,8 +511,8 @@ describe(`C. [FIO] Oracles (unregister)`, function () {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.json.fields[0].error).to.equal('Oracle is not registered');
     }
@@ -531,7 +531,7 @@ describe(`C. [FIO] Oracles (unregister)`, function () {
       });
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Oracle is not registered');
     }
   });
@@ -745,7 +745,7 @@ describe(`D. [FIO] Oracles (setoraclefees)`, function () {
     } catch (err) {
       const oracleRecords = await getOracleRecords(newOracle5.account);
       expect(oracleRecords.rows[0].fees).to.be.empty
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
       expect(err.json.fields[0].name).to.equal('wrap_fio_domain');
       expect(err.json.fields[0].value).to.equal('-1234500000000');
       expect(err.json.fields[0].error).to.equal('Invalid fee value');
@@ -768,7 +768,7 @@ describe(`D. [FIO] Oracles (setoraclefees)`, function () {
     } catch (err) {
       const oracleRecords = await getOracleRecords(newOracle5.account);
       expect(oracleRecords.rows[0].fees).to.be.empty
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
       expect(err.json.fields[0].name).to.equal('wrap_fio_tokens');
       expect(err.json.fields[0].value).to.equal('-1234500000000');
       expect(err.json.fields[0].error).to.equal('Invalid fee value');
@@ -1393,7 +1393,7 @@ describe(`F. [FIO] Wrap FIO tokens`, function () {
       });
       expect(result.status).to.equal(null);
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
       expect(err.json.fields[0].name).to.equal('max_fee');
       expect(err.json.fields[0].value).to.equal('-800000000000');
       expect(err.json.fields[0].error).to.equal('Invalid fee value');
@@ -1416,7 +1416,7 @@ describe(`F. [FIO] Wrap FIO tokens`, function () {
       });
       expect(result.status).to.equal(null);
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
       expect(err.json.fields[0].name).to.equal('max_oracle_fee');
       expect(err.json.fields[0].value).to.equal('-800000000000');
       expect(err.json.fields[0].error).to.equal('Invalid oracle fee value');    }

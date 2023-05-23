@@ -268,7 +268,7 @@ describe('B. Transfer a domain to FIO Public Key which does not map to existing 
     } catch (err) {
       //console.log('Error: ', err)
       expect(err.json.message).to.equal(config.error.keyNotFound)
-      expect(err.errorCode).to.equal(404);
+      expect(err.code).to.equal(404);
     }
   })
 
@@ -576,7 +576,7 @@ describe('D. transferFioDomain Error testing', () => {
     } catch (err) {
       //console.log('Error: ', err.json)
       expect(err.json.fields[0].error).to.equal(config.error.invalidDomain)
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
     }
   })
 
@@ -592,7 +592,7 @@ describe('D. transferFioDomain Error testing', () => {
     } catch (err) {
       //console.log('Error: ', err)
       expect(err.json.fields[0].error).to.equal(config.error.invalidKey)
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
     }
   })
 
@@ -608,7 +608,7 @@ describe('D. transferFioDomain Error testing', () => {
     } catch (err) {
       //console.log('Error: ', err)
       expect(err.json.fields[0].error).to.equal(config.error.invalidFeeValue)
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
     }
   })
 
@@ -644,7 +644,7 @@ describe('D. transferFioDomain Error testing', () => {
     } catch (err) {
       //console.log('Error: ', err)
       expect(err.json.fields[0].error).to.equal(config.error.invalidTpid);
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
     }
   })
 
@@ -660,7 +660,7 @@ describe('D. transferFioDomain Error testing', () => {
     } catch (err) {
       //console.log('Error: ', err)
       expect(err.json.fields[0].error).to.equal(config.error.feeExceedsMax)
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
     }
   })
 
@@ -676,7 +676,7 @@ describe('D. transferFioDomain Error testing', () => {
     } catch (err) {
       //console.log('Error: ', err)
       expect(err.json.message).to.equal(config.error.signatureError);
-      expect(err.errorCode).to.equal(403);
+      expect(err.code).to.equal(403);
     }
   })
 
@@ -707,7 +707,7 @@ describe('D. transferFioDomain Error testing', () => {
     } catch (err) {
       //console.log('Error: ', err)
       expect(err.json.message).to.equal(config.error.signatureError);
-      expect(err.errorCode).to.equal(403);
+      expect(err.code).to.equal(403);
     }
   })
 
@@ -723,7 +723,7 @@ describe('D. transferFioDomain Error testing', () => {
     } catch (err) {
       //console.log('Error: ', err)
       expect(err.json.fields[0].error).to.equal(config.error.fioDomainNotRegistered)
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
     }
   })
 
@@ -822,7 +822,7 @@ describe('D. transferFioDomain Error testing', () => {
     } catch (err) {
       //console.log('Error: ', err.json)
       expect(err.json.fields[0].error).to.equal(config.error.insufficientFunds)
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
     }
   })
 

@@ -2560,7 +2560,7 @@ describe.skip(`Release echo (migr/final-rc1) - remove migrtrx action, remove ref
       expect(result).to.equal(null)
     } catch (err) {
       //console.log('Error: ', err.error.error)
-      expect(err.error.code).to.equal(500)
+      expect(err.code).to.equal(500)
       expect(err.error.error.details[0].message).to.equal('Table fioreqctxts is not specified in the ABI')
     }
   })
@@ -2581,7 +2581,7 @@ describe.skip(`Release echo (migr/final-rc1) - remove migrtrx action, remove ref
       expect(recordobts.rows.length).to.equal(0);
     } catch (err) {
       //console.log('Error', err);
-      expect(err.error.code).to.equal(500)
+      expect(err.code).to.equal(500)
       expect(err.error.error.details[0].message).to.equal('Table recordobts is not specified in the ABI')
     }
   })
@@ -2602,7 +2602,7 @@ describe.skip(`Release echo (migr/final-rc1) - remove migrtrx action, remove ref
       expect(fioreqstss.rows.length).to.equal(0);
     } catch (err) {
       //console.log('Error', err);
-      expect(err.error.code).to.equal(500)
+      expect(err.code).to.equal(500)
       expect(err.error.error.details[0].message).to.equal('Table fioreqstss is not specified in the ABI')
     }
   })

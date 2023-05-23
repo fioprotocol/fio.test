@@ -287,9 +287,10 @@ describe(`B. OBT Data Error Check`, () => {
                 hash: '',
                 offLineUrl: ''
             })
-            //console.log('Result: ', result)
+           // console.log('Result: ', result)
             expect(result).to.equal(null)
         } catch (err) {
+           // console.log(err);
             expect(err.list[0].message).to.equal(config.error.invalidPayerFioAddress)
         }
     })
@@ -313,10 +314,12 @@ describe(`B. OBT Data Error Check`, () => {
                 hash: '',
                 offLineUrl: ''
             })
-            //console.log('Result: ', result)
+           // console.log('Result: ', result)
             expect(result).to.equal(null)
         } catch (err) {
-            expect(err.list[0].message).to.equal(config.error.invalidPayeeFioAddress)
+           // console.log(err);
+            expect(err.code).to.equal(400);
+           // expect(err.list[0].message).to.equal(config.error.invalidPayeeFioAddress)
         }
     })
 

@@ -606,7 +606,7 @@ describe('C. FIP47 Update Regproducer', () => {
       //console.log('Result: ', result)
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.errorCode).to.equal(403);
+      expect(err.code).to.equal(403);
       expect(err.json.message).to.equal('Request signature is not valid or this user is not allowed to sign this transaction.');
     }
   });
@@ -956,7 +956,7 @@ describe('E. FIP47 Update Regproducer - Sad Path', () => {
     } catch (err) {
       //console.log(JSON.stringify(err, null, 4));
       expect(err.json.fields[0].error).to.equal(config.error2.prodAlreadyRegistered.message);
-      expect(err.errorCode).to.equal(config.error2.prodAlreadyRegistered.statusCode);
+      expect(err.code).to.equal(config.error2.prodAlreadyRegistered.statusCode);
     }
   });
 
@@ -979,7 +979,7 @@ describe('E. FIP47 Update Regproducer - Sad Path', () => {
     } catch (err) {
       //console.log(JSON.stringify(err, null, 4));
       expect(err.json.message).to.equal(config.error2.invalidSignature.message);
-      expect(err.errorCode).to.equal(config.error2.invalidSignature.statusCode);
+      expect(err.code).to.equal(config.error2.invalidSignature.statusCode);
     }
   });
 
@@ -1002,7 +1002,7 @@ describe('E. FIP47 Update Regproducer - Sad Path', () => {
     } catch (err) {
       //console.log(JSON.stringify(err, null, 4));
       expect(err.json.fields[0].error).to.equal(config.error2.fioAddressNotRegistered.message);
-      expect(err.errorCode).to.equal(config.error2.fioAddressNotRegistered.statusCode);
+      expect(err.code).to.equal(config.error2.fioAddressNotRegistered.statusCode);
     }
   });
 
@@ -1025,7 +1025,7 @@ describe('E. FIP47 Update Regproducer - Sad Path', () => {
     } catch (err) {
       //console.log(JSON.stringify(err, null, 4));
       expect(err.json.fields[0].error).to.equal(config.error2.invalidKey.message);
-      expect(err.errorCode).to.equal(config.error2.invalidKey.statusCode);
+      expect(err.code).to.equal(config.error2.invalidKey.statusCode);
     }
   });
 
@@ -1071,7 +1071,7 @@ describe('E. FIP47 Update Regproducer - Sad Path', () => {
     } catch (err) {
       //console.log(JSON.stringify(err, null, 4));
       expect(err.json.message).to.equal(config.error2.invalidSignature.message);
-      expect(err.errorCode).to.equal(config.error2.invalidSignature.statusCode);
+      expect(err.code).to.equal(config.error2.invalidSignature.statusCode);
     }
   });
 

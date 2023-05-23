@@ -585,7 +585,7 @@ describe(`B. Test FIO Request error conditions`, () => {
       //console.log('Error: ', err)
       expect(err.json.type).to.equal('invalid_signature');
       expect(err.json.message).to.equal(config.error.invalidRequestSignature);
-      expect(err.errorCode).to.equal(403);
+      expect(err.code).to.equal(403);
     }
   })
 
@@ -661,7 +661,7 @@ describe(`B. Test FIO Request error conditions`, () => {
     } catch (err) {
       //console.log('Error', err);
       expect(err.json.fields[0].error).to.equal('No such FIO Request');
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
     }
   })
 
@@ -691,7 +691,7 @@ describe(`B. Test FIO Request error conditions`, () => {
       //console.log('Error', err);
       expect(err.json.type).to.equal('invalid_signature');
       expect(err.json.message).to.equal(config.error.invalidRequestSignature);
-      expect(err.errorCode).to.equal(403);
+      expect(err.code).to.equal(403);
     }
   })
 
@@ -721,7 +721,7 @@ describe(`B. Test FIO Request error conditions`, () => {
       //console.log('Error', err);
       expect(err.json.type).to.equal('invalid_signature');
       expect(err.json.message).to.equal(config.error.invalidRequestSignature);
-      expect(err.errorCode).to.equal(403);
+      expect(err.code).to.equal(403);
     }
   })
 
@@ -751,7 +751,7 @@ describe(`B. Test FIO Request error conditions`, () => {
       //console.log('Error', err);
       expect(err.json.type).to.equal('invalid_signature');
       expect(err.json.message).to.equal(config.error.invalidRequestSignature);
-      expect(err.errorCode).to.equal(403);
+      expect(err.code).to.equal(403);
     }
   })
 
@@ -1636,7 +1636,7 @@ describe(`E. Test cancel_funds_request error conditions`, () => {
     } catch (err) {
       //console.log('Error', err);
       expect(err.json.fields[0].error).to.equal(config.error.requestNotFound);
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
     }
   })
 
@@ -1657,7 +1657,7 @@ describe(`E. Test cancel_funds_request error conditions`, () => {
     } catch (err) {
       //console.log('Error', err);
       expect(err.json.fields[0].error).to.equal(config.error.invalidTpid);
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
     }
   })
 
@@ -1678,7 +1678,7 @@ describe(`E. Test cancel_funds_request error conditions`, () => {
     } catch (err) {
       //console.log('Error', err);
       expect(err.json.message).to.equal(config.error.signatureError);
-      expect(err.errorCode).to.equal(403);
+      expect(err.code).to.equal(403);
     }
   })
 
@@ -1727,7 +1727,7 @@ describe(`E. Test cancel_funds_request error conditions`, () => {
     } catch (err) {
       //console.log('Error', err);
       expect(err.json.fields[0].error).to.equal(config.error.invalidRequestStatus);
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
     }
   })
 
@@ -1896,7 +1896,7 @@ describe(`E. Test cancel_funds_request error conditions`, () => {
     } catch (err) {
       //console.log('Error', err);
       expect(err.json.fields[0].error).to.equal(config.error.insufficientFunds);
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
     }
   })
 

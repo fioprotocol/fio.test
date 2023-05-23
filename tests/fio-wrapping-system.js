@@ -536,7 +536,7 @@ describe(`B. Single domain wrap/unwrap with oracle Example`, function () {
             } catch (err) {
                 //console.log('Error', err);
                 expect(err.json.message).to.equal('No FIO Domains');
-                expect(err.errorCode).to.equal(404);
+                expect(err.code).to.equal(404);
             }
         });
 

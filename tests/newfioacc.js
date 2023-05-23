@@ -2093,7 +2093,7 @@ describe('G. Test newfioacc - Sad Path', () => {
         } catch (err) {
             //console.log(err.json.fields[0]);
             expect(err.json.fields[0].error).to.equal(config.error2.invalidKey.message);
-            expect(err.errorCode).to.equal(config.error2.invalidKey.statusCode);
+            expect(err.code).to.equal(config.error2.invalidKey.statusCode);
         }
     });
 
@@ -2189,7 +2189,7 @@ describe('G. Test newfioacc - Sad Path', () => {
         } catch (err) {
             //console.log(err.json.fields[0]);
             expect(err.json.fields[0].error).to.equal(config.error2.invalidFeeValue.message);
-            expect(err.errorCode).to.equal(config.error2.invalidFeeValue.statusCode);
+            expect(err.code).to.equal(config.error2.invalidFeeValue.statusCode);
         }
     });
 
@@ -2237,7 +2237,7 @@ describe('G. Test newfioacc - Sad Path', () => {
         } catch (err) {
             //console.log(err.json.fields[0]);
             expect(err.json.fields[0].error).to.equal(config.error2.feeExceedsMax.message);
-            expect(err.errorCode).to.equal(config.error2.feeExceedsMax.statusCode);
+            expect(err.code).to.equal(config.error2.feeExceedsMax.statusCode);
         }
     });
 
@@ -2301,7 +2301,7 @@ describe('G. Test newfioacc - Sad Path', () => {
         } catch (err) {
             //console.log(err.json.fields[0]);
             expect(err.json.fields[0].error).to.equal(config.error2.insufficientFunds.message);
-            expect(err.errorCode).to.equal(config.error2.insufficientFunds.statusCode);
+            expect(err.code).to.equal(config.error2.insufficientFunds.statusCode);
         }
     });
 
@@ -2349,7 +2349,7 @@ describe('G. Test newfioacc - Sad Path', () => {
         } catch (err) {
             //console.log(err);
             expect(err.json.message).to.equal(config.error2.invalidSignature.message);
-            expect(err.errorCode).to.equal(config.error2.invalidSignature.statusCode);
+            expect(err.code).to.equal(config.error2.invalidSignature.statusCode);
         }
     });
 
@@ -2447,7 +2447,7 @@ describe('G. Test newfioacc - Sad Path', () => {
         } catch (err) {
             //console.log(err.json);
             expect(err.json.fields[0].error).to.equal(config.error2.accountExistsPubKey.message);
-            expect(err.errorCode).to.equal(config.error2.accountExistsPubKey.statusCode);
+            expect(err.code).to.equal(config.error2.accountExistsPubKey.statusCode);
         }
     });
 
@@ -2495,7 +2495,7 @@ describe('G. Test newfioacc - Sad Path', () => {
         } catch (err) {
             //console.log(err.json);
             expect(err.json.fields[0].error).to.equal(config.error2.accountExistsPubKey.message);
-            expect(err.errorCode).to.equal(config.error2.accountExistsPubKey.statusCode);
+            expect(err.code).to.equal(config.error2.accountExistsPubKey.statusCode);
         }
     });
 

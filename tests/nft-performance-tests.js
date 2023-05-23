@@ -158,7 +158,7 @@ describe(`************************** nft-performance-tests.js ******************
       const rowpos = result.nfts.slice(0, numUsers);
       const rows = result.nfts.slice(-numUsers);
 
-      expect(result.nfts.length).to.be.greaterThanOrEqual(numUsers);
+      expect(result.nfts.length).to.be.greaterThan(numUsers-1);
     } catch (err) {
       expect(err).to.equal(null);
     }
@@ -195,7 +195,7 @@ describe(`************************** nft-performance-tests.js ******************
         key_type: 'i128',
         index_position: '2'
       });
-      expect(result.rows.length).to.be.greaterThanOrEqual(numUsers);
+      expect(result.rows.length).to.be.greaterThan(numUsers-1);
     } catch (err) {
       expect(err).to.equal(null);
     }
@@ -419,7 +419,7 @@ describe(`B. Add and remove a huge number of NFTs for a single user`, () => {
         limit: 100,
       });
       console.log(result);
-      // expect(result.nfts.length).to.be.lessThanOrEqual(100);
+
     } catch (err) {
       expect(err).to.equal(null);
     }
@@ -432,7 +432,7 @@ describe(`B. Add and remove a huge number of NFTs for a single user`, () => {
         limit: 100,
       });
       console.log(result);
-      // expect(result.nfts.length).to.be.lessThanOrEqual(100);
+
     } catch (err) {
       expect(err).to.equal(null);
     }
@@ -989,7 +989,7 @@ describe.skip(`D. Add a large number of users with NFT signatures then test gett
       const rowpos = result.nfts.slice(0, numUsers);
       const rows = result.nfts.slice(-numUsers);
 
-      expect(result.nfts.length).to.be.greaterThanOrEqual(numUsers);
+      expect(result.nfts.length).to.be.greaterThan(numUsers-1);
     } catch (err) {
       expect(err).to.equal(null);
     }
@@ -1003,7 +1003,7 @@ describe.skip(`D. Add a large number of users with NFT signatures then test gett
         token_id: numUsers
       });
       console.log('Result: ', result);
-      expect(result.nfts.length).to.be.greaterThanOrEqual(numUsers);
+      expect(result.nfts.length).to.be.greaterThan(numUsers-1);
     } catch (err) {
       expect(err).to.equal(null);
     }
@@ -1040,7 +1040,7 @@ describe.skip(`D. Add a large number of users with NFT signatures then test gett
         key_type: 'i128',
         index_position: '2'
       });
-      expect(result.rows.length).to.be.greaterThanOrEqual(numUsers);
+      expect(result.rows.length).to.be.greaterThan(numUsers-1);
     } catch (err) {
       expect(err).to.equal(null);
     }

@@ -141,7 +141,7 @@ describe(`************************** fio-token-wrapping-api.js *****************
   it(`userA queries the oracless table, expects results to contain oracle1`, async function () {
     try {
       const oracleRecords = await getOracleRecords();
-      expect(oracleRecords.rows.length).to.be.greaterThanOrEqual(3);
+      expect(oracleRecords.rows.length).to.be.greaterThan(2);
       let existingOracles = [];
       for (let row in oracleRecords.rows) {
         row = oracleRecords.rows[row]
@@ -197,7 +197,7 @@ describe(`B. [FIO][api] Oracles (register)`, function () {
 
       expect(result).to.have.any.keys('transaction_id');
       expect(result).to.have.any.keys('processed');
-      expect(result.processed).to.have.all.keys('id', 'block_num', 'block_time', 'producer_block_id', 'receipt', 'elapsed', 'net_usage', 'scheduled', 'action_traces', 'account_ram_delta', 'except', 'error_code');
+      expect(result.processed).to.have.all.keys('id', 'block_num', 'block_time', 'producer_block_id', 'receipt', 'elapsed', 'net_usage', 'scheduled', 'action_traces', 'account_ram_delta', 'except', 'code');
       expect(result.processed.receipt.status).to.equal('executed');
       expect(result.processed.action_traces.length).to.equal(8);
       expect(result.processed.action_traces[0].receipt.response).to.equal(`{"status": "OK","fee_collected":${config.api.register_producer.fee}}`);
@@ -226,7 +226,7 @@ describe(`B. [FIO][api] Oracles (register)`, function () {
       });
       expect(result).to.have.any.keys('transaction_id');
       expect(result).to.have.any.keys('processed');
-      expect(result.processed).to.have.all.keys('id', 'block_num', 'block_time', 'producer_block_id', 'receipt', 'elapsed', 'net_usage', 'scheduled', 'action_traces', 'account_ram_delta', 'except', 'error_code');
+      expect(result.processed).to.have.all.keys('id', 'block_num', 'block_time', 'producer_block_id', 'receipt', 'elapsed', 'net_usage', 'scheduled', 'action_traces', 'account_ram_delta', 'except', 'code');
       expect(result.processed.receipt.status).to.equal('executed');
       expect(result.processed.action_traces.length).to.equal(1);
       expect(result.processed.action_traces[0].act.data.actor).to.equal(user2.account);
@@ -437,7 +437,7 @@ describe(`B. [FIO][api] Oracles (register)`, function () {
         });
       expect(result).to.have.any.keys('transaction_id');
       expect(result).to.have.any.keys('processed');
-      expect(result.processed).to.have.all.keys('id', 'block_num', 'block_time', 'producer_block_id', 'receipt', 'elapsed', 'net_usage', 'scheduled', 'action_traces', 'account_ram_delta', 'except', 'error_code');
+      expect(result.processed).to.have.all.keys('id', 'block_num', 'block_time', 'producer_block_id', 'receipt', 'elapsed', 'net_usage', 'scheduled', 'action_traces', 'account_ram_delta', 'except', 'code');
       expect(result.processed.receipt.status).to.equal('executed');
       expect(result.processed.action_traces.length).to.equal(8);
       expect(result.processed.action_traces[0].receipt.response).to.equal(`{"status": "OK","fee_collected":${config.api.register_producer.fee}}`);
@@ -606,8 +606,8 @@ describe(`C. [FIO][api] Oracles (unregister)`, function () {
       expect(result.fields[0].value).to.equal('');
       expect(result.fields[0].error).to.equal('Oracle is not registered');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.json.fields[0].error).to.equal('Oracle is not registered');
     }
@@ -627,8 +627,8 @@ describe(`C. [FIO][api] Oracles (unregister)`, function () {
       });
       expect(result).to.not.have.all.keys('transaction_id', 'processed');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.json.fields[0].error).to.equal('Oracle is not registered');
     }
@@ -648,8 +648,8 @@ describe(`C. [FIO][api] Oracles (unregister)`, function () {
       });
       expect(result).to.not.have.all.keys('transaction_id', 'processed');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json).to.have.all.keys('type', 'message', 'fields');
       expect(err.json.fields[0].error).to.equal('Oracle is not registered');
     }
@@ -757,7 +757,7 @@ describe(`C. [FIO][api] Oracles (unregister)`, function () {
       });
       expect(result).to.have.any.keys('transaction_id');
       expect(result).to.have.any.keys('processed');
-      expect(result.processed).to.have.all.keys('id', 'block_num', 'block_time', 'producer_block_id', 'receipt', 'elapsed', 'net_usage', 'scheduled', 'action_traces', 'account_ram_delta', 'except', 'error_code');
+      expect(result.processed).to.have.all.keys('id', 'block_num', 'block_time', 'producer_block_id', 'receipt', 'elapsed', 'net_usage', 'scheduled', 'action_traces', 'account_ram_delta', 'except', 'code');
       expect(result.processed.receipt.status).to.equal('executed');
       expect(result.processed.action_traces.length).to.equal(1);
       expect(result.processed.action_traces[0].receipt.response).to.equal(`{"status": "OK"}`);

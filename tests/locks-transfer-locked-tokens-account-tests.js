@@ -229,7 +229,7 @@ describe(`************************** locks-transfer-locked-tokens-account-tests.
     } catch (err) {
       //console.log(JSON.stringify(err, null, 4));
       expect(err.json.fields[0].error).to.equal('Funds locked');
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
     }
   })
 
@@ -275,7 +275,7 @@ describe(`************************** locks-transfer-locked-tokens-account-tests.
       } catch (err) {
         //console.log(JSON.stringify(err, null, 4));
         expect(err.json.fields[0].error).to.equal('Funds locked');
-        expect(err.errorCode).to.equal(400);
+        expect(err.code).to.equal(400);
       }
     })
 

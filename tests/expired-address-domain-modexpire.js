@@ -373,10 +373,10 @@ describe('B. Confirm Addresses with NFTS are added to nftburnq when burning expi
       } catch (err) {
         workDoneThisOffset = false;
         //console.log('Error: ', err);
-        if (err.errorCode == 400 && err.json.fields[0].error == 'No work.') {
+        if (err.code == 400 && err.json.fields[0].error == 'No work.') {
           retryCount = 0;
           //console.log('Offset = ' + offset + ', Limit = ' + limit + ', Result: ' + err.json.fields[0].error);
-          expect(err.errorCode).to.equal(400);
+          expect(err.code).to.equal(400);
           expect(err.json.fields[0].error).to.equal('No work.');
         } else if (err.json.code == 500 && err.json.error.what == 'Transaction exceeded the current CPU usage limit imposed on the transaction') {
           //console.log('Offset = ' + offset + ', Limit = ' + limit + ', Result: Transaction exceeded the current CPU usage limit imposed on the transaction');
@@ -436,7 +436,7 @@ describe('B. Confirm Addresses with NFTS are added to nftburnq when burning expi
       expect(result.status).to.not.equal('OK')
     } catch (err) {
       //console.log('Error', err)
-      expect(err.errorCode).to.equal(404);
+      expect(err.code).to.equal(404);
       expect(err.json.message).to.equal('No FIO names');
     }
   })
@@ -478,7 +478,7 @@ describe('B. Confirm Addresses with NFTS are added to nftburnq when burning expi
       }
     } catch (err) {
       //console.log(err.json);
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Nothing to burn');
     }
   })
@@ -799,10 +799,10 @@ describe('C. Burn large number of expired domains with gaps between expired and 
       } catch (err) {
         workDoneThisOffset = false;
         //console.log('Error: ', err);
-        if (err.errorCode == 400 && err.json.fields[0].error == 'No work.') {
+        if (err.code == 400 && err.json.fields[0].error == 'No work.') {
           retryCount = 0;
           console.log('Offset = ' + offset + ', Limit = ' + limit + ', Result: ' + err.json.fields[0].error);
-          expect(err.errorCode).to.equal(400);
+          expect(err.code).to.equal(400);
           expect(err.json.fields[0].error).to.equal('No work.');
         } else if (err.json.code == 500 && err.json.error.what == 'Transaction exceeded the current CPU usage limit imposed on the transaction') {
           console.log('Offset = ' + offset + ', Limit = ' + limit + ', Result: Transaction exceeded the current CPU usage limit imposed on the transaction');
@@ -884,10 +884,10 @@ describe('C. Burn large number of expired domains with gaps between expired and 
       } catch (err) {
         workDoneThisOffset = false;
         //console.log('Error: ', err);
-        if (err.errorCode == 400 && err.json.fields[0].error == 'No work.') {
+        if (err.code == 400 && err.json.fields[0].error == 'No work.') {
           retryCount = 0;
           console.log('Offset = ' + offset + ', Limit = ' + limit + ', Result: ' + err.json.fields[0].error);
-          expect(err.errorCode).to.equal(400);
+          expect(err.code).to.equal(400);
           expect(err.json.fields[0].error).to.equal('No work.');
         } else if (err.json.code == 500 && err.json.error.what == 'Transaction exceeded the current CPU usage limit imposed on the transaction') {
           console.log('Offset = ' + offset + ', Limit = ' + limit + ', Result: Transaction exceeded the current CPU usage limit imposed on the transaction');
@@ -973,7 +973,7 @@ describe('C. Burn large number of expired domains with gaps between expired and 
       }
     } catch (err) {
       //console.log(err.json);
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Nothing to burn');
     }
   });
