@@ -51,6 +51,10 @@ describe('TEST SUITE', () => {
         //require('./tests/fio-erc721-smoketest');
   });
 
+  describe.only(`** FIPs36-40 development tests`, function () {
+    require('./tests/FIPs36-40-dev-testing');
+  });
+
   /**
    * Staking Tests (FIP-21)
    * These tests require additional configuration (see the notes in js files before running these tests)
@@ -85,7 +89,7 @@ describe('TEST SUITE', () => {
     require('./tests/history.js');
   });
 
-  describe('** GENERAL TESTS - NO SETUP **', () => {
+  describe.skip('** GENERAL TESTS - NO SETUP **', () => {
 
     //FIP-40 tests
     require("./tests/FIP-40-permissions-dev-tests.js");
