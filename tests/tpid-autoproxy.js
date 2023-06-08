@@ -19,7 +19,7 @@ before(async () => {
         max_fee: config.maxFee
       }
     })
-    console.log('Result: ', result)
+   // console.log('Result: ', result)
     // expect(result.status).to.equal('OK')
   } catch (err) {
     console.log('Error: ', err)
@@ -128,7 +128,7 @@ describe(`************************** tpid-autoproxy.js *************************
 
       //console.log('preparedTrx: ', preparedTrx)
       const result = await requesting_user.sdk.executePreparedTrx('new_funds_request', preparedTrx);
-      console.log("result ",result);
+     // console.log("result ",result);
 
       requesting_user.sdk.setSignedTrxReturnOption(false);
      // expect(result.status).to.equal('requested')
@@ -177,7 +177,7 @@ describe(`************************** tpid-autoproxy.js *************************
       })
       //console.log('result: ', result)
       requestid = result.requests[0].fio_request_id;
-      console.log("request id " ,requestid);
+     // console.log("request id " ,requestid);
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
@@ -197,7 +197,7 @@ describe(`************************** tpid-autoproxy.js *************************
           "actor": requestee_user.account
         }
       })
-      console.log('Result:', result)
+     // console.log('Result:', result)
      // expect(result.status).to.equal('request_rejected')
     } catch (err) {
       console.log('Error', err)
@@ -262,7 +262,7 @@ describe(`************************** tpid-autoproxy.js *************************
           hash: '',
           offLineUrl: ''
         })
-        console.log('Result: ', result)
+      //  console.log('Result: ', result)
         //expect(result.status).to.equal('sent_to_blockchain')
       } catch (err) {
         console.log('Error', err.json)
@@ -300,7 +300,7 @@ describe(`************************** tpid-autoproxy.js *************************
   })
 
 })
-describe(` B. fio request and OBT tests`, () => {
+describe(` B. request fio request, requestor auto proxies, expect requestor is auto proxy`, () => {
 
   let requesting_user, requestee_user;
   let requestid;
@@ -331,7 +331,80 @@ describe(` B. fio request and OBT tests`, () => {
 
       //console.log('preparedTrx: ', preparedTrx)
       const result = await requesting_user.sdk.executePreparedTrx('new_funds_request', preparedTrx);
-      console.log("result ",result);
+     // console.log("result ",result);
+
+      requesting_user.sdk.setSignedTrxReturnOption(false);
+      // expect(result.status).to.equal('requested')
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(6000) })
+
+  it('Confirm requesting account is_auto_proxy = 1', async () => {
+    let inVotersTable;
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        limit: 1000,
+        reverse: true,
+        show_payer: false
+      }
+      inVotersTable = false;
+      voters = await callFioApi("get_table_rows", json);
+      //console.log('voters: ', voter);
+      for (voter in voters.rows) {
+        if (voters.rows[voter].owner == requesting_user.account) {
+          inVotersTable = true;
+          break;
+        }
+      }
+      expect(voters.rows[voter].is_auto_proxy).to.equal(1);
+      expect(inVotersTable).to.equal(true)
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+})
+describe(` C. reject fio request, requestee auto proxies, expect requestee is auto proxy`, () => {
+
+  let requesting_user, requestee_user;
+  let requestid;
+
+  //fio request
+  it(`Create users`, async () => {
+    requesting_user = await newUser(faucet);
+    requestee_user = await newUser(faucet);
+  })
+
+  it(`requesting user requests funds from requestee user`, async () => {
+    try {
+      requesting_user.sdk.setSignedTrxReturnOption(true);
+      const preparedTrx = await requesting_user.sdk.genericAction('requestFunds', {
+        payerFioAddress: requestee_user.address,
+        payeeFioAddress: requesting_user.address,
+        payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
+        amount: 2,
+        chainCode: 'BTC',
+        tokenCode: 'BTC',
+        memo: 'services rendered',
+        maxFee: config.api.new_funds_request.fee,
+        payerFioPublicKey: requestee_user.publicKey,
+        technologyProviderId: proxy1.address,
+        hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
+        offlineUrl: ''
+      })
+
+      //console.log('preparedTrx: ', preparedTrx)
+      const result = await requesting_user.sdk.executePreparedTrx('new_funds_request', preparedTrx);
+     // console.log("result ",result);
 
       requesting_user.sdk.setSignedTrxReturnOption(false);
       // expect(result.status).to.equal('requested')
@@ -380,7 +453,7 @@ describe(` B. fio request and OBT tests`, () => {
       })
       //console.log('result: ', result)
       requestid = result.requests[0].fio_request_id;
-      console.log("request id " ,requestid);
+    //  console.log("request id " ,requestid);
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);
@@ -400,7 +473,7 @@ describe(` B. fio request and OBT tests`, () => {
           "actor": requestee_user.account
         }
       })
-      console.log('Result:', result)
+     // console.log('Result:', result)
       // expect(result.status).to.equal('request_rejected')
     } catch (err) {
       console.log('Error', err)
@@ -437,6 +510,122 @@ describe(` B. fio request and OBT tests`, () => {
     }
   })
 
+})
+describe(` D. cancel fio request, requestor auto proxies, expect requestor is auto proxy`, () => {
+
+  let requesting_user, requestee_user;
+  let requestid;
+
+  //fio request
+  it(`Create users`, async () => {
+    requesting_user = await newUser(faucet);
+    requestee_user = await newUser(faucet);
+  })
+
+  it(`requesting user requests funds from requestee user`, async () => {
+    try {
+      requesting_user.sdk.setSignedTrxReturnOption(true);
+      const preparedTrx = await requesting_user.sdk.genericAction('requestFunds', {
+        payerFioAddress: requestee_user.address,
+        payeeFioAddress: requesting_user.address,
+        payeeTokenPublicAddress: 'thisispayeetokenpublicaddress',
+        amount: 2,
+        chainCode: 'BTC',
+        tokenCode: 'BTC',
+        memo: 'services rendered',
+        maxFee: config.api.new_funds_request.fee,
+        payerFioPublicKey: requestee_user.publicKey,
+        technologyProviderId: '',
+        hash: 'fmwazjvmenfz',  // This is the hash of off-chain data... ?
+        offlineUrl: ''
+      })
+
+      //console.log('preparedTrx: ', preparedTrx)
+      const result = await requesting_user.sdk.executePreparedTrx('new_funds_request', preparedTrx);
+     // console.log("result ",result);
+
+      requesting_user.sdk.setSignedTrxReturnOption(false);
+      // expect(result.status).to.equal('requested')
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal(null)
+    }
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(6000) })
+
+  it(`get_pending_fio_requests for requestee user`, async () => {
+    try {
+      const result = await requestee_user.sdk.genericAction('getPendingFioRequests', {
+        limit: '',
+        offset: ''
+      })
+      //console.log('result: ', result)
+      requestid = result.requests[0].fio_request_id;
+     // console.log("request id " ,requestid);
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`requesting user Call cancel_funds_request`, async () => {
+    try{
+      const result = await requesting_user.sdk.genericAction('cancelFundsRequest', {
+        fioRequestId: requestid,
+        maxFee: config.maxFee,
+        technologyProviderId: proxy1.address
+      })
+      //console.log('Result: ', result);
+      expect(result).to.have.any.keys('status');
+      expect(result).to.have.any.keys('fee_collected');
+      expect(result).to.have.any.keys('block_num');
+      expect(result).to.have.any.keys('transaction_id');
+      expect(result.status).to.equal('cancelled');
+      //expect(result.fee_collected).to.equal(cancel_funds_request_fee);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+
+  it('Confirm requestee account is_auto_proxy = 1', async () => {
+    let inVotersTable;
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        limit: 1000,
+        reverse: true,
+        show_payer: false
+      }
+      inVotersTable = false;
+      voters = await callFioApi("get_table_rows", json);
+      //console.log('voters: ', voter);
+      for (voter in voters.rows) {
+        if (voters.rows[voter].owner == requesting_user.account) {
+          inVotersTable = true;
+          break;
+        }
+      }
+      expect(voters.rows[voter].is_auto_proxy).to.equal(1);
+      expect(inVotersTable).to.equal(true)
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+
+
+})
+
+describe(` E. fio request and record OBT tests`, () => {
+
+
   let payer_user, payee_user;
 
   //fio request
@@ -465,7 +654,7 @@ describe(` B. fio request and OBT tests`, () => {
         hash: '',
         offLineUrl: ''
       })
-      console.log('Result: ', result)
+     // console.log('Result: ', result)
       //expect(result.status).to.equal('sent_to_blockchain')
     } catch (err) {
       console.log('Error', err.json)
