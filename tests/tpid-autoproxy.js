@@ -503,7 +503,6 @@ describe(`\n   F. remove pub address, acting account auto proxies, expect actor 
 
   it(`Wait a few seconds.`, async () => { await timeout(6000) })
 
-
   it(`Remove FIO address from user1.`, async () => {
     try {
       const result = await user1.sdk.genericAction('removePublicAddresses', {
@@ -516,7 +515,7 @@ describe(`\n   F. remove pub address, acting account auto proxies, expect actor 
           }
         ],
         maxFee: config.api.remove_pub_address.fee,
-        tpid: proxy1.address
+        technologyProviderId: proxy1.address
       })
       //console.log('Result:', result)
       expect(result).to.have.any.keys('status');
@@ -529,6 +528,7 @@ describe(`\n   F. remove pub address, acting account auto proxies, expect actor 
       expect(err).to.equal(null)
     }
   })
+
 
   it('Confirm user1 account is_auto_proxy = 1', async () => {
     let inVotersTable;
@@ -544,15 +544,19 @@ describe(`\n   F. remove pub address, acting account auto proxies, expect actor 
       }
       inVotersTable = false;
       voters = await callFioApi("get_table_rows", json);
-      //console.log('voters: ', voter);
+     // console.log(' looking in voters for account: ', user1.account);
+     // console.log(' voters :',voters)
       for (voter in voters.rows) {
-        if (voters.rows[voter].owner == user1.account) {
+        if (voters.rows[0].owner == user1.account) {
           inVotersTable = true;
           break;
         }
       }
-      expect(voters.rows[voter].is_auto_proxy).to.equal(1);
+      //console.log(voters.rows[voter])
       expect(inVotersTable).to.equal(true)
+      expect(voters.rows[voter].owner).to.equal(user1.account);
+      expect(voters.rows[voter].is_auto_proxy).to.equal(1);
+
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
