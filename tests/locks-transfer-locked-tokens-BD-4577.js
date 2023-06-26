@@ -16,7 +16,7 @@ const fundsAmount = 500000000000
 const maxTestFundsAmount = 5000000000
 const halfundsAmount = 220000000000
 
-describe(`************************** locks-transfer-locked-tokens.js ************************** \n    A. Create accounts for tests`, () => {
+describe(`************************** locks-transfer-locked-tokens-BD-4577.js ************************** \n    A. Create accounts for tests`, () => {
 
   it(`Create users`, async () => {
     userA1 = await newUser(faucet);
