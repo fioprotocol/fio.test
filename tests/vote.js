@@ -687,7 +687,7 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     }
   })
 
-  it.skip(`(BUG: BD-2317) Expect: proxyB1 last_vote_weight = proxyB1.prev_vote_weight - voterB1.last_vote_weight - unregister_proxy_fee (also subtracting voterB1 votes after unregstering)`, async () => {
+  it(`(BUG: BD-2317) Expect: proxyB1 last_vote_weight = proxyB1.prev_vote_weight - voterB1.last_vote_weight - unregister_proxy_fee (also subtracting voterB1 votes after unregstering)`, async () => {
     try {
       expect(proxyB1.last_vote_weight).to.equal(prev_vote_weight - voterB1.last_vote_weight - unregister_proxy_fee);
     } catch (err) {
@@ -697,7 +697,7 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
 
   it(`Get new total_voted_fio`, async () => {
     try {
-      let prev_total_voted_fio = total_voted_fio;
+      prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
       //console.log('total_voted_fio: ', total_voted_fio)
     } catch (err) {
@@ -705,7 +705,7 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     }
   })
 
-  it.skip(`(BUG: BD-2317) Expect: total_voted_fio = prev_total_voted_fio - voterB1.last_vote_weight (remove voterB1 votes after unregistering their proxy)`, async () => {
+  it(`(BUG: BD-2317) Expect: total_voted_fio = prev_total_voted_fio - voterB1.last_vote_weight (remove voterB1 votes after unregistering their proxy)`, async () => {
     try {
       expect(total_voted_fio).to.equal(prev_total_voted_fio - voterB1.last_vote_weight - unregister_proxy_fee)
     } catch (err) {
@@ -725,25 +725,23 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
 
   it(`Wait a few seconds.`, async () => { await timeout(4000) })
 
-  it('(WORKAROUND: Need to update after BD-2317 is fixed) proxyB1 last_vote_weight decreases by (200 + xfer fee) ', async () => {
+  it(' proxyB1 last_vote_weight decreases by (200 + xfer fee) ', async () => {
     try {
       let previous_vote_weight = proxyB1.last_vote_weight;
       proxyB1.last_vote_weight = await getAccountVoteWeight(proxyB1.account);
       //console.log('previous_vote_weight:', previous_vote_weight);
-      //BUG: need to subtract the unregproxy fee, because now it is showing up.
-      expect(proxyB1.last_vote_weight).to.equal(previous_vote_weight - 200000000000 - transfer_tokens_pub_key_fee - unregister_proxy_fee);
+      expect(proxyB1.last_vote_weight).to.equal(previous_vote_weight - 200000000000 - transfer_tokens_pub_key_fee);
     } catch (err) {
       console.log('Error: ', err);
     }
   })
 
-  it(`(WORKAROUND: Need to update after BD-2317 is fixed) total_voted_fio decreased by (200 + xfer fee)`, async () => {
+  it(` total_voted_fio decreased by (200 + xfer fee)`, async () => {
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
       //console.log('total_voted_fio: ', total_voted_fio);
-      //BUG: need to subtract the unregproxy fee, because now it is showing up.
-      expect(total_voted_fio).to.equal(prev_total_voted_fio - 200000000000 - transfer_tokens_pub_key_fee - unregister_proxy_fee);
+      expect(total_voted_fio).to.equal(prev_total_voted_fio - 200000000000 - transfer_tokens_pub_key_fee);
     } catch (err) {
       console.log('Error', err);
     }
