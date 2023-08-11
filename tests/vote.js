@@ -942,7 +942,7 @@ describe('D. last_voting_weight not updated when paying fee for register/unregis
     }
   })
 
-  it.skip(`(BUG BD-2317) Expect: proxyF1 last_vote_weight = original_last_vote_weight - unregister_proxy_fee `, async () => {
+  it(`(BUG BD-2317) Expect: proxyF1 last_vote_weight = original_last_vote_weight - unregister_proxy_fee `, async () => {
     original_last_vote_weight = proxyF1.last_vote_weight
     proxyF1.last_vote_weight  = await getAccountVoteWeight(proxyF1.account);
     console.log('proxyF1 original_last_vote_weight: ', original_last_vote_weight/config.BILLION)
@@ -2667,7 +2667,7 @@ describe(`I. Test impact on total_voted_fio when User 1 votes then proxies their
 
   it(`Get total_voted_fio`, async () => {
     total_voted_fio = await getTotalVotedFio();
-    //console.log('total_voted_fio:', total_voted_fio)
+   // console.log('total_voted_fio start:', total_voted_fio)
   })
 
   it(`Get proxyA1 last_vote_weight`, async () => {
@@ -2685,7 +2685,7 @@ describe(`I. Test impact on total_voted_fio when User 1 votes then proxies their
         fioPublicKey: user1.publicKey
       })
       user1.last_vote_weight = result.balance
-      //console.log('user1 fio balance', result.balance)
+     // console.log('user1 fio balance', result.balance)
     } catch (err) {
       console.log('Error', err)
       expect(err).to.equal('null')
@@ -2695,7 +2695,7 @@ describe(`I. Test impact on total_voted_fio when User 1 votes then proxies their
   it(`Get bp1@dapixdev total_votes`, async () => {
     try {
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
+     // console.log('bp1@dapixdev total_votes:', total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal('null')
@@ -2735,11 +2735,12 @@ describe(`I. Test impact on total_voted_fio when User 1 votes then proxies their
     }
   })
 
-  it.skip(`BUG BD-2280: prev_total_voted_fio did not change (votes just shifted from direct vote to proxy vote via proxyA1)`, async () => {
+  it(`BUG BD-2280: prev_total_voted_fio did not change (votes just shifted from direct vote to proxy vote via proxyA1)`, async () => {
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
       //console.log('total_voted_fio:', total_voted_fio)
+     // console.log('prev_total_voted_fio:', prev_total_voted_fio)
       expect(total_voted_fio).to.equal(prev_total_voted_fio)
     } catch (err) {
       console.log('Error: ', err)
