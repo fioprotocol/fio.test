@@ -3288,7 +3288,6 @@ describe(`L. Test total_voted_fio when user changes votes`, () => {
 
 })
 
-
 describe(`M. Set Auto-proxy, then vote for producer (attempting to repro BD-3800 but failed)`, () => {
 
   let user1, proxy1, total_voted_fio, totalVotesBP1, totalVotesBP2, totalVotesBP3
@@ -3420,5 +3419,295 @@ describe(`M. Set Auto-proxy, then vote for producer (attempting to repro BD-3800
     });
   });
   
+
+})
+
+describe(`N. Accounts A,B,C, C registers as proxy, A proxies to C, B proxies to C, B then registers as proxy, verify total_voted_fio at each step`, () => {
+
+  let accountA, accountB, accountC, total_voted_fio, total_bp_votes,regproxyfee
+
+  it(`Create users`, async () => {
+    accountA = await newUser(faucet);
+    accountB = await newUser(faucet);
+    accountC = await newUser(faucet);
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+  it(`Register C as a proxy`, async () => {
+    try {
+      const result = await accountC.sdk.genericAction('pushTransaction', {
+        action: 'regproxy',
+        account: 'eosio',
+        data: {
+          fio_address: accountC.address,
+          actor: accountC.account,
+          max_fee: config.api.register_proxy.fee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
+
+  it(`C votes for bp1@dapixdev using address #1`, async () => {
+    try {
+      const result = await accountC.sdk.genericAction('pushTransaction', {
+        action: 'voteproducer',
+        account: 'eosio',
+        data: {
+          "producers": [
+            'bp1@dapixdev'
+          ],
+          fio_address: accountC.address,
+          actor: accountC.account,
+          max_fee: config.api.vote_producer.fee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
+
+  it(`A proxies votes to C`, async () => {
+    try {
+      const result = await accountA.sdk.genericAction('pushTransaction', {
+        action: 'voteproxy',
+        account: 'eosio',
+        data: {
+          proxy: accountC.address,
+          fio_address: accountA.address,
+          actor: accountA.account,
+          max_fee: config.maxFee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err)
+    }
+  })
+
+  it(`B proxies votes to C`, async () => {
+    try {
+      const result = await accountB.sdk.genericAction('pushTransaction', {
+        action: 'voteproxy',
+        account: 'eosio',
+        data: {
+          proxy: accountC.address,
+          fio_address: accountB.address,
+          actor: accountB.account,
+          max_fee: config.maxFee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err)
+    }
+  })
+
+  it(`Get total_voted_fio`, async () => {
+    total_voted_fio = await getTotalVotedFio();
+    //console.log('total_voted_fio:', total_voted_fio)
+  })
+
+  it(`Get accountC last_vote_weight`, async () => {
+    try {
+      accountC.last_vote_weight = await getAccountVoteWeight(accountC.account);
+      //console.log('proxyA1.last_vote_weight: ', proxyA1.last_vote_weight)
+    } catch (err) {
+      console.log('Error: ', err.json)
+    }
+  })
+
+  it(`Get bp1@dapixdev total_votes`, async () => {
+    try {
+      total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
+      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`C votes AGAIN for bp1@dapixdev using address #1`, async () => {
+    try {
+      const result = await accountC.sdk.genericAction('pushTransaction', {
+        action: 'voteproducer',
+        account: 'eosio',
+        data: {
+          "producers": [
+            'bp1@dapixdev'
+          ],
+          fio_address: accountC.address,
+          actor: accountC.account,
+          max_fee: config.api.vote_producer.fee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`bp1@dapixdev total_votes did not change`, async () => {
+    try {
+      let prev_total_bp_votes = total_bp_votes;
+      total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
+      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
+      expect(total_bp_votes).to.equal(prev_total_bp_votes)
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`prev_total_voted_fio did not change`, async () => {
+    try {
+      let prev_total_voted_fio = total_voted_fio;
+      total_voted_fio = await getTotalVotedFio();
+      //console.log('total_voted_fio:', total_voted_fio)
+      expect(total_voted_fio).to.equal(prev_total_voted_fio)
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`Get A last_vote_weight`, async () => {
+    try {
+      accountA.last_vote_weight = await getAccountVoteWeight(accountA.account);
+      //console.log('user1.last_vote_weight: ', user1.last_vote_weight)
+    } catch (err) {
+      console.log('Error: ', err.json)
+    }
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
+
+  it(`B register as proxy`, async () => {
+    try {
+      const result = await accountB.sdk.genericAction('pushTransaction', {
+        action: 'regproxy',
+        account: 'eosio',
+        data: {
+          fio_address: accountB.address,
+          actor: accountB.account,
+          max_fee: config.api.register_proxy.fee
+        }
+      })
+      //console.log('Result: ', result);
+      regproxyfee = result.fee_collected;
+      expect(result.status).to.equal('OK')
+      //expect that the total voted fio is decremented by the fee.
+
+    } catch (err) {
+      console.log('Error: ', err)
+    }
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
+
+  it(`total_voted_fio unchanged as result of B reg proxy`, async () => {
+    try {
+      let prev_total_voted_fio = total_voted_fio;
+      total_voted_fio = await getTotalVotedFio();
+     // console.log('total_voted_fio:', total_voted_fio);
+      //console.log('prev_total_voted_fio ', prev_total_voted_fio);
+      expect(total_voted_fio).to.equal(prev_total_voted_fio)
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`B votes for bp1@dapixdev`, async () => {
+    try {
+      const result = await accountB.sdk.genericAction('pushTransaction', {
+        action: 'voteproducer',
+        account: 'eosio',
+        data: {
+          "producers": [
+            'bp1@dapixdev'
+          ],
+          fio_address: accountB.address,
+          actor: accountB.account,
+          max_fee: config.api.vote_producer.fee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
+
+  it(`total_voted_fio unchanged as result of B vote`, async () => {
+    try {
+      let prev_total_voted_fio = total_voted_fio - regproxyfee ;
+      total_voted_fio = await getTotalVotedFio();
+     // console.log('total_voted_fio:', total_voted_fio);
+     // console.log('prev_total_voted_fio ', prev_total_voted_fio);
+      expect(total_voted_fio).to.equal(prev_total_voted_fio)
+
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`C votes AGAIN for bp1@dapixdev using address #1`, async () => {
+    try {
+      const result = await accountC.sdk.genericAction('pushTransaction', {
+        action: 'voteproducer',
+        account: 'eosio',
+        data: {
+          "producers": [
+            'bp1@dapixdev'
+          ],
+          fio_address: accountC.address,
+          actor: accountC.account,
+          max_fee: config.api.vote_producer.fee
+        }
+      })
+     // console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
+
+  it(`total_voted_fio unchanged as result of B vote`, async () => {
+    try {
+      let prev_total_voted_fio = total_voted_fio;
+      total_voted_fio = await getTotalVotedFio();
+     // console.log('total_voted_fio:', total_voted_fio);
+     // console.log('prev_total_voted_fio ', prev_total_voted_fio);
+      expect(total_voted_fio).to.equal(prev_total_voted_fio)
+    } catch (err) {
+      console.log('Error: ', err)
+      expect(err).to.equal('null')
+    }
+  })
+
 
 })
