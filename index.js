@@ -90,6 +90,8 @@ describe('TEST SUITE', () => {
     //FIP-40 tests
     require("./tests/FIP-40-permissions-dev-tests.js");
 
+    require("./tests/tpid-autoproxy.js");
+
     //use fio authorizations, use permission, and signingaccount
     require("./tests/fio-account-authorization.js");
     /**
@@ -148,6 +150,7 @@ describe('TEST SUITE', () => {
     /**
      * Lock/staking tests - Do NOT require additional configuration
      */
+    require('./tests/locks-transfer-locked-tokens-BD-4577.js');
     require('./tests/locks-transfer-locked-tokens-account-tests.js');  // FIP-6 tests of generic account functionality
     require('./tests/locks-transfer-locked-tokens.js');  //FIP-21 locking tests for general locks
     require('./tests/stake-general-locked-tokens.js'); //FIP-21 tests for general lock accounts performing staking
