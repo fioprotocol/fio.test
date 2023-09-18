@@ -101,7 +101,7 @@ function wait(ms){
 
 
 
-describe.only(`BPrewards daily test BP voting power test`, () => {
+describe(`BPrewards daily test BP voting power test`, () => {
 
   const genLock1Dur = 60, genLock1Amount = 5000000000000,  // 1 minute, 5000 FIO
       genLock2Dur = 120, genLock2Amount = 4000000000000,     // 2 minutes, 4000 FIO
@@ -181,7 +181,7 @@ describe.only(`BPrewards daily test BP voting power test`, () => {
     }
   })
 
-  it(`A votes for bp1@dapixdev using address #1`, async () => {
+  it(`bp1 votes for bp1@dapixdev using address #1`, async () => {
     try {
       bp1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
 
@@ -207,7 +207,7 @@ describe.only(`BPrewards daily test BP voting power test`, () => {
 
 
 
-  it(`do first set of bpclaim`, async () => {
+  it(`do a set of bpclaim`, async () => {
     count =1
 
     let previousstakingRewardsReservesMinted = await getStakingRewardsReservesMinted();
@@ -218,34 +218,6 @@ describe.only(`BPrewards daily test BP voting power test`, () => {
 
 
     for (let step = 0; step < 10; step++) {
-
-
-     // it(`SUCCESS: user2 transfer 10 FIO to user1 using FIO Address of user2 (who is not a registered proxy). Expect: no proxy for user1.`, async () => {
-        try {
-          const result = await userA2.sdk.genericAction('pushTransaction', {
-            action: 'trnsfiopubky',
-            account: 'fio.token',
-            data: {
-              payee_public_key: userA1.publicKey,
-              amount: 1000000000,
-              max_fee: config.maxFee,
-              tpid: bp1.address,
-              actor: userA2.account
-            }
-          })
-          //console.log('Result: ', result)
-          expect(result.status).to.equal('OK')
-        } catch (err) {
-          console.log('Error: ', err)
-          expect(err).to.equal('null')
-        }
-     // })
-
-      console.log('\nBPCLAIM number : ', count);
-      console.log('\n state before BP claim : ');
-      await printCurrentGlobals();
-
-      const tdailyStakingRewards = await getDailyStakingRewards();
 
       try{
       const result = await bp1.sdk.genericAction('pushTransaction', {
@@ -264,33 +236,9 @@ describe.only(`BPrewards daily test BP voting power test`, () => {
       console.log('Error doing BPCLAIM ', err)
     }
 
-    /*  try{
-        const result = await bp1.sdk.genericAction('pushTransaction', {
-          action: 'tpidclaim',
-          account: 'fio.treasury',
-          data: {
-            actor: bp1.account
-          }
-        })
-
-        console.log('\nBPCLAIM Result: ', result);
-      } catch (err) {
-        console.log('Error doing BPCLAIM ', err)
-      }*/
-
-
       count++
 
-      const stakingRewardsReservesMinted1 = await getStakingRewardsReservesMinted();
 
-      console.log('\ntdailystakingrewards : ', tdailyStakingRewards);
-     // expect((stakingRewardsReservesMinted1 + tdailyStakingRewards) - previousstakingRewardsReservesMinted).to.equal(25000000000000)
-
-      previousstakingRewardsReservesMinted = stakingRewardsReservesMinted1
-      console.log('\n state after BP claim : ');
-      await printCurrentGlobals();
-
-    //  it('Confirm proxyA1: is_proxy = 1, is_auto_proxy = 0', async () => {
         let inVotersTable;
         try {
           const json = {
@@ -318,7 +266,6 @@ describe.only(`BPrewards daily test BP voting power test`, () => {
           console.log('Error', err);
           expect(err).to.equal(null);
         }
-    //  })
 
       wait(2000)
     }
@@ -326,7 +273,7 @@ describe.only(`BPrewards daily test BP voting power test`, () => {
 
 })
 
-describe.only(`TPID rewards daily test, voting power test`, () => {
+describe(`TPID rewards daily test, voting power test`, () => {
 
   const genLock1Dur = 60, genLock1Amount = 5000000000000,  // 1 minute, 5000 FIO
       genLock2Dur = 120, genLock2Amount = 4000000000000,     // 2 minutes, 4000 FIO
@@ -406,7 +353,7 @@ describe.only(`TPID rewards daily test, voting power test`, () => {
     }
   })
 
-  it(`A votes for bp1@dapixdev using address #1`, async () => {
+  it(`bp1 votes for bp1@dapixdev using address #1`, async () => {
     try {
       bp1 = await existingUser('qbxn5zhw2ypw', '5KQ6f9ZgUtagD3LZ4wcMKhhvK9qy4BuwL3L1pkm6E2v62HCne2R', 'FIO7jVQXMNLzSncm7kxwg9gk7XUBYQeJPk8b6QfaK5NVNkh3QZrRr', 'dapixdev', 'bp1@dapixdev');
 
@@ -432,27 +379,21 @@ describe.only(`TPID rewards daily test, voting power test`, () => {
 
 
 
-  it(`do first set of 200 bpclaim`, async () => {
+  it(`do a set of tpidclaim `, async () => {
     count =1
-
-    let previousstakingRewardsReservesMinted = await getStakingRewardsReservesMinted();
-    let stakingRewardsReservesMinted1;
-
-
 
 
 
     for (let step = 0; step < 10; step++) {
 
 
-      // it(`SUCCESS: user2 transfer 10 FIO to user1 using FIO Address of user2 (who is not a registered proxy). Expect: no proxy for user1.`, async () => {
       try {
         const result = await userA2.sdk.genericAction('pushTransaction', {
           action: 'trnsfiopubky',
           account: 'fio.token',
           data: {
             payee_public_key: userA1.publicKey,
-            amount: 1000000000,
+            amount: 10000000000 + step,
             max_fee: config.maxFee,
             tpid: bp1.address,
             actor: userA2.account
@@ -464,58 +405,11 @@ describe.only(`TPID rewards daily test, voting power test`, () => {
         console.log('Error: ', err)
         expect(err).to.equal('null')
       }
-      // })
+      step++
+    }
 
-      console.log('\nBPCLAIM number : ', count);
-      console.log('\n state before BP claim : ');
-      await printCurrentGlobals();
+  //  for (let step = 0; step < 10; step++) {
 
-      const tdailyStakingRewards = await getDailyStakingRewards();
-
-      /*  try{
-        const result = await bp1.sdk.genericAction('pushTransaction', {
-          action: 'bpclaim',
-          account: 'fio.treasury',
-          data: {
-            fio_address: bp1.address,
-            actor: bp1.account
-          }
-        })
-          if (count != 0) {
-            expect(result.status).to.equal('OK')
-          }
-          console.log('\nBPCLAIM Result: ', result);
-      } catch (err) {
-        console.log('Error doing BPCLAIM ', err)
-      }*/
-
-      try{
-        const result = await bp1.sdk.genericAction('pushTransaction', {
-          action: 'tpidclaim',
-          account: 'fio.treasury',
-          data: {
-            actor: bp1.account
-          }
-        })
-
-        console.log('\nBPCLAIM Result: ', result);
-      } catch (err) {
-        console.log('Error doing BPCLAIM ', err)
-      }
-
-
-      count++
-
-      const stakingRewardsReservesMinted1 = await getStakingRewardsReservesMinted();
-
-      console.log('\ntdailystakingrewards : ', tdailyStakingRewards);
-      // expect((stakingRewardsReservesMinted1 + tdailyStakingRewards) - previousstakingRewardsReservesMinted).to.equal(25000000000000)
-
-      previousstakingRewardsReservesMinted = stakingRewardsReservesMinted1
-      console.log('\n state after BP claim : ');
-      await printCurrentGlobals();
-
-      //  it('Confirm proxyA1: is_proxy = 1, is_auto_proxy = 0', async () => {
       let inVotersTable;
       try {
         const json = {
@@ -543,10 +437,55 @@ describe.only(`TPID rewards daily test, voting power test`, () => {
         console.log('Error', err);
         expect(err).to.equal(null);
       }
-      //  })
+
+      try{
+        const result = await bp1.sdk.genericAction('pushTransaction', {
+          action: 'tpidclaim',
+          account: 'fio.treasury',
+          data: {
+            actor: bp1.account
+          }
+        })
+
+        console.log('\nTPIDCLAIM Result: ', result);
+      } catch (err) {
+        console.log('Error doing TPIDCLAIM ', err)
+      }
+
+
+      count++
+
+
+      inVotersTable = false;
+      try {
+        const json = {
+          json: true,
+          code: 'eosio',
+          scope: 'eosio',
+          table: 'voters',
+          limit: 1000,
+          reverse: false,
+          show_payer: false
+        }
+        inVotersTable = false;
+        voters = await callFioApi("get_table_rows", json);
+        //console.log('voters: ', voter);
+        for (voter in voters.rows) {
+          if (voters.rows[voter].owner == bp1.account) {
+            inVotersTable = true;
+            console.log('voters.rows[voter].last_vote_weight: ', voters.rows[voter]);
+            //console.log('voters.rows[voter].is_auto_proxy: ', voters.rows[voter].is_auto_proxy);
+            //console.log('voters.rows[voter].proxy: ', voters.rows[voter].proxy);
+            break;
+          }
+        }
+      } catch (err) {
+        console.log('Error', err);
+        expect(err).to.equal(null);
+      }
 
       wait(2000)
-    }
+   // }
   })
 
 })
