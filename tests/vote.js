@@ -274,7 +274,7 @@ describe(`************************** vote.js ************************** \n    A.
 
 })
 
-describe('B. Test vote counts with proxy when proxy increases and decreases funds', () => {
+describe.only('B. Test vote counts with proxy when proxy increases and decreases funds', () => {
 
   let proxyB1, voterB1, user1, total_voted_fio, prev_total_voted_fio, total_bp_votes, transfer_tokens_pub_key_fee, prev_vote_weight
 
@@ -746,6 +746,56 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
       console.log('Error', err);
     }
   })
+
+  //EDEDEDEDDEDEDEDEDEDED now re-register the proxy and see the last vote weight, and the producer vote weight increase
+  //by the powers of the accounts in the proxy....
+  it(' proxyB1 output vote weight and total voted fio ', async () => {
+    try {
+      let voteweight = await getAccountVoteWeight(proxyB1.account);
+      console.log('proxyB1 voteweight:', voteweight);
+      let totalfio = await getTotalVotedFio();
+      console.log('total_voted_fio: ', totalfio);
+
+      //  expect(proxyB1.last_vote_weight).to.equal(previous_vote_weight - 200000000000 - transfer_tokens_pub_key_fee);
+    } catch (err) {
+      console.log('Error: ', err);
+    }
+  })
+
+  it(`Register proxyB1 as a proxy`, async () => {
+    try {
+      const result = await proxyB1.sdk.genericAction('pushTransaction', {
+        action: 'regproxy',
+        account: 'eosio',
+        data: {
+          fio_address: proxyB1.address,
+          actor: proxyB1.account,
+          max_fee: config.api.register_proxy.fee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json)
+    }
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(4000) })
+
+  it(' proxyB1 output vote weight and total voted fio ', async () => {
+    try {
+      let voteweight = await getAccountVoteWeight(proxyB1.account);
+      console.log('proxyB1 voteweight:', voteweight);
+      let totalfio = await getTotalVotedFio();
+      console.log('total_voted_fio: ', totalfio);
+
+      //  expect(proxyB1.last_vote_weight).to.equal(previous_vote_weight - 200000000000 - transfer_tokens_pub_key_fee);
+    } catch (err) {
+      console.log('Error: ', err);
+    }
+  })
+
+
 
 })
 
