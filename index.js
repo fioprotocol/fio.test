@@ -5,7 +5,8 @@ describe('TEST SUITE', () => {
 
   describe.only(`Run only...`, function () {
     //require('./tests/global');
-    require('./tests/vote-action-tests')
+    //require('./tests/nft-add-remove.js');
+    require('./tests/vote')
   });
 
   /**
