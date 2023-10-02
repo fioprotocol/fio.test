@@ -4,9 +4,8 @@ const {expect} = require('chai');
 describe('TEST SUITE', () => {
 
   describe.only(`Run only...`, function () {
-    //require('./tests/global');
-    //require('./tests/nft-add-remove.js');
-    require('./tests/vote')
+    // Use this to run only a few tests
+
   });
 
   /**
@@ -87,7 +86,7 @@ describe('TEST SUITE', () => {
     require('./tests/history.js');
   });
 
-  describe.skip('** GENERAL TESTS - NO SETUP **', () => {
+  describe('** GENERAL TESTS - NO SETUP **', () => {
 
     //FIP-40 tests
     require("./tests/FIP-40-permissions-dev-tests.js");
