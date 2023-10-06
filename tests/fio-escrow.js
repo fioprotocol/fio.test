@@ -1113,6 +1113,8 @@ describe(`************************** fio-escrow.js **************************`, 
 		})
 
 		describe(`Golden path`, async () => {
+			let sellerVotePowerBefore, sellerVotePowerAfter, buyerVotePowerBefore, buyerVotePowerAfter;
+		let marketplaceVotePowerBefore, marketplaceVotePowerAfter;
 			// buy domain listed for sale
 			it(`userA1 buys domain listed for sale by userA2`, async () => {
 				try {
@@ -1139,6 +1141,74 @@ describe(`************************** fio-escrow.js **************************`, 
 						fioPublicKey: marketplaceUser.publicKey
 					})
 
+					//vote userA2, userA1
+				//	it(`userA1 votes for bp1@dapixdev using address #1`, async () => {
+						try {
+
+							const resultv1 = await userA1.sdk.genericAction('pushTransaction', {
+								action: 'voteproducer',
+								account: 'eosio',
+								data: {
+									"producers": [
+										'bp1@dapixdev'
+									],
+									fio_address: userA1.address,
+									actor: userA1.account,
+									max_fee: config.api.vote_producer.fee
+								}
+							})
+							//console.log('Result: ', result)
+							expect(resultv1.status).to.equal('OK')
+						} catch (err) {
+							console.log('Error: ', err.json)
+							expect(err).to.equal('null')
+						}
+				//	})
+
+				////	it(`userA2 votes for bp1@dapixdev using address #1`, async () => {
+						try {
+
+							const resultv2 = await userA2.sdk.genericAction('pushTransaction', {
+								action: 'voteproducer',
+								account: 'eosio',
+								data: {
+									"producers": [
+										'bp1@dapixdev'
+									],
+									fio_address: userA2.address,
+									actor: userA2.account,
+									max_fee: config.api.vote_producer.fee
+								}
+							})
+							//console.log('Result: ', result)
+							expect(resultv2.status).to.equal('OK')
+						} catch (err) {
+							console.log('Error: ', err.json)
+							expect(err).to.equal('null')
+						}
+					//})
+
+					try {
+
+						const resultv3 = await marketplaceUser.sdk.genericAction('pushTransaction', {
+							action: 'voteproducer',
+							account: 'eosio',
+							data: {
+								"producers": [
+									'bp1@dapixdev'
+								],
+								fio_address: marketplaceUser.address,
+								actor: marketplaceUser.account,
+								max_fee: config.api.vote_producer.fee
+							}
+						})
+						//console.log('Result: ', result)
+						expect(resultv3.status).to.equal('OK')
+					} catch (err) {
+						console.log('Error: ', err.json)
+						expect(err).to.equal('null')
+					}
+
 					const userBalanceResult = await userA1.sdk.genericAction('getFioBalance', {
 						fioPublicKey: userA1.publicKey
 					})
@@ -1149,7 +1219,96 @@ describe(`************************** fio-escrow.js **************************`, 
 					})
 					let userA2Balance         = userA2BalanceResult.balance;
 
-					let data = {
+					//get vote power userA1, userA2 before the sale.
+
+			let inVotersTable;
+			try {
+				const json = {
+					json: true,
+					code: 'eosio',
+					scope: 'eosio',
+					table: 'voters',
+					limit: 1000,
+					reverse: false,
+					show_payer: false
+				}
+				inVotersTable = false;
+				voters = await callFioApi("get_table_rows", json);
+				//console.log('voters: ', voter);
+				for (voter in voters.rows) {
+					if (voters.rows[voter].owner == userA1.account) {
+						inVotersTable = true;
+						buyerVotePowerBefore = voters.rows[voter].last_vote_weight;
+						//console.log('voters.rows[voter].is_auto_proxy: ', voters.rows[voter].is_auto_proxy);
+						//console.log('voters.rows[voter].proxy: ', voters.rows[voter].proxy);
+						break;
+					}
+				}
+			} catch (err) {
+				console.log('Error', err);
+				expect(err).to.equal(null);
+			}
+			console.log('buyer vote power before  ', buyerVotePowerBefore);
+
+
+			try {
+						const json = {
+							json: true,
+							code: 'eosio',
+							scope: 'eosio',
+							table: 'voters',
+							limit: 1000,
+							reverse: false,
+							show_payer: false
+						}
+						inVotersTable = false;
+						voters = await callFioApi("get_table_rows", json);
+						//console.log('voters: ', voter);
+						for (voter in voters.rows) {
+							if (voters.rows[voter].owner == userA2.account) {
+								inVotersTable = true;
+								sellerVotePowerBefore = voters.rows[voter].last_vote_weight;
+								//console.log('voters.rows[voter].is_auto_proxy: ', voters.rows[voter].is_auto_proxy);
+								//console.log('voters.rows[voter].proxy: ', voters.rows[voter].proxy);
+								break;
+							}
+						}
+					} catch (err) {
+						console.log('Error', err);
+						expect(err).to.equal(null);
+					}
+					console.log('seller vote power before  ', sellerVotePowerBefore);
+
+					try {
+						const json = {
+							json: true,
+							code: 'eosio',
+							scope: 'eosio',
+							table: 'voters',
+							limit: 1000,
+							reverse: false,
+							show_payer: false
+						}
+						inVotersTable = false;
+						voters = await callFioApi("get_table_rows", json);
+						//console.log('voters: ', voter);
+						for (voter in voters.rows) {
+							if (voters.rows[voter].owner == marketplaceUser.account) {
+								inVotersTable = true;
+								marketplaceVotePowerBefore = voters.rows[voter].last_vote_weight;
+								//console.log('voters.rows[voter].is_auto_proxy: ', voters.rows[voter].is_auto_proxy);
+								//console.log('voters.rows[voter].proxy: ', voters.rows[voter].proxy);
+								break;
+							}
+						}
+					} catch (err) {
+						console.log('Error', err);
+						expect(err).to.equal(null);
+					}
+					console.log('marketplace vote power before  ', marketplaceVotePowerBefore);
+
+
+			let data = {
 						"actor"        : userA1.account,
 						"fio_domain"   : userA2.domain,
 						"sale_id"      : userA2ListDomainResult.domainsale_id,
@@ -1192,6 +1351,94 @@ describe(`************************** fio-escrow.js **************************`, 
 						fioPublicKey: userA2.publicKey
 					})
 					await timeout(500);
+
+
+					try {
+						const json = {
+							json: true,
+							code: 'eosio',
+							scope: 'eosio',
+							table: 'voters',
+							limit: 1000,
+							reverse: false,
+							show_payer: false
+						}
+						inVotersTable = false;
+						voters = await callFioApi("get_table_rows", json);
+						//console.log('voters: ', voter);
+						for (voter in voters.rows) {
+							if (voters.rows[voter].owner == userA1.account) {
+								inVotersTable = true;
+								buyerVotePowerAfter = voters.rows[voter].last_vote_weight;
+								//console.log('voters.rows[voter].is_auto_proxy: ', voters.rows[voter].is_auto_proxy);
+								//console.log('voters.rows[voter].proxy: ', voters.rows[voter].proxy);
+								break;
+							}
+						}
+					} catch (err) {
+						console.log('Error', err);
+						expect(err).to.equal(null);
+					}
+					console.log('buyer vote power after  ', buyerVotePowerAfter);
+
+
+					try {
+						const json = {
+							json: true,
+							code: 'eosio',
+							scope: 'eosio',
+							table: 'voters',
+							limit: 1000,
+							reverse: false,
+							show_payer: false
+						}
+						inVotersTable = false;
+						voters = await callFioApi("get_table_rows", json);
+						//console.log('voters: ', voter);
+						for (voter in voters.rows) {
+							if (voters.rows[voter].owner == userA2.account) {
+								inVotersTable = true;
+								sellerVotePowerAfter = voters.rows[voter].last_vote_weight;
+								//console.log('voters.rows[voter].is_auto_proxy: ', voters.rows[voter].is_auto_proxy);
+								//console.log('voters.rows[voter].proxy: ', voters.rows[voter].proxy);
+								break;
+							}
+						}
+					} catch (err) {
+						console.log('Error', err);
+						expect(err).to.equal(null);
+					}
+					console.log('seller vote power after  ', sellerVotePowerAfter);
+
+					try {
+						const json = {
+							json: true,
+							code: 'eosio',
+							scope: 'eosio',
+							table: 'voters',
+							limit: 1000,
+							reverse: false,
+							show_payer: false
+						}
+						inVotersTable = false;
+						voters = await callFioApi("get_table_rows", json);
+						//console.log('voters: ', voter);
+						for (voter in voters.rows) {
+							if (voters.rows[voter].owner == marketplaceUser.account) {
+								inVotersTable = true;
+								marketplaceVotePowerAfter = voters.rows[voter].last_vote_weight;
+								//console.log('voters.rows[voter].is_auto_proxy: ', voters.rows[voter].is_auto_proxy);
+								//console.log('voters.rows[voter].proxy: ', voters.rows[voter].proxy);
+								break;
+							}
+						}
+					} catch (err) {
+						console.log('Error', err);
+						expect(err).to.equal(null);
+					}
+					console.log('marketplace vote power after  ', marketplaceVotePowerAfter);
+
+
 
 					const marketplaceBalanceResultAfter = await marketplaceUser.sdk.genericAction('getFioBalance', {
 						fioPublicKey: marketplaceUser.publicKey

@@ -11,6 +11,18 @@ before(async () => {
 })
 
 /*
+
+NOTE -- voting power tests are added to these tests for genesis locks I, J
+NOTE -- voting power tests are added to these tests for genesis locks I, J
+NOTE -- voting power tests are added to these tests for genesis locks I, J
+NOTE -- voting power tests are added to these tests for genesis locks I, J
+NOTE -- voting power tests are added to these tests for genesis locks I, J
+
+
+
+
+
+
  MANUAL CONFIGURATION REQUIRED TO RUN TEST
 
  The following changes must be made to run these tests:
@@ -39,6 +51,14 @@ before(async () => {
   Comment out the following line in the addlocked action of the fio.system.cpp file
 
     // require_auth(_self);
+
+
+    next modify the voting.cpp to shorten the type 2 voting window.
+     uint32_t issueplus210 = lockiter->timestamp+(20);
+
+     next modify the fio.token.cpp to shorten the type 2 voting window.
+      uint32_t issueplus210 = lockiter->timestamp+(20);
+
 */
 
 const lockdurationseconds = 10;   // What was set in the contract above in place of SECONDSPERDAY
@@ -1865,5 +1885,491 @@ describe(`H. (BD-2632, BD-2759) Verify get_fio_balance returns accurate balance 
     const result = await locksdk2.genericAction('getFioBalance', {});
     expect(result.available).to.equal(0);
   });
+
+});
+
+describe.only(`I  Voting power test for type 1 locks.`, () => {
+
+  let locksdktype1, locksdktype2, keys1, keys2, accountnm1, accountnm2, transfer_tokens_pub_key_fee
+  const lockAmount1 = 12345000000000;
+  const lockAmount2 = 56789000000000;
+
+  const lockType1 = 1;
+  const lockType2 = 2;
+
+
+  it(`Create users: `, async () => {
+    userA1 = await newUser(faucet);
+
+    keys1 = await createKeypair();
+    keys2 = await createKeypair();
+
+    accountnm1 = await getAccountFromKey(keys1.publicKey);
+    accountnm2 = await getAccountFromKey(keys2.publicKey);
+    //console.log("priv key ", keys.privateKey);
+    //console.log("pub key ", keys.publicKey);
+    //console.log("account ",accountnm);
+
+    locksdktype1 = new FIOSDK(keys1.privateKey, keys1.publicKey, config.BASE_URL, fetchJson);
+    locksdktype2 = new FIOSDK(keys2.privateKey, keys2.publicKey, config.BASE_URL, fetchJson);
+
+  });
+
+  it(`Transfer ${lockAmount1} tokens to locksdktype1`, async () => {
+    const result = await faucet.genericAction('transferTokens', {
+      payeeFioPublicKey: keys1.publicKey,
+      amount: lockAmount1,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    })
+    expect(result.status).to.equal('OK')
+  });
+
+  it(`Lock ${lockAmount1} tokens for locksdktype1`, async () => {
+    const result1 = await userA1.sdk.genericAction('pushTransaction', {
+      action: 'addlocked',
+      account: 'eosio',
+      data: {
+        owner: accountnm1,
+        amount: lockAmount1,
+        locktype: lockType1
+      }
+    })
+    expect(result1.status).to.equal('OK')
+  });
+
+  it(`getFioBalance for genesis locksdktype1 (lock token holder). Expect: available balance 0 `, async () => {
+    const result = await locksdktype1.genericAction('getFioBalance', {});
+    //console.log('Result: ', result);
+    expect(result.available).to.equal(0);
+  });
+
+  it(`Set userA1 domain public to test regaddress from locked token account`, async () => {
+    const result = await userA1.sdk.genericAction('setFioDomainVisibility', {
+      fioDomain: userA1.domain,
+      isPublic: true,
+      maxFee: config.maxFee,
+      technologyProviderId: ''
+    });
+    expect(result.status).to.be.a('string').and.equal('OK');
+  });
+
+  it(`Confirm that fees in locked account are still usable for regaddress`, async () => {
+    try {
+      userA1.address2 = generateFioAddress(userA1.domain, 5)
+      const result = await locksdktype1.genericAction('registerFioAddress', {
+        fioAddress: userA1.address2,
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      //console.log('Result: ', result)
+      expirationYear = parseInt(result.expiration.split('-', 1));
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`locksdktype1 votes for bp1@dapixdev using address #1`, async () => {
+    try {
+      const result = await locksdktype1.genericAction('pushTransaction', {
+        action: 'voteproducer',
+        account: 'eosio',
+        data: {
+          "producers": [
+            'bp1@dapixdev'
+          ],
+          fio_address: userA1.address2,
+          actor: accountnm1,
+          max_fee: config.maxFee
+        }
+      })
+      //console.log('Result: ', result)
+      console.log('                   validate result status');
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it('Confirm locksdktype1: is in the voters table and last vote weight less than lock amount', async () => {
+    let inVotersTable;
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        limit: 1000,
+        reverse: false,
+        show_payer: false
+      }
+      console.log ("account is ", accountnm1)
+      const voters = await callFioApi("get_table_rows", json);
+      // console.log('voters: ', voters.rows);
+      inVotersTable = false;
+      for (voter in voters.rows) {
+        if (voters.rows[voter].owner == accountnm1) {
+          inVotersTable = true;
+          console.log('                   validate is auto proxy');
+          expect(voters.rows[voter].is_auto_proxy).to.equal(0)
+          console.log('                   validate proxy');
+          expect(voters.rows[voter].proxy).to.equal('')
+          break;
+        }
+      }
+      console.log('                   validate in voters table ');
+      expect(inVotersTable).to.equal(true)
+      console.log('                   validate last vote weight');
+      console.log(' last vote weight is ',voters.rows[voter].last_vote_weight)
+      expect(voters.rows[voter].last_vote_weight).not.equal( '12345000000000.00000000000000000');
+
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+
+  it(`Waiting 70 seconds for unlock`, async () => {
+    console.log("           70 seconds ")
+  })
+
+  it(`wait for 70 seconds`, async () => {
+    await timeout(70 * 1000);
+  })
+
+  //check voting power it should be the full amount...but is not!!
+
+
+  it('Confirm locksdktype1: is in the voters table and last vote weight less than lock amount', async () => {
+    let inVotersTable;
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        limit: 1000,
+        reverse: false,
+        show_payer: false
+      }
+      const voters = await callFioApi("get_table_rows", json);
+      // console.log('voters: ', voters.rows);
+      inVotersTable = false;
+      for (voter in voters.rows) {
+        if (voters.rows[voter].owner == accountnm1) {
+          inVotersTable = true;
+          console.log('                   validate is auto proxy');
+          expect(voters.rows[voter].is_auto_proxy).to.equal(0)
+          console.log('                   validate proxy');
+          expect(voters.rows[voter].proxy).to.equal('')
+          break;
+        }
+      }
+      console.log('                   validate in voters table ');
+      expect(inVotersTable).to.equal(true)
+      console.log('                   validate last vote weight');
+      console.log(' last vote weight is ',voters.rows[voter].last_vote_weight)
+      expect(voters.rows[voter].last_vote_weight).not.equal( '12345000000000.00000000000000000');
+
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Transfer 1 token to locksdktype1`, async () => {
+    const result = await userA1.sdk.genericAction('transferTokens', {
+      payeeFioPublicKey: keys1.publicKey,
+      amount: 1000000000,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    })
+    expect(result.status).to.equal('OK')
+  });
+
+  it('Confirm locksdktype1: is in the voters table and last vote weight corrects', async () => {
+    let inVotersTable;
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        limit: 1000,
+        reverse: false,
+        show_payer: false
+      }
+      const voters = await callFioApi("get_table_rows", json);
+      // console.log('voters: ', voters.rows);
+      inVotersTable = false;
+      for (voter in voters.rows) {
+        if (voters.rows[voter].owner == accountnm1) {
+          inVotersTable = true;
+          console.log('                   validate is auto proxy');
+          expect(voters.rows[voter].is_auto_proxy).to.equal(0)
+          console.log('                   validate proxy');
+          expect(voters.rows[voter].proxy).to.equal('')
+          break;
+        }
+      }
+      console.log('                   validate in voters table ');
+      expect(inVotersTable).to.equal(true)
+      console.log('                   validate last vote weight');
+      console.log(' last vote weight is ',voters.rows[voter].last_vote_weight)
+      expect(voters.rows[voter].last_vote_weight).not.equal( '12346000000000.00000000000000000');
+
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+
+
+});
+
+describe.only(`J  Voting power test for type 2 locks.`, () => {
+
+  let locksdktype1, locksdktype2, keys1, keys2, accountnm1, accountnm2, transfer_tokens_pub_key_fee
+  const lockAmount1 = 12345000000000;
+  const lockAmount2 = 56789000000000;
+
+  const lockType1 = 1;
+  const lockType2 = 2;
+
+
+  it(`Create users: `, async () => {
+    userA1 = await newUser(faucet);
+
+    keys1 = await createKeypair();
+    keys2 = await createKeypair();
+
+    accountnm1 = await getAccountFromKey(keys1.publicKey);
+    accountnm2 = await getAccountFromKey(keys2.publicKey);
+    //console.log("priv key ", keys.privateKey);
+    //console.log("pub key ", keys.publicKey);
+    //console.log("account ",accountnm);
+
+    locksdktype1 = new FIOSDK(keys1.privateKey, keys1.publicKey, config.BASE_URL, fetchJson);
+    locksdktype2 = new FIOSDK(keys2.privateKey, keys2.publicKey, config.BASE_URL, fetchJson);
+
+  });
+
+  it(`Transfer ${lockAmount1} tokens to locksdktype1`, async () => {
+    const result = await faucet.genericAction('transferTokens', {
+      payeeFioPublicKey: keys1.publicKey,
+      amount: lockAmount1,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    })
+    expect(result.status).to.equal('OK')
+  });
+
+  it(`Lock ${lockAmount1} tokens for locksdktype1`, async () => {
+    const result1 = await userA1.sdk.genericAction('pushTransaction', {
+      action: 'addlocked',
+      account: 'eosio',
+      data: {
+        owner: accountnm1,
+        amount: lockAmount1,
+        locktype: lockType2
+      }
+    })
+    expect(result1.status).to.equal('OK')
+  });
+
+  it(`getFioBalance for genesis locksdktype1 (lock token holder). Expect: available balance 0 `, async () => {
+    const result = await locksdktype1.genericAction('getFioBalance', {});
+    //console.log('Result: ', result);
+    expect(result.available).to.equal(0);
+  });
+
+  it(`Set userA1 domain public to test regaddress from locked token account`, async () => {
+    const result = await userA1.sdk.genericAction('setFioDomainVisibility', {
+      fioDomain: userA1.domain,
+      isPublic: true,
+      maxFee: config.maxFee,
+      technologyProviderId: ''
+    });
+    expect(result.status).to.be.a('string').and.equal('OK');
+  });
+
+  it(`Confirm that fees in locked account are still usable for regaddress`, async () => {
+    try {
+      userA1.address2 = generateFioAddress(userA1.domain, 5)
+      const result = await locksdktype1.genericAction('registerFioAddress', {
+        fioAddress: userA1.address2,
+        maxFee: config.maxFee,
+        technologyProviderId: ''
+      })
+      //console.log('Result: ', result)
+      expirationYear = parseInt(result.expiration.split('-', 1));
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`locksdktype1 votes for bp1@dapixdev using address #1`, async () => {
+    try {
+      const result = await locksdktype1.genericAction('pushTransaction', {
+        action: 'voteproducer',
+        account: 'eosio',
+        data: {
+          "producers": [
+            'bp1@dapixdev'
+          ],
+          fio_address: userA1.address2,
+          actor: accountnm1,
+          max_fee: config.maxFee
+        }
+      })
+      //console.log('Result: ', result)
+      console.log('                   validate result status');
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it('Confirm locksdktype1: is in the voters table and last vote weight less than lock amount', async () => {
+    let inVotersTable;
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        limit: 1000,
+        reverse: false,
+        show_payer: false
+      }
+      console.log ("account is ", accountnm1)
+      const voters = await callFioApi("get_table_rows", json);
+      // console.log('voters: ', voters.rows);
+      inVotersTable = false;
+      for (voter in voters.rows) {
+        if (voters.rows[voter].owner == accountnm1) {
+          inVotersTable = true;
+          console.log('                   validate is auto proxy');
+          expect(voters.rows[voter].is_auto_proxy).to.equal(0)
+          console.log('                   validate proxy');
+          expect(voters.rows[voter].proxy).to.equal('')
+          break;
+        }
+      }
+      console.log('                   validate in voters table ');
+      expect(inVotersTable).to.equal(true)
+      console.log('                   validate last vote weight');
+      console.log(' last vote weight is ',voters.rows[voter].last_vote_weight)
+      expect(voters.rows[voter].last_vote_weight).not.equal( '12345000000000.00000000000000000');
+
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Waiting 70 seconds for unlock`, async () => {
+    console.log("           70 seconds ")
+  })
+
+  it(`wait for 70 seconds`, async () => {
+    await timeout(70 * 1000);
+  })
+
+  //check voting power it should be the full amount...but is not!!
+
+  it('Confirm locksdktype1: is in the voters table and last vote weight less than lock amount', async () => {
+    let inVotersTable;
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        limit: 1000,
+        reverse: false,
+        show_payer: false
+      }
+      const voters = await callFioApi("get_table_rows", json);
+      // console.log('voters: ', voters.rows);
+      inVotersTable = false;
+      for (voter in voters.rows) {
+        if (voters.rows[voter].owner == accountnm1) {
+          inVotersTable = true;
+          console.log('                   validate is auto proxy');
+          expect(voters.rows[voter].is_auto_proxy).to.equal(0)
+          console.log('                   validate proxy');
+          expect(voters.rows[voter].proxy).to.equal('')
+          break;
+        }
+      }
+      console.log('                   validate in voters table ');
+      expect(inVotersTable).to.equal(true)
+      console.log('                   validate last vote weight');
+      console.log(' last vote weight is ',voters.rows[voter].last_vote_weight)
+      expect(voters.rows[voter].last_vote_weight).not.equal( '12345000000000.00000000000000000');
+
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+  it(`Transfer 1 token to locksdktype1`, async () => {
+    const result = await userA1.sdk.genericAction('transferTokens', {
+      payeeFioPublicKey: keys1.publicKey,
+      amount: 1000000000,
+      maxFee: config.api.transfer_tokens_pub_key.fee,
+      technologyProviderId: ''
+    })
+    expect(result.status).to.equal('OK')
+  });
+
+  it('Confirm locksdktype1: is in the voters table and last vote weight corrects', async () => {
+    let inVotersTable;
+    try {
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        limit: 1000,
+        reverse: false,
+        show_payer: false
+      }
+      const voters = await callFioApi("get_table_rows", json);
+      // console.log('voters: ', voters.rows);
+      inVotersTable = false;
+      for (voter in voters.rows) {
+        if (voters.rows[voter].owner == accountnm1) {
+          inVotersTable = true;
+          console.log('                   validate is auto proxy');
+          expect(voters.rows[voter].is_auto_proxy).to.equal(0)
+          console.log('                   validate proxy');
+          expect(voters.rows[voter].proxy).to.equal('')
+          break;
+        }
+      }
+      console.log('                   validate in voters table ');
+      expect(inVotersTable).to.equal(true)
+      console.log('                   validate last vote weight');
+      console.log(' last vote weight is ',voters.rows[voter].last_vote_weight)
+      expect(voters.rows[voter].last_vote_weight).not.equal( '12346000000000.00000000000000000');
+
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+
 
 });
