@@ -673,6 +673,75 @@ async function readProdFile(prodFile) {
     });
 }
 
+async function appendCommentAccountFile(accountFile, commentstr) {
+    return new Promise(function (appendfile, reject) {
+        try {
+            if(commentstr.startsWith('#',0)) {
+                require('fs').appendFileSync(accountFile, commenststr  +
+                    '\r\n', 'utf-8', err => {
+                    if (err) {
+                        throw err;
+                    }
+                })
+                appendfile(accountFile, commentstr);
+            }
+        } catch (err) {
+            console.log('Error: ', err);
+            reject(err);
+        }
+    });
+}
+
+async function appendAccountFile(accountFile, account) {
+    return new Promise(function (appendfile, reject) {
+        try {
+            require('fs').appendFileSync(accountFile, account.address + ',' +
+                account.privateKey + ',' +
+                account.publicKey + ',' +
+                account.account  +
+                '\r\n', 'utf-8', err => {
+                if (err) {
+                    throw err;
+                }
+                //console.log(prod);
+                // Format of data: FIOhandle, Priv Key, Pub Key, Account, FIO Amount
+            })
+            appendfile(accountFile, account);
+        } catch (err) {
+            console.log('Error: ', err);
+            reject(err);
+        }
+    });
+}
+
+async function readAccountFile(accountFile) {
+    return new Promise(function(resolve, reject) {
+        try {
+            let accounts = [];
+             require('fs').readFileSync(accountFile, 'utf-8').split(/\r?\n/).forEach(function(accountinfoline){
+                //console.log(prod);
+                // Format of data: FIOhandle, Priv Key, Pub Key, Account, FIO Amount
+                 if(!accountinfoline.startsWith('#',0)) {
+                     accountInfo = accountinfoline.split(',');
+                     if (accountInfo[0] != '') {
+                         accounts.push({
+                             domain: accountInfo[0].split('@').pop(),
+                             address: accountInfo[0],
+                             privateKey: accountInfo[1],
+                             publicKey: accountInfo[2],
+                             account: accountInfo[3]
+                         })
+                     }
+                 }
+            })
+            resolve(accounts);
+        } catch (err) {
+            console.log('Error: ', err);
+            reject(err);
+        }
+    });
+}
+
 async function addLock(account, amount, lock) {
     return new Promise(function(resolve, reject) {
         var text = {owner: account, amount: amount, locktype: lock}
@@ -1252,4 +1321,4 @@ class Ram {
 } //Ram class
 */
 
-module.exports = { newUser, existingUser, stringToHash, getTestType, getTopprods, callFioApi, callFioApiSigned, httpRequest, httpRequestBig, callFioHistoryApi, convertToK1, unlockWallet, getFees, getAccountFromKey, getProdVoteTotal, addLock, getTotalVotedFio, getAccountVoteWeight, setRam, printUserRam, user, getMnemonic, fetchJson, randStr, timeout, generateFioDomain, generateFioAddress, createKeypair, readProdFile, consumeRemainingBundles, getBundleCount, getRamForUser, getCurrencyBalance, getRemainingLockAmount};
+module.exports = { newUser, existingUser, stringToHash, getTestType, getTopprods, callFioApi, callFioApiSigned, httpRequest, httpRequestBig, appendAccountFile, appendCommentAccountFile, callFioHistoryApi, convertToK1, unlockWallet, getFees, getAccountFromKey, getProdVoteTotal, addLock, getTotalVotedFio, getAccountVoteWeight, setRam, printUserRam, user, getMnemonic, fetchJson, randStr, timeout, generateFioDomain, generateFioAddress, createKeypair, readProdFile,  readAccountFile, consumeRemainingBundles, getBundleCount, getRamForUser, getCurrencyBalance, getRemainingLockAmount};
