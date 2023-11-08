@@ -1,6 +1,6 @@
 require('mocha');
 const {expect} = require('chai');
-const { newUser, fetchJson, getTotalVotedFio, callFioApi, callFioApiSigned, getAccountFromKey, timeout} = require('../utils.js');
+const { callFioApi} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
 const rp = require('request-promise');
@@ -45,7 +45,7 @@ async function getFioBalance(public_key) {
   }
   try {
     const result = await callFioApi("get_fio_balance", json);
-    console.log('result: ', result)
+    //console.log('result: ', result)
     getter_balance = result.balance;
     getter_available = result.available;
     getter_staked = result.staked;
@@ -67,19 +67,24 @@ async function getCurrencyBalance(account) {
   return currency_balance;
 }
 
-async function getRemainingLockAmount(publicKey) {
-  let remaining_lock_amount = 0;
+async function getRemainingNonvotableLockAmount(publicKey) {
+  //let remaining_lock_amount = 0;
   const json = {
     fio_public_key: publicKey,
   }
   try {
     const result = await callFioApi("get_locks", json);
-    remaining_lock_amount = result.remaining_lock_amount ? result.remaining_lock_amount / 1000000000 : 0;
-    console.log('remaining_lock_amount: ', remaining_lock_amount)
+    if (result.can_vote === 1) {
+      return 0;
+    } else {
+      return result.remaining_lock_amount
+    }
+    // remaining_lock_amount = result.remaining_lock_amount ? result.remaining_lock_amount / 1000000000 : 0;
+    // console.log('remaining_lock_amount: ', remaining_lock_amount)
   } catch (err) {
     // no locked tokens in account
   }
-  return remaining_lock_amount;
+  return 0;
 }
 
 async function getGlobalProducerVoteWeight() {
@@ -132,25 +137,30 @@ class Voter {
     this.currency_balance = currency_balance;
     this.unvotable_locked = unvotable_locked;
     this.votable_fio = this.currency_balance + this.proxied_vote_weight - this.unvotable_locked;
+    this.proxied_vote_weight_calculated = 0;
   }
   // To call async functions in a constructor, using an async initialize function that calls the constructor. Kind of a workaround...
   static async initialize(voterParams) {
     const public_key = await getPublicKey(voterParams.owner);
     const { getter_balance, getter_available, getter_staked } = await getFioBalance(public_key);
     const currency_balance = await getCurrencyBalance(voterParams.owner);
-    const unvotable_locked = await getRemainingLockAmount(public_key);
+    const unvotable_locked = await getRemainingNonvotableLockAmount(public_key);
     return new Voter(voterParams, public_key, getter_balance, getter_available, getter_staked, currency_balance, unvotable_locked);
   }
 }
 
-
+/**
+ * 
+ * @param {*} global FioGlobal object
+ * @returns array of Producer objects for each producer in the producers table
+ */
 async function getProducers(global) {
   let producers = []; 
     const json = {
       code: "eosio",
       scope: "eosio",
       table: "producers",
-      limit: 2,
+      limit: 5000,
       reverse: false,
       json: true
     }
@@ -168,37 +178,66 @@ async function getProducers(global) {
 };
 
 
-async function getVoters(producers,global) {
+/**
+ * 
+ * @param {*} producers array of producer objects
+ * @param {*} global FioGlobal object
+ * @returns array of Voter objects for each voter in the voters table
+ */
+async function getVoters(producers, global) {
   let voters = []; 
   const json = {
     json: true,
     code: 'eosio',
     scope: 'eosio',
     table: 'voters',
-    limit: 2
+    limit: 5000
   }
   const result = await callFioApi("get_table_rows", json); 
   const votersTable = result.rows;
   // Initialize Voter objects for every voter and put into a new array.
   for (let i = 0; i < votersTable.length; i++) {
     const newVoter = await Voter.initialize(votersTable[i]);
-    // Add the last_vote_weight to the producer total vote count for each of the producers
+    // Add all voters last_vote_weight + proxies proxied_vote_weight to the producer total vote count for each of the producers
     newVoter.producers.forEach((producerAccount) => {
       const producer = producers.find((prod) => prod.owner === producerAccount);
       if (producer === undefined) {   //TODO: change this to an assert.
         console.log('Cannot find producer: ', producerAccount)
       } else {
-        producer.addVotes(newVoter.last_vote_weight);
+        producer.addVotes(newVoter.last_vote_weight);  // Adds voters vote total to the producers total_votes_calculated field
+        if (newVoter.is_proxy === 1) {
+          producer.addVotes(newVoter.proxied_vote_weight); 
+        }
       }
     });
-    // Add the voters last_vote_weight to total_voted_fio_calculated in the global object
-    global.addVoterVotes(newVoter.last_vote_weight);
+    global.addVoterVotes(newVoter.last_vote_weight);  // Adds the voters last_vote_weight to total_voted_fio_calculated in the global object
     voters[i] = newVoter;
   }
   return voters;
 }
 
+/**
+ * Adds a new proxied_vote_weight_calculated for every proxy
+ * 
+ * @param {*} voters array of Voter objects
+ * @returns array of Voter objects that are registered proxies
+ */
+async function calcProxyVotes(voters) {
+  let proxies = [];
+  for (let i = 0; i < voters.length; i++) {
+    if (voters[i].is_proxy === 1) {proxies.push(voters[i])}
+    if (voters[i].proxy != '') {
+      const proxy = voters.find((voter) => voter.owner === voters[i].proxy);
+      proxy.proxied_vote_weight_calculated += voters[i].proxied_vote_weight;
+    };
+  }
+  return proxies;
+}
 
+/**
+ * 
+ * @returns The FioGlobal object populated from eosio global table
+ */
 async function getGlobal() {
   const json = {
     json: true,
@@ -213,115 +252,159 @@ async function getGlobal() {
 }
 
 
+
+
 async function main() {
   const global = await getGlobal();
   const producers = await getProducers(global);
   const voters = await getVoters(producers, global);  // Voters table includes proxy information
+  const proxies = await calcProxyVotes(voters);
 
-  console.log('global: ', global);
-  console.log('voters: ', voters);
-  console.log('producers2: ', producers);
+  // console.log('global: ', global);
+  // console.log('voters: ', voters);
+  // console.log('producers: ', producers);
+  // console.log('proxies: ', proxies);
+
+  console.log('Assert: No voters have proxy and producers\n');
+  const invalidVoters = voters.filter((voter) => {
+    return voter.proxy !== '' && voter.producers.length > 0;
+  });
+  if (invalidVoters.length > 0) {
+    console.log('FAIL\nAccounts have proxy and producers fields');
+    invalidVoters.forEach((voter) => {
+      console.log(voter.owner + '\n')
+    });
+  } else {
+    console.log('SUCCESS: No voters have proxy and producers')
+  }
+
+console.log(`\n
+/**
+ * code: eosio
+ * table: global
+ * field: total_voted_fio
+ * 
+ * Validate 
+ *    total_voted_fio = sum of all last_vote_weights from voters table
+ */
+`)
+  console.log('Assert: total_voted_fio = total_voted_fio_calculated\n');
+  if(global.total_voted_fio === global.total_voted_fio_calculated) {
+    console.log(`SUCCESS: ${global.total_voted_fio} = ${global.total_voted_fio_calculated}`);
+  } else {
+    console.log(`FAIL: ${global.total_voted_fio} != ${global.total_voted_fio_calculated}`);
+    console.log(`Difference = ${global.total_voted_fio - global.total_voted_fio_calculated} `)
+  }
 
 
-  /**
-   * code: eosio
-   * table: voters
-   * field: last_vote_weight
-   * 
-   * Validate: 
-   *    last_vote_weight = currency_balance + proxied_vote_weight - unvotable_locked
-   * 
-   * Note: Tokens Staked do count towards voting power of account.
-   * 
-   * NOTE: flag if there are cases where a user has votes for producers AND has a proxy
-   */
-  console.log('\nTesting eosio > voters > last_vote_weight\n');
+console.log(`\n
+/**
+ * code: eosio
+ * table: global
+ * field: total_producer_vote_weight
+ * 
+ * Validate 
+ *    total_producer_vote_weight = sum of all total_votes from producer table
+ */
+`)
+  console.log('Assert: total_producer_vote_weight = total_producer_vote_weight_calculated\n');
+  if(global.total_producer_vote_weight === global.total_producer_vote_weight_calculated) {
+    console.log(`SUCCESS: ${global.total_producer_vote_weight} = ${global.total_producer_vote_weight_calculated}`);
+  } else {
+    console.log(`FAIL: ${global.total_producer_vote_weight} != ${global.total_producer_vote_weight_calculated}`);
+  }
+
+
+console.log(`\n
+/**
+ * code: eosio
+ * table: voters
+ * field: last_vote_weight
+ * 
+ * Validate: 
+ *    last_vote_weight = currency_balance + proxied_vote_weight - unvotable_locked
+ * 
+ * Note: Tokens Staked do not count towards voting power of account.
+ * 
+ * NOTE: flag if there are cases where a user has votes for producers AND has a proxy
+ */
+`)
+  console.log('Assert: last_vote_weight = currency_balance + proxied_vote_weight - unvotable_locked\n');
   const invalidVoterVoteWeight = voters.filter((voter) => {
     return voter.votable_fio !== voter.last_vote_weight;
   });
-  if (invalidVoterVoteWeight.length > 0) console.log('account: last_vote_weight = currency_balance + proxied_vote_weight - unvotable_locked');
-  invalidVoterVoteWeight.forEach((voter) => {
-    console.log(`${voter.owner}: ${voter.last_vote_weight} != ${voter.currency_balance} + ${voter.proxied_vote_weight} - ${voter.unvotable_locked}`);
-  });
-//  const invalidVoteWeightAccounts = invalidVoteWeight.map( (voter) => {
-//    return voter.owner;
-//  })
-
-  /**
-   * code: eosio
-   * table: global
-   * field: total_voted_fio
-   * 
-   * Validate 
-   *    total_voted_fio = sum of all last_vote_weights from voters table
-   */
-  console.log('\nTesting eosio > global > total_voted_fio\n');
-  console.log('total_voted_fio = total_voted_fio_calculated');
-  if(global.total_voted_fio === global.total_voted_fio_calculated) {
-    console.log(`SUCCESS - ${global.total_voted_fio} = ${global.total_voted_fio_calculated}`);
+  if (invalidVoterVoteWeight.length > 0) {
+    console.log('FAIL\naccount: last_vote_weight = currency_balance + proxied_vote_weight - unvotable_locked');
+    invalidVoterVoteWeight.forEach((voter) => {
+      console.log(`${voter.owner}: ${voter.last_vote_weight} != ${voter.currency_balance} + ${voter.proxied_vote_weight} - ${voter.unvotable_locked}`);
+      console.log(toString(voter) + '\n')
+    });
   } else {
-    console.log(`FAIL - ${global.total_voted_fio} != ${global.total_voted_fio_calculated}`);
+    console.log('SUCCESS: No Voters last_vote_weight errors')
   }
 
 
-  /**
-   * code: eosio
-   * table: producers
-   * field: total_votes
-   * 
-   * Validate 
-   *    total_votes = sum of all last_vote_weights from voters that have voted for that producer
-   */
-  console.log('\nTesting eosio > producers > total_votes\n');
+console.log(`\n
+/**
+ * Confirm total_votes for each producer in the producers table
+ * 
+ * code: eosio
+ * table: producers
+ * field: total_votes
+ * 
+ * Validate 
+ *    total_votes = sum of all last_vote_weights for all voters that have voted for the producer + sum of proxied_vote_weight for proxies that have voted for that producer
+ * 
+ * TODO: confirm proxy
+ */
+`)
+  console.log('Assert: total_votes = total_votes_calculated\n');
   const invalidProducerVoteWeight = producers.filter((producer) => {
     return producer.total_votes !== producer.total_votes_calculated;
   });
-  if (invalidProducerVoteWeight.length > 0) console.log('account: total_votes = total_votes_calculated');
-  invalidProducerVoteWeight.forEach((producer) => {
-    console.log(`${producer.owner}: ${producer.total_votes} != ${producer.total_votes_calculated}`);
-  });
-  
-
-  /**
-   * code: eosio
-   * table: global
-   * field: total_producer_vote_weight
-   * 
-   * Validate 
-   *    total_producer_vote_weight = sum of all total_votes from producer table
-   */
-  console.log('\nTesting eosio > global > total_producer_vote_weight\n');
-  console.log('total_producer_vote_weight = total_producer_vote_weight_calculated');
-  if(global.total_producer_vote_weight === global.total_producer_vote_weight_calculated) {
-    console.log(`SUCCESS - ${global.total_producer_vote_weight} = ${global.total_producer_vote_weight_calculated}`);
+  if (invalidProducerVoteWeight.length > 0) {
+    console.log('FAIL\naccount: total_votes = total_votes_calculated');
+    invalidProducerVoteWeight.forEach((producer) => {
+      console.log(`${producer.owner}: ${producer.total_votes} != ${producer.total_votes_calculated}`);
+    });
   } else {
-    console.log(`FAIL - ${global.total_producer_vote_weight} != ${global.total_producer_vote_weight_calculated}`);
+    console.log('SUCCESS: No Producer total_votes errors')
   }
-
- 
+  
+console.log(`\n
 /**
  * code: eosio
  * table: voters
  * field: proxied_vote_weight
  * 
  * Validate 
- *    For registered proxy: proxied_vote_weight = sum of all last_vote_weights from voters that have proxied their votes
+ *    For registered proxies: proxied_vote_weight = sum of all last_vote_weights from voters that have proxied their votes
  */
+`)
+  console.log('Assert: proxied_vote_weight = proxied_vote_weight_calculated\n');
+  const invalidProxyVoteWeight = producers.filter((proxy) => {
+    if (proxy.is_proxy === 1) {
+      return (proxy.is_proxy === 1) && (proxy.proxied_vote_weight !== proxy.proxied_vote_weight_calculated);
+    }
+  });
+  if (invalidProxyVoteWeight.length > 0) {
+    console.log('FAIL\naccount: proxied_vote_weight = proxied_vote_weight_calculated');
+    invalidProxyVoteWeight.forEach((proxy) => {
+      console.log(`${proxy.owner}: ${proxy.proxied_vote_weight} != ${proxy.proxied_vote_weight_calculated}`);
+    });
+  } else {
+    console.log('SUCCESS: No Proxy proxied_vote_weight errors')
+  }
+
 
   /**
-   * sum of all (non-proxied eosio-voters-last_vote_weight
-   *   + registered proxy eosio-voters-last_vote_weight
-   *   + registered proxy eosio-voters-proxied_vote_weight) 
-   *   = sum of all individual eosio-producers-total_votes
+   * Validate
+   *    sum of last_vote_weight for all voters that have proxied = sum of all proxied_vote_weight for registered proxies
    */
 
-  // console.log('sum of all valid producer votes from proxies and individual voters = ', sumOfVotesForProducer);
-  // console.log('sum of all eosio > producers-total_votes = ', sumOfProducerTotalVotes / 1000000000);
-  // console.log('Difference = ', globalProducerVoteWeight / 1000000000 - sumOfProducerTotalVotes / 1000000000);
 
-  /**
-   * sum of all (voter proxied eosio-voter-last_vote_weight) = sum of all (registered proxy eosio-voters-proxied_vote_weight)
-   */
+
+  console.log('\n\n');
 
 }
 
