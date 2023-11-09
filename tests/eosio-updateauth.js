@@ -888,8 +888,8 @@ describe(`C. Create custom perm for regaddress to enable secondary account to re
           account: user1.account
         }
       });
-      console.log('Result: ', result);
-      //expect(result.processed.receipt.status).to.equal('executed');
+      //console.log('Result: ', result);
+      expect(result.processed.receipt.status).to.equal('executed');
     } catch (err) {
         console.log('Error: ', err);
         expect(err).to.equal(null);

@@ -1,103 +1,7 @@
 require('mocha');
-const {expect} = require('chai');
 const { callFioApi} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
-const rp = require('request-promise');
-let faucet;
-
-const fiourl = config.URL + "/v1/chain/";
-
-async function getGlobalTable() {
-  const json = {
-      json: true,
-      code: 'eosio',
-      scope: 'eosio',
-      table: 'global',
-      limit: 1000,
-      reverse: false,
-      show_payer: false
-  }
-  const globalTable = callFioApi("get_table_rows", json);
-  return globalTable;
-}
-
-async function getPublicKey(account) {
-  const json = {
-    code: "fio.address",
-    scope: "fio.address",
-    table: "accountmap",
-    lower_bound: account,
-    upper_bound: account,
-    key_type: "i64",
-    index_position: "0",
-    json: true
-  }
-  const result = await callFioApi("get_table_rows", json);
-  const public_key = result.rows[0].clientkey;
-  return public_key;
-}
-
-async function getFioBalance(public_key) {
-  let getter_balance = getter_available = getter_staked = 0;
-  const json = {
-    fio_public_key: public_key
-  }
-  try {
-    const result = await callFioApi("get_fio_balance", json);
-    //console.log('result: ', result)
-    getter_balance = result.balance;
-    getter_available = result.available;
-    getter_staked = result.staked;
-  } catch (err) {
-    console.log('Error', err);
-  }
-  return {getter_balance, getter_available, getter_staked};
-}
-
-async function getCurrencyBalance(account) {
-  const json = {
-    code: 'fio.token',
-    symbol: 'FIO',
-    account: account
-  }
-  const result = await callFioApi("get_currency_balance", json);
-  const newstring = result[0].replace(' FIO','');
-  const currency_balance = Number(newstring);
-  return currency_balance;
-}
-
-async function getRemainingNonvotableLockAmount(publicKey) {
-  //let remaining_lock_amount = 0;
-  const json = {
-    fio_public_key: publicKey,
-  }
-  try {
-    const result = await callFioApi("get_locks", json);
-    if (result.can_vote === 1) {
-      return 0;
-    } else {
-      return result.remaining_lock_amount
-    }
-    // remaining_lock_amount = result.remaining_lock_amount ? result.remaining_lock_amount / 1000000000 : 0;
-    // console.log('remaining_lock_amount: ', remaining_lock_amount)
-  } catch (err) {
-    // no locked tokens in account
-  }
-  return 0;
-}
-
-async function getGlobalProducerVoteWeight() {
-  const json = {
-    json: true,
-    code: 'eosio',
-    scope: 'eosio',
-    table: 'global',
-    limit: 1
-  }
-  const result = await callFioApi("get_table_rows", json);
-  return result.rows[0].total_producer_vote_weight;
-}
 
 class FioGlobal {
   constructor(globalParams) {
@@ -114,6 +18,7 @@ class FioGlobal {
     this.total_producer_vote_weight_calculated += voteWeight;
   }
 }
+
 class Producer {
   constructor(producerParams) {
     Object.assign(this, producerParams);  // Pulls in the args from the FIO producers table
@@ -149,6 +54,85 @@ class Voter {
   }
 }
 
+
+async function getPublicKey(account) {
+  const json = {
+    code: "fio.address",
+    scope: "fio.address",
+    table: "accountmap",
+    lower_bound: account,
+    upper_bound: account,
+    key_type: "i64",
+    index_position: "0",
+    json: true
+  }
+  const result = await callFioApi("get_table_rows", json);
+  const public_key = result.rows[0].clientkey;
+  return public_key;
+}
+
+async function getFioBalance(public_key) {
+  let getter_balance = getter_available = getter_staked = 0;
+  const json = {
+    fio_public_key: public_key
+  }
+  try {
+    const result = await callFioApi("get_fio_balance", json);
+    getter_balance = result.balance;
+    getter_available = result.available;
+    getter_staked = result.staked;
+  } catch (err) {
+    console.log('Error', err);
+  }
+  return {getter_balance, getter_available, getter_staked};
+}
+
+async function getCurrencyBalance(account) {
+  const json = {
+    code: 'fio.token',
+    symbol: 'FIO',
+    account: account
+  }
+  const result = await callFioApi("get_currency_balance", json);
+  const newstring = result[0].replace(' FIO','');
+  const currency_balance = Number(newstring);
+  return currency_balance;
+}
+
+async function getRemainingNonvotableLockAmount(publicKey) {
+  const json = {
+    fio_public_key: publicKey,
+  }
+  try {
+    const result = await callFioApi("get_locks", json);
+    if (result.can_vote === 1) {
+      return 0;
+    } else {
+      return result.remaining_lock_amount
+    }
+  } catch (err) {
+    // no locked tokens in account
+  }
+  return 0;
+}
+
+/**
+ * 
+ * @returns The FioGlobal object populated from eosio global table
+ */
+async function getGlobal() {
+  const json = {
+    json: true,
+    code: 'eosio',
+    scope: 'eosio',
+    table: 'global',
+    limit: 1
+  }
+  const result = await callFioApi("get_table_rows", json);
+  const global = new FioGlobal(result.rows[0]);
+  return global;
+}
+
 /**
  * 
  * @param {*} global FioGlobal object
@@ -166,7 +150,6 @@ async function getProducers(global) {
     }
     const result = await callFioApi("get_table_rows", json);
     const producersTable = result.rows;
-    //console.log('producers: ', producers);
     // Initialize Producer objects for every voter and put into a new array.
     for (let i = 0; i < producersTable.length; i++) {
        const newProducer = new Producer(producersTable[i]);
@@ -234,22 +217,7 @@ async function calcProxyVotes(voters) {
   return proxies;
 }
 
-/**
- * 
- * @returns The FioGlobal object populated from eosio global table
- */
-async function getGlobal() {
-  const json = {
-    json: true,
-    code: 'eosio',
-    scope: 'eosio',
-    table: 'global',
-    limit: 1
-  }
-  const result = await callFioApi("get_table_rows", json);
-  const global = new FioGlobal(result.rows[0]);
-  return global;
-}
+
 
 
 
@@ -337,7 +305,7 @@ console.log(`\n
     console.log('FAIL\naccount: last_vote_weight = currency_balance + proxied_vote_weight - unvotable_locked');
     invalidVoterVoteWeight.forEach((voter) => {
       console.log(`${voter.owner}: ${voter.last_vote_weight} != ${voter.currency_balance} + ${voter.proxied_vote_weight} - ${voter.unvotable_locked}`);
-      console.log(toString(voter) + '\n')
+      //console.log(JSON.stringify(voter, null, 4));
     });
   } else {
     console.log('SUCCESS: No Voters last_vote_weight errors')
@@ -382,7 +350,7 @@ console.log(`\n
  */
 `)
   console.log('Assert: proxied_vote_weight = proxied_vote_weight_calculated\n');
-  const invalidProxyVoteWeight = producers.filter((proxy) => {
+  const invalidProxyVoteWeight = proxies.filter((proxy) => {
     if (proxy.is_proxy === 1) {
       return (proxy.is_proxy === 1) && (proxy.proxied_vote_weight !== proxy.proxied_vote_weight_calculated);
     }
@@ -396,16 +364,7 @@ console.log(`\n
     console.log('SUCCESS: No Proxy proxied_vote_weight errors')
   }
 
-
-  /**
-   * Validate
-   *    sum of last_vote_weight for all voters that have proxied = sum of all proxied_vote_weight for registered proxies
-   */
-
-
-
   console.log('\n\n');
-
 }
 
 

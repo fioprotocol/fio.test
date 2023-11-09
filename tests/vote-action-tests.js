@@ -7,7 +7,6 @@ const {
   generateFioDomain, 
   callFioApi,
   callFioApiSigned,
-  getCurrencyBalance,
   getProdVoteTotal,
   getAccountVoteWeight,
   consumeRemainingBundles,
@@ -68,6 +67,28 @@ async function getGlobalTotalVotedFio() {
   return globalTable.rows[0].total_voted_fio;
 }
 
+async function getCurrencyBalanceSufs(account) {
+  let currency_balance, newstring;
+  try {
+      const json = {
+      code: 'fio.token',
+      symbol: 'FIO',
+      account: account
+      }
+      const result = await callFioApi("get_currency_balance", json);
+      if (result.length > 0) {
+          newstring = result[0].replace(' FIO','');
+          newstring = newstring.replace('.', '');
+          currency_balance = Number(newstring);
+      } else {
+          currency_balance = 0;
+      }
+      return currency_balance;
+  } catch (err) {
+      console.log('Error: ', err)
+  }
+}
+
 async function validateVotes() {
     // global
     const prev_total_voted_fio = total_voted_fio;
@@ -84,13 +105,11 @@ async function validateVotes() {
     voterWithProd.last_vote_weight = await getAccountVoteWeight(voterWithProd.account);
     voterWithProd.diff_last_vote_weight = voterWithProd.last_vote_weight - voterWithProd_prev_last_vote_weight;
     voterWithProd.prev_currency_balance = voterWithProd.currency_balance;
-    const voterWithProdCurBal = await getCurrencyBalance(voterWithProd.account);
-    console.log('voterWithProdCurBal: ', voterWithProdCurBal)
-    voterWithProd.currency_balance = Math.round(voterWithProdCurBal * 1000000000);  // Convert to Int
+    voterWithProd.currency_balance = await getCurrencyBalanceSufs(voterWithProd.account);
     voterWithProd.diff_currency_balance = voterWithProd.currency_balance - voterWithProd.prev_currency_balance;
-    console.log('voterWithProd.diff_currency_balance: ',voterWithProd.diff_currency_balance)
-    console.log('voterWithProd.currency_balance: ',voterWithProd.currency_balance)
-    console.log('voterWithProd.prev_currency_balance: ',voterWithProd.prev_currency_balance)
+    // console.log('voterWithProd.diff_currency_balance: ',voterWithProd.diff_currency_balance)
+    // console.log('voterWithProd.currency_balance: ',voterWithProd.currency_balance)
+    // console.log('voterWithProd.prev_currency_balance: ',voterWithProd.prev_currency_balance)
 
     // proxy
     const proxy_prev_last_vote_weight = proxy.last_vote_weight;
@@ -101,7 +120,7 @@ async function validateVotes() {
     proxy.diff_last_vote_weight = proxy.last_vote_weight - proxy_prev_last_vote_weight;
     proxy.diff_proxied_vote_weight = proxy.proxied_vote_weight - proxy_prev_proxied_vote_weight;
     proxy.prev_currency_balance = proxy.currency_balance;
-    proxy.currency_balance = Math.round(await getCurrencyBalance(proxy.account) * 1000000000);  // Convert to Int
+    proxy.currency_balance = await getCurrencyBalanceSufs(proxy.account);
     proxy.diff_currency_balance = proxy.currency_balance - proxy.prev_currency_balance;
 
     // voterWithProxy
@@ -109,7 +128,7 @@ async function validateVotes() {
     voterWithProxy.last_vote_weight = await getAccountVoteWeight(voterWithProxy.account);
     voterWithProxy.diff_last_vote_weight = voterWithProxy.last_vote_weight - voterWithProxy_prev_last_vote_weight;
     const voterWithProxy_prev_currency_balance = voterWithProxy.currency_balance;
-    voterWithProxy.currency_balance = Math.round(await getCurrencyBalance(voterWithProxy.account) * 1000000000);  // Convert to Int
+    voterWithProxy.currency_balance = await getCurrencyBalanceSufs(voterWithProxy.account);
     voterWithProxy.diff_currency_balance = voterWithProxy.currency_balance - voterWithProxy_prev_currency_balance;
 
     // autoproxy
@@ -121,7 +140,7 @@ async function validateVotes() {
     autoproxy.diff_last_vote_weight = autoproxy.last_vote_weight - autoproxy_prev_last_vote_weight;
     autoproxy.diff_proxied_vote_weight = autoproxy.proxied_vote_weight - autoproxy_prev_proxied_vote_weight;
     const autoproxy_prev_currency_balance = autoproxy.currency_balance;
-    autoproxy.currency_balance = Math.round(await getCurrencyBalance(autoproxy.account) * 1000000000);  // Convert to Int
+    autoproxy.currency_balance = await getCurrencyBalanceSufs(autoproxy.account);
     autoproxy.diff_currency_balance = autoproxy.currency_balance - autoproxy_prev_currency_balance;
 
     // voterWithAutoproxy
@@ -129,17 +148,23 @@ async function validateVotes() {
     voterWithAutoproxy.last_vote_weight = await getAccountVoteWeight(voterWithAutoproxy.account);
     voterWithAutoproxy.diff_last_vote_weight = voterWithAutoproxy.last_vote_weight - voterWithAutoproxy_prev_last_vote_weight;
     const voterWithAutoproxy_prev_currency_balance = voterWithAutoproxy.currency_balance;
-    voterWithAutoproxy.currency_balance = Math.round(await getCurrencyBalance(voterWithAutoproxy.account) * 1000000000);  // Convert to Int
+    voterWithAutoproxy.currency_balance = await getCurrencyBalanceSufs(voterWithAutoproxy.account);
     voterWithAutoproxy.diff_currency_balance = voterWithAutoproxy.currency_balance - voterWithAutoproxy_prev_currency_balance;
 
-    // console.log(`voterWithProd.diff_currency_balance: ${voterWithProd.diff_currency_balance}`)
-    // console.log(`proxy.diff_currency_balance: ${proxy.diff_currency_balance}`)
-    // console.log(`voterWithProxy.diff_currency_balance: ${voterWithProxy.diff_currency_balance}`)
-    // console.log(`autoproxy.diff_currency_balance: ${autoproxy.diff_currency_balance}`)
-    // console.log(`voterWithAutoproxy.diff_currency_balance: ${voterWithAutoproxy.diff_currency_balance}`)
 
-    // producer
+    // console.log('bp1.diff_total_votes:', bp1.diff_total_votes)
+    // console.log('voterWithProd.diff_last_vote_weight:', voterWithProd.diff_last_vote_weight)
+    // console.log('proxy.diff_last_vote_weight :', proxy.diff_last_vote_weight )
+    // console.log('proxy.diff_proxied_vote_weight:', proxy.diff_proxied_vote_weight)
+    // console.log('autoproxy.diff_last_vote_weight:',autoproxy.diff_last_vote_weight )
+    // console.log('autoproxy.diff_proxied_vote_weight:', autoproxy.diff_proxied_vote_weight)
+
+    /**
+     * BUG! This assumes that only proxied_vote_weight changes when the last_vote_weight changes for voter that has proxied
+     */ 
     expect(bp1.diff_total_votes).to.equal(voterWithProd.diff_last_vote_weight + proxy.diff_last_vote_weight + proxy.diff_proxied_vote_weight + autoproxy.diff_last_vote_weight + autoproxy.diff_proxied_vote_weight);
+    // This works. Only looks at change in last_vote_weight for proxy to compare to change in bp total_votes.
+    //expect(bp1.diff_total_votes).to.equal(voterWithProd.diff_last_vote_weight + proxy.diff_last_vote_weight + autoproxy.diff_last_vote_weight);
     
     // voterWithProd
     expect(voterWithProd.diff_last_vote_weight).to.equal(voterWithProd.diff_currency_balance);
@@ -159,7 +184,8 @@ async function validateVotes() {
     expect(voterWithAutoproxy.diff_last_vote_weight).to.equal(voterWithAutoproxy.diff_currency_balance);
 
     // global
-    //expect(diff_total_voted_fio).to.equal(voterWithProd.diff_currency_balance + proxy.diff_currency_balance + voterWithProxy.diff_currency_balance + autoproxy.diff_currency_balance + voterWithAutoproxy.diff_currency_balance);
+    // ***** This generates errors. Shows all the places where the global total_voted_fio is not updating after a transaction. *****
+    expect(diff_total_voted_fio).to.equal(voterWithProd.diff_currency_balance + proxy.diff_currency_balance + voterWithProxy.diff_currency_balance + autoproxy.diff_currency_balance + voterWithAutoproxy.diff_currency_balance);
 }
 
 
@@ -188,8 +214,9 @@ describe('************************** vote-action-tests.js **********************
   const xferTo = 2000000000000;  // 2000 FIO
   const xferFrom = 20000000000;  // 20 FIO
   const retireAmount = 1000000000000;  // 1000 FIO (min amount)
+  const initialFio = 8000000000000; // 8K FIO
 
-  describe.only('Setup: create bp1, proxy, autoproxy users', () => {
+  describe('Setup: create bp1, proxy, autoproxy users', () => {
  
     it(`Create users`, async () => {
       extraUser = await newUser(faucet);
@@ -200,13 +227,86 @@ describe('************************** vote-action-tests.js **********************
       voterWithAutoproxy = await newUser(faucet);
       otherUser = await newUser(faucet);
 
+      // Send additional FIO
+      await faucet.genericAction('pushTransaction', {
+        action: 'trnsfiopubky',
+        account: 'fio.token',
+        data: {
+            payee_public_key: bp1.publicKey,
+            amount: initialFio,
+            max_fee: config.maxFee,
+            tpid: '',
+            actor: faucet.account
+        }
+      });
+
+      await faucet.genericAction('pushTransaction', {
+        action: 'trnsfiopubky',
+        account: 'fio.token',
+        data: {
+            payee_public_key: voterWithProd.publicKey,
+            amount: initialFio,
+            max_fee: config.maxFee,
+            tpid: '',
+            actor: faucet.account
+        }
+      });
+
+      await faucet.genericAction('pushTransaction', {
+        action: 'trnsfiopubky',
+        account: 'fio.token',
+        data: {
+            payee_public_key: proxy.publicKey,
+            amount: initialFio,
+            max_fee: config.maxFee,
+            tpid: '',
+            actor: faucet.account
+        }
+      });
+
+      await faucet.genericAction('pushTransaction', {
+        action: 'trnsfiopubky',
+        account: 'fio.token',
+        data: {
+            payee_public_key: voterWithProxy.publicKey,
+            amount: initialFio,
+            max_fee: config.maxFee,
+            tpid: '',
+            actor: faucet.account
+        }
+      });
+
+      await faucet.genericAction('pushTransaction', {
+        action: 'trnsfiopubky',
+        account: 'fio.token',
+        data: {
+            payee_public_key: autoproxy.publicKey,
+            amount: initialFio,
+            max_fee: config.maxFee,
+            tpid: '',
+            actor: faucet.account
+        }
+      });
+
+      await faucet.genericAction('pushTransaction', {
+        action: 'trnsfiopubky',
+        account: 'fio.token',
+        data: {
+            payee_public_key: voterWithAutoproxy.publicKey,
+            amount: initialFio,
+            max_fee: config.maxFee,
+            tpid: '',
+            actor: faucet.account
+        }
+      });
+
       // Consume all bundles so fees are used for every transaction
-      // if (consumeBundles) await consumeRemainingBundles(voterWithProd, extraUser);
-      // if (consumeBundles) await consumeRemainingBundles(proxy, extraUser);
-      // if (consumeBundles) await consumeRemainingBundles(voterWithProxy, extraUser);
-      // if (consumeBundles) await consumeRemainingBundles(autoproxy, extraUser);
-      // if (consumeBundles) await consumeRemainingBundles(voterWithAutoproxy, extraUser);
-      // if (consumeBundles) await consumeRemainingBundles(bp1, extraUser);
+      if (consumeBundles) await consumeRemainingBundles(voterWithProd, extraUser);
+      if (consumeBundles) await consumeRemainingBundles(proxy, extraUser);
+      if (consumeBundles) await consumeRemainingBundles(voterWithProxy, extraUser);
+      if (consumeBundles) await consumeRemainingBundles(autoproxy, extraUser);
+      if (consumeBundles) await consumeRemainingBundles(voterWithAutoproxy, extraUser);
+      if (consumeBundles) await consumeRemainingBundles(bp1, extraUser);
     })
   
     it(`Wait a few seconds.`, async () => { await timeout(3000) })
@@ -253,7 +353,8 @@ describe('************************** vote-action-tests.js **********************
       voterWithProd.last_vote_weight = await getAccountVoteWeight(voterWithProd.account);
       voterWithProd.diff_last_vote_weight = voterWithProd.last_vote_weight - voterWithProd_prev_last_vote_weight;
       const voterWithProd_prev_currency_balance = voterWithProd.currency_balance;
-      voterWithProd.currency_balance = await getCurrencyBalance(voterWithProd.account) * 1000000000;
+      //voterWithProd.currency_balance = await getCurrencyBalance(voterWithProd.account) * 1000000000;
+      voterWithProd.currency_balance = await getCurrencyBalanceSufs(voterWithProd.account);
       voterWithProd.diff_currency_balance = voterWithProd.currency_balance - voterWithProd_prev_currency_balance;
 
       expect(bp1.diff_total_votes).to.equal(voterWithProd.diff_last_vote_weight);
@@ -312,7 +413,7 @@ describe('************************** vote-action-tests.js **********************
       proxy.diff_last_vote_weight = proxy.last_vote_weight - proxy_prev_last_vote_weight;
       proxy.diff_proxied_vote_weight = proxy.proxied_vote_weight - proxy_prev_proxied_vote_weight;
       const proxy_prev_currency_balance = proxy.currency_balance;
-      proxy.currency_balance = await getCurrencyBalance(proxy.account) * 1000000000;
+      proxy.currency_balance = await getCurrencyBalanceSufs(proxy.account);
       proxy.diff_currency_balance = proxy.currency_balance - proxy_prev_currency_balance;
 
       expect(bp1.diff_total_votes).to.equal(proxy.diff_last_vote_weight);
@@ -356,17 +457,17 @@ describe('************************** vote-action-tests.js **********************
       proxy.diff_last_vote_weight = proxy.last_vote_weight - proxy_prev_last_vote_weight;
       proxy.diff_proxied_vote_weight = proxy.proxied_vote_weight - proxy_prev_proxied_vote_weight;
       const proxy_prev_currency_balance = proxy.currency_balance;
-      proxy.currency_balance = await getCurrencyBalance(proxy.account) * 1000000000;
+      proxy.currency_balance = await getCurrencyBalanceSufs(proxy.account);
       proxy.diff_currency_balance = proxy.currency_balance - proxy_prev_currency_balance;
 
-      //proxy.currency_balance = await getCurrencyBalance(proxy.account);
+      //proxy.currency_balance = await getCurrencyBalanceSufs(proxy.account);
 
       // voterWithProxy
       const voterWithProxy_prev_last_vote_weight = voterWithProxy.last_vote_weight;
       voterWithProxy.last_vote_weight = await getAccountVoteWeight(voterWithProxy.account);
       voterWithProxy.diff_last_vote_weight = voterWithProxy.last_vote_weight - voterWithProxy_prev_last_vote_weight;
       const voterWithProxy_prev_currency_balance = voterWithProxy.currency_balance;
-      voterWithProxy.currency_balance = await getCurrencyBalance(voterWithProxy.account) * 1000000000;
+      voterWithProxy.currency_balance = await getCurrencyBalanceSufs(voterWithProxy.account);
       voterWithProxy.diff_currency_balance = voterWithProxy.currency_balance - voterWithProxy_prev_currency_balance;
   
       expect(bp1.diff_total_votes).to.equal(voterWithProxy.diff_last_vote_weight);
@@ -435,7 +536,7 @@ describe('************************** vote-action-tests.js **********************
       autoproxy.diff_last_vote_weight = autoproxy.last_vote_weight - autoproxy_prev_last_vote_weight;
       autoproxy.diff_proxied_vote_weight = autoproxy.proxied_vote_weight - autoproxy_prev_proxied_vote_weight;
       const autoproxy_prev_currency_balance = autoproxy.currency_balance;
-      autoproxy.currency_balance = await getCurrencyBalance(autoproxy.account) * 1000000000;
+      autoproxy.currency_balance = await getCurrencyBalanceSufs(autoproxy.account);
       autoproxy.diff_currency_balance = autoproxy.currency_balance - autoproxy_prev_currency_balance;
 
       // Producer
@@ -498,7 +599,7 @@ describe('************************** vote-action-tests.js **********************
       autoproxy.diff_last_vote_weight = autoproxy.last_vote_weight - autoproxy_prev_last_vote_weight;
       autoproxy.diff_proxied_vote_weight = autoproxy.proxied_vote_weight - autoproxy_prev_proxied_vote_weight;
       const autoproxy_prev_currency_balance = autoproxy.currency_balance;
-      autoproxy.currency_balance = await getCurrencyBalance(autoproxy.account) * 1000000000;
+      autoproxy.currency_balance = await getCurrencyBalanceSufs(autoproxy.account);
       autoproxy.diff_currency_balance = autoproxy.currency_balance - autoproxy_prev_currency_balance;
 
       // voterWithAutoproxy
@@ -506,7 +607,7 @@ describe('************************** vote-action-tests.js **********************
       voterWithAutoproxy.last_vote_weight = await getAccountVoteWeight(voterWithAutoproxy.account);
       voterWithAutoproxy.diff_last_vote_weight = voterWithAutoproxy.last_vote_weight - voterWithAutoproxy_prev_last_vote_weight;
       const voterWithAutoproxy_prev_currency_balance = voterWithAutoproxy.currency_balance;
-      voterWithAutoproxy.currency_balance = await getCurrencyBalance(voterWithAutoproxy.account) * 1000000000;
+      voterWithAutoproxy.currency_balance = await getCurrencyBalanceSufs(voterWithAutoproxy.account);
       voterWithAutoproxy.diff_currency_balance = voterWithAutoproxy.currency_balance - voterWithAutoproxy_prev_currency_balance;
 
       // console.log('voterWithAutoproxy.last_vote_weight: ', voterWithAutoproxy.last_vote_weight)
@@ -523,6 +624,7 @@ describe('************************** vote-action-tests.js **********************
     
   });  // end Setup
 
+  
   describe('fio.token actions', () => {
     const dur1 = 120;
     const dur2 = 240;
@@ -854,7 +956,7 @@ describe('************************** vote-action-tests.js **********************
         }
       }); 
 
-      it(`token.trnsfiopubky (voterWithProxy) - Transfer from voterWithProxy`, async () => {
+      it(`token.trnsfiopubky (voterWithProxy) - Transfer from voterWithProxy to faucet`, async () => {
         try {
             const result = await voterWithProxy.sdk.genericAction('pushTransaction', {
                 action: 'trnsfiopubky',
@@ -954,17 +1056,17 @@ describe('************************** vote-action-tests.js **********************
         }
       }); 
 
-      it(`token.trnsfiopubky (voterWithAutoproxy) - Transferfrom faucet to voterWithAutoproxy`, async () => {
+      it(`token.trnsfiopubky (autoproxy) - Transfer from autoproxy`, async () => {
         try {
-            const result = await faucet.genericAction('pushTransaction', {
+            const result = await autoproxy.sdk.genericAction('pushTransaction', {
                 action: 'trnsfiopubky',
                 account: 'fio.token',
                 data: {
-                    payee_public_key: voterWithAutoproxy.publicKey,
+                    payee_public_key: faucet.publicKey,
                     amount: xferTo,
                     max_fee: config.maxFee,
                     tpid: '',
-                    actor: faucet.account
+                    actor: autoproxy.account
                 }
             });
             expect(result.status).to.equal('OK');
@@ -1035,17 +1137,16 @@ describe('************************** vote-action-tests.js **********************
 
     describe('voterWithAutoproxy', () => {
 
-      it(`token.trnsfiopubky (autoproxy) - Transfer from autoproxy`, async () => {
+      it(`token.trnsfiopubky (voterWithAutoproxy) - Transfer from faucet to voterWithAutoproxy`, async () => {
         try {
-            const result = await autoproxy.sdk.genericAction('pushTransaction', {
+            const result = await faucet.genericAction('pushTransaction', {
                 action: 'trnsfiopubky',
                 account: 'fio.token',
                 data: {
-                    payee_public_key: faucet.publicKey,
+                    payee_public_key: voterWithAutoproxy.publicKey,
                     amount: xferFrom,
                     max_fee: config.maxFee,
                     tpid: '',
-                    actor: autoproxy.account
                 }
             });
             expect(result.status).to.equal('OK');
@@ -6903,7 +7004,7 @@ describe('************************** vote-action-tests.js **********************
   }); // fio.treasury
 
 
-  describe.only('fio.escrow actions', () => {
+  describe('fio.escrow actions', () => {
 
     describe('marketplace owner', () => {
       const MARKETPLACE_PRIV_KEY = '5KePj5qMF7xvXZwY4Tnxy7KbDCdUe7cyZtYv2rsTgaZ7LBuVpUc';
