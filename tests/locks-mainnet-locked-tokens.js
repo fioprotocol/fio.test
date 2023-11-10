@@ -1888,7 +1888,7 @@ describe(`H. (BD-2632, BD-2759) Verify get_fio_balance returns accurate balance 
 
 });
 
-describe.only(`I  Voting power test for type 1 locks.`, () => {
+describe(`I  Voting power test for type 1 locks.`, () => {
 
   let locksdktype1, locksdktype2, keys1, keys2, accountnm1, accountnm2, transfer_tokens_pub_key_fee
   const lockAmount1 = 12345000000000;
@@ -2132,7 +2132,7 @@ describe.only(`I  Voting power test for type 1 locks.`, () => {
 
 });
 
-describe.only(`J  Voting power test for type 2 locks.`, () => {
+describe(`J  Voting power test for type 2 locks.`, () => {
 
   let locksdktype1, locksdktype2, keys1, keys2, accountnm1, accountnm2, transfer_tokens_pub_key_fee
   const lockAmount1 = 12345000000000;
