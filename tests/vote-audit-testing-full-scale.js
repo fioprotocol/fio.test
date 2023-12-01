@@ -277,7 +277,7 @@ describe.skip(`Initialize blockchain server for local dev testing`, () => {
 
 })
 
-describe.skip(`Initialize blockchain server for AWS dev testing`, () => {
+describe.skip(`Initialize blockchain server for dev testing on AWS hosted dev platform. 1 previous proxy, 3 active proxies`, () => {
 
   let accountA, accountB, accountC, accountD, accountE, accountF, accountG,total_voted_fio, start_bp_votes, proxied_weightC, proxied_weightB,  total_bp_votes,regproxyfee
 
@@ -303,9 +303,7 @@ describe.skip(`Initialize blockchain server for AWS dev testing`, () => {
   // set account 0 proxied vote weight to be big value,
   //set account 11 proxied vote wiehgt to be big value, set last vote weight also big
   //set account 32 proxied vote weight to large neg number, set last vote wieght large neg number.
-
-
-
+  //this test sets a few proxies with errant voting data, this is a minimal dev test for the audit machine.
   it(`Initialize blockchain with voting proxies, and auto proxy participants, store account info to ../edscripts/eddiefile.csv`, async () => {
 
     const fs = require('fs');
@@ -399,7 +397,6 @@ describe.skip(`Initialize blockchain server for AWS dev testing`, () => {
       expect(err).to.equal(null)
     }
 
-    console.log("EDEDEDEDEDEDEDEDEDEDEDEDEDED set vote weight");
 
       try {
         const result = await accountB.sdk.genericAction('pushTransaction', {
@@ -523,7 +520,6 @@ describe.skip(`Initialize blockchain server for AWS dev testing`, () => {
       expect(err).to.equal(null)
     }
 
-    console.log("EDEDEDEDEDEDEDEDEDEDEDEDEDED set vote weight");
 
     try {
       const result = await accountB.sdk.genericAction('pushTransaction', {
@@ -629,7 +625,6 @@ describe.skip(`Initialize blockchain server for AWS dev testing`, () => {
       expect(err).to.equal(null)
     }
 
-    console.log("EDEDEDEDEDEDEDEDEDEDEDEDEDED set vote weight");
 
     try {
       const result = await accountB.sdk.genericAction('pushTransaction', {
@@ -655,21 +650,12 @@ describe.skip(`Initialize blockchain server for AWS dev testing`, () => {
 
 })
 
-describe.only(`call auditvote 50 time.`, () => {
+describe.skip(`call auditvote 50 times.`, () => {
 
-  let accountA, accountB, accountC, accountD, accountE, accountF, accountG,total_voted_fio, start_bp_votes, proxied_weightC, proxied_weightB,  total_bp_votes,regproxyfee
-
-  let auditphase;
-  //let accountfilename = '../edscripts/votingAccounts.csv';
+  let accountA
 
   it(`Create users`, async () => {
     accountA = await newUser(faucet);
-    accountB = await newUser(faucet);
-    accountC = await newUser(faucet);
-    accountD = await newUser(faucet);
-    accountE = await newUser(faucet);
-    accountF = await newUser(faucet);
-    accountG = await newUser(faucet);
   })
 
 
@@ -686,8 +672,6 @@ describe.only(`call auditvote 50 time.`, () => {
           }
         })
         console.log('Result: ', result)
-        //expect(result.status).to.equal('OK')
-        // expect(result.audit_phase).to.equal('2')
         auditphase = result.audit_phase;
 
         await timeout(1000);
@@ -706,16 +690,13 @@ describe.only(`call auditvote 50 time.`, () => {
 
 })
 
-
-
-
-describe.skip(`Initialize blockchain server with only producer[] and producers voted test data`, () => {
+describe.skip(`Initialize blockchain server with all flavors of test data 11 voting accounts`, () => {
 
   let accountA, accountB, accountC, accountD, accountE, accountF, accountG,total_voted_fio, start_bp_votes, proxied_weightC, proxied_weightB,  total_bp_votes,regproxyfee
 
   let accountfilename = '../edscripts/votingAccounts.csv';
   /*
-  make voters for all of these scenarios...
+  make voters for all of these flavors/scenarios...
 
 
   1. Non proxy non auto proxy Voting account has last vote weight less than actual voting weight.
@@ -1518,12 +1499,7 @@ describe.skip(`Initialize blockchain server with only producer[] and producers v
 
 })
 
-
-
-
-
-
-describe.skip(`Initialize blockchain server for ops data centric testing`, () => {
+describe.skip(`Initialize blockchain server for full scale testing of audit machine, over 2k voting accounts plus all flavors`, () => {
 
   let accountA, accountB, accountC, accountD, accountE, accountF, accountG,total_voted_fio, start_bp_votes, proxied_weightC, proxied_weightB,  total_bp_votes,regproxyfee
 
@@ -3867,402 +3843,11 @@ describe.skip(`Initialize blockchain server for ops data centric testing`, () =>
 
 })
 
-
-
-
-
-describe.skip(`Initialize blockchain server for scaled vote power testing`, () => {
-
-  let accountA, accountB, accountC, accountD, accountE, accountF, accountG, total_voted_fio, start_bp_votes,
-      proxied_weightC, proxied_weightB, total_bp_votes, regproxyfee
-
-  let accountfilename = '../edscripts/votingAccounts.csv';
-
-  it(`Create users`, async () => {
-    accountA = await newUser(faucet); //proxy.
-    accountB = await newUser(faucet); //auto proxy 1 300k ++ fio
-    accountC = await newUser(faucet); //auto proxy 2 13 fio
-    accountD = await newUser(faucet); //auto proxy 3 0 fio
-    accountE = await newUser(faucet);
-    accountF = await newUser(faucet);
-    accountG = await newUser(faucet);
-  })
-
-
-  it(`Initialize blockchain with voting proxies, and auto proxy participants, store account info to ../edscripts/eddiefile.csv`, async () => {
-
-    const fs = require('fs');
-    if (fs.existsSync(accountfilename)) {
-      fs.unlinkSync(accountfilename)
-    }
-
-    ///////////first account 1123 proxy participants
-
-    accountA = await newUser(faucet);
-
-
-    try {
-      const result = await accountA.sdk.genericAction('pushTransaction', {
-        action: 'regproxy',
-        account: 'eosio',
-        data: {
-          fio_address: accountA.address,
-          actor: accountA.account,
-          max_fee: config.api.register_proxy.fee
-        }
-      })
-      //console.log('Result: ', result)
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-      console.log('Error: ', err.json)
-      expect(err).to.equal('null')
-    }
-
-    await appendCommentAccountFile(accountfilename, "# first proxy has 1123 participating accounts");
-    await appendAccountFile(accountfilename, accountA);
-
-    await timeout(5000);
-
-    try {
-      const result = await accountA.sdk.genericAction('pushTransaction', {
-        action: 'voteproducer',
-        account: 'eosio',
-        data: {
-          "producers": [
-            'bp1@dapixdev'
-          ],
-          fio_address: accountA.address,
-          actor: accountA.account,
-          max_fee: config.api.vote_producer.fee
-        }
-      })
-      //console.log('Result: ', result)
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-      console.log('Error: ', err.json)
-      expect(err).to.equal('null')
-    }
-
-
-    for (let numits = 0; numits < 1123; numits++) {
-
-      console.log("making proxy1 participant ", numits);
-      accountB = await newUser(faucet);
-      await accountB.sdk.genericAction('pushTransaction', {
-        action: 'trnsfiopubky',
-        account: 'fio.token',
-        data: {
-          payee_public_key: accountF.publicKey,
-          amount: 1700000000000,
-          max_fee: config.maxFee,
-          actor: accountB.account,
-          tpid: accountA.address
-        }
-      });
-
-      await appendAccountFile(accountfilename, accountB);
-
-
-    } //end for loop
-
-    ///////////second account 342 participants
-
-
-    accountA = await newUser(faucet);
-
-    await appendAccountFile(accountfilename, accountA);
-
-    try {
-      const result = await accountA.sdk.genericAction('pushTransaction', {
-        action: 'regproxy',
-        account: 'eosio',
-        data: {
-          fio_address: accountA.address,
-          actor: accountA.account,
-          max_fee: config.api.register_proxy.fee
-        }
-      })
-      //console.log('Result: ', result)
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-      console.log('Error: ', err.json)
-      expect(err).to.equal('null')
-    }
-
-    await timeout(5000);
-
-    try {
-      const result = await accountA.sdk.genericAction('pushTransaction', {
-        action: 'voteproducer',
-        account: 'eosio',
-        data: {
-          "producers": [
-            'bp1@dapixdev'
-          ],
-          fio_address: accountA.address,
-          actor: accountA.account,
-          max_fee: config.api.vote_producer.fee
-        }
-      })
-      //console.log('Result: ', result)
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-      console.log('Error: ', err.json)
-      expect(err).to.equal('null')
-    }
-
-
-    for (let numits = 0; numits < 342; numits++) {
-
-      console.log("making proxy2 participant ", numits);
-      accountB = await newUser(faucet);
-      await accountB.sdk.genericAction('pushTransaction', {
-        action: 'trnsfiopubky',
-        account: 'fio.token',
-        data: {
-          payee_public_key: accountF.publicKey,
-          amount: 1700000000000,
-          max_fee: config.maxFee,
-          actor: accountB.account,
-          tpid: accountA.address
-        }
-      });
-      await appendAccountFile(accountfilename, accountB);
-
-
-    } //end for loop
-
-    ////////////third account 245 participants
-
-    accountA = await newUser(faucet);
-
-    await appendAccountFile(accountfilename, accountA);
-    try {
-      const result = await accountA.sdk.genericAction('pushTransaction', {
-        action: 'regproxy',
-        account: 'eosio',
-        data: {
-          fio_address: accountA.address,
-          actor: accountA.account,
-          max_fee: config.api.register_proxy.fee
-        }
-      })
-      //console.log('Result: ', result)
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-      console.log('Error: ', err.json)
-      expect(err).to.equal('null')
-    }
-
-    await timeout(5000);
-
-    try {
-      const result = await accountA.sdk.genericAction('pushTransaction', {
-        action: 'voteproducer',
-        account: 'eosio',
-        data: {
-          "producers": [
-            'bp1@dapixdev'
-          ],
-          fio_address: accountA.address,
-          actor: accountA.account,
-          max_fee: config.api.vote_producer.fee
-        }
-      })
-      //console.log('Result: ', result)
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-      console.log('Error: ', err.json)
-      expect(err).to.equal('null')
-    }
-
-
-    for (let numits = 0; numits < 245; numits++) {
-
-      console.log("making proxy3 participant ", numits);
-      accountB = await newUser(faucet);
-      await accountB.sdk.genericAction('pushTransaction', {
-        action: 'trnsfiopubky',
-        account: 'fio.token',
-        data: {
-          payee_public_key: accountF.publicKey,
-          amount: 1700000000000,
-          max_fee: config.maxFee,
-          actor: accountB.account,
-          tpid: accountA.address
-        }
-      });
-      await appendAccountFile(accountfilename, accountB);
-
-    } //end for loop
-
-    ///////////fourth account 95 participants
-
-
-    accountA = await newUser(faucet);
-
-    await appendAccountFile(accountfilename, accountA);
-    try {
-      const result = await accountA.sdk.genericAction('pushTransaction', {
-        action: 'regproxy',
-        account: 'eosio',
-        data: {
-          fio_address: accountA.address,
-          actor: accountA.account,
-          max_fee: config.api.register_proxy.fee
-        }
-      })
-      //console.log('Result: ', result)
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-      console.log('Error: ', err.json)
-      expect(err).to.equal('null')
-    }
-
-    await timeout(5000);
-
-    try {
-      const result = await accountA.sdk.genericAction('pushTransaction', {
-        action: 'voteproducer',
-        account: 'eosio',
-        data: {
-          "producers": [
-            'bp1@dapixdev'
-          ],
-          fio_address: accountA.address,
-          actor: accountA.account,
-          max_fee: config.api.vote_producer.fee
-        }
-      })
-      //console.log('Result: ', result)
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-      console.log('Error: ', err.json)
-      expect(err).to.equal('null')
-    }
-
-
-    for (let numits = 0; numits < 95; numits++) {
-
-      console.log("making proxy4 participant ", numits);
-      accountB = await newUser(faucet);
-      await accountB.sdk.genericAction('pushTransaction', {
-        action: 'trnsfiopubky',
-        account: 'fio.token',
-        data: {
-          payee_public_key: accountF.publicKey,
-          amount: 1700000000000,
-          max_fee: config.maxFee,
-          actor: accountB.account,
-          tpid: accountA.address
-        }
-      });
-
-      await appendAccountFile(accountfilename, accountB);
-    } //end for loop
-
-
-    ///////////////next make 17 accounts each with 15 participants
-
-    for (let cnt = 0; cnt < 17; cnt++) {
-      accountA = await newUser(faucet);
-      await appendAccountFile(accountfilename, accountA);
-
-
-      try {
-        const result = await accountA.sdk.genericAction('pushTransaction', {
-          action: 'regproxy',
-          account: 'eosio',
-          data: {
-            fio_address: accountA.address,
-            actor: accountA.account,
-            max_fee: config.api.register_proxy.fee
-          }
-        })
-        //console.log('Result: ', result)
-        expect(result.status).to.equal('OK')
-      } catch (err) {
-        console.log('Error: ', err.json)
-        expect(err).to.equal('null')
-      }
-
-      await timeout(5000);
-
-      try {
-        const result = await accountA.sdk.genericAction('pushTransaction', {
-          action: 'voteproducer',
-          account: 'eosio',
-          data: {
-            "producers": [
-              'bp1@dapixdev'
-            ],
-            fio_address: accountA.address,
-            actor: accountA.account,
-            max_fee: config.api.vote_producer.fee
-          }
-        })
-        //console.log('Result: ', result)
-        expect(result.status).to.equal('OK')
-      } catch (err) {
-        console.log('Error: ', err.json)
-        expect(err).to.equal('null')
-      }
-
-
-      for (let numits = 0; numits < 15; numits++) {
-
-        console.log("making proxy" + cnt + " participant ", numits);
-        accountB = await newUser(faucet);
-        await accountB.sdk.genericAction('pushTransaction', {
-          action: 'trnsfiopubky',
-          account: 'fio.token',
-          data: {
-            payee_public_key: accountF.publicKey,
-            amount: 1700000000000,
-            max_fee: config.maxFee,
-            actor: accountB.account,
-            tpid: accountA.address
-          }
-        });
-        await appendAccountFile(accountfilename, accountB);
-
-      } //end for loop
-
-    }
-
-
-    /*
-
-     try {
-       // let accountA = await newUser(faucet);
-
-       const result = await accountA.sdk.genericAction('pushTransaction', {
-         action: 'setvoting',
-         account: 'eosio',
-         data: {
-           proxiedweight: 1970,
-           lastvoteweight: 30,
-           voteracct: accountA.account
-         }
-       })
-       console.log('Result: ', result)
-       // expect(result.status).to.equal('OK')
-     } catch (err) {
-       console.log('Error: ', err.json)
-       expect(err).to.equal('null')
-     }
-
-
- */
-
-  })
-})
-
-describe.skip(`audit machine dev testing. check audit phase transitions`, () => {
+describe.only(`audit machine dev testing. minimal dev test check audit phase transitions`, () => {
 
   let accountA, accountB, accountC, accountD, accountE, accountF, accountG,total_voted_fio, start_bp_votes, proxied_weightC, proxied_weightB,  total_bp_votes,regproxyfee
 
-  //let accountfilename = '../edscripts/votingAccounts.csv';
+  //NOTE -- this test assumes a server is set with just a few voters and nothing more
 
   it(`Create users`, async () => {
     accountA = await newUser(faucet);
@@ -4274,6 +3859,27 @@ describe.skip(`audit machine dev testing. check audit phase transitions`, () => 
     accountG = await newUser(faucet);
   })
 
+
+  it(`call voteproxy, verify reset`, async () => {
+
+    try {
+      const result = await accountB.sdk.genericAction('pushTransaction', {
+        action: 'regproxy',
+        account: 'eosio',
+        data: {
+          fio_address: accountB.address,
+          actor: accountB.account,
+          max_fee: config.api.register_proxy.fee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json)
+      expect(err).to.equal('null')
+    }
+
+  })
 
 
   it(`call auditvote, verify phase 1`, async () => {
@@ -4424,7 +4030,7 @@ describe.skip(`audit machine dev testing. check audit phase transitions`, () => 
 
 })
 
-describe.skip(`vote proxy audit reset testing.`, () => {
+describe.only(`vote proxy audit reset dev testing.`, () => {
 
   let accountA, accountB, accountC, accountD, accountE, accountF, accountG,total_voted_fio, start_bp_votes, proxied_weightC, proxied_weightB,  total_bp_votes,regproxyfee
 
@@ -4541,11 +4147,11 @@ describe.skip(`vote proxy audit reset testing.`, () => {
 
 
     try {
-      const result = await accountA.sdk.genericAction('pushTransaction', {
+      const result = await accountB.sdk.genericAction('pushTransaction', {
         action: 'auditvote',
         account: 'eosio',
         data: {
-          actor: accountA.account,
+          actor: accountB.account,
           max_fee: config.api.register_proxy.fee +3
         }
       })
@@ -4589,7 +4195,7 @@ describe.skip(`vote proxy audit reset testing.`, () => {
 
 })
 
-describe.skip(`vote producer audit reset testing.`, () => {
+describe.only(`vote producer audit reset dev testing.`, () => {
 
   let accountA, accountB, accountC, accountD, accountE, accountF, accountG,total_voted_fio, start_bp_votes, proxied_weightC, proxied_weightB,  total_bp_votes,regproxyfee
 
@@ -4709,11 +4315,11 @@ describe.skip(`vote producer audit reset testing.`, () => {
 
 
     try {
-      const result = await accountA.sdk.genericAction('pushTransaction', {
+      const result = await accountB.sdk.genericAction('pushTransaction', {
         action: 'auditvote',
         account: 'eosio',
         data: {
-          actor: accountA.account,
+          actor: accountB.account,
           max_fee: config.api.register_proxy.fee +3
         }
       })
@@ -4757,7 +4363,7 @@ describe.skip(`vote producer audit reset testing.`, () => {
 
 })
 
-describe.skip(`register producer audit reset testing.`, () => {
+describe.skip(`register producer audit reset  dev testing.`, () => {
 
   let accountA, accountB, accountC, accountD, accountE, accountF, accountG,total_voted_fio, start_bp_votes, proxied_weightC, proxied_weightB,  total_bp_votes,regproxyfee
 
@@ -4874,11 +4480,11 @@ describe.skip(`register producer audit reset testing.`, () => {
 
 
     try {
-      const result = await accountA.sdk.genericAction('pushTransaction', {
+      const result = await accountB.sdk.genericAction('pushTransaction', {
         action: 'auditvote',
         account: 'eosio',
         data: {
-          actor: accountA.account,
+          actor: accountB.account,
           max_fee: config.api.register_proxy.fee +3
         }
       })
@@ -4922,7 +4528,7 @@ describe.skip(`register producer audit reset testing.`, () => {
 
 })
 
-describe.skip(`unregister producer audit reset testing.`, () => {
+describe.only(`unregister producer audit reset dev testing.`, () => {
 
   let accountA, accountB, accountC, accountD, accountE, accountF, accountG,total_voted_fio, start_bp_votes, proxied_weightC, proxied_weightB,  total_bp_votes,regproxyfee
 
@@ -5039,11 +4645,11 @@ describe.skip(`unregister producer audit reset testing.`, () => {
 
 
     try {
-      const result = await accountA.sdk.genericAction('pushTransaction', {
+      const result = await accountB.sdk.genericAction('pushTransaction', {
         action: 'auditvote',
         account: 'eosio',
         data: {
-          actor: accountA.account,
+          actor: accountB.account,
           max_fee: config.api.register_proxy.fee +3
         }
       })
@@ -5132,11 +4738,11 @@ describe.skip(`unregister producer audit reset testing.`, () => {
 
 
     try {
-      const result = await accountA.sdk.genericAction('pushTransaction', {
+      const result = await accountC.sdk.genericAction('pushTransaction', {
         action: 'auditvote',
         account: 'eosio',
         data: {
-          actor: accountA.account,
+          actor: accountC.account,
           max_fee: config.api.register_proxy.fee +3
         }
       })
@@ -5180,7 +4786,7 @@ describe.skip(`unregister producer audit reset testing.`, () => {
 
 })
 
-describe.skip(`transfer fio, sender is in voters table reset testing.`, () => {
+describe.skip(`transfer fio, sender is in voters table reset dev testing.`, () => {
 
   let accountA, accountB, accountC, accountD, accountE, accountF, accountG,total_voted_fio, start_bp_votes, proxied_weightC, proxied_weightB,  total_bp_votes,regproxyfee
 
@@ -5275,11 +4881,11 @@ describe.skip(`transfer fio, sender is in voters table reset testing.`, () => {
 
 
     try {
-      const result = await accountA.sdk.genericAction('pushTransaction', {
+      const result = await accountB.sdk.genericAction('pushTransaction', {
         action: 'auditvote',
         account: 'eosio',
         data: {
-          actor: accountA.account,
+          actor: accountB.account,
           max_fee: config.api.register_proxy.fee +3
         }
       })
@@ -5370,11 +4976,11 @@ describe.skip(`transfer fio, sender is in voters table reset testing.`, () => {
 
 
     try {
-      const result = await accountA.sdk.genericAction('pushTransaction', {
+      const result = await accountB.sdk.genericAction('pushTransaction', {
         action: 'auditvote',
         account: 'eosio',
         data: {
-          actor: accountA.account,
+          actor: accountB.account,
           max_fee: config.api.register_proxy.fee +1
         }
       })
@@ -5418,7 +5024,7 @@ describe.skip(`transfer fio, sender is in voters table reset testing.`, () => {
 
 })
 
-describe.skip(`transfer fio, receiver is in voters table reset testing.`, () => {
+describe.only(`transfer fio, receiver is in voters table reset dev testing.`, () => {
 
   let accountA, accountB, accountC, accountD, accountE, accountF, accountG,total_voted_fio, start_bp_votes, proxied_weightC, proxied_weightB,  total_bp_votes,regproxyfee
 
@@ -5656,7 +5262,7 @@ describe.skip(`transfer fio, receiver is in voters table reset testing.`, () => 
 
 })
 
-describe.skip(`transfer locked fio, receiver is in voters table reset testing.`, () => {
+describe.only(`transfer locked fio, receiver is in voters table reset dev testing.`, () => {
 
   let accountA, accountB, accountC, accountD, accountE, accountF, accountG,total_voted_fio, start_bp_votes, proxied_weightC, proxied_weightB,  total_bp_votes,regproxyfee
 
@@ -5906,7 +5512,7 @@ describe.skip(`transfer locked fio, receiver is in voters table reset testing.`,
 
 })
 
-describe.skip(`transfer locked fio, sender is in voters table reset testing.`, () => {
+describe.skip(`transfer locked fio, sender is in voters table reset dev testing.`, () => {
 
   let accountA, accountB, accountC, accountD, accountE, accountF, accountG,total_voted_fio, start_bp_votes, proxied_weightC, proxied_weightB,  total_bp_votes,regproxyfee
 
@@ -6001,11 +5607,11 @@ describe.skip(`transfer locked fio, sender is in voters table reset testing.`, (
 
 
     try {
-      const result = await accountA.sdk.genericAction('pushTransaction', {
+      const result = await accountB.sdk.genericAction('pushTransaction', {
         action: 'auditvote',
         account: 'eosio',
         data: {
-          actor: accountA.account,
+          actor: accountB.account,
           max_fee: config.api.register_proxy.fee +3
         }
       })
@@ -6108,11 +5714,11 @@ describe.skip(`transfer locked fio, sender is in voters table reset testing.`, (
 
 
     try {
-      const result = await accountA.sdk.genericAction('pushTransaction', {
+      const result = await accountB.sdk.genericAction('pushTransaction', {
         action: 'auditvote',
         account: 'eosio',
         data: {
-          actor: accountA.account,
+          actor: accountB.account,
           max_fee: config.api.register_proxy.fee +1
         }
       })
@@ -6156,7 +5762,7 @@ describe.skip(`transfer locked fio, sender is in voters table reset testing.`, (
 
 })
 
-describe.skip(`register fio address,  mandatory fee (test transfer) sender is in voters table reset testing.`, () => {
+describe.only(`register fio address,  mandatory fee (test transfer) sender is in voters table reset dev testing.`, () => {
 
   let accountA, accountB, accountC, accountD, accountE, accountF, accountG,total_voted_fio, start_bp_votes, proxied_weightC, proxied_weightB,  total_bp_votes,regproxyfee
 
@@ -6251,11 +5857,11 @@ describe.skip(`register fio address,  mandatory fee (test transfer) sender is in
 
 
     try {
-      const result = await accountA.sdk.genericAction('pushTransaction', {
+      const result = await accountB.sdk.genericAction('pushTransaction', {
         action: 'auditvote',
         account: 'eosio',
         data: {
-          actor: accountA.account,
+          actor: accountB.account,
           max_fee: config.api.register_proxy.fee +3
         }
       })
@@ -6349,11 +5955,11 @@ describe.skip(`register fio address,  mandatory fee (test transfer) sender is in
 
 
     try {
-      const result = await accountA.sdk.genericAction('pushTransaction', {
+      const result = await accountB.sdk.genericAction('pushTransaction', {
         action: 'auditvote',
         account: 'eosio',
         data: {
-          actor: accountA.account,
+          actor: accountB.account,
           max_fee: config.api.register_proxy.fee +1
         }
       })
