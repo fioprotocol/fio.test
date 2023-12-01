@@ -677,7 +677,7 @@ async function appendCommentAccountFile(accountFile, commentstr) {
     return new Promise(function (appendfile, reject) {
         try {
             if(commentstr.startsWith('#',0)) {
-                require('fs').appendFileSync(accountFile, commenststr  +
+                require('fs').appendFileSync(accountFile, commentstr  +
                     '\r\n', 'utf-8', err => {
                     if (err) {
                         throw err;
