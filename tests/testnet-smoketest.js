@@ -13,10 +13,13 @@ const {
   newUser, 
   existingUser, 
   createKeypair, 
-  callFioApi, 
+  callFioApi,
+    getProdVoteTotal,
   stringToHash, 
   getAccountFromKey,
-  fetchJson 
+  fetchJson,
+  generateFioDomain,
+  generateFioAddress
 } = require('../utils.js');
 const config = require('../config.js');
 const { EndPoint } = require('@fioprotocol/fiosdk/lib/entities/EndPoint');
@@ -26,20 +29,23 @@ let privateKey, publicKey, testFioAddressName, privateKey2, publicKey2, testFioA
 /**
 * Set to target = 'local' if running against devtools build. Leave blank if running against Testnet.
 */
-const target = 'local' 
+const target = ''
 
 /**
  * Set your testnet existing private/public keys and existing fioAddresses (not needed if running locally)
  */
- privateKey = '',
- publicKey = '',
- account = '',
- privateKey2 = '',
- publicKey2 = '',
- account2 = '',
- testFioDomain = '',
- testFioAddressName = '',
- testFioAddressName2 = ''
+
+
+
+privateKey = '',
+    publicKey = '',
+    account = '',
+    privateKey2 = '',
+    publicKey2 = '',
+    account2 = '',
+    testFioDomain = '',
+    testFioAddressName = '',
+    testFioAddressName2 = ''
 
 
 /**
@@ -1887,3 +1893,61 @@ describe(`FIPs 36-39`, async () => {
   });
   
 });
+
+let permission_name = "register_address_on_domain";
+
+describe(`FIP-40 addperm -- smoke test, verify addperm on chain`, () => {
+
+  /*** grantee tests **/
+  it(`FAILURE -- object name empty `, async () => {
+
+    try {
+      let result = await fioSdk.sdk.genericAction('pushTransaction', {
+        action: 'addperm',
+        account: 'fio.perms',
+        data: {
+          grantee_account: "",
+          permission_name: permission_name,
+          permission_info: "",
+          object_name:  "",
+          max_fee: config.maxFee,
+          tpid: '',
+          actor: fioSdk.account
+        }
+      });
+      expect(result.status).to.equal(null);
+    } catch (err) {
+     // console.log("Error ", err)
+     expect(err.json.fields[0].error).to.equal("Object Name is invalid.")
+    }
+  });
+
+})
+
+describe(`FIP-40 remperm -- smoke test verify remperm on chain`, () => {
+
+  /*** grantee tests **/
+  it(`FAILURE -- grantee account empty `, async () => {
+
+    try {
+      let result = await fioSdk.sdk.genericAction('pushTransaction', {
+        action: 'remperm',
+        account: 'fio.perms',
+        data: {
+          grantee_account: "",
+          permission_name: permission_name,
+          object_name:  "",
+          max_fee: config.maxFee,
+          tpid: '',
+          actor: fioSdk.account
+        }
+      });
+      expect(result.status).to.equal(null);
+    } catch (err) {
+      //console.log("Error ", err)
+      expect(err.json.fields[0].error).to.equal("Object Name is invalid.")
+    }
+  });
+
+
+})
