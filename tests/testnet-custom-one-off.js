@@ -37,9 +37,6 @@ const target = ''
 /**
  * Set your testnet existing private/public keys and existing fioAddresses (not needed if running locally)
  */
-
-
-
 privateKey = '5Jw78NzS2QMvjcyemCgJ9XQv8SMSEvTEuLxF8TcKf27xWcX5fmw',
     publicKey = 'FIO8k7N7jU9eyj57AfazGxMuvPGZG5hvXNUyxt9pBchnkXXx9KUuD',
     account = 'v2lgwcdkb5gn',
@@ -138,10 +135,6 @@ before(async () => {
   pubKeyForTransfer = 'FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS'
 })
 
-
-
-
-
 /*
 for testnet we have created 6 accounts and will use these for recursive proxy testing
 this test will be run once only on test net.
@@ -222,7 +215,6 @@ describe.skip(`set up test net accounts`, () => {
       })
       expect(result.status).to.equal('OK');
 
-
       let addaddress3 = generateFioAddress(domname, 7);
       console.log("address :",addaddress3);
       result = await accountA.genericAction('pushTransaction', {
@@ -238,9 +230,6 @@ describe.skip(`set up test net accounts`, () => {
       });
       // console.log('Result: ', result)
       expect(result.status).to.equal('OK');
-
-
-
     } catch (err) {
       console.log("ERROR :" ,err);
       throw err;
@@ -252,7 +241,6 @@ describe.skip(`set up test net accounts`, () => {
       let privkey = '5JQ9oAyLPzGw9H3mB4sPFk2hJ8wdKaRmspSCebodvpggj6AJwTW';
       let pubkey = 'FIO5A8QNKWjXxiDPv5RA4Ufcn2bmYtNVsYd47RtFssQ6jzJ1FBxgC';
       let accountnm = '321oie5zb1ls';
-
 
       accountA = new FIOSDK(privkey,pubkey,config.BASE_URL,fetchJson);
 
@@ -273,7 +261,6 @@ describe.skip(`set up test net accounts`, () => {
       })
       expect(result.status).to.equal('OK');
 
-
       let addaddress3 = generateFioAddress(domname, 7);
       console.log("address :",addaddress3);
       result = await accountA.genericAction('pushTransaction', {
@@ -289,9 +276,6 @@ describe.skip(`set up test net accounts`, () => {
       });
       // console.log('Result: ', result)
       expect(result.status).to.equal('OK');
-
-
-
     } catch (err) {
       console.log("ERROR :" ,err);
       throw err;
@@ -305,7 +289,6 @@ describe.skip(`set up test net accounts`, () => {
       let pubkey = 'FIO73yEGPu4kDuhYnEgiimcJPyzidgH8U4zwYrsN5feGGq6AeSU6k';
       let accountnm = 'wfdqqrjsq3mx';
 
-
       accountA = new FIOSDK(privkey,pubkey,config.BASE_URL,fetchJson);
 
       let domname = generateFioDomain(8);
@@ -325,7 +308,6 @@ describe.skip(`set up test net accounts`, () => {
       })
       expect(result.status).to.equal('OK');
 
-
       let addaddress3 = generateFioAddress(domname, 7);
       console.log("address :",addaddress3);
       result = await accountA.genericAction('pushTransaction', {
@@ -341,9 +323,6 @@ describe.skip(`set up test net accounts`, () => {
       });
       // console.log('Result: ', result)
       expect(result.status).to.equal('OK');
-
-
-
     } catch (err) {
       console.log("ERROR :" ,err);
       throw err;
@@ -357,7 +336,6 @@ describe.skip(`set up test net accounts`, () => {
       let pubkey = 'FIO7WNKLL9V3WE22EcrbThdFi8mZF81b1WKNYuoDqZrCSDjBB3ynN';
       let accountnm = 'svja4r4crjch';
 
-
       accountA = new FIOSDK(privkey,pubkey,config.BASE_URL,fetchJson);
 
       let domname = generateFioDomain(8);
@@ -377,7 +355,6 @@ describe.skip(`set up test net accounts`, () => {
       })
       expect(result.status).to.equal('OK');
 
-
       let addaddress3 = generateFioAddress(domname, 7);
       console.log("address :",addaddress3);
       result = await accountA.genericAction('pushTransaction', {
@@ -393,9 +370,6 @@ describe.skip(`set up test net accounts`, () => {
       });
       // console.log('Result: ', result)
       expect(result.status).to.equal('OK');
-
-
-
     } catch (err) {
       console.log("ERROR :" ,err);
       throw err;
@@ -409,9 +383,7 @@ describe.skip(`set up test net accounts`, () => {
       let pubkey = 'FIO5Wnwtnnk9uk5jdRFWj3j8HuQ4hchxQ8hybbsvcowLDJytCSafJ';
       let accountnm = 'mi1esze4vfal';
 
-
       accountA = new FIOSDK(privkey,pubkey,config.BASE_URL,fetchJson);
-
 
       let domname = generateFioDomain(9);
       console.log("EDEDEDEDEDEDEDED dont run this action again!! record domain and address to test file and skip this IT!!!!")
@@ -430,7 +402,6 @@ describe.skip(`set up test net accounts`, () => {
       })
       expect(result.status).to.equal('OK');
 
-
       let addaddress3 = generateFioAddress(domname, 9);
       console.log("address :",addaddress3);
       result = await accountA.genericAction('pushTransaction', {
@@ -446,9 +417,6 @@ describe.skip(`set up test net accounts`, () => {
       });
       // console.log('Result: ', result)
       expect(result.status).to.equal('OK');
-
-
-
     } catch (err) {
       console.log("ERROR :" ,err);
       throw err;
@@ -457,11 +425,9 @@ describe.skip(`set up test net accounts`, () => {
 
   it.skip(`setup AccountF `, async () => {
     try{
-
       let privkey = '5JAKSYkDjjasvtH9Qu579m1Et3E12aXrYMrXwLmcfNb33qRAEBF';
       let pubkey = 'FIO6gPdqip3zUcSm8vHNqbTU5BSqboE42Xsv48QcBcZdxSqYS3yxY';
       let accountnm = 'ffzmhytd1lex';
-
 
       accountA = new FIOSDK(privkey,pubkey,config.BASE_URL,fetchJson);
 
@@ -482,7 +448,6 @@ describe.skip(`set up test net accounts`, () => {
       })
       expect(result.status).to.equal('OK');
 
-
       let addaddress3 = generateFioAddress(domname, 7);
       console.log("address :",addaddress3);
       result = await accountA.genericAction('pushTransaction', {
@@ -498,19 +463,14 @@ describe.skip(`set up test net accounts`, () => {
       });
       // console.log('Result: ', result)
       expect(result.status).to.equal('OK');
-
-
-
     } catch (err) {
       console.log("ERROR :" ,err);
       throw err;
     }
   })
-
 })
 
 describe.skip(`recursive proxy tests`, () => {
-
   let accountA, accountB, accountC, accountD, accountE, accountF, total_voted_fio, start_bp_votes, proxied_weightC, proxied_weightB,  total_bp_votes,regproxyfee
   let accountAnm, accountBnm, accountCnm, accountDnm, accountEnm, accountFnm;
   let accountAdom, accountBdom, accountCdom, accountDdom, accountEdom, accountFdom;
@@ -539,7 +499,6 @@ describe.skip(`recursive proxy tests`, () => {
       accountCdom = 'bahhxjvq';
       accountCaddr = 'okvioaz@bahhxjvq';
 
-
       accountC = new FIOSDK(privkey,pubkey,config.BASE_URL,fetchJson);
 
       privkey = '5Jbkwq8EvKNMcuw2sUFCatK8tELK9E6exMukBSAwzYeqMxTZYed';
@@ -547,7 +506,6 @@ describe.skip(`recursive proxy tests`, () => {
       accountDnm = 'svja4r4crjch';
       accountDdom = 'xasszoah';
       accountDaddr = 'peisnfr@xasszoah';
-
 
       accountD = new FIOSDK(privkey,pubkey,config.BASE_URL,fetchJson);
 
@@ -565,9 +523,7 @@ describe.skip(`recursive proxy tests`, () => {
       accountFdom = 'tmoyamyv';
       accountFaddr = 'umxmfbj@tmoyamyv';
 
-
       accountF = new FIOSDK(privkey,pubkey,config.BASE_URL,fetchJson);
-
     } catch (err) {
       console.log('Error: ', err.json)
       expect(err).to.equal('null')
@@ -591,7 +547,6 @@ describe.skip(`recursive proxy tests`, () => {
           amount: 2000000000000,
           maxFee: config.maxFee,
         })
-
       }
       //console.log('Result balance: ', result2.balance);
     } catch (err) {
@@ -611,7 +566,6 @@ describe.skip(`recursive proxy tests`, () => {
           amount: 50000000000,
           maxFee: config.maxFee,
         })
-
       }
       //console.log('Result balance: ', result2.balance);
     } catch (err) {
@@ -631,7 +585,6 @@ describe.skip(`recursive proxy tests`, () => {
           amount: 50000000000,
           maxFee: config.maxFee,
         })
-
       }
       //console.log('Result balance: ', result2.balance);
     } catch (err) {
@@ -651,14 +604,12 @@ describe.skip(`recursive proxy tests`, () => {
           amount: 50000000000,
           maxFee: config.maxFee,
         })
-
       }
       //console.log('Result balance: ', result2.balance);
     } catch (err) {
       expect(err.json.message).to.equal(null)
     }
   })
-
 
   it(`unregproxy A`, async function () {
     try {
@@ -716,7 +667,6 @@ describe.skip(`recursive proxy tests`, () => {
       throw err;
     }
   });
-
 
   it(`unregproxy D`, async function () {
     try {
@@ -778,11 +728,7 @@ describe.skip(`recursive proxy tests`, () => {
     }
   })
 
-
-
-
   it(`Wait a few seconds.`, async () => { await timeout(3000) })
-
 
   //proxy b votes to A
   it(`B proxies votes to A`, async () => {
@@ -871,7 +817,6 @@ describe.skip(`recursive proxy tests`, () => {
 
   //empty account C,D,E,F into G so they are empty.
   //repeatedly send funds from B to C,D,E,F, proxy the vote to A, then regProxy then forward funds to next.
-
   it(`empty account C`, async () => {
     try {
       const result = await accountC.genericAction('getFioBalance', { })
@@ -900,8 +845,6 @@ describe.skip(`recursive proxy tests`, () => {
       const result = await accountB.genericAction('getFioBalance', {})
       // console.log('Result: ', result)
       let tamount = result.balance - transfer_tokens_pub_key_fee;
-
-
       if (tamount > 0) {
         const result1 = await accountB.genericAction('transferTokens', {
           payeeFioPublicKey: accountC.publicKey,
@@ -1002,8 +945,6 @@ describe.skip(`recursive proxy tests`, () => {
           amount: tamount,
           maxFee: config.maxFee,
         })
-
-
         const result2 = await accountD.genericAction('getFioBalance', {})
       }
       //console.log('Result balance: ', result2.balance);
@@ -1100,6 +1041,4 @@ describe.skip(`recursive proxy tests`, () => {
       throw err
     }
   })
-
 })
-
