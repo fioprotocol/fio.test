@@ -650,7 +650,7 @@ describe.skip(`Initialize blockchain server for dev testing on AWS hosted dev pl
 
 })
 
-describe.skip(`call auditvote 50 times.`, () => {
+describe.only(`call auditvote 50 times.`, () => {
 
   let accountA
 
@@ -3843,7 +3843,7 @@ describe.skip(`Initialize blockchain server for full scale testing of audit mach
 
 })
 
-describe.only(`audit machine dev testing. minimal dev test check audit phase transitions`, () => {
+describe.skip(`audit machine dev testing. minimal dev test check audit phase transitions`, () => {
 
   let accountA, accountB, accountC, accountD, accountE, accountF, accountG,total_voted_fio, start_bp_votes, proxied_weightC, proxied_weightB,  total_bp_votes,regproxyfee
 
@@ -4030,7 +4030,7 @@ describe.only(`audit machine dev testing. minimal dev test check audit phase tra
 
 })
 
-describe.only(`vote proxy audit reset dev testing.`, () => {
+describe.skip(`vote proxy audit reset dev testing.`, () => {
 
   let accountA, accountB, accountC, accountD, accountE, accountF, accountG,total_voted_fio, start_bp_votes, proxied_weightC, proxied_weightB,  total_bp_votes,regproxyfee
 
@@ -4195,7 +4195,7 @@ describe.only(`vote proxy audit reset dev testing.`, () => {
 
 })
 
-describe.only(`vote producer audit reset dev testing.`, () => {
+describe.skip(`vote producer audit reset dev testing.`, () => {
 
   let accountA, accountB, accountC, accountD, accountE, accountF, accountG,total_voted_fio, start_bp_votes, proxied_weightC, proxied_weightB,  total_bp_votes,regproxyfee
 
@@ -4528,7 +4528,7 @@ describe.skip(`register producer audit reset  dev testing.`, () => {
 
 })
 
-describe.only(`unregister producer audit reset dev testing.`, () => {
+describe.skip(`unregister producer audit reset dev testing.`, () => {
 
   let accountA, accountB, accountC, accountD, accountE, accountF, accountG,total_voted_fio, start_bp_votes, proxied_weightC, proxied_weightB,  total_bp_votes,regproxyfee
 
@@ -5024,7 +5024,7 @@ describe.skip(`transfer fio, sender is in voters table reset dev testing.`, () =
 
 })
 
-describe.only(`transfer fio, receiver is in voters table reset dev testing.`, () => {
+describe.skip(`transfer fio, receiver is in voters table reset dev testing.`, () => {
 
   let accountA, accountB, accountC, accountD, accountE, accountF, accountG,total_voted_fio, start_bp_votes, proxied_weightC, proxied_weightB,  total_bp_votes,regproxyfee
 
@@ -5262,7 +5262,7 @@ describe.only(`transfer fio, receiver is in voters table reset dev testing.`, ()
 
 })
 
-describe.only(`transfer locked fio, receiver is in voters table reset dev testing.`, () => {
+describe.skip(`transfer locked fio, receiver is in voters table reset dev testing.`, () => {
 
   let accountA, accountB, accountC, accountD, accountE, accountF, accountG,total_voted_fio, start_bp_votes, proxied_weightC, proxied_weightB,  total_bp_votes,regproxyfee
 
@@ -5762,7 +5762,7 @@ describe.skip(`transfer locked fio, sender is in voters table reset dev testing.
 
 })
 
-describe.only(`register fio address,  mandatory fee (test transfer) sender is in voters table reset dev testing.`, () => {
+describe.skip(`register fio address,  mandatory fee (test transfer) sender is in voters table reset dev testing.`, () => {
 
   let accountA, accountB, accountC, accountD, accountE, accountF, accountG,total_voted_fio, start_bp_votes, proxied_weightC, proxied_weightB,  total_bp_votes,regproxyfee
 

@@ -201,7 +201,6 @@ before(async () => {
 
 
   accountNames.sort();
-  console.log("EDEDEDEDEDEDEDEDEDEDEDEDEDEDEDEDEDEDEDEDED      sorted accounts : ",accountNames);
   //msig participants list for devnet, note that the account names are in alpha order by intention.
 
 
@@ -647,7 +646,6 @@ describe.skip('This action is for dev of testing steps only....', () => {
 
 
       proposalAction = await runCmd(cmd);
-      console.log("EDEDEDEDEDEDEEEDDEDEDDDC");
       console.log(cmd);
     } catch (err) {
       console.log('Error: ', err);
@@ -661,8 +659,7 @@ describe.skip('This action is for dev of testing steps only....', () => {
     //  cmd = config.CLIO  + " push action -s -j -d fio.token trnsfiopubky '{\"payee_public_key\": \"'FIO6ruJ5qLeaa6VtYVpkcU4AeWVaL2QvViyQqjxjpAWYRFsYaSbBN'\", \"amount\": 1000000000, \"max_fee\": \"40000000000\", \"actor\": \"qbxn5zhw2ypw\",\"tpid\":\"\"}' -p qbxn5zhw2ypw@active" ;
 
       proposalAction = await runCmd(cmd);
-      console.log("EDEDEDEDEDEDEEEDDEDEDDDC");
-      console.log(cmd);
+         console.log(cmd);
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal(null);

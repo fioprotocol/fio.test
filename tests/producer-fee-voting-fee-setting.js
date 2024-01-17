@@ -7236,8 +7236,6 @@ describe('************************** fee-voting-fee-setting.js *****************
         }
       }
 
-      console.log("EDEDEDED BP list size is ", newprods.length )
-      console.log("EDEDEDEDEDED voted successfully for ",countvotesperformed)
   })
 
 })

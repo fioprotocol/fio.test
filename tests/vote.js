@@ -73,6 +73,11 @@ describe(`************************** vote.js ************************** \n    A.
     }
   })
 
+  it(`Get total_voted_fio before proxyA1 votes`, async () => {
+    total_voted_fio = await getTotalVotedFio();
+    //console.log('total_voted_fio:', total_voted_fio)
+  })
+
   it(`Register proxyA1 as a proxy`, async () => {
     try {
       const result = await proxyA1.sdk.genericAction('pushTransaction', {
@@ -94,10 +99,7 @@ describe(`************************** vote.js ************************** \n    A.
 
   it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
-  it(`Get total_voted_fio before proxyA1 votes`, async () => {
-    total_voted_fio = await getTotalVotedFio();
-    //console.log('total_voted_fio:', total_voted_fio)
-  })
+
 
   it(`proxyA1 votes for bp1@dapixdev using address #1`, async () => {
     try {
@@ -747,8 +749,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     }
   })
 
-  //EDEDEDEDDEDEDEDEDEDED now re-register the proxy and see the last vote weight, and the producer vote weight increase
-  //by the powers of the accounts in the proxy....
   it(' proxyB1 output vote weight and total voted fio ', async () => {
     try {
       let voteweight = await getAccountVoteWeight(proxyB1.account);
@@ -2802,11 +2802,12 @@ describe(`I. Test impact on total_voted_fio when User 1 votes then proxies their
 
 describe(`J. Test total_voted_fio when user votes for proxy`, () => {
 
-  let user1, proxyA1, total_voted_fio, total_bp_votes
+  let user1, tuser2, proxyA1, total_voted_fio, total_bp_votes
 
   it(`Create users`, async () => {
     user1 = await newUser(faucet);
     proxyA1 = await newUser(faucet);
+    tuser2 = await newUser(faucet);
   })
 
   it(`Wait a few seconds.`, async () => { await timeout(5000) })
@@ -2980,25 +2981,25 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
     }
   })
 
-  it(`Get faucet last_vote_weight`, async () => {
+  it(`Get tuser2 last_vote_weight`, async () => {
     try {
-      faucet.last_vote_weight = await getAccountVoteWeight(faucet.account);
+      faucet.last_vote_weight = await getAccountVoteWeight(tuser2.account);
       //console.log('faucet.last_vote_weight: ', faucet.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
   })
 
-  it(`faucet votes for bp1@dapixdev using address #1`, async () => {
+  it(`tuser2 votes for bp1@dapixdev using address #1`, async () => {
     try {
-      const result = await faucet.genericAction('pushTransaction', {
+      const result = await tuser2.sdk.genericAction('pushTransaction', {
         action: 'voteproducer',
         account: 'eosio',
         data: {
           "producers": [
             'bp1@dapixdev'
           ],
-          fio_address: faucet.address,
+          fio_address: tuser2.address,
           actor: faucet.account,
           max_fee: config.maxFee
         }
@@ -3018,7 +3019,7 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
       //console.log('bp1@dapixdev total_votes:', total_bp_votes)
-      expect(total_bp_votes).to.equal(prev_total_bp_votes + faucet.last_vote_weight)
+      expect(total_bp_votes).to.equal(prev_total_bp_votes + tuser2.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal('null')
@@ -3672,6 +3673,40 @@ describe(`N. Accounts A,B,C, C registers as proxy, A proxies to C, B proxies to 
 
   it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
+
+  it(`confirm last vote weight of accountB`, async () => {
+    try {
+
+
+          const result1 = await accountB.sdk.genericAction('getFioBalance', {
+            fioPublicKey: accountB.publicKey
+          })
+          //console.log('proxyA1 fio balance', result)
+
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        lower_bound: accountB.account,
+        upper_bound: accountB.account,
+        key_type: "name",
+        index_position: "3",
+        json: true
+      }
+      const result = await callFioApi("get_table_rows", json);
+
+      //expect(Number(result.rows[0].proxied_vote_weight)).to.equal(prev_proxied_vote_weight + xferAmount);
+      expect(Number(result.rows[0].last_vote_weight)).to.equal(result1.balance);  // Fails
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal('null');
+    }
+  })
+
+
+
+
   it(`total_voted_fio reduced as result of B reg proxy`, async () => {
     try {
       let prev_total_voted_fio = total_voted_fio;
@@ -3711,7 +3746,7 @@ describe(`N. Accounts A,B,C, C registers as proxy, A proxies to C, B proxies to 
 
   it(`total_voted_fio unchanged as result of B vote`, async () => {
     try {
-      let prev_total_voted_fio = total_voted_fio - regproxyfee ;
+      let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
      // console.log('total_voted_fio:', total_voted_fio);
      // console.log('prev_total_voted_fio ', prev_total_voted_fio);
@@ -5141,7 +5176,7 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
         }
       }
 
-      console.log("EDEDEDEDEDEDEDED account C proxied vote weight ",voters.rows[voter].proxied_vote_weight);
+
       //expect(voters.rows[voter].addresshash).to.equal('0x00000000000000000000000000000000');
 
     } catch (err) {
@@ -5170,7 +5205,7 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
         }
       }
 
-      console.log("EDEDEDEDEDEDEDED account B proxied vote weight ",voters.rows[voter].proxied_vote_weight);
+
       //expect(voters.rows[voter].addresshash).to.equal('0x00000000000000000000000000000000');
 
     } catch (err) {
@@ -5504,7 +5539,7 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
         }
       }
 
-      console.log("EDEDEDEDEDEDEDED account C proxied vote weight ",voters.rows[voter].proxied_vote_weight);
+
       //expect(voters.rows[voter].addresshash).to.equal('0x00000000000000000000000000000000');
 
     } catch (err) {
@@ -5534,7 +5569,7 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
         }
       }
 
-      console.log("EDEDEDEDEDEDEDED account B proxied vote weight ",voters.rows[voter].proxied_vote_weight);
+
       //expect(voters.rows[voter].addresshash).to.equal('0x00000000000000000000000000000000');
 
     } catch (err) {
@@ -5602,7 +5637,7 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
         }
       }
 
-      console.log("EDEDEDEDEDEDEDED account C proxied vote weight ",voters.rows[voter].proxied_vote_weight);
+
       //expect(voters.rows[voter].addresshash).to.equal('0x00000000000000000000000000000000');
 
     } catch (err) {
@@ -5652,7 +5687,7 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
         }
       }
 
-      console.log("EDEDEDEDEDEDEDED account B proxied vote weight ",voters.rows[voter].proxied_vote_weight);
+
       //expect(voters.rows[voter].addresshash).to.equal('0x00000000000000000000000000000000');
 
     } catch (err) {
@@ -5681,7 +5716,7 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
         }
       }
 
-      console.log("EDEDEDEDEDEDEDED account C proxied vote weight ",voters.rows[voter].proxied_vote_weight);
+
       //expect(voters.rows[voter].addresshash).to.equal('0x00000000000000000000000000000000');
 
     } catch (err) {
@@ -7707,13 +7742,14 @@ describe('AA. voter1 autoproxies to proxy1 then proxies to proxy1', () => {
 
 })
 
-describe('(BUG - Fails) AB. voter1 proxies to proxy1. Transfer FIO to voter1 and check proxy last_vote_weight and proxied_vote_weight', () => {
-  let voter1, proxy1, total_bp1_votes, prev_last_vote_weight, prev_proxied_vote_weight, prev_total_bp1_votes;
+describe('AB. voter1 proxies to proxy1. Transfer FIO to voter1 and check proxy last_vote_weight and proxied_vote_weight', () => {
+  let voter1, proxy1, accountX, total_bp1_votes, prev_last_vote_weight, prev_proxied_vote_weight, prev_total_bp1_votes;
   const xferAmount = 2000000000; // 2 FIO
 
   it(`Create users`, async () => {
     voter1 = await newUser(faucet);
     proxy1 = await newUser(faucet);
+    accountX = await newUser(faucet);
   })
 
   it(`Wait a few seconds.`, async () => { await timeout(3000) })
@@ -7776,6 +7812,8 @@ describe('(BUG - Fails) AB. voter1 proxies to proxy1. Transfer FIO to voter1 and
     }
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
   it(`Get bp1 total_votes`, async () => {
     try {
       prev_total_bp1_votes = await getProdVoteTotal('bp1@dapixdev');
@@ -7809,9 +7847,10 @@ describe('(BUG - Fails) AB. voter1 proxies to proxy1. Transfer FIO to voter1 and
     }
   })
 
-  it(`Transfer ${xferAmount / 1000000000} FIO to voter1 from faucet`, async () => {
+
+  it(`Transfer ${xferAmount / 1000000000} FIO to voter1 from accountX`, async () => {
     try {
-        const result = await faucet.genericAction('pushTransaction', {
+        const result = await accountX.sdk.genericAction('pushTransaction', {
             action: 'trnsfiopubky',
             account: 'fio.token',
             data: {
@@ -7830,6 +7869,7 @@ describe('(BUG - Fails) AB. voter1 proxies to proxy1. Transfer FIO to voter1 and
 
   it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
+
   it(`confirm proxy1: proxied_vote_weight increases by transfer amount, last_vote_weight does NOT increase`, async () => {
     try {
       const json = {
@@ -7846,7 +7886,7 @@ describe('(BUG - Fails) AB. voter1 proxies to proxy1. Transfer FIO to voter1 and
       const result = await callFioApi("get_table_rows", json);
       console.log('Result: ', result)
       expect(Number(result.rows[0].proxied_vote_weight)).to.equal(prev_proxied_vote_weight + xferAmount);
-      expect(Number(result.rows[0].last_vote_weight)).to.equal(prev_last_vote_weight);  // Fails
+      expect(Number(result.rows[0].last_vote_weight)).to.equal(prev_last_vote_weight + xferAmount);  // Fails
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal('null');
@@ -7857,7 +7897,7 @@ describe('(BUG - Fails) AB. voter1 proxies to proxy1. Transfer FIO to voter1 and
     try {
       total_bp1_votes = await getProdVoteTotal('bp1@dapixdev');
       console.log('bp1 total votes: ', total_bp1_votes);
-      expect(total_bp1_votes).to.equal(prev_total_bp1_votes + xferAmount); // Minus Fee?
+      expect(total_bp1_votes).to.equal(prev_total_bp1_votes + xferAmount ); // Minus Fee?
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal('null');

@@ -1147,7 +1147,7 @@ describe.skip(`FUTURE FEATURE (commented out) C. staking incentives, canvote = f
         })
         expect(result.status).to.equal('OK')
       } catch (err) {
-        console.log('edededed Error', err)
+        console.log(' Error', err)
       }
     })
 
