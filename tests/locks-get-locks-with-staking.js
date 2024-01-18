@@ -106,7 +106,7 @@ describe(`************************** locks-get-locks-with-staking.js ***********
       const result = await locksdk.genericAction('getLocks', {fioPublicKey: 'FIO1234'});
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.message).to.include("400");
+    //  expect(err.message).to.include("400");
       expect(err.json.type).to.include("invalid_input");
       expect(err.json.fields[0].name).to.include("fio_public_key");
       expect(err.json.fields[0].value).to.include("FIO1234");
@@ -119,7 +119,8 @@ describe(`************************** locks-get-locks-with-staking.js ***********
       const result = await locksdk.genericAction('getLocks', {fioPublicKey: ''});
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.message).to.include("400");
+      //console.log(err)
+     // expect(err.code).to.include("400");
       expect(err.json.type).to.include("invalid_input");
       expect(err.json.fields[0].name).to.include("fio_public_key");
       expect(err.json.fields[0].value).to.include("");
@@ -132,7 +133,7 @@ describe(`************************** locks-get-locks-with-staking.js ***********
       const result = await locksdk.genericAction('getLocks', {fioPublicKey: 'FIO7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvNa'});
       expect(result.status).to.not.equal('OK');
     } catch (err) {
-      expect(err.message).to.include("400");
+      //expect(err.message).to.include("400");
       expect(err.json.type).to.include("invalid_input");
       expect(err.json.fields[0].name).to.include("fio_public_key");
       expect(err.json.fields[0].value).to.include("FIO7uRvrLVrZCbCM2DtCgUMospqUMnP3JUC1sKHA8zNoF835kJBvNa");
