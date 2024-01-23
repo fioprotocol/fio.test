@@ -79,7 +79,7 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
       })
 
 
-        expect(result.fee_collected).to.equal(514287432);
+        expect(result.fee_collected).to.equal(500000000);
     // console.log("result ", result);
     } catch (err) {
         console.log('Error', err);
@@ -190,7 +190,7 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
             })
 
 
-            expect(result.fee_collected).to.equal(514287432);
+            expect(result.fee_collected).to.equal(500000000);
             // console.log("result ", result);
         } catch (err) {
             console.log('Error', err);
@@ -213,7 +213,7 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
           actor: permuser1.account
         }
       })
-        expect(result.fee_collected).to.equal(212354321);
+        expect(result.fee_collected).to.equal(200000000);
 
     //console.log("result ", result);
     } catch (err) {
@@ -320,7 +320,7 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
                     actor: permuser1.account
                 }
             })
-            expect(result.fee_collected).to.equal(212354321);
+            expect(result.fee_collected).to.equal(200000000);
 
             //console.log("result ", result);
         } catch (err) {
@@ -556,7 +556,7 @@ describe(` A.1 contract action smoke tests permissions add and remove, wildcard 
             })
 
 
-            expect(result.fee_collected).to.equal(514287432);
+            expect(result.fee_collected).to.equal(500000000);
             // console.log("result ", result);
         } catch (err) {
             console.log('Error', err);
@@ -667,7 +667,7 @@ describe(` A.1 contract action smoke tests permissions add and remove, wildcard 
             })
 
 
-            expect(result.fee_collected).to.equal(514287432);
+            expect(result.fee_collected).to.equal(500000000);
             // console.log("result ", result);
         } catch (err) {
             console.log('Error', err);
@@ -775,7 +775,7 @@ describe(` A.1 contract action smoke tests permissions add and remove, wildcard 
                 })
 
 
-                expect(result.fee_collected).to.equal(514287432);
+                expect(result.fee_collected).to.equal(500000000);
             }
             // console.log("result ", result);
         } catch (err) {
@@ -825,7 +825,7 @@ describe(` A.1 contract action smoke tests permissions add and remove, wildcard 
                     actor: permuser1.account
                 }
             })
-            expect(result.fee_collected).to.equal(212354321);
+            expect(result.fee_collected).to.equal(200000000);
 
             //console.log("result ", result);
         } catch (err) {
@@ -1057,7 +1057,7 @@ describe(` A.1 contract action smoke tests permissions add and remove, wildcard 
                     actor: permuser1.account
                 }
             })
-            expect(result.fee_collected).to.equal(212354321);
+            expect(result.fee_collected).to.equal(200000000);
 
             //console.log("result ", result);
         } catch (err) {
@@ -1225,7 +1225,7 @@ describe(`B. chain_api endpoint smoke tests permissions add and remove \n `, () 
             })
 
  //console.log("result ", result);
-            expect(result.processed.action_traces[0].receipt.response).to.contain("514287432");
+            expect(result.processed.action_traces[0].receipt.response).to.contain("500000000");
 
         } catch (err) {
             console.log('Error', err);
@@ -1313,7 +1313,7 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
                 }
             })
 
-            expect(result.fee_collected).to.equal(514287432);
+            expect(result.fee_collected).to.equal(500000000);
             // console.log("result ", result);
         } catch (err) {
            // console.log('Error', err);
@@ -1431,7 +1431,7 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
                 }
             })
 
-            expect(result.fee_collected).to.equal(514287432);
+            expect(result.fee_collected).to.equal(500000000);
             // console.log("result ", result);
         } catch (err) {
             // console.log('Error', err);
@@ -1528,7 +1528,7 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
                 }
             })
 
-            expect(result.fee_collected).to.equal(212354321);
+            expect(result.fee_collected).to.equal(200000000);
             // console.log("result ", result);
         } catch (err) {
            // console.log('Error', err);
@@ -1625,7 +1625,7 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
                 }
             })
 
-            expect(result.fee_collected).to.equal(212354321);
+            expect(result.fee_collected).to.equal(200000000);
             // console.log("result ", result);
         } catch (err) {
             // console.log('Error', err);
@@ -1714,7 +1714,7 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
                 }
             })
 
-            expect(result.fee_collected).to.equal(514287432);
+            expect(result.fee_collected).to.equal(500000000);
             // console.log("result ", result);
         } catch (err) {
            // console.log('Error', err);
@@ -1812,7 +1812,7 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
             })
            // console.log("result ", result);
 
-            expect(result.fee_collected).to.equal(212354321);
+            expect(result.fee_collected).to.equal(200000000);
             // console.log("result ", result);
         } catch (err) {
            // console.log('Error', err);
@@ -2225,7 +2225,7 @@ describe(`D. addperm -- argument validation tests`, () => {
             })
 
 
-            expect(result.fee_collected).to.equal(514287432);
+            expect(result.fee_collected).to.equal(500000000);
             // console.log("result ", result);
         } catch (err) {
             console.log('Error', err);
@@ -2874,7 +2874,7 @@ describe(`F. chain_api endpoint get_grantor_permissions wildcard tests \n `, () 
                         })
 
                         //console.log("result ", result);
-                        expect(result.processed.action_traces[0].receipt.response).to.contain("514287432");
+                        expect(result.processed.action_traces[0].receipt.response).to.contain("500000000");
                     }
 
                 }catch(err1){
@@ -3085,7 +3085,7 @@ describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
                         })
 
                         //console.log("result ", result);
-                        expect(result.processed.action_traces[0].receipt.response).to.contain("514287432");
+                        expect(result.processed.action_traces[0].receipt.response).to.contain("500000000");
                     }
 
                 }catch(err1){
@@ -3274,7 +3274,7 @@ describe(`G. chain_api endpoint get_grantee_permissions tests \n `, () => {
                 })
 
                 //console.log("result ", result);
-                expect(result.processed.action_traces[0].receipt.response).to.contain("514287432");
+                expect(result.processed.action_traces[0].receipt.response).to.contain("500000000");
             }
 
         } catch (err) {
@@ -3459,7 +3459,7 @@ describe(`H. chain_api endpoint get_object_permissions tests \n `, () => {
                         })
 
                         //console.log("result ", result);
-                        expect(result.processed.action_traces[0].receipt.response).to.contain("514287432");
+                        expect(result.processed.action_traces[0].receipt.response).to.contain("500000000");
                     }
 
                 }catch(err1){
@@ -4324,8 +4324,7 @@ describe.skip(`AB. permissions performance tests \n `, () => {
             }
 
 
-           // expect(result.fee_collected).to.equal(514287432);
-            // console.log("result ", result);
+
         } catch (err) {
             console.log('Error', err);
             expect(err).to.equal(null);
@@ -4351,7 +4350,7 @@ describe.skip(`AB. permissions performance tests \n `, () => {
                     actor: permuser1.account
                 }
             })
-            expect(result.fee_collected).to.equal(212354321);
+            expect(result.fee_collected).to.equal(200000000);
 
             //console.log("result ", result);
         } catch (err) {

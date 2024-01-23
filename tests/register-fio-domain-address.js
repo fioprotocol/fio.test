@@ -59,7 +59,7 @@ describe(`************************** register-fio-domain-address.js ************
         actor: user1.account
       }
     });
-    //console.log(JSON.stringify(regDomAddObj, null, 4));
+    console.log(JSON.stringify(regDomAddObj, null, 4));
     expect(regDomAddObj).to.have.all.keys('transaction_id', 'processed');
     expect(regDomAddObj.processed.receipt.status).to.equal('executed');
     expect(regDomAddObj.processed.action_traces[0].receipt.response).to.contain('"status": "OK"').and.contain('"fee_collected":800000000000').and.contain('"expiration":');
