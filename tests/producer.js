@@ -97,6 +97,7 @@ describe('************************** producer.js ************************** \n  
       //console.log('result: ', result);
       expect(result.rows.length).to.equal(1);
       expect(result.rows[0].owner).to.equal(prodA1.account);
+      expect(result.rows[0].is_active).to.equal(1);
       expect(result.rows[0].producer_public_key).to.equal(prodA1.publicKey);
     } catch (err) {
       console.log('Error', err);
@@ -186,6 +187,53 @@ describe('************************** producer.js ************************** \n  
       expect(result.rows[0].owner).to.equal(prodA1.account);
       expect(result.rows[0].is_active).to.equal(0);
       expect(result.rows[0].producer_public_key).to.equal('FIO1111111111111111111111111111111114T1Anm');
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  });
+
+  it(`Register prodA1 as producer`, async () => {
+    try {
+      const result = await prodA1.sdk.genericAction('pushTransaction', {
+        action: 'regproducer',
+        account: 'eosio',
+        data: {
+          fio_address: prodA1.address,
+          fio_pub_key: prodA1.publicKey,
+          url: "https://mywebsite.io/",
+          location: 80,
+          actor: prodA1.account,
+          max_fee: config.api.register_producer.fee
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json)
+    }
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) });
+
+  it(`Confirm prodA1 is registered as producer`, async function () {
+    try {
+      const json = {
+        "code": "eosio",
+        "scope": "eosio",
+        "table": "producers",
+        "lower_bound": prodA1.account,
+        "upper_bound": prodA1.account,
+        "key_type": "name",
+        "index_position": "4",
+        "json": true
+      }
+      const result = await callFioApi("get_table_rows", json);
+      //console.log('result: ', result);
+      expect(result.rows.length).to.equal(1);
+      expect(result.rows[0].owner).to.equal(prodA1.account);
+      expect(result.rows[0].is_active).to.equal(1);
+      expect(result.rows[0].producer_public_key).to.equal(prodA1.publicKey);
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
