@@ -33,7 +33,9 @@ const fetch = require('node-fetch');
 
 const faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
 
-let newProxy = null, voterWithProd, voterWithProxy, voterWithAutoproxy, bp1, bp2, bp3, proxy, autoproxy, total_voted_fio,
+let newProxy = null, 
+    //be sure to SET this if the mewproxy ever votes in ANY tests within the test doing the voting
+    newProxyVoted = false, voterWithProd, voterWithProxy, voterWithAutoproxy, bp1, bp2, bp3, proxy, autoproxy, total_voted_fio,
     extraUser,extraUser2;
 
 const consumeBundles = true;
@@ -166,8 +168,13 @@ async function validateVotes() {
         newProxy.diff_last_vote_weight = Math.abs(newProxy.last_vote_weight - newProxy_prev_last_vote_weight);
         const newProxy_prev_currency_balance = newProxy.currency_balance;
         newProxy.currency_balance = await getCurrencyBalanceSufs(newProxy.account);
-        newProxy.diff_currency_balance = Math.abs(newProxy.currency_balance - newProxy_prev_currency_balance);
-    }
+        if(newProxyVoted) {
+            newProxy.diff_currency_balance = Math.abs(newProxy.currency_balance - newProxy_prev_currency_balance);
+        }else{
+            newProxy.diff_currency_balance = 0;
+        }
+
+        }
 
     // producer
     const bp1_prev_total_votes = bp1.total_votes;
@@ -237,6 +244,7 @@ async function validateVotes() {
     if (newProxy == null) {
        difft =  Math.abs(diff_total_voted_fio - (voterWithProd.diff_currency_balance + proxy.diff_currency_balance + voterWithProxy.diff_currency_balance + autoproxy.diff_currency_balance + voterWithAutoproxy.diff_currency_balance));
     } else {
+        console.log("newproxy stuff ");
         difft = Math.abs (diff_total_voted_fio - (newProxy.diff_currency_balance + voterWithProd.diff_currency_balance + proxy.diff_currency_balance + voterWithProxy.diff_currency_balance + autoproxy.diff_currency_balance + voterWithAutoproxy.diff_currency_balance))
     }
     //small differences creep into these calcs, the source is not fully understood but suspected to be resolution
