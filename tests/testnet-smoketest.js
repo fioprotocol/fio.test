@@ -13,10 +13,13 @@ const {
   newUser, 
   existingUser, 
   createKeypair, 
-  callFioApi, 
+  callFioApi,
+  getProdVoteTotal,
   stringToHash, 
   getAccountFromKey,
-  fetchJson 
+  fetchJson,
+  generateFioDomain,
+  generateFioAddress
 } = require('../utils.js');
 const config = require('../config.js');
 const { EndPoint } = require('@fioprotocol/fiosdk/lib/entities/EndPoint');
@@ -26,26 +29,24 @@ let privateKey, publicKey, testFioAddressName, privateKey2, publicKey2, testFioA
 /**
 * Set to target = 'local' if running against devtools build. Leave blank if running against Testnet.
 */
-const target = 'local' 
+const target = 'local'
 
 /**
  * Set your testnet existing private/public keys and existing fioAddresses (not needed if running locally)
  */
- privateKey = '',
- publicKey = '',
- account = '',
- privateKey2 = '',
- publicKey2 = '',
- account2 = '',
- testFioDomain = '',
- testFioAddressName = '',
- testFioAddressName2 = ''
-
+privateKey = '',
+    publicKey = '',
+    account = '',
+    privateKey2 = '',
+    publicKey2 = '',
+    account2 = '',
+    testFioDomain = '',
+    testFioAddressName = '',
+    testFioAddressName2 = ''
 
 /**
  * Main Tests
  */
-
 const fioTestnetDomain = 'fiotestnet'
 const fioTokenCode = 'FIO'
 const fioChainCode = 'FIO'
@@ -76,7 +77,6 @@ const timeout = async (ms) => {
 }
 
 before(async () => {
-
   if (target == 'local') { 
     faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
     fioSdk = await newUser(faucet);
@@ -130,7 +130,6 @@ before(async () => {
 })
 
 describe('************************** testnet-smoketest.js ************************** \n    A. Testing generic actions', () => {
-
   it(`FIO Key Generation Testing`, async () => {
     const testMnemonic = 'valley alien library bread worry brother bundle hammer loyal barely dune brave'
     const privateKeyRes = await FIOSDK.createPrivateKeyMnemonic(testMnemonic)
@@ -254,7 +253,6 @@ describe('************************** testnet-smoketest.js **********************
 })
 
 describe('B. Testing domain actions', () => {
-
   it(`Register fio domain`, async () => {
     const result = await fioSdk2.sdk.genericAction('registerFioDomain', { fioDomain: newFioDomain, maxFee: defaultFee })
     //console.log('New Domain: ', newFioDomain)
@@ -461,7 +459,7 @@ describe('B. Testing domain actions', () => {
         console.log('Error: ', err);
         expect(err).to.equal(null);
     }
-})
+  })
 
   it(`Renew fio address`, async () => {
     const result = await fioSdk2.sdk.genericAction('renewFioAddress', { fioAddress: newFioAddress, maxFee: defaultFee })
@@ -571,7 +569,6 @@ describe('B. Testing domain actions', () => {
   })
 
   it(`Remove public addresses`, async () => {
-
     const result = await fioSdk2.sdk.genericAction('removePublicAddresses', {
       fioAddress: newFioAddress,
       publicAddresses: [
@@ -593,7 +590,6 @@ describe('B. Testing domain actions', () => {
   })
 
   it(`getFee for removeAllPublicAddresses`, async () => {
-
     const result = await fioSdk2.sdk.genericAction('getFeeForRemoveAllPublicAddresses', {
       fioAddress: newFioAddress
     })
@@ -654,7 +650,6 @@ describe('B. Testing domain actions', () => {
     expect(result.balance).to.be.a('number')
   })
 
-
   it(`getFioAddresses`, async () => {
     try {
     const result = await fioSdk2.sdk.genericAction('getFioAddresses', { fioPublicKey: publicKey })
@@ -665,7 +660,6 @@ describe('B. Testing domain actions', () => {
       console.log(e);
     }
   })
-
 
   it(`getPublicAddress`, async () => {
     const result = await fioSdk2.sdk.genericAction('getPublicAddress', {
@@ -740,7 +734,6 @@ describe('B. Testing domain actions', () => {
       expect(err).to.equal(null);
     }
   })
-
 })
 
 describe('C. Request funds, approve and send', () => {
@@ -879,7 +872,6 @@ describe('C. Request funds, approve and send', () => {
     expect(obtData.payee_fio_address).to.be.a('string')
     expect(obtData.payee_fio_address).to.equal(testFioAddressName2)
   })
-
 })
 
 describe('D. Request funds, cancel funds request', () => {
@@ -1017,7 +1009,6 @@ describe('E. Request funds, reject', () => {
     expect(result.status).to.be.a('string')
     expect(result.fee_collected).to.be.a('number')
   })
-
 })
 
 describe('F. Transfer tokens', () => {
@@ -1186,7 +1177,6 @@ describe('H. Encrypting/Decrypting', () => {
     } catch (e) {
 
     }
-
   })
 
   it(`Decrypt from iOS SDK - Request New Funds`, async () => {
@@ -1210,7 +1200,6 @@ describe('H. Encrypting/Decrypting', () => {
 
     const uncipherContentA = fioSDKBob.transactions.getUnCipherContent(NEW_FUNDS_CONTENT, cipherContent, bobPrivateKey, alicePublicKey)
     expect(uncipherContentA.payee_public_address).to.equal(bobPublicKey)
-
   })
 
   it(`Encrypt/Decrypt - RecordObtData`, async () => {
@@ -1264,7 +1253,6 @@ describe('H. Encrypting/Decrypting', () => {
     } catch (e) {
 
     }
-
   })
 
   it(`Decrypt from iOS SDK - RecordObtData`, async () => {
@@ -1276,7 +1264,6 @@ describe('H. Encrypting/Decrypting', () => {
 
     const uncipherContentA = fioSDKBob.transactions.getUnCipherContent(RECORD_OBT_DATA_CONTENT, cipherContent, bobPrivateKey, alicePublicKey)
     expect(uncipherContentA.payee_public_address).to.equal(bobPublicKey)
-
   })
 
   it(`Decrypt from Kotlin SDK - RecordObtData`, async () => {
@@ -1288,9 +1275,7 @@ describe('H. Encrypting/Decrypting', () => {
 
     const uncipherContentA = fioSDKBob.transactions.getUnCipherContent(RECORD_OBT_DATA_CONTENT, cipherContent, bobPrivateKey, alicePublicKey)
     expect(uncipherContentA.payee_public_address).to.equal(bobPublicKey)
-
   })
-
 })
 
 describe('I. Check prepared transaction', () => {
@@ -1578,7 +1563,6 @@ describe('J. Test transfer_tokens_pub_key fee distribution', () => {
       expect(err).to.equal(null);
     }
   })
-
 })
 
 describe(`Domain Marketplace: List domain and cancel domain listing`, async () => {
@@ -1720,7 +1704,6 @@ describe(`Domain Marketplace: List domain and cancel domain listing`, async () =
 
     expect(userBalanceResultAfter.balance).to.equal(fioSdkBalance - cancel_list_domain_fee)
   });
-
 })
 
 describe(`FIPs 36-39`, async () => {
@@ -1885,5 +1868,59 @@ describe(`FIPs 36-39`, async () => {
         expect(err).to.equal(null);
     }
   });
-  
 });
+
+let permission_name = "register_address_on_domain";
+
+describe(`FIP-40 addperm -- smoke test, verify addperm on chain`, () => {
+
+  /*** grantee tests **/
+  it(`FAILURE -- object name empty `, async () => {
+
+    try {
+      let result = await fioSdk.sdk.genericAction('pushTransaction', {
+        action: 'addperm',
+        account: 'fio.perms',
+        data: {
+          grantee_account: "",
+          permission_name: permission_name,
+          permission_info: "",
+          object_name:  "",
+          max_fee: config.maxFee,
+          tpid: '',
+          actor: fioSdk.account
+        }
+      });
+      expect(result.status).to.equal(null);
+    } catch (err) {
+     // console.log("Error ", err)
+     expect(err.json.fields[0].error).to.equal("Object Name is invalid.")
+    }
+  });
+})
+
+describe(`FIP-40 remperm -- smoke test verify remperm on chain`, () => {
+
+  /*** grantee tests **/
+  it(`FAILURE -- grantee account empty `, async () => {
+
+    try {
+      let result = await fioSdk.sdk.genericAction('pushTransaction', {
+        action: 'remperm',
+        account: 'fio.perms',
+        data: {
+          grantee_account: "",
+          permission_name: permission_name,
+          object_name:  "",
+          max_fee: config.maxFee,
+          tpid: '',
+          actor: fioSdk.account
+        }
+      });
+      expect(result.status).to.equal(null);
+    } catch (err) {
+      //console.log("Error ", err)
+      expect(err.json.fields[0].error).to.equal("Object Name is invalid.")
+    }
+  });
+})
