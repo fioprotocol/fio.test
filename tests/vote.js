@@ -396,7 +396,7 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
         fioPublicKey: proxyB1.publicKey
       })
       proxyB1.fioBalance = result.balance
-      //console.log('proxyB1 getFioBalance: ', result.balance)
+      console.log('proxyB1 getFioBalance: ', result.balance)
     } catch (err) {
       console.log('Error: ', err)
     }
@@ -405,7 +405,8 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
   it(`voterB1 last_vote_weight = voterB1 FIO Balance`, async () => {
     try {
       voterB1.last_vote_weight  = await getAccountVoteWeight(voterB1.account);
-      //console.log('voterB1.last_vote_weight:', voterB1.last_vote_weight)
+     // console.log('voterB1.last_vote_weight:', voterB1.last_vote_weight)
+     // console.log("voterb1 vote info ", voterB1)
       expect(voterB1.last_vote_weight).to.equal(voterB1.fioBalance)
     } catch (err) {
       console.log('Error: ', err)
@@ -416,6 +417,7 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     try {
       proxyB1.last_vote_weight = await getAccountVoteWeight(proxyB1.account);
       //console.log('proxyB1.last_vote_weight:', proxyB1.last_vote_weight)
+     // console.log("proxyB1 voting info ",proxyB1)
       expect(proxyB1.last_vote_weight).to.equal(proxyB1.fioBalance + voterB1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
@@ -437,7 +439,9 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     try {
       prev_total_voted_fio = total_voted_fio
       total_voted_fio = await getTotalVotedFio();
+      //console.log('prev total_voted_fio: ', prev_total_voted_fio)
       //console.log('total_voted_fio: ', total_voted_fio)
+      //console.log ("diff total voted fio ",total_voted_fio - prev_total_voted_fio)
       expect(total_voted_fio).to.equal(prev_total_voted_fio + proxyB1.last_vote_weight)
     } catch (err) {
       console.log('Error', err)
@@ -3744,13 +3748,22 @@ describe(`N. Accounts A,B,C, C registers as proxy, A proxies to C, B proxies to 
 
   it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
-  it(`total_voted_fio unchanged as result of B vote`, async () => {
+  it(`Get B last_vote_weight`, async () => {
+    try {
+      accountB.last_vote_weight = await getAccountVoteWeight(accountB.account);
+    } catch (err) {
+      console.log('Error: ', err.json)
+    }
+  })
+
+
+  it(`total_voted_fio increased by B last vote weight`, async () => {
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
      // console.log('total_voted_fio:', total_voted_fio);
      // console.log('prev_total_voted_fio ', prev_total_voted_fio);
-      expect(total_voted_fio).to.equal(prev_total_voted_fio)
+      expect(total_voted_fio).to.equal(prev_total_voted_fio + accountB.last_vote_weight)
 
     } catch (err) {
       console.log('Error: ', err)
@@ -3782,7 +3795,7 @@ describe(`N. Accounts A,B,C, C registers as proxy, A proxies to C, B proxies to 
 
   it(`Wait a few seconds.`, async () => { await timeout(5000) })
 
-  it(`total_voted_fio unchanged as result of B vote`, async () => {
+  it(`total_voted_fio unchanged as result of C  re vote`, async () => {
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
