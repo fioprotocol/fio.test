@@ -7708,12 +7708,13 @@ describe('AA. voter1 autoproxies to proxy1 then proxies to proxy1', () => {
 })
 
 describe('(BUG - Fails) AB. voter1 proxies to proxy1. Transfer FIO to voter1 and check proxy last_vote_weight and proxied_vote_weight', () => {
-  let voter1, proxy1, total_bp1_votes, prev_last_vote_weight, prev_proxied_vote_weight, prev_total_bp1_votes;
+  let voter1, proxy1, tuser1, total_bp1_votes, prev_last_vote_weight, prev_proxied_vote_weight, prev_total_bp1_votes;
   const xferAmount = 2000000000; // 2 FIO
 
   it(`Create users`, async () => {
     voter1 = await newUser(faucet);
     proxy1 = await newUser(faucet);
+    tuser1 = await newUser(faucet);
   })
 
   it(`Wait a few seconds.`, async () => { await timeout(3000) })
@@ -7811,7 +7812,7 @@ describe('(BUG - Fails) AB. voter1 proxies to proxy1. Transfer FIO to voter1 and
 
   it(`Transfer ${xferAmount / 1000000000} FIO to voter1 from faucet`, async () => {
     try {
-        const result = await faucet.genericAction('pushTransaction', {
+        const result = await tuser1.sdk.genericAction('pushTransaction', {
             action: 'trnsfiopubky',
             account: 'fio.token',
             data: {
@@ -7846,7 +7847,7 @@ describe('(BUG - Fails) AB. voter1 proxies to proxy1. Transfer FIO to voter1 and
       const result = await callFioApi("get_table_rows", json);
       console.log('Result: ', result)
       expect(Number(result.rows[0].proxied_vote_weight)).to.equal(prev_proxied_vote_weight + xferAmount);
-      expect(Number(result.rows[0].last_vote_weight)).to.equal(prev_last_vote_weight);  // Fails
+      expect(Number(result.rows[0].last_vote_weight)).to.equal(prev_last_vote_weight + xferAmount);
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal('null');
