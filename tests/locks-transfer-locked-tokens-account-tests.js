@@ -401,13 +401,13 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
 
   it(`Get initial total_voted_fio`, async () => {
     total_voted_fio = await getTotalVotedFio();
-    console.log('total_voted_fio:', total_voted_fio)
+    //console.log('total_voted_fio:', total_voted_fio)
   })
 
   it(`Get fioSdk last_vote_weight`, async () => {
     try {
       fioSdk.last_vote_weight = await getAccountVoteWeight(account);
-      console.log('fioSdk.last_vote_weight:', fioSdk.last_vote_weight)
+      //console.log('fioSdk.last_vote_weight:', fioSdk.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
       expect(err).to.equal('null')
@@ -435,7 +435,7 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
           max_fee: config.api.register_proxy.fee
         }
       })
-      console.log('Result: ', result)
+      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json.error.details)
@@ -447,14 +447,14 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
 
   it(`Get total_voted_fio before fioSdk votes`, async () => {
     total_voted_fio = await getTotalVotedFio();
-    console.log('total_voted_fio:', total_voted_fio)
+    //console.log('total_voted_fio:', total_voted_fio)
   })
 
 
   it(`Get fioSdk last_vote_weight`, async () => {
     try {
       fioSdk.last_vote_weight = await getAccountVoteWeight(account);
-      console.log('fioSdk.last_vote_weight:', fioSdk.last_vote_weight)
+     // console.log('fioSdk.last_vote_weight:', fioSdk.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -467,8 +467,8 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
 
   it(`fioSdk votes for bp1@dapixdev using address #1`, async () => {
     try {
-      console.log("fioSdk account is ", account)
-      console.log("fio sdk account attrib ",fioSdk.accountName)
+      //console.log("fioSdk account is ", account)
+      //console.log("fio sdk account attrib ",fioSdk.accountName)
       const result = await fioSdk.genericAction('pushTransaction', {
         action: 'voteproducer',
         account: 'eosio',
@@ -481,7 +481,7 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
           max_fee: config.api.vote_producer.fee
         }
       })
-      console.log('Result: ', result)
+     // console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -494,7 +494,7 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
   it(`Get fioSdk last_vote_weight`, async () => {
     try {
       fioSdk.last_vote_weight = await getAccountVoteWeight(account);
-      console.log('fioSdk.last_vote_weight:', fioSdk.last_vote_weight)
+     // console.log('fioSdk.last_vote_weight:', fioSdk.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -505,7 +505,7 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
         const result = await fioSdk.genericAction('getFioBalance', {
           fioPublicKey: publicKey
         })
-        console.log('fiosdk fio balance', result)
+       // console.log('fiosdk fio balance', result)
         expect(result.balance - lockedFundsAmount).to.equal(fioSdk.last_vote_weight)
       } catch (err) {
         console.log('Error', err)
@@ -519,10 +519,11 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
     try {
       let prev_total_voted_fio = total_voted_fio
       total_voted_fio = await getTotalVotedFio();
-      console.log('total_voted_fio: ', total_voted_fio / config.BILLION)
+     /* console.log('total_voted_fio: ', total_voted_fio / config.BILLION)
       console.log("fiosdk last vote weight ",fioSdk.last_vote_weight)
       console.log("fioSdk account ",keys.account)
       console.log("difference is ", total_voted_fio - (prev_total_voted_fio + fioSdk.last_vote_weight))
+      */
       expect(total_voted_fio).to.equal(prev_total_voted_fio + fioSdk.last_vote_weight)
     } catch (err) {
       console.log('Error', err)
