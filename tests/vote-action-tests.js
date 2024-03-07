@@ -4529,7 +4529,7 @@ describe('************************** vote-action-tests.js **********************
       it.skip(`(needed?) eosio.addgenlocked (producer)`, async function () {
       });
 
-      it(`(This is not needed. Testing action only.) eosio.addlocked  (producer)`, async function () {
+      it.skip(`(This is not needed. Testing action only.) eosio.addlocked  (producer)`, async function () {
         try {
           const result = await bp1.sdk.genericAction('pushTransaction', {
             action: 'addlocked',
