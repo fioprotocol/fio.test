@@ -30,7 +30,11 @@ let proposer;
 
 
 
-
+/*
+ NOTE-- this is a dev only file that can be used as an example of how to use a set of accounts across
+ different runs of the js tests. account info can be stored to file and then loaded by the tests
+ using it. this is for example/illustration only!!!!
+ */
 
 
 function runCmd(command) {

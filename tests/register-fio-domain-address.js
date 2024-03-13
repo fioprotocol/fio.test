@@ -60,7 +60,6 @@ describe(`************************** register-fio-domain-address.js ************
         actor: user1.account
       }
     });
-   // console.log(JSON.stringify(regDomAddObj, null, 4));
     expect(regDomAddObj).to.have.all.keys('transaction_id', 'processed');
     expect(regDomAddObj.processed.receipt.status).to.equal('executed');
     expect(regDomAddObj.processed.action_traces[0].receipt.response).to.contain('"status": "OK"').and.contain('"fee_collected":800000000000').and.contain('"expiration":');
@@ -71,17 +70,9 @@ describe(`************************** register-fio-domain-address.js ************
 
   it(`Date in the response is getting incremented an extra year. confirm response contains correct domain expiration date (BD-4244)`, async function () {
     blockTime = regDomAddObj.processed.block_time.split('.')[0];
-    //console.log(" action traces ",regDomAddObj.processed.action_traces);
-    //console.log("processed block time ",regDomAddObj.processed.block_time);
-    //console.log("response ",regDomAddObj.processed.action_traces[0].receipt.response);
     expDateObj = JSON.parse(regDomAddObj.processed.action_traces[0].receipt.response);
     let blockTimeStamp = new Date(Date(blockTime)).getTime();
     let expDateTimeStamp = new Date(expDateObj.expiration).getTime();
-   // console.log("blocktimestamp ",blockTimeStamp);
-   // console.log("exptimestamp ",expDateTimeStamp);
-   // console.log("diff is ",expDateTimeStamp - blockTimeStamp);
-   // console.log("exp greater than this ",blockTimeStamp + MS_YEAR - 86400);
-   // console.log("exp less than this ", blockTimeStamp + MS_YEAR + 86400);
     //.3 days slop in milliseconds for leap years
     expect(expDateTimeStamp).to.be.greaterThan(blockTimeStamp + MS_YEAR - MS_ONE_THIRD_DAY).and.lessThan(blockTimeStamp + MS_YEAR + MS_ONE_THIRD_DAY);
   });
@@ -117,11 +108,6 @@ describe(`************************** register-fio-domain-address.js ************
     let expDateTimeStamp = new Date(domainRows.rows[0].expiration).getTime() *1000;
     let timeDelta = expDateTimeStamp - blockTimeStamp;
     let window = MS_YEAR - timeDelta;   // allow an ~hour window
-    //console.log("blocktimestamp ",blockTimeStamp);
-    //console.log("exptimestamp ",expDateTimeStamp);
-   // console.log("diff is ",expDateTimeStamp - blockTimeStamp);
-   // console.log("exp greater than this ",blockTimeStamp + MS_YEAR - MS_ONE_THIRD_DAY);
-   // console.log("exp less than this ", blockTimeStamp + MS_YEAR + MS_ONE_THIRD_DAY);
     //.3 days slop in milliseconds for leap years
     expect(expDateTimeStamp).to.be.greaterThan(blockTimeStamp + MS_YEAR - MS_ONE_THIRD_DAY).and.lessThan(blockTimeStamp + MS_YEAR + MS_ONE_THIRD_DAY);
 
@@ -220,11 +206,6 @@ describe(`************************** register-fio-domain-address.js ************
     blockTime = regDomAddObj.processed.block_time.split('.')[0];
     let blockTimeStamp = new Date(Date(blockTime)).getTime();
     let expDateTimeStamp = new Date(domainRows.rows[0].expiration).getTime() * 1000;
-   // console.log("blocktimestamp ",blockTimeStamp);
-   // console.log("exptimestamp ",expDateTimeStamp);
-    //console.log("diff is ",expDateTimeStamp - blockTimeStamp);
-   // console.log("exp greater than this ",blockTimeStamp + MS_YEAR - MS_ONE_THIRD_DAY);
-    //console.log("exp less than this ", blockTimeStamp + MS_YEAR + MS_ONE_THIRD_DAY);
    // let timeDelta = expDateTimeStamp - blockTimeStamp;
    // let window = MS_YEAR - timeDelta;   // allow an ~hour window
     //.3 days slop in milliseconds for leap years
@@ -282,7 +263,6 @@ describe(`************************** register-fio-domain-address.js ************
         actor: user4.account
       }
     });
-    //console.log(JSON.stringify(regDomAddObj, null, 4));
     expect(regDomAddObj).to.have.all.keys('transaction_id', 'processed');
     expect(regDomAddObj.processed.receipt.status).to.equal('executed');
     expect(regDomAddObj.processed.action_traces[0].receipt.response).to.contain('"status": "OK"').and.contain('"fee_collected":800000000000').and.contain('"expiration":');
@@ -401,13 +381,9 @@ describe(`************************** register-fio-domain-address.js ************
       }
     });
     expect(result.type).to.equal('invalid_input');
-   // console.log ("pass 1");
     expect(result.fields[0].name).to.equal('fio_name');
-   // console.log ("pass 2");
     expect(result.fields[0].value).to.equal(address1);
-   // console.log ("pass 3");
     expect(result.fields[0].error).to.equal('Domain already registered, use regaddress instead.');
-    //console.log ("pass 4");
   });
 
   it(`(fee exceeds supplied maximum) try to register a FIO address and a public FIO domain`, async function () {
@@ -925,7 +901,6 @@ describe(`B. Register a FIO domain and address using /register_fio_domain_addres
         actor: user2.account
       }
     });
-    //console.log('Result: ', result);
     expect(result.type).to.equal('invalid_input');
     expect(result.fields[0].name).to.equal('owner_fio_public_key');
     expect(result.fields[0].value).to.equal('!@invalid#$');

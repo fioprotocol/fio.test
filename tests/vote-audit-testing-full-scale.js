@@ -9,6 +9,17 @@ const testType = getTestType();
 
 let total_voted_fio, bp1sdk,opproxy1sdk, transfer_tokens_pub_key_fee, unregister_proxy_fee, register_proxy_fee
 
+
+/*
+NOT for QA
+NOT for QA
+NOT for QA
+NOT for QA
+
+ NOTE -- this file is used for dev testing of the voting power and voting power audit in the fio
+ protocol. it is NOT intended to be used for QA regression tests.
+
+ */
 const eosio = {
   account: 'eosio',
   publicKey: 'FIO7isxEua78KPVbGzKemH4nj2bWE52gqj8Hkac3tc7jKNvpfWzYS',

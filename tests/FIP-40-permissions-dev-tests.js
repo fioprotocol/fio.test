@@ -55,8 +55,6 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
       technologyProviderId: ''
     })
 
-    console.log('permuser1.publicKey: ', permuser1.publicKey)
-
   })
 
 
@@ -80,7 +78,6 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
 
 
         expect(result.fee_collected).to.equal(500000000);
-    // console.log("result ", result);
     } catch (err) {
         console.log('Error', err);
         expect(err).to.equal(null);
@@ -126,11 +123,6 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
             result1 = await callFioApi("get_table_rows", json1);
             //get the id for the record
             expect(result1.rows.length).to.equal(1);
-
-            //console.log('Result: ', result);
-            //console.log('Result 1', result1);
-            //console.log('periods : ', result.rows[0].periods)
-
         } catch (err) {
             console.log('Error', err);
             expect(err).to.equal(null);
@@ -167,7 +159,6 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
             expect(result.status).to.equal(null);
 
         } catch (err) {
-           // console.log('Error', err);
             expect(err.json.fields[0].error).to.equal("Permission already exists")
         }
     })
@@ -191,7 +182,6 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
 
 
             expect(result.fee_collected).to.equal(500000000);
-            // console.log("result ", result);
         } catch (err) {
             console.log('Error', err);
             expect(err).to.equal(null);
@@ -215,10 +205,8 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
       })
         expect(result.fee_collected).to.equal(200000000);
 
-    //console.log("result ", result);
     } catch (err) {
      console.log("Error : ", err)
-      // expect(err.json.fields[0].error).to.contain('has not voted')
     }
   })
 
@@ -262,10 +250,6 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
             //get the id for the record
             expect(result1.rows.length).to.equal(0);
 
-            //console.log('Result: ', result);
-            //console.log('Result 1', result1);
-            //console.log('periods : ', result.rows[0].periods)
-
         } catch (err) {
             console.log('Error', err);
             expect(err).to.equal(null);
@@ -298,9 +282,7 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
             })
             expect(result.status).to.equal(null);
 
-            //console.log("result ", result);
         } catch (err) {
-            //console.log("Error : ", err)
             expect(err.json.fields[0].error).to.contain('Permission not found')
         }
     })
@@ -322,10 +304,9 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
             })
             expect(result.fee_collected).to.equal(200000000);
 
-            //console.log("result ", result);
+
         } catch (err) {
             console.log("Error : ", err)
-            // expect(err.json.fields[0].error).to.contain('has not voted')
         }
     })
 
@@ -366,10 +347,6 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
             //get the id for the record
             expect(result1.rows.length).to.equal(0);
 
-            console.log('Result: ', result);
-            //console.log('Result 1', result1);
-            //console.log('periods : ', result.rows[0].periods)
-
         } catch (err) {
             console.log('Error', err);
             expect(err).to.equal(null);
@@ -378,11 +355,9 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
 
     it(`FAILURE, call addperm for more than 100 accounts. fail on 101`, async () => {
         try {
-            console.log("Creating 100 grantees for domain ",permuser1.domain);
             for (let i =0; i< 103; i++)
             {
                 let taccount = await newUser(faucet);
-                console.log("adding grantee ",i);
 
                 const result = await permuser1.sdk.genericAction('pushTransaction', {
                     action: 'addperm',
@@ -399,7 +374,6 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
                 })
             }
         } catch (err) {
-            //console.log('Error', err);
             expect(err.json.fields[0].error).to.equal("Number of grantees exceeded, Max number grantees permitted is 100");
         }
     })
@@ -419,7 +393,6 @@ describe(`************************** FIP-40-permissions-dev-tests.js ***********
                 })
 
         } catch (err) {
-            //console.log('Error', err);
             expect(err.json.message).to.equal("Internal Service Error - (fc)");
         }
     })
@@ -532,8 +505,6 @@ describe(` A.1 contract action smoke tests permissions add and remove, wildcard 
             technologyProviderId: ''
         })
 
-        console.log('permuser1.publicKey: ', permuser1.publicKey)
-
     })
 
 
@@ -557,9 +528,7 @@ describe(` A.1 contract action smoke tests permissions add and remove, wildcard 
 
 
             expect(result.fee_collected).to.equal(500000000);
-            // console.log("result ", result);
         } catch (err) {
-            console.log('Error', err);
             expect(err).to.equal(null);
         }
     })
@@ -604,10 +573,6 @@ describe(` A.1 contract action smoke tests permissions add and remove, wildcard 
             //get the id for the record
             expect(result1.rows.length).to.equal(1);
 
-            //console.log('Result: ', result);
-            //console.log('Result 1', result1);
-            //console.log('periods : ', result.rows[0].periods)
-
         } catch (err) {
             console.log('Error', err);
             expect(err).to.equal(null);
@@ -644,7 +609,6 @@ describe(` A.1 contract action smoke tests permissions add and remove, wildcard 
             expect(result.status).to.equal(null);
 
         } catch (err) {
-            // console.log('Error', err);
             expect(err.json.fields[0].error).to.equal("Permission already exists")
         }
     })
@@ -668,9 +632,7 @@ describe(` A.1 contract action smoke tests permissions add and remove, wildcard 
 
 
             expect(result.fee_collected).to.equal(500000000);
-            // console.log("result ", result);
         } catch (err) {
-            console.log('Error', err);
             expect(err).to.equal(null);
         }
     })
@@ -723,11 +685,9 @@ describe(` A.1 contract action smoke tests permissions add and remove, wildcard 
                         actor: permuser2.account
                     }
                 });
-                // console.log('Result: ', result)
                 expect(result.status).to.equal('OK');
             }
         } catch (err) {
-            // console.log(err);
             expect(err).to.equal(null);
         }
     })
@@ -747,11 +707,9 @@ describe(` A.1 contract action smoke tests permissions add and remove, wildcard 
                         actor: permuser4.account
                     }
                 });
-                // console.log('Result: ', result)
                 expect(result).to.equal(null);
 
         } catch (err) {
-            // console.log(err);
             expect(err.json.fields[0].error).to.equal("FIO Domain is not public. Only owner can create FIO Addresses.");
         }
     })
@@ -777,9 +735,7 @@ describe(` A.1 contract action smoke tests permissions add and remove, wildcard 
 
                 expect(result.fee_collected).to.equal(500000000);
             }
-            // console.log("result ", result);
         } catch (err) {
-            console.log('Error', err);
             expect(err).to.equal(null);
         }
     })
@@ -801,11 +757,9 @@ describe(` A.1 contract action smoke tests permissions add and remove, wildcard 
                         actor: permuser2.account
                     }
                 });
-                // console.log('Result: ', result)
                 expect(result.status).to.equal('OK');
             }
         } catch (err) {
-            // console.log(err);
             expect(err).to.equal(null);
         }
     })
@@ -827,10 +781,8 @@ describe(` A.1 contract action smoke tests permissions add and remove, wildcard 
             })
             expect(result.fee_collected).to.equal(200000000);
 
-            //console.log("result ", result);
         } catch (err) {
             console.log("Error : ", err)
-            // expect(err.json.fields[0].error).to.contain('has not voted')
         }
     })
 
@@ -849,11 +801,9 @@ describe(` A.1 contract action smoke tests permissions add and remove, wildcard 
                     actor: permuser2.account
                 }
             });
-            // console.log('Result: ', result)
             expect(result).to.equal(null);
 
         } catch (err) {
-            // console.log(err);
             expect(err.json.fields[0].error).to.equal("FIO Domain is not public. Only owner can create FIO Addresses.");
         }
     })
@@ -873,11 +823,9 @@ describe(` A.1 contract action smoke tests permissions add and remove, wildcard 
                     actor: permuser4.account
                 }
             });
-            // console.log('Result: ', result)
             expect(result).to.equal(null);
 
         } catch (err) {
-            // console.log(err);
             expect(err.json.fields[0].error).to.equal("FIO Domain is not public. Only owner can create FIO Addresses.");
         }
     })
@@ -899,11 +847,9 @@ describe(` A.1 contract action smoke tests permissions add and remove, wildcard 
                         actor: permuser2.account
                     }
                 });
-                // console.log('Result: ', result)
                 expect(result.status).to.equal('OK');
             }
         } catch (err) {
-            // console.log(err);
             expect(err).to.equal(null);
         }
     })
@@ -928,7 +874,6 @@ describe(` A.1 contract action smoke tests permissions add and remove, wildcard 
 
                 expect(result.status).to.equal('OK');
             }
-            // console.log("result ", result);
         } catch (err) {
             console.log('Error', err);
             expect(err).to.equal(null);
@@ -949,11 +894,9 @@ describe(` A.1 contract action smoke tests permissions add and remove, wildcard 
                     actor: permuser2.account
                 }
             });
-            // console.log('Result: ', result)
             expect(result).to.equal(null);
 
         } catch (err) {
-            // console.log(err);
             expect(err.json.fields[0].error).to.equal("FIO Domain is not public. Only owner can create FIO Addresses.");
         }
     })
@@ -998,11 +941,6 @@ describe(` A.1 contract action smoke tests permissions add and remove, wildcard 
             result1 = await callFioApi("get_table_rows", json1);
             //get the id for the record
             expect(result1.rows.length).to.equal(0);
-
-            //console.log('Result: ', result);
-            //console.log('Result 1', result1);
-            //console.log('periods : ', result.rows[0].periods)
-
         } catch (err) {
             console.log('Error', err);
             expect(err).to.equal(null);
@@ -1035,9 +973,7 @@ describe(` A.1 contract action smoke tests permissions add and remove, wildcard 
             })
             expect(result.status).to.equal(null);
 
-            //console.log("result ", result);
         } catch (err) {
-            //console.log("Error : ", err)
             expect(err.json.fields[0].error).to.contain('Permission not found')
         }
     })
@@ -1059,10 +995,8 @@ describe(` A.1 contract action smoke tests permissions add and remove, wildcard 
             })
             expect(result.fee_collected).to.equal(200000000);
 
-            //console.log("result ", result);
         } catch (err) {
             console.log("Error : ", err)
-            // expect(err.json.fields[0].error).to.contain('has not voted')
         }
     })
 
@@ -1103,9 +1037,6 @@ describe(` A.1 contract action smoke tests permissions add and remove, wildcard 
             //get the id for the record
             expect(result1.rows.length).to.equal(0);
 
-            console.log('Result: ', result);
-            //console.log('Result 1', result1);
-            //console.log('periods : ', result.rows[0].periods)
 
         } catch (err) {
             console.log('Error', err);
@@ -1198,8 +1129,6 @@ describe(`B. chain_api endpoint smoke tests permissions add and remove \n `, () 
             technologyProviderId: ''
         })
 
-        console.log('permuser1.publicKey: ', permuser1.publicKey)
-
     })
 
 
@@ -1224,7 +1153,6 @@ describe(`B. chain_api endpoint smoke tests permissions add and remove \n `, () 
                 }
             })
 
- //console.log("result ", result);
             expect(result.processed.action_traces[0].receipt.response).to.contain("500000000");
 
         } catch (err) {
@@ -1251,7 +1179,6 @@ describe(`B. chain_api endpoint smoke tests permissions add and remove \n `, () 
                 }
             })
 
-            //console.log("result ", result);
             expect(result.processed.action_traces[0].receipt.response).to.contain("OK");
 
         } catch (err) {
@@ -1288,10 +1215,6 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
             technologyProviderId: ''
         })
         user1Address = generateFioAddress(permuser1.domain, 7);
-       // console.log("address to register is ",user1Address);
-
-        console.log('permuser1.publicKey: ', permuser1.publicKey)
-
     })
 
 
@@ -1314,9 +1237,7 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
             })
 
             expect(result.fee_collected).to.equal(500000000);
-            // console.log("result ", result);
         } catch (err) {
-           // console.log('Error', err);
             expect(err).to.equal(null);
         }
     })
@@ -1361,12 +1282,7 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
             //get the id for the record
             expect(result1.rows.length).to.equal(1);
 
-            //console.log('Result: ', result);
-            //console.log('Result 1', result1);
-            //console.log('periods : ', result.rows[0].periods)
-
         } catch (err) {
-            //console.log('Error', err);
             expect(err).to.equal(null);
         }
     })
@@ -1384,10 +1300,8 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
                     actor: permuser3.account
                 }
             });
-           // console.log('Result: ', result)
             expect(result).to.equal(null);
         } catch (err) {
-           // console.log(err);
             expect(err.json.fields[0].error).to.equal("FIO Domain is not public. Only owner can create FIO Addresses.");
         }
     })
@@ -1405,10 +1319,8 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
                     actor: permuser2.account
                 }
             });
-           // console.log('Result: ', result)
             expect(result.status).to.equal('OK');
         } catch (err) {
-           // console.log(err);
             expect(err).to.equal(null);
         }
     })
@@ -1432,9 +1344,7 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
             })
 
             expect(result.fee_collected).to.equal(500000000);
-            // console.log("result ", result);
         } catch (err) {
-            // console.log('Error', err);
             expect(err).to.equal(null);
         }
     })
@@ -1478,13 +1388,7 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
             result1 = await callFioApi("get_table_rows", json1);
             //get the id for the record
             expect(result1.rows.length).to.equal(1);
-
-            //console.log('Result: ', result);
-            //console.log('Result 1', result1);
-            //console.log('periods : ', result.rows[0].periods)
-
         } catch (err) {
-            //console.log('Error', err);
             expect(err).to.equal(null);
         }
     })
@@ -1503,10 +1407,8 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
                     actor: permuser2.account
                 }
             });
-            // console.log('Result: ', result)
             expect(result.status).to.equal('OK');
         } catch (err) {
-            // console.log(err);
             expect(err).to.equal(null);
         }
     })
@@ -1529,9 +1431,7 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
             })
 
             expect(result.fee_collected).to.equal(200000000);
-            // console.log("result ", result);
         } catch (err) {
-           // console.log('Error', err);
             expect(err).to.equal(null);
         }
     })
@@ -1576,12 +1476,7 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
             //get the id for the record
             expect(result1.rows.length).to.equal(1);
 
-            //console.log('Result: ', result);
-            //console.log('Result 1', result1);
-            //console.log('periods : ', result.rows[0].periods)
-
         } catch (err) {
-            //console.log('Error', err);
             expect(err).to.equal(null);
         }
     })
@@ -1600,10 +1495,8 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
                     actor: permuser2.account
                 }
             });
-            // console.log('Result: ', result)
             expect(result.status).to.equal('OK');
         } catch (err) {
-            // console.log(err);
             expect(err.json.fields[0].error).to.equal("FIO Domain is not public. Only owner can create FIO Addresses.");
         }
     })
@@ -1626,9 +1519,7 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
             })
 
             expect(result.fee_collected).to.equal(200000000);
-            // console.log("result ", result);
         } catch (err) {
-            // console.log('Error', err);
             expect(err).to.equal(null);
         }
     })
@@ -1649,10 +1540,8 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
                     actor: permuser2.account
                 }
             });
-           // console.log('Result: ', result)
             expect(result).to.equal(null);
         } catch (err) {
-           // console.log(err);
             expect(err.json.fields[0].error).to.equal("FIO Domain is not public. Only owner can create FIO Addresses.");
         }
     })
@@ -1666,10 +1555,8 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
                 maxFee: config.maxFee,
                 technologyProviderId: ''
             })
-            //console.log('Result: ', result);
             expect(result.status).to.equal('OK');
         } catch (err) {
-           // console.log('Error: ', err)
             expect(err).to.equal(null);
         }
     })
@@ -1689,10 +1576,8 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
                     actor: permuser2.account
                 }
             });
-          //  console.log('Result: ', result)
             expect(result.status).to.equal('OK');
         } catch (err) {
-           // console.log(err);
             expect(err).to.equal(null);
         }
     })
@@ -1715,9 +1600,7 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
             })
 
             expect(result.fee_collected).to.equal(500000000);
-            // console.log("result ", result);
         } catch (err) {
-           // console.log('Error', err);
             expect(err).to.equal(null);
         }
     })
@@ -1761,13 +1644,7 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
             result1 = await callFioApi("get_table_rows", json1);
             //get the id for the record
             expect(result1.rows.length).to.equal(1);
-
-            //console.log('Result: ', result);
-            //console.log('Result 1', result1);
-            //console.log('periods : ', result.rows[0].periods)
-
         } catch (err) {
-           // console.log('Error', err);
             expect(err).to.equal(null);
         }
     })
@@ -1787,10 +1664,8 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
                     actor: permuser2.account
                 }
             });
-           // console.log('Result: ', result)
             expect(result.status).to.equal('OK');
         } catch (err) {
-           // console.log(err);
             expect(err).to.equal(null);
         }
     })
@@ -1810,12 +1685,10 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
                     actor: publicuser1.account
                 }
             })
-           // console.log("result ", result);
 
             expect(result.fee_collected).to.equal(200000000);
-            // console.log("result ", result);
         } catch (err) {
-           // console.log('Error', err);
+          
             expect(err).to.equal(null);
         }
     })
@@ -1835,10 +1708,8 @@ describe(`C. smoke tests regaddress with permissions integrated \n `, () => {
                     actor: permuser2.account
                 }
             });
-           // console.log('Result: ', result)
             expect(result.status).to.equal('OK');
         } catch (err) {
-           // console.log(err);
             expect(err).to.equal(null);
         }
     })
@@ -1875,7 +1746,6 @@ describe(`D. addperm -- argument validation tests`, () => {
                 });
                 expect(result.status).to.equal(null);
             } catch (err) {
-               // console.log("Error ", err)
                 expect(err.json.fields[0].error).to.equal("Account is invalid or does not exist.")
             }
     });
@@ -1897,7 +1767,6 @@ describe(`D. addperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Account is invalid or does not exist.")
         }
     });
@@ -1919,7 +1788,6 @@ describe(`D. addperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Account is invalid or does not exist.")
         }
     });
@@ -1941,7 +1809,6 @@ describe(`D. addperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Account is invalid or does not exist.")
         }
     });
@@ -1965,7 +1832,6 @@ describe(`D. addperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Account is invalid or does not exist.")
         }
     });
@@ -1990,7 +1856,6 @@ describe(`D. addperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal('OK');
         } catch (err) {
-            //console.log("Error ", err)
             expect(err).to.equal(null)
         }
     });
@@ -2013,7 +1878,6 @@ describe(`D. addperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Permission name is invalid.")
         }
     });
@@ -2036,7 +1900,6 @@ describe(`D. addperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Permission name is invalid.")
         }
     });
@@ -2061,7 +1924,6 @@ describe(`D. addperm -- argument validation tests`, () => {
                     });
                     expect(result.status).to.equal(null);
         } catch (err) {
-                    //console.log("Error ", err)
                     expect(err.json.fields[0].error).to.equal("Permission Info is invalid.")
         }
     });
@@ -2086,7 +1948,6 @@ describe(`D. addperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Object Name is invalid.")
         }
     });
@@ -2109,7 +1970,6 @@ describe(`D. addperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Object Name is invalid.")
         }
     });
@@ -2132,7 +1992,6 @@ describe(`D. addperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Object Name is invalid.")
         }
     });
@@ -2155,7 +2014,6 @@ describe(`D. addperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal('OK');
         } catch (err) {
-            //console.log("Error ", err)
             expect(err).to.equal(null)
         }
     });
@@ -2178,7 +2036,6 @@ describe(`D. addperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Object Name is invalid.")
         }
     });
@@ -2201,7 +2058,6 @@ describe(`D. addperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Object Name is invalid.")
         }
     });
@@ -2226,7 +2082,6 @@ describe(`D. addperm -- argument validation tests`, () => {
 
 
             expect(result.fee_collected).to.equal(500000000);
-            // console.log("result ", result);
         } catch (err) {
             console.log('Error', err);
             expect(err).to.equal(null);
@@ -2254,7 +2109,6 @@ describe(`D. addperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Invalid fee value")
         }
     });
@@ -2283,7 +2137,6 @@ describe(`D. addperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("TPID must be empty or valid FIO address")
         }
     });
@@ -2309,7 +2162,6 @@ describe(`D. addperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("TPID must be empty or valid FIO address")
         }
     });
@@ -2335,7 +2187,6 @@ describe(`D. addperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal('OK');
         } catch (err) {
-            //console.log("Error ", err)
             expect(err).to.equal(null);
         }
     });
@@ -2376,7 +2227,6 @@ describe(`E. remperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Account is invalid or does not exist.")
         }
     });
@@ -2397,7 +2247,6 @@ describe(`E. remperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Account is invalid or does not exist.")
         }
     });
@@ -2418,7 +2267,6 @@ describe(`E. remperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Account is invalid or does not exist.")
         }
     });
@@ -2439,7 +2287,6 @@ describe(`E. remperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Account is invalid or does not exist.")
         }
     });
@@ -2462,7 +2309,6 @@ describe(`E. remperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Account is invalid or does not exist.")
         }
     });
@@ -2486,7 +2332,6 @@ describe(`E. remperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Permission not found");
         }
     });
@@ -2508,7 +2353,6 @@ describe(`E. remperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Permission name is invalid.")
         }
     });
@@ -2530,7 +2374,6 @@ describe(`E. remperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Permission name is invalid.")
         }
     });
@@ -2555,7 +2398,6 @@ describe(`E. remperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Object Name is invalid.")
         }
     });
@@ -2577,7 +2419,6 @@ describe(`E. remperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Object Name is invalid.")
         }
     });
@@ -2599,7 +2440,6 @@ describe(`E. remperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Object Name is invalid.")
         }
     });
@@ -2621,7 +2461,6 @@ describe(`E. remperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Permission not found");
         }
     });
@@ -2643,7 +2482,6 @@ describe(`E. remperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Object Name is invalid.")
         }
     });
@@ -2665,7 +2503,6 @@ describe(`E. remperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Object Name is invalid.")
         }
     });
@@ -2688,10 +2525,8 @@ describe(`E. remperm -- argument validation tests`, () => {
                     actor: user6.account
                 }
             });
-           // console.log(result1);
             expect(result1.status).to.equal('OK');
         } catch (err) {
-            //console.log("Error ", err)
             expect(err).to.equal(null)
 
         }
@@ -2719,7 +2554,6 @@ describe(`E. remperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("Invalid fee value")
         }
     });
@@ -2744,7 +2578,6 @@ describe(`E. remperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal('OK');
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("TPID must be empty or valid FIO address")
         }
     });
@@ -2769,7 +2602,6 @@ describe(`E. remperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal(null);
         } catch (err) {
-            //console.log("Error ", err)
             expect(err.json.fields[0].error).to.equal("TPID must be empty or valid FIO address")
         }
     });
@@ -2795,7 +2627,6 @@ describe(`E. remperm -- argument validation tests`, () => {
             });
             expect(result.status).to.equal('OK');
         } catch (err) {
-            //console.log("Error ", err)
             expect(err).to.equal(null)
         }
     });
@@ -2840,7 +2671,6 @@ describe(`F. chain_api endpoint get_grantor_permissions wildcard tests \n `, () 
 
                     domainGood = generateFioDomain(7);
                     domains[step] = domainGood;
-                   // console.log()
 
 
                     const result = await permuser1.sdk.genericAction('registerFioDomain', {
@@ -2873,7 +2703,6 @@ describe(`F. chain_api endpoint get_grantor_permissions wildcard tests \n `, () 
                             }
                         })
 
-                        //console.log("result ", result);
                         expect(result.processed.action_traces[0].receipt.response).to.contain("500000000");
                     }
 
@@ -2897,7 +2726,6 @@ describe(`F. chain_api endpoint get_grantor_permissions wildcard tests \n `, () 
                 grantor_account: permuser1.account
             }
             result = await callFioApi("get_grantor_permissions", json);
-           // console.log('Result: ', result);
 
             //expect item 0 to be the first user.
             expect(result.permissions[0].grantee_account).to.equal(users[0].account);
@@ -2919,7 +2747,6 @@ describe(`F. chain_api endpoint get_grantor_permissions wildcard tests \n `, () 
                 offset: 0
             }
             result = await callFioApi("get_grantor_permissions", json);
-          //  console.log('Result: ', result);
             //expect item 0 to be the first user.
             expect(result.permissions[0].grantee_account).to.equal(users[0].account);
             expect(result.permissions[0].object_name).to.equal("*");
@@ -2929,7 +2756,6 @@ describe(`F. chain_api endpoint get_grantor_permissions wildcard tests \n `, () 
 
         } catch (err) {
             console.log(err);
-           // console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
@@ -2944,7 +2770,6 @@ describe(`F. chain_api endpoint get_grantor_permissions wildcard tests \n `, () 
                 offset: offsetval
             }
             result = await callFioApi("get_grantor_permissions", json);
-           // console.log('Result: ', result);
             //expect item 0 to be  user[NUMBER_PERMS*DOMAINS_PER_ACCOUNT-1].
 
             expect(result.permissions[0].grantee_account).to.equal(users[offsetval].account);
@@ -2953,11 +2778,9 @@ describe(`F. chain_api endpoint get_grantor_permissions wildcard tests \n `, () 
             expect(result.permissions[NUMBER_PERMS-1].grantee_account).to.equal(users[offsetval+NUMBER_PERMS-1].account);
             expect(result.permissions[NUMBER_PERMS-1].object_name).to.equal("*");
 
-            //console.log('Result: ', result);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
         } catch (err) {
             console.log(err);
-            //console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
@@ -2970,7 +2793,6 @@ describe(`F. chain_api endpoint get_grantor_permissions wildcard tests \n `, () 
                 offset: 3
             }
             result = await callFioApi("get_grantor_permissions", json);
-           // console.log('Result: ', result);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
             expect(result.permissions[0].grantee_account).to.equal(users[3].account);
             expect(result.permissions[0].object_name).to.equal("*");
@@ -2980,7 +2802,6 @@ describe(`F. chain_api endpoint get_grantor_permissions wildcard tests \n `, () 
 
         } catch (err) {
             console.log(err);
-           // console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
@@ -2993,7 +2814,6 @@ describe(`F. chain_api endpoint get_grantor_permissions wildcard tests \n `, () 
                 offset: 20
             }
             result = await callFioApi("get_grantor_permissions", json);
-           // console.log('Result: ', result);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
             expect(result.permissions[0].grantee_account).to.equal(users[20].account);
@@ -3004,7 +2824,6 @@ describe(`F. chain_api endpoint get_grantor_permissions wildcard tests \n `, () 
 
         } catch (err) {
             console.log(err);
-            //console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
@@ -3051,7 +2870,6 @@ describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
 
                     domainGood = generateFioDomain(7);
                     domains[step] = domainGood;
-                    // console.log()
 
 
                     const result = await permuser1.sdk.genericAction('registerFioDomain', {
@@ -3084,7 +2902,6 @@ describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
                             }
                         })
 
-                        //console.log("result ", result);
                         expect(result.processed.action_traces[0].receipt.response).to.contain("500000000");
                     }
 
@@ -3108,7 +2925,6 @@ describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
                 grantor_account: permuser1.account
             }
             result = await callFioApi("get_grantor_permissions", json);
-            // console.log('Result: ', result);
 
             //expect item 0 to be the first user.
             expect(result.permissions[0].grantee_account).to.equal(users[0].account);
@@ -3130,7 +2946,6 @@ describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
                 offset: 0
             }
             result = await callFioApi("get_grantor_permissions", json);
-            //  console.log('Result: ', result);
             //expect item 0 to be the first user.
             expect(result.permissions[0].grantee_account).to.equal(users[0].account);
             expect(result.permissions[0].object_name).to.equal(domains[0]);
@@ -3140,7 +2955,6 @@ describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
 
         } catch (err) {
             console.log(err);
-            // console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
@@ -3155,7 +2969,6 @@ describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
                 offset: offsetval
             }
             result = await callFioApi("get_grantor_permissions", json);
-            // console.log('Result: ', result);
             //expect item 0 to be  user[NUMBER_PERMS*DOMAINS_PER_ACCOUNT-1].
 
             expect(result.permissions[0].grantee_account).to.equal(users[offsetval].account);
@@ -3164,11 +2977,9 @@ describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
             expect(result.permissions[NUMBER_PERMS-1].grantee_account).to.equal(users[offsetval+NUMBER_PERMS-1].account);
             expect(result.permissions[NUMBER_PERMS-1].object_name).to.equal(domains[offsetval/NUMBER_PERMS]);
 
-            //console.log('Result: ', result);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
         } catch (err) {
             console.log(err);
-            //console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
@@ -3181,7 +2992,6 @@ describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
                 offset: 3
             }
             result = await callFioApi("get_grantor_permissions", json);
-            // console.log('Result: ', result);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
             expect(result.permissions[0].grantee_account).to.equal(users[3].account);
             expect(result.permissions[0].object_name).to.equal(domains[0]);
@@ -3191,7 +3001,6 @@ describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
 
         } catch (err) {
             console.log(err);
-            // console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
@@ -3204,7 +3013,6 @@ describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
                 offset: 20
             }
             result = await callFioApi("get_grantor_permissions", json);
-            // console.log('Result: ', result);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
             expect(result.permissions[0].grantee_account).to.equal(users[20].account);
@@ -3215,7 +3023,6 @@ describe(`F. chain_api endpoint get_grantor_permissions tests \n `, () => {
 
         } catch (err) {
             console.log(err);
-            //console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
@@ -3273,7 +3080,6 @@ describe(`G. chain_api endpoint get_grantee_permissions tests \n `, () => {
                     }
                 })
 
-                //console.log("result ", result);
                 expect(result.processed.action_traces[0].receipt.response).to.contain("500000000");
             }
 
@@ -3289,7 +3095,6 @@ describe(`G. chain_api endpoint get_grantee_permissions tests \n `, () => {
                 grantee_account: permuser1.account
             }
             result = await callFioApi("get_grantee_permissions", json);
-          //  console.log('Result: ', result);
             expect(result.permissions.length).to.equal(NUMBER_PERMS);
             expect(result.permissions[0].grantor_account).to.equal(users[0].account);
             expect(result.permissions[9].grantor_account).to.equal(users[9].account);
@@ -3298,7 +3103,6 @@ describe(`G. chain_api endpoint get_grantee_permissions tests \n `, () => {
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
         } catch (err) {
             console.log(err);
-            //console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
@@ -3318,7 +3122,6 @@ describe(`G. chain_api endpoint get_grantee_permissions tests \n `, () => {
             expect(result.permissions[9].grantor_account).to.equal(users[9].account);
         } catch (err) {
             console.log(err);
-           // console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
@@ -3332,15 +3135,12 @@ describe(`G. chain_api endpoint get_grantee_permissions tests \n `, () => {
                 offset: 3
             }
             result = await callFioApi("get_grantee_permissions", json);
-          //  console.log('Result: ', result);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
             expect(result.permissions.length).to.equal(2);
             expect(result.permissions[0].grantor_account).to.equal(users[3].account);
             expect(result.permissions[1].grantor_account).to.equal(users[4].account);
         } catch (err) {
             console.log(err);
-           // console.log(JSON.stringify(err.error, null, 4));
-            expect(err).to.equal(null);
         }
     });
 
@@ -3352,7 +3152,6 @@ describe(`G. chain_api endpoint get_grantee_permissions tests \n `, () => {
                 offset: 3
             }
             result = await callFioApi("get_grantee_permissions", json);
-           // console.log('Result: ', result);
             expect(result.permissions.length).to.equal(7);
 
             expect(result.permissions[0].grantor_account).to.equal(users[3].account);
@@ -3362,7 +3161,6 @@ describe(`G. chain_api endpoint get_grantee_permissions tests \n `, () => {
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
         } catch (err) {
             console.log(err);
-            //console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
@@ -3375,12 +3173,10 @@ describe(`G. chain_api endpoint get_grantee_permissions tests \n `, () => {
                 offset: 20
             }
             result = await callFioApi("get_grantee_permissions", json);
-          //  console.log('Result: ', result);
             expect(result.permissions.length).to.equal(0);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
         } catch (err) {
             console.log(err);
-            //console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
@@ -3458,7 +3254,6 @@ describe(`H. chain_api endpoint get_object_permissions tests \n `, () => {
                             }
                         })
 
-                        //console.log("result ", result);
                         expect(result.processed.action_traces[0].receipt.response).to.contain("500000000");
                     }
 
@@ -3483,7 +3278,6 @@ describe(`H. chain_api endpoint get_object_permissions tests \n `, () => {
                 permission_name: "register_address_on_domain"
             }
             result = await callFioApi("get_object_permissions", json);
-          //  console.log('Result: ', result);
             expect(result.permissions.length).to.equal(10);
             expect(result.permissions[0].grantee_account).to.equal(users[10].account);
             expect(result.permissions[0].object_name).to.equal(useDomain);
@@ -3492,7 +3286,6 @@ describe(`H. chain_api endpoint get_object_permissions tests \n `, () => {
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
         } catch (err) {
             console.log(err);
-          //  console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
@@ -3517,7 +3310,6 @@ describe(`H. chain_api endpoint get_object_permissions tests \n `, () => {
             expect(result.permissions[9].object_name).to.equal(useDomain);
         } catch (err) {
             console.log(err);
-           // console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
@@ -3532,7 +3324,6 @@ describe(`H. chain_api endpoint get_object_permissions tests \n `, () => {
                 offset: 3
             }
             result = await callFioApi("get_object_permissions", json);
-          //  console.log('Result: ', result);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
 
 
@@ -3544,7 +3335,6 @@ describe(`H. chain_api endpoint get_object_permissions tests \n `, () => {
 
         } catch (err) {
             console.log(err);
-           // console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
@@ -3558,7 +3348,6 @@ describe(`H. chain_api endpoint get_object_permissions tests \n `, () => {
                 offset: 3
             }
             result = await callFioApi("get_object_permissions", json);
-           // console.log('Result: ', result);
 
             expect(result.permissions.length).to.equal(7);
             expect(result.permissions[0].grantee_account).to.equal(users[13].account);
@@ -3570,7 +3359,6 @@ describe(`H. chain_api endpoint get_object_permissions tests \n `, () => {
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
         } catch (err) {
             console.log(err);
-            //console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
@@ -3584,12 +3372,10 @@ describe(`H. chain_api endpoint get_object_permissions tests \n `, () => {
                 offset: 20
             }
             result = await callFioApi("get_object_permissions", json);
-          //  console.log('Result: ', result);
             expect(result.permissions.length).to.equal(0);
             //expect(result.fio_public_key).to.equal(fioSdk.publicKey);
         } catch (err) {
             console.log(err);
-            //console.log(JSON.stringify(err.error, null, 4));
             expect(err).to.equal(null);
         }
     });
@@ -3691,7 +3477,6 @@ describe.skip('D. Burn large number of expired domains with gaps between expired
                 show_payer: false
             }
             result = await callFioApi("get_table_rows", json);
-            //console.log('result: ', result);
             nftburnqCount = result.rows.length;
         } catch (err) {
             console.log('Error', err);
@@ -3709,21 +3494,16 @@ describe.skip('D. Burn large number of expired domains with gaps between expired
             for (let i = 0; i < domainBlockCount; i++) {
                 console.log('          (Adding Domain) #' + i);
                 user[i] = await newUser(faucet);
-               // console.log('user[i].privateKey: ', user[i].privateKey);
-               // console.log('user[i].privateKey: ', user[i].publicKey);
 
 
-                //console.log('          (Adding ' + addressBlockCount + ' Addresses with ' + nftBlockCount + ' NFTs)');
                 for (let j = 0; j < addressBlockCount; j++) {
                     address[j] = generateFioAddress(user[i].domain, 10)
-                  //  console.log('address[j]: ', address[j]);
 
                     const addressResult = await user[i].sdk.genericAction('registerFioAddress', {
                         fioAddress: address[j],
                         maxFee: config.maxFee,
                         technologyProviderId: ''
                     })
-                   // console.log('addressResult: ', addressResult)
                     expect(addressResult.status).to.equal('OK')
 
                     let permgrantee = await newUser(faucet);
@@ -3755,8 +3535,6 @@ describe.skip('D. Burn large number of expired domains with gaps between expired
                                 tpid: ""
                             }
                         })
-                        //console.log(`nft count: `, k)
-                        //console.log(`addnftResult: `, addnftResult)
                         expect(addnftResult.status).to.equal('OK')
                     } // k - nfts
                 }  // j - addresses
@@ -3783,7 +3561,6 @@ describe.skip('D. Burn large number of expired domains with gaps between expired
                         "actor": user[i].account
                     }
                 })
-                //console.log('Result: ', result);
                 expect(result.processed.receipt.status).to.equal('executed');
                 } catch (err) {
                     console.log('Error: ', err);
@@ -3801,7 +3578,6 @@ describe.skip('D. Burn large number of expired domains with gaps between expired
                 console.log('          (Adding Domain) #' + i);
                 user[i] = await newUser(faucet);
 
-                //console.log('          (Adding ' + addressBlockCount + ' Addresses with ' + nftBlockCount + ' NFTs)');
                 for (j = 0; j < addressBlockCount; j++) {
                     address[j] = generateFioAddress(user[i].domain, 10)
 
@@ -3810,7 +3586,6 @@ describe.skip('D. Burn large number of expired domains with gaps between expired
                         maxFee: config.maxFee,
                         technologyProviderId: ''
                     })
-                    //console.log('addressResult: ', addressResult)
                     expect(addressResult.status).to.equal('OK')
 
 
@@ -3830,7 +3605,6 @@ describe.skip('D. Burn large number of expired domains with gaps between expired
                                 tpid: ""
                             }
                         })
-                        //console.log(`addnftResult: `, addnftResult)
                         expect(addnftResult.status).to.equal('OK')
                     } // k - nfts
                 }  // j - addresses
@@ -3850,7 +3624,6 @@ describe.skip('D. Burn large number of expired domains with gaps between expired
                 console.log('          (Adding Domain) #' + i);
                 user[i] = await newUser(faucet);
 
-                //console.log('          (Adding ' + addressBlockCount + ' Addresses with ' + nftBlockCount + ' NFTs)');
                 for (j = 0; j < addressBlockCount; j++) {
                     address[j] = generateFioAddress(user[i].domain, 10)
 
@@ -3859,7 +3632,6 @@ describe.skip('D. Burn large number of expired domains with gaps between expired
                         maxFee: config.maxFee,
                         technologyProviderId: ''
                     })
-                    //console.log('addressResult: ', addressResult)
                     expect(addressResult.status).to.equal('OK')
 
                     for (k = 0; k < nftBlockCount / 3; k++) {
@@ -3875,7 +3647,6 @@ describe.skip('D. Burn large number of expired domains with gaps between expired
                                 tpid: ""
                             }
                         })
-                        //console.log(`addnftResult: `, addnftResult)
                         expect(addnftResult.status).to.equal('OK')
                     } // k - nfts
                 }  // j - addresses
@@ -3939,7 +3710,6 @@ describe.skip('D. Burn large number of expired domains with gaps between expired
                 await timeout(1000); // To avoid duplicate transaction
             } catch (err) {
                 workDoneThisOffset = false;
-                //console.log('Error: ', err);
                 if (err.code == 400 && err.json.fields[0].error == 'No work.') {
                     retryCount = 0;
                     console.log('Offset = ' + offset + ', Limit = ' + limit + ', Result: ' + err.json.fields[0].error);
@@ -3965,7 +3735,6 @@ describe.skip('D. Burn large number of expired domains with gaps between expired
                 show_payer: false
             }
             result = await callFioApi("get_table_rows", json);
-            //console.log('Table lookup: ', result);
 
             if (result.rows.length == 0) {
                 console.log("DONE");
@@ -4024,7 +3793,6 @@ describe.skip('D. Burn large number of expired domains with gaps between expired
                 await timeout(1000); // To avoid duplicate transaction
             } catch (err) {
                 workDoneThisOffset = false;
-                //console.log('Error: ', err);
                 if (err.code == 400 && err.json.fields[0].error == 'No work.') {
                     retryCount = 0;
                     console.log('Offset = ' + offset + ', Limit = ' + limit + ', Result: ' + err.json.fields[0].error);
@@ -4050,7 +3818,6 @@ describe.skip('D. Burn large number of expired domains with gaps between expired
                 show_payer: false
             }
             result = await callFioApi("get_table_rows", json);
-            //console.log('Table lookup: ', result);
 
             if (result.rows.length == 0) {
                 console.log("DONE");
@@ -4117,9 +3884,6 @@ describe.skip('D. Burn large number of expired domains with gaps between expired
                 expect(result1.rows.length).to.equal(0);
             }
 
-            //console.log('Result: ', result);
-            //console.log('Result 1', result1);
-            //console.log('periods : ', result.rows[0].periods)
 
         } catch (err) {
             console.log('Error', err);
@@ -4289,7 +4053,6 @@ describe.skip(`AB. permissions performance tests \n `, () => {
             technologyProviderId: ''
         })
 
-        console.log('permuser1.publicKey: ', permuser1.publicKey)
 
     })
 
@@ -4352,7 +4115,6 @@ describe.skip(`AB. permissions performance tests \n `, () => {
             })
             expect(result.fee_collected).to.equal(200000000);
 
-            //console.log("result ", result);
         } catch (err) {
             console.log("Error : ", err)
             // expect(err.json.fields[0].error).to.contain('has not voted')

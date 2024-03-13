@@ -41,22 +41,17 @@ describe(`************************** vote.js ************************** \n    A.
     proxyA1 = await newUser(faucet);
     user2 = await newUser(faucet);
 
-    //console.log('proxyA1.account: ', proxyA1.account)
-    //console.log('proxyA1.publicKey: ', proxyA1.publicKey)
-    //console.log('proxyA1.privateKey: ', proxyA1.privateKey)
   })
 
   it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
   it(`Get initial total_voted_fio`, async () => {
     total_voted_fio = await getTotalVotedFio();
-    //console.log('total_voted_fio:', total_voted_fio)
   })
 
   it(`Get proxyA1 last_vote_weight. Expect: null`, async () => {
     try {
       proxyA1.last_vote_weight = await getAccountVoteWeight(proxyA1.account);
-      //console.log('proxyA1.last_vote_weight:', proxyA1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
       expect(err).to.equal('null')
@@ -66,7 +61,6 @@ describe(`************************** vote.js ************************** \n    A.
   it(`Get bp1@dapixdev total_votes`, async () => {
     try {
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal('null')
@@ -75,7 +69,6 @@ describe(`************************** vote.js ************************** \n    A.
 
   it(`Get total_voted_fio before proxyA1 votes`, async () => {
     total_voted_fio = await getTotalVotedFio();
-    //console.log('total_voted_fio:', total_voted_fio)
   })
 
   it(`Register proxyA1 as a proxy`, async () => {
@@ -89,10 +82,8 @@ describe(`************************** vote.js ************************** \n    A.
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
-      //console.log('Error: ', err.json)
       expect(err).to.equal('null')
     }
   })
@@ -115,7 +106,6 @@ describe(`************************** vote.js ************************** \n    A.
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -128,7 +118,6 @@ describe(`************************** vote.js ************************** \n    A.
   it(`Get proxyA1 last_vote_weight`, async () => {
     try {
       proxyA1.last_vote_weight = await getAccountVoteWeight(proxyA1.account);
-      //console.log('proxyA1.last_vote_weight: ', proxyA1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -139,7 +128,6 @@ describe(`************************** vote.js ************************** \n    A.
       const result = await proxyA1.sdk.genericAction('getFioBalance', {
         fioPublicKey: proxyA1.publicKey
       })
-      //console.log('proxyA1 fio balance', result)
       expect(result.balance).to.equal(proxyA1.last_vote_weight)
     } catch (err) {
       console.log('Error', err)
@@ -151,7 +139,6 @@ describe(`************************** vote.js ************************** \n    A.
     try {
       let prev_total_voted_fio = total_voted_fio
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio: ', total_voted_fio)
       expect(total_voted_fio).to.equal(prev_total_voted_fio + proxyA1.last_vote_weight)
     } catch (err) {
       console.log('Error', err)
@@ -163,7 +150,6 @@ describe(`************************** vote.js ************************** \n    A.
     try {
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes + proxyA1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
@@ -177,7 +163,6 @@ describe(`************************** vote.js ************************** \n    A.
       amount: 50000000000,
       maxFee: config.maxFee,
     })
-    //console.log('Result', result)
     expect(result.status).to.equal('OK')
   })
 
@@ -186,7 +171,6 @@ describe(`************************** vote.js ************************** \n    A.
   it(`Get proxyA1 last_vote_weight (should be 500 more)`, async () => {
     try {
       proxyA1.last_vote_weight = await getAccountVoteWeight(proxyA1.account);
-      //console.log('proxyA1.last_vote_weight:', proxyA1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -196,7 +180,6 @@ describe(`************************** vote.js ************************** \n    A.
     try {
       let prev_total_voted_fio = total_voted_fio
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio: ', total_voted_fio)
       expect(total_voted_fio).to.equal(prev_total_voted_fio + 50000000000)
     } catch (err) {
       console.log('Error', err)
@@ -208,7 +191,6 @@ describe(`************************** vote.js ************************** \n    A.
     try {
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes + 50000000000)
     } catch (err) {
       console.log('Error: ', err)
@@ -219,7 +201,6 @@ describe(`************************** vote.js ************************** \n    A.
   it('Get transfer_tokens_pub_key fee', async () => {
     try {
         result = await proxyA1.sdk.getFee('transfer_tokens_pub_key');
-        //console.log('result: ', result);
         transfer_tokens_pub_key_fee = result.fee;
         expect(result.fee).to.be.greaterThan(0);
     } catch (err) {
@@ -234,7 +215,6 @@ describe(`************************** vote.js ************************** \n    A.
       amount: 20000000000,
       maxFee: config.maxFee,
     })
-    //console.log('Result', result)
     expect(result.status).to.equal('OK')
   })
 
@@ -243,7 +223,6 @@ describe(`************************** vote.js ************************** \n    A.
   it(`Get proxyA1 last_vote_weight (should be 20 - transfer_tokens_pub_key_fee  less)`, async () => {
     try {
       proxyA1.last_vote_weight = await getAccountVoteWeight(proxyA1.account);
-      //console.log('proxyA1.last_vote_weight:', proxyA1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
       expect(err).to.equal('null')
@@ -254,7 +233,6 @@ describe(`************************** vote.js ************************** \n    A.
     try {
       let prev_total_voted_fio = total_voted_fio
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio: ', total_voted_fio)
       expect(total_voted_fio).to.equal(prev_total_voted_fio - 20000000000 - transfer_tokens_pub_key_fee)
     } catch (err) {
       console.log('Error', err)
@@ -266,7 +244,6 @@ describe(`************************** vote.js ************************** \n    A.
     try {
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes - 20000000000 - transfer_tokens_pub_key_fee)
     } catch (err) {
       console.log('Error: ', err)
@@ -294,13 +271,11 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
 
   it(`Get initial total_voted_fio`, async () => {
     total_voted_fio = await getTotalVotedFio();
-    //console.log('total_voted_fio:', total_voted_fio)
   })
 
   it(`Get bp1@dapixdev total_votes`, async () => {
     try {
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
     }
@@ -312,7 +287,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
         fioPublicKey: proxyB1.publicKey
       })
       proxyB1.fioBalance = result.balance
-      //console.log('proxyB1 getFioBalance: ', result.balance)
     } catch (err) {
       console.log('Error: ', err)
     }
@@ -324,7 +298,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
         fioPublicKey: voterB1.publicKey
       })
       voterB1.fioBalance = result.balance
-      //console.log('voterB1 getFioBalance: ', result.balance)
     } catch (err) {
       console.log('Error: ', err)
     }
@@ -341,7 +314,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -362,7 +334,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
           max_fee: config.api.proxy_vote.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -383,7 +354,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -405,8 +375,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
   it(`voterB1 last_vote_weight = voterB1 FIO Balance`, async () => {
     try {
       voterB1.last_vote_weight  = await getAccountVoteWeight(voterB1.account);
-     // console.log('voterB1.last_vote_weight:', voterB1.last_vote_weight)
-     // console.log("voterb1 vote info ", voterB1)
       expect(voterB1.last_vote_weight).to.equal(voterB1.fioBalance)
     } catch (err) {
       console.log('Error: ', err)
@@ -416,8 +384,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
   it(`proxyB1 last_vote_weight = proxyB1 FIO Balance + voterB1 last_vote_weight`, async () => {
     try {
       proxyB1.last_vote_weight = await getAccountVoteWeight(proxyB1.account);
-      //console.log('proxyB1.last_vote_weight:', proxyB1.last_vote_weight)
-     // console.log("proxyB1 voting info ",proxyB1)
       expect(proxyB1.last_vote_weight).to.equal(proxyB1.fioBalance + voterB1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
@@ -428,7 +394,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     try {
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes + proxyB1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
@@ -439,9 +404,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     try {
       prev_total_voted_fio = total_voted_fio
       total_voted_fio = await getTotalVotedFio();
-      //console.log('prev total_voted_fio: ', prev_total_voted_fio)
-      //console.log('total_voted_fio: ', total_voted_fio)
-      //console.log ("diff total voted fio ",total_voted_fio - prev_total_voted_fio)
       expect(total_voted_fio).to.equal(prev_total_voted_fio + proxyB1.last_vote_weight)
     } catch (err) {
       console.log('Error', err)
@@ -451,7 +413,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
   it(`Get total_voted_fio`, async () => {
     try {
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio: ', total_voted_fio)
     } catch (err) {
       console.log('Error', err)
     }
@@ -460,7 +421,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
   it('Get transfer_tokens_pub_key fee', async () => {
     try {
         result = await proxyB1.sdk.getFee('transfer_tokens_pub_key');
-        //console.log('result: ', result);
         transfer_tokens_pub_key_fee = result.fee;
         expect(result.fee).to.be.greaterThan(0);
     } catch (err) {
@@ -475,7 +435,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
       amount: 500000000000,
       maxFee: config.maxFee,
     })
-    //console.log('Result', result)
     expect(result.status).to.equal('OK')
   })
 
@@ -485,7 +444,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     try {
       prev_vote_weight = voterB1.last_vote_weight;
       voterB1.last_vote_weight = await getAccountVoteWeight(voterB1.account);
-      //console.log('voterB1.last_vote_weight:', voterB1.last_vote_weight);
       expect(voterB1.last_vote_weight).to.equal(prev_vote_weight + 500000000000);
     } catch (err) {
       console.log('Error: ', err)
@@ -496,7 +454,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     try {
       prev_vote_weight = proxyB1.last_vote_weight;
       proxyB1.last_vote_weight = await getAccountVoteWeight(proxyB1.account);
-      //console.log('proxyB1.last_vote_weight:', proxyB1.last_vote_weight);
       expect(proxyB1.last_vote_weight).to.equal(prev_vote_weight + 500000000000);
     } catch (err) {
       console.log('Error: ', err)
@@ -507,7 +464,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     try {
       prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio: ', total_voted_fio)
       expect(total_voted_fio).to.equal(prev_total_voted_fio + 500000000000)
     } catch (err) {
       console.log('Error', err)
@@ -518,7 +474,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     try {
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes + 500000000000)
     } catch (err) {
       console.log('Error: ', err)
@@ -532,7 +487,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
         amount: 1000000000000,
         maxFee: config.maxFee,
       })
-      //console.log('Result', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error', err)
@@ -545,7 +499,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     try {
       prev_vote_weight = voterB1.last_vote_weight;
       voterB1.last_vote_weight = await getAccountVoteWeight(voterB1.account);
-      //console.log('voterB1.last_vote_weight:', voterB1.last_vote_weight);
       expect(voterB1.last_vote_weight).to.equal(prev_vote_weight - 1000000000000 - transfer_tokens_pub_key_fee);
     } catch (err) {
       console.log('Error: ', err)
@@ -556,7 +509,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     try {
       prev_vote_weight = proxyB1.last_vote_weight;
       proxyB1.last_vote_weight = await getAccountVoteWeight(proxyB1.account);
-      //console.log('proxyB1.last_vote_weight:', proxyB1.last_vote_weight);
       expect(proxyB1.last_vote_weight).to.equal(prev_vote_weight - 1000000000000 - transfer_tokens_pub_key_fee);
     } catch (err) {
       console.log('Error: ', err)
@@ -567,7 +519,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     try {
       prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio: ', total_voted_fio)
       expect(total_voted_fio).to.equal(prev_total_voted_fio - 1000000000000 - transfer_tokens_pub_key_fee)
     } catch (err) {
       console.log('Error', err)
@@ -578,7 +529,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     try {
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes - 1000000000000 - transfer_tokens_pub_key_fee)
     } catch (err) {
       console.log('Error: ', err)
@@ -591,7 +541,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
       amount: 800000000000,
       maxFee: config.maxFee,
     })
-    //console.log('Result', result)
     expect(result.status).to.equal('OK')
   })
 
@@ -601,7 +550,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     try {
       prev_vote_weight = voterB1.last_vote_weight;
       voterB1.last_vote_weight = await getAccountVoteWeight(voterB1.account);
-      //console.log('voterB1.last_vote_weight:', voterB1.last_vote_weight);
       expect(voterB1.last_vote_weight).to.equal(prev_vote_weight + 800000000000);
     } catch (err) {
       console.log('Error: ', err)
@@ -612,7 +560,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     try {
       prev_vote_weight = proxyB1.last_vote_weight;
       proxyB1.last_vote_weight = await getAccountVoteWeight(proxyB1.account);
-      //console.log('proxyB1.last_vote_weight:', proxyB1.last_vote_weight);
       expect(proxyB1.last_vote_weight).to.equal(prev_vote_weight - transfer_tokens_pub_key_fee);
     } catch (err) {
       console.log('Error: ', err)
@@ -623,7 +570,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     try {
       prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio: ', total_voted_fio)
       expect(total_voted_fio).to.equal(prev_total_voted_fio - transfer_tokens_pub_key_fee)
     } catch (err) {
       console.log('Error', err)
@@ -636,7 +582,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
         fioPublicKey: proxyB1.publicKey
       })
       proxyB1.fioBalance = result.balance
-      //console.log('proxyB1 getFioBalance: ', result.balance)
     } catch (err) {
       console.log('Error: ', err)
     }
@@ -645,7 +590,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
   it(`Get proxyB1 last_vote_weight pre unregproxy`, async () => {
     try {
       proxyB1.last_vote_weight = await getAccountVoteWeight(proxyB1.account)
-      //console.log('proxyB1.last_vote_weight: ', proxyB1.last_vote_weight)
     } catch (err) {
       console.log('Error', err)
     }
@@ -662,7 +606,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
           max_fee: config.api.unregister_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -677,7 +620,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
         fioPublicKey: proxyB1.publicKey
       })
       proxyB1.fioBalance = result.balance
-      //console.log('proxyB1 getFioBalance: ', result.balance)
     } catch (err) {
       console.log('Error: ', err)
     }
@@ -687,7 +629,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     try {
       prev_vote_weight = proxyB1.last_vote_weight;
       proxyB1.last_vote_weight = await getAccountVoteWeight(proxyB1.account);
-      //console.log('proxyB1.last_vote_weight: ', proxyB1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
     }
@@ -705,7 +646,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     try {
       prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio: ', total_voted_fio)
     } catch (err) {
       console.log('Error', err)
     }
@@ -725,7 +665,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
       amount: 200000000000,
       maxFee: config.maxFee,
     });
-    //console.log('Result', result)
     expect(result.status).to.equal('OK')  ;
   })
 
@@ -735,7 +674,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     try {
       let previous_vote_weight = proxyB1.last_vote_weight;
       proxyB1.last_vote_weight = await getAccountVoteWeight(proxyB1.account);
-      //console.log('previous_vote_weight:', previous_vote_weight);
       expect(proxyB1.last_vote_weight).to.equal(previous_vote_weight - 200000000000 - transfer_tokens_pub_key_fee);
     } catch (err) {
       console.log('Error: ', err);
@@ -746,7 +684,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio: ', total_voted_fio);
       expect(total_voted_fio).to.equal(prev_total_voted_fio - 200000000000 - transfer_tokens_pub_key_fee);
     } catch (err) {
       console.log('Error', err);
@@ -777,7 +714,6 @@ describe('B. Test vote counts with proxy when proxy increases and decreases fund
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -834,7 +770,6 @@ describe('C. Test proxying to a user who is also proxying (should fail)', () => 
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -853,7 +788,6 @@ describe('C. Test proxying to a user who is also proxying (should fail)', () => 
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -872,7 +806,6 @@ describe('C. Test proxying to a user who is also proxying (should fail)', () => 
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -892,9 +825,7 @@ describe('C. Test proxying to a user who is also proxying (should fail)', () => 
           max_fee: config.api.proxy_vote.fee
         }
       })
-      //console.log('Result: ', result)
     } catch (err) {
-      //console.log('Error: ', err.json.error)
       expect(err.json.error.details[0].message).to.equal(config.error.nestedProxy)
     }
   })
@@ -907,8 +838,6 @@ describe('D. last_voting_weight not updated when paying fee for register/unregis
   it(`Create users`, async () => {
     proxyF1 = await newUser(faucet);
     voterF1 = await newUser(faucet);
-    //console.log("proxyF1 account: ", proxyF1.account)
-    //console.log("voterF1 account: ", voterF1.account)
   })
 
   it(`proxyF1 votes for bp1@dapixdev`, async () => {
@@ -925,7 +854,6 @@ describe('D. last_voting_weight not updated when paying fee for register/unregis
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -936,7 +864,6 @@ describe('D. last_voting_weight not updated when paying fee for register/unregis
     try {
       proxyF1.last_vote_weight  = await getAccountVoteWeight(proxyF1.account);
       original_last_vote_weight = proxyF1.last_vote_weight
-      //console.log('proxyF1 original_last_vote_weight: ', original_last_vote_weight/config.BILLION)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -953,8 +880,6 @@ describe('D. last_voting_weight not updated when paying fee for register/unregis
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
-      //console.log('register_proxy_fee: ', register_proxy_fee/config.BILLION)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -964,16 +889,12 @@ describe('D. last_voting_weight not updated when paying fee for register/unregis
   it(`Get proxyF1 last_vote_weight`, async () => {
     try {
       proxyF1.last_vote_weight  = await getAccountVoteWeight(proxyF1.account);
-      //console.log('proxyF1 last_vote_weight: ', proxyF1.last_vote_weight/config.BILLION)
     } catch (err) {
       console.log('Error: ', err.json)
     }
   })
 
   it(`Expect: proxyF1 last_vote_weight = original_last_vote_weight - register_proxy_fee (fixed in Gemini)`, async () => {
-    //console.log('proxyF1 original_last_vote_weight: ', original_last_vote_weight/config.BILLION)
-    //console.log('register_proxy_fee: ', register_proxy_fee/config.BILLION)
-    //console.log('proxyF1 last_vote_weight: ', proxyF1.last_vote_weight/config.BILLION)
     expect(proxyF1.last_vote_weight).to.equal(original_last_vote_weight - register_proxy_fee)
   })
 
@@ -988,8 +909,6 @@ describe('D. last_voting_weight not updated when paying fee for register/unregis
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
-      //console.log('register_proxy_fee: ', register_proxy_fee/config.BILLION)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -1021,7 +940,6 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
   it(`Get bp1@dapixdev total_votes`, async () => {
     try {
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
     }
@@ -1041,7 +959,6 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -1061,7 +978,6 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -1073,7 +989,6 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
   it(`Get proxyG1 last_vote_weight`, async () => {
     try {
       proxyG1.last_vote_weight = await getAccountVoteWeight(proxyG1.account);
-      //console.log('proxyG1 last_vote_weight:', proxyG1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -1087,7 +1002,6 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
     try {
       prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes + proxyG1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
@@ -1106,7 +1020,6 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
           max_fee: config.api.proxy_vote.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -1118,7 +1031,6 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
   it(`Get voterG1 last_vote_weight (Fixed in Gemini)`, async () => {
     try {
       voterG1.last_vote_weight = await getAccountVoteWeight(voterG1.account);
-      //console.log('voterG1.last_vote_weight:', voterG1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -1128,7 +1040,6 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
     try {
       prev_last_vote_weight = proxyG1.last_vote_weight
       proxyG1.last_vote_weight = await getAccountVoteWeight(proxyG1.account);
-      //console.log('proxyG1.last_vote_weight:', proxyE1.last_vote_weight)
       expect(proxyG1.last_vote_weight).to.equal(prev_last_vote_weight + voterG1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
@@ -1139,7 +1050,6 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
     try {
       prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes + voterG1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
@@ -1158,7 +1068,6 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
           max_fee: config.api.proxy_vote.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -1170,7 +1079,6 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
   it(`Get voterG2 last_vote_weight`, async () => {
     try {
       voterG2.last_vote_weight = await getAccountVoteWeight(voterG2.account);
-      //console.log('voterG2.last_vote_weight:', voterG2.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -1180,7 +1088,6 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
     try {
       prev_last_vote_weight = proxyG1.last_vote_weight
       proxyG1.last_vote_weight = await getAccountVoteWeight(proxyG1.account);
-      //console.log('proxyG1.last_vote_weight:', proxyE1.last_vote_weight)
       expect(proxyG1.last_vote_weight).to.equal(prev_last_vote_weight + voterG2.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
@@ -1191,7 +1098,6 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
     try {
       prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes + voterG2.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
@@ -1210,7 +1116,6 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
           max_fee: config.api.proxy_vote.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -1222,7 +1127,6 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
   it(`Get voterG3 last_vote_weight`, async () => {
     try {
       voterG3.last_vote_weight  = await getAccountVoteWeight(voterG3.account);
-      //console.log('voterG3.last_vote_weight:', voterG3.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -1232,7 +1136,6 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
     try {
       prev_last_vote_weight = proxyG1.last_vote_weight
       proxyG1.last_vote_weight = await getAccountVoteWeight(proxyG1.account);
-      //console.log('proxyG1.last_vote_weight:', proxyE1.last_vote_weight)
       expect(proxyG1.last_vote_weight).to.equal(prev_last_vote_weight + voterG3.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
@@ -1243,7 +1146,6 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
     try {
       prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes + voterG3.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
@@ -1264,7 +1166,6 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -1277,7 +1178,6 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
     try {
       prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
@@ -1288,7 +1188,6 @@ describe('E. Test multiple users proxying and unproxying votes to same proxy', (
     try {
       prev_last_vote_weight = proxyG1.last_vote_weight
       proxyG1.last_vote_weight = await getAccountVoteWeight(proxyG1.account);
-      //console.log('proxyG1.last_vote_weight:', proxyE1.last_vote_weight)
       expect(proxyG1.last_vote_weight).to.equal(prev_last_vote_weight - voterG1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
@@ -1315,7 +1214,6 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
   it(`Get bp1@dapixdev total_votes`, async () => {
     try {
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
     }
@@ -1324,7 +1222,7 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
   it('Confirm vote_producer fee for voterG3 is zero (bundles remaining)', async () => {
     try {
       result = await voterG3.sdk.getFee('vote_producer', voterG3.address);
-      //console.log('result: ', result)
+      console.log('result: ', result)
       expect(result.fee).to.equal(0);
     } catch (err) {
       console.log('Error', err);
@@ -1338,16 +1236,13 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
             fioPublicKey: voterG3.publicKey
         })
         balance = result.balance
-        //console.log('balance: ', balance)
     } catch (err) {
-        //console.log('Error', err)
         expect(err).to.equal(null)
     }
   })
 
   it(`Get bundle count for voterG3 `, async () => {
     const result = await voterG3.sdk.genericAction('getFioNames', { fioPublicKey: voterG3.publicKey })
-    //console.log('Result: ', result)
     bundleCount = result.fio_addresses[0].remaining_bundled_tx;
     expect(bundleCount).to.be.greaterThan(0);
   })
@@ -1366,7 +1261,6 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
       expect(result.fee_collected).to.equal(0)
     } catch (err) {
@@ -1377,7 +1271,6 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
   it(`Get bundle count for voterG3 `, async () => {
     prevBundleCount = bundleCount;
     const result = await voterG3.sdk.genericAction('getFioNames', { fioPublicKey: voterG3.publicKey })
-    //console.log('Result: ', result)
     bundleCount = result.fio_addresses[0].remaining_bundled_tx;
     expect(bundleCount).to.equal(prevBundleCount - 1);
   })
@@ -1388,10 +1281,8 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
         const result = await voterG3.sdk.genericAction('getFioBalance', {
             fioPublicKey: voterG3.publicKey
         })
-        //console.log('balance: ', result.balance)
         expect(result.balance).to.equal(origBalance)
     } catch (err) {
-        //console.log('Error', err)
         expect(err).to.equal(null)
     }
 })
@@ -1399,7 +1290,6 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
   it(`Get voterG3 last_vote_weight`, async () => {
     try {
       voterG3.last_vote_weight = await getAccountVoteWeight(voterG3.account);
-      //console.log('voterG3 last_vote_weight:', voterG3.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -1409,7 +1299,6 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
     try {
       prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes + voterG3.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
@@ -1436,7 +1325,6 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
           hash: '',
           offLineUrl: ''
         })
-        //console.log('Result: ', result)
         expect(result.status).to.equal('sent_to_blockchain')
       } catch (err) {
         console.log('Error', err.json)
@@ -1459,7 +1347,6 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
         maxFee: config.api.add_pub_address.fee,
         walletFioAddress: ''
       })
-      //console.log('Result:', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error', err)
@@ -1473,9 +1360,7 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
             fioPublicKey: voterG4.publicKey
         })
         balance = result.balance
-        //console.log('balance: ', balance)
     } catch (err) {
-        //console.log('Error', err)
         expect(err).to.equal(null)
     }
 })
@@ -1483,7 +1368,6 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
   it(`Confirm vote_producer fee for voterG4 = ${config.api.vote_producer.fee}`, async () => {
     try {
       result = await voterG4.sdk.getFee('vote_producer', voterG4.address);
-      //console.log('result: ', result)
       expect(result.fee).to.equal(config.api.vote_producer.fee);
     } catch (err) {
       console.log('Error', err);
@@ -1505,7 +1389,6 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
       expect(result.fee_collected).to.equal(config.api.vote_producer.fee)
     } catch (err) {
@@ -1520,10 +1403,8 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
         const result = await voterG4.sdk.genericAction('getFioBalance', {
             fioPublicKey: voterG4.publicKey
         })
-        //console.log('balance: ', result.balance)
         expect(result.balance).to.equal(origBalance - config.api.vote_producer.fee)
     } catch (err) {
-        //console.log('Error', err)
         expect(err).to.equal(null)
     }
 })
@@ -1531,7 +1412,6 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
   it(`Get voterG4 last_vote_weight`, async () => {
     try {
       voterG4.last_vote_weight = await getAccountVoteWeight(voterG4.account);
-      //console.log('voterG4 last_vote_weight:', voterG4.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -1541,7 +1421,6 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
     try {
       prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes + voterG4.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
@@ -1552,7 +1431,6 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
   it('Confirm vote_producer fee for voterG5 is zero (bundles remaining)', async () => {
     try {
       result = await voterG5.sdk.getFee('vote_producer', voterG5.address);
-      //console.log('result: ', result)
       expect(result.fee).to.equal(0);
     } catch (err) {
       console.log('Error', err);
@@ -1566,9 +1444,7 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
             fioPublicKey: voterG5.publicKey
         })
         balance = result.balance
-        //console.log('balance: ', balance)
     } catch (err) {
-        //console.log('Error', err)
         expect(err).to.equal(null)
     }
 })
@@ -1587,7 +1463,6 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
       expect(result.fee_collected).to.equal(config.api.vote_producer.fee)
     } catch (err) {
@@ -1602,10 +1477,8 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
         const result = await voterG5.sdk.genericAction('getFioBalance', {
             fioPublicKey: voterG5.publicKey
         })
-        //console.log('balance: ', result.balance)
         expect(result.balance).to.equal(origBalance - config.api.vote_producer.fee)
     } catch (err) {
-        //console.log('Error', err)
         expect(err).to.equal(null)
     }
 })
@@ -1648,7 +1521,6 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
           hash: '',
           offLineUrl: ''
         })
-        //console.log('Result: ', result)
         expect(result.status).to.equal('sent_to_blockchain')
       } catch (err) {
         console.log('Error', err.json)
@@ -1671,7 +1543,6 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
         maxFee: config.api.add_pub_address.fee,
         walletFioAddress: ''
       })
-      //console.log('Result:', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error', err)
@@ -1682,7 +1553,6 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
   it(`Confirm vote_producer fee for voterG6 = ${config.api.vote_producer.fee}`, async () => {
     try {
       result = await voterG6.sdk.getFee('vote_producer', voterG6.address);
-      //console.log('result: ', result)
       expect(result.fee).to.equal(config.api.vote_producer.fee);
     } catch (err) {
       console.log('Error', err);
@@ -1704,7 +1574,6 @@ describe('E.2 Test vote_producer with and without FIO Address (FIP-9)', () => {
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
       expect(result.fee_collected).to.equal(config.api.vote_producer.fee)
     } catch (err) {
@@ -1749,7 +1618,6 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
   it(`Get bp1@dapixdev total_votes`, async () => {
     try {
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
     }
@@ -1766,7 +1634,6 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -1787,7 +1654,6 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
       expect(result.fee_collected).to.equal(0)
     } catch (err) {
@@ -1798,7 +1664,6 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
   it(`Get proxyG1 last_vote_weight`, async () => {
     try {
       proxyG1.last_vote_weight = await getAccountVoteWeight(proxyG1.account);
-      //console.log('proxyG1 last_vote_weight:', proxyG1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -1817,7 +1682,6 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
   it('Confirm proxy_vote fee for voterG7 is zero (bundles remaining)', async () => {
     try {
       result = await voterG7.sdk.getFee('proxy_vote', voterG7.address);
-      //console.log('result: ', result)
       expect(result.fee).to.equal(0);
     } catch (err) {
       console.log('Error', err);
@@ -1836,9 +1700,7 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
             fioPublicKey: voterG7.publicKey
         })
         balance = result.balance
-        //console.log('balance: ', balance)
     } catch (err) {
-        //console.log('Error', err)
         expect(err).to.equal(null)
     }
 })
@@ -1855,7 +1717,6 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
           max_fee: config.api.proxy_vote.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
       expect(result.fee_collected).to.equal(0)
     } catch (err) {
@@ -1869,10 +1730,8 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
         const result = await voterG7.sdk.genericAction('getFioBalance', {
             fioPublicKey: voterG7.publicKey
         })
-        //console.log('balance: ', result.balance)
         expect(result.balance).to.equal(origBalance)
     } catch (err) {
-        //console.log('Error', err)
         expect(err).to.equal(null)
     }
   })
@@ -1886,7 +1745,6 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
   it(`Get voterG7 last_vote_weight`, async () => {
     try {
       voterG7.last_vote_weight = await getAccountVoteWeight(voterG7.account);
-      //console.log('voterG7 last_vote_weight:', voterG7.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -1922,7 +1780,6 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
           hash: '',
           offLineUrl: ''
         })
-        //console.log('Result: ', result)
         expect(result.status).to.equal('sent_to_blockchain')
       } catch (err) {
         console.log('Error', err.json);
@@ -1945,7 +1802,6 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
         maxFee: config.api.add_pub_address.fee,
         walletFioAddress: ''
       })
-      //console.log('Result:', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error', err)
@@ -1960,7 +1816,6 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
   it(`Confirm proxy_vote fee for voterG8 = ${config.api.proxy_vote.fee}`, async () => {
     try {
       result = await voterG8.sdk.getFee('proxy_vote', voterG8.address);
-      //console.log('result: ', result)
       expect(result.fee).to.equal(config.api.proxy_vote.fee);
     } catch (err) {
       console.log('Error', err);
@@ -1974,9 +1829,7 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
             fioPublicKey: voterG8.publicKey
         })
         balance = result.balance
-        //console.log('balance: ', balance)
     } catch (err) {
-        //console.log('Error', err)
         expect(err).to.equal(null)
     }
   })
@@ -1993,7 +1846,6 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
           max_fee: config.api.proxy_vote.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
       expect(result.fee_collected).to.equal(config.api.proxy_vote.fee)
     } catch (err) {
@@ -2008,10 +1860,8 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
         const result = await voterG8.sdk.genericAction('getFioBalance', {
             fioPublicKey: voterG8.publicKey
         })
-        //console.log('balance: ', result.balance)
         expect(result.balance).to.equal(origBalance - config.api.proxy_vote.fee)
     } catch (err) {
-        //console.log('Error', err)
         expect(err).to.equal(null)
     }
   })
@@ -2028,7 +1878,6 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
     try {
       prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes + voterG8.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
@@ -2039,7 +1888,6 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
   it('Confirm proxy_vote fee for voterG9 is zero (bundles remaining)', async () => {
     try {
       result = await voterG9.sdk.getFee('proxy_vote', voterG9.address);
-      //console.log('result: ', result)
       expect(result.fee).to.equal(0);
     } catch (err) {
       console.log('Error', err);
@@ -2053,9 +1901,7 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
             fioPublicKey: voterG9.publicKey
         })
         balance = result.balance
-        //console.log('balance: ', balance)
     } catch (err) {
-        //console.log('Error', err)
         expect(err).to.equal(null)
     }
   })
@@ -2072,7 +1918,6 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
           max_fee: config.api.proxy_vote.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
       expect(result.fee_collected).to.equal(config.api.proxy_vote.fee)
     } catch (err) {
@@ -2087,10 +1932,8 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
         const result = await voterG9.sdk.genericAction('getFioBalance', {
             fioPublicKey: voterG9.publicKey
         })
-        //console.log('balance: ', result.balance)
         expect(result.balance).to.equal(origBalance - config.api.proxy_vote.fee)
     } catch (err) {
-        //console.log('Error', err)
         expect(err).to.equal(null)
     }
   })
@@ -2134,7 +1977,6 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
           hash: '',
           offLineUrl: ''
         })
-        //console.log('Result: ', result)
         expect(result.status).to.equal('sent_to_blockchain')
       } catch (err) {
         console.log('Error', err.json);
@@ -2157,7 +1999,6 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
         maxFee: config.api.add_pub_address.fee,
         walletFioAddress: ''
       })
-      //console.log('Result:', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error', err);
@@ -2172,7 +2013,6 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
   it(`Confirm proxy_vote fee for voterG10 = ${config.api.proxy_vote.fee}`, async () => {
     try {
       result = await voterG10.sdk.getFee('proxy_vote', voterG10.address);
-      //console.log('result: ', result)
       expect(result.fee).to.equal(config.api.proxy_vote.fee);
     } catch (err) {
       console.log('Error', err);
@@ -2186,9 +2026,7 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
             fioPublicKey: voterG10.publicKey
         })
         balance = result.balance
-        //console.log('balance: ', balance)
     } catch (err) {
-        //console.log('Error', err)
         expect(err).to.equal(null)
     }
   })
@@ -2205,7 +2043,6 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
           max_fee: config.api.proxy_vote.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
       expect(result.fee_collected).to.equal(config.api.proxy_vote.fee)
     } catch (err) {
@@ -2220,10 +2057,8 @@ describe('E.3 Test proxy_vote with and without FIO Address (FIP-9)', () => {
         const result = await voterG10.sdk.genericAction('getFioBalance', {
             fioPublicKey: voterG10.publicKey
         })
-        //console.log('balance: ', result.balance)
         expect(result.balance).to.equal(origBalance - config.api.proxy_vote.fee)
     } catch (err) {
-        //console.log('Error', err)
         expect(err).to.equal(null)
     }
   })
@@ -2260,7 +2095,6 @@ describe('F. When a user proxies their vote, the total_voted_fio increases by 2x
   it(`Get original total_voted_fio`, async () => {
     total_voted_fio = await getTotalVotedFio();
     original_total_voted_fio = total_voted_fio;
-    //console.log('total_voted_fio:', total_voted_fio)
   })
 
   it(`Register proxyH1 as a proxy`, async () => {
@@ -2274,7 +2108,6 @@ describe('F. When a user proxies their vote, the total_voted_fio increases by 2x
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -2297,7 +2130,6 @@ describe('F. When a user proxies their vote, the total_voted_fio increases by 2x
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -2307,7 +2139,6 @@ describe('F. When a user proxies their vote, the total_voted_fio increases by 2x
   it(`Get proxyH1 last_vote_weight`, async () => {
     try {
       proxyH1.last_vote_weight = await getAccountVoteWeight(proxyH1.account)
-      //console.log('proxyH1.last_vote_weight: ', proxyH1.last_vote_weight)
     } catch (err) {
       console.log('Error', err)
     }
@@ -2317,7 +2148,6 @@ describe('F. When a user proxies their vote, the total_voted_fio increases by 2x
     try {
       let prev_total_voted_fio = total_voted_fio
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio: ', total_voted_fio)
       expect(total_voted_fio).to.equal(prev_total_voted_fio + proxyH1.last_vote_weight)
     } catch (err) {
       console.log('Error', err)
@@ -2336,7 +2166,6 @@ describe('F. When a user proxies their vote, the total_voted_fio increases by 2x
           max_fee: config.api.proxy_vote.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -2346,7 +2175,6 @@ describe('F. When a user proxies their vote, the total_voted_fio increases by 2x
   it(`Get proxyH1 last_vote_weight`, async () => {
     try {
       proxyH1.last_vote_weight = await getAccountVoteWeight(proxyH1.account)
-      //console.log('proxyH1.last_vote_weight: ', proxyH1.last_vote_weight)
     } catch (err) {
       console.log('Error', err)
     }
@@ -2355,7 +2183,6 @@ describe('F. When a user proxies their vote, the total_voted_fio increases by 2x
   it(`Get voterH1 last_vote_weight`, async () => {
     try {
       voterH1.last_vote_weight = await getAccountVoteWeight(voterH1.account);
-      //console.log('voterH1.last_vote_weight:', voterH1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -2365,11 +2192,6 @@ describe('F. When a user proxies their vote, the total_voted_fio increases by 2x
     try {
       let prev_total_voted_fio = total_voted_fio
       total_voted_fio = await getTotalVotedFio();
-      //console.log('original_total_voted_fio: ', original_total_voted_fio/config.BILLION)
-      //console.log('proxyH1.last_vote_weight: ', proxyH1.last_vote_weight/config.BILLION)
-      //console.log('voterH1.last_vote_weight:', voterH1.last_vote_weight/config.BILLION)
-      //console.log('total_voted_fio: ', total_voted_fio/config.BILLION)
-      //console.log('total_voted_fio - original_total_voted_fio = ', total_voted_fio/config.BILLION - original_total_voted_fio/config.BILLION)
       expect(total_voted_fio).to.equal(prev_total_voted_fio + voterH1.last_vote_weight)
     } catch (err) {
       console.log('Error', err)
@@ -2393,10 +2215,8 @@ describe('G. Confirm voter data is returned with get_account', () => {
         "account_name": voterH1.account
       }
       result = await callFioApi("get_account", json);
-      //console.log('Result: ', result);
       expect(result.voter_info).to.equal(null);
     } catch (err) {
-      //console.log('Error', err)
       expect(err).to.equal(null)
     }
   })
@@ -2415,7 +2235,6 @@ describe('G. Confirm voter data is returned with get_account', () => {
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -2429,11 +2248,9 @@ describe('G. Confirm voter data is returned with get_account', () => {
         "account_name": voterH1.account
       }
       result = await callFioApi("get_account", json);
-      //console.log('Result: ', result);
       expect(result.voter_info.owner).to.equal(voterH1.account);
       expect(result.voter_info.producers[0]).to.equal('qbxn5zhw2ypw');  // bp1@dapixdev account
     } catch (err) {
-      //console.log('Error', err)
       expect(err).to.equal(null)
     }
   })
@@ -2462,7 +2279,6 @@ describe(`H. Test proxy re-vote of proxy, re-proxy of voter`, () => {
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -2486,7 +2302,6 @@ describe(`H. Test proxy re-vote of proxy, re-proxy of voter`, () => {
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -2508,7 +2323,6 @@ describe(`H. Test proxy re-vote of proxy, re-proxy of voter`, () => {
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -2517,13 +2331,11 @@ describe(`H. Test proxy re-vote of proxy, re-proxy of voter`, () => {
 
   it(`Get total_voted_fio`, async () => {
     total_voted_fio = await getTotalVotedFio();
-    //console.log('total_voted_fio:', total_voted_fio)
   })
 
   it(`Get proxyA1 last_vote_weight`, async () => {
     try {
       proxyA1.last_vote_weight = await getAccountVoteWeight(proxyA1.account);
-      //console.log('proxyA1.last_vote_weight: ', proxyA1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -2532,7 +2344,6 @@ describe(`H. Test proxy re-vote of proxy, re-proxy of voter`, () => {
   it(`Get bp1@dapixdev total_votes`, async () => {
     try {
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal('null')
@@ -2553,7 +2364,6 @@ describe(`H. Test proxy re-vote of proxy, re-proxy of voter`, () => {
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -2565,7 +2375,6 @@ describe(`H. Test proxy re-vote of proxy, re-proxy of voter`, () => {
     try {
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
@@ -2577,7 +2386,6 @@ describe(`H. Test proxy re-vote of proxy, re-proxy of voter`, () => {
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio:', total_voted_fio)
       expect(total_voted_fio).to.equal(prev_total_voted_fio)
     } catch (err) {
       console.log('Error: ', err)
@@ -2588,7 +2396,6 @@ describe(`H. Test proxy re-vote of proxy, re-proxy of voter`, () => {
   it(`Get user1 last_vote_weight`, async () => {
     try {
       user1.last_vote_weight = await getAccountVoteWeight(user1.account);
-      //console.log('user1.last_vote_weight: ', user1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -2608,7 +2415,6 @@ describe(`H. Test proxy re-vote of proxy, re-proxy of voter`, () => {
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -2619,7 +2425,6 @@ describe(`H. Test proxy re-vote of proxy, re-proxy of voter`, () => {
     try {
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
@@ -2631,7 +2436,6 @@ describe(`H. Test proxy re-vote of proxy, re-proxy of voter`, () => {
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio:', total_voted_fio)
       expect(total_voted_fio).to.equal(prev_total_voted_fio)
     } catch (err) {
       console.log('Error: ', err)
@@ -2663,7 +2467,6 @@ describe(`I. Test impact on total_voted_fio when User 1 votes then proxies their
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -2687,7 +2490,6 @@ describe(`I. Test impact on total_voted_fio when User 1 votes then proxies their
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -2709,7 +2511,6 @@ describe(`I. Test impact on total_voted_fio when User 1 votes then proxies their
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -2721,13 +2522,11 @@ describe(`I. Test impact on total_voted_fio when User 1 votes then proxies their
 
   it(`Get total_voted_fio`, async () => {
     total_voted_fio = await getTotalVotedFio();
-   // console.log('total_voted_fio start:', total_voted_fio)
   })
 
   it(`Get proxyA1 last_vote_weight`, async () => {
     try {
       proxyA1.last_vote_weight = await getAccountVoteWeight(proxyA1.account);
-      //console.log('proxyA1.last_vote_weight: ', proxyA1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -2739,7 +2538,6 @@ describe(`I. Test impact on total_voted_fio when User 1 votes then proxies their
         fioPublicKey: user1.publicKey
       })
       user1.last_vote_weight = result.balance
-     // console.log('user1 fio balance', result.balance)
     } catch (err) {
       console.log('Error', err)
       expect(err).to.equal('null')
@@ -2749,7 +2547,6 @@ describe(`I. Test impact on total_voted_fio when User 1 votes then proxies their
   it(`Get bp1@dapixdev total_votes`, async () => {
     try {
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-     // console.log('bp1@dapixdev total_votes:', total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal('null')
@@ -2768,7 +2565,6 @@ describe(`I. Test impact on total_voted_fio when User 1 votes then proxies their
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -2781,7 +2577,6 @@ describe(`I. Test impact on total_voted_fio when User 1 votes then proxies their
     try {
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
@@ -2793,8 +2588,6 @@ describe(`I. Test impact on total_voted_fio when User 1 votes then proxies their
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio:', total_voted_fio)
-     // console.log('prev_total_voted_fio:', prev_total_voted_fio)
       expect(total_voted_fio).to.equal(prev_total_voted_fio)
     } catch (err) {
       console.log('Error: ', err)
@@ -2818,13 +2611,11 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
 
   it(`Get initial total_voted_fio`, async () => {
     total_voted_fio = await getTotalVotedFio();
-    //console.log('total_voted_fio:', total_voted_fio)
   })
 
   it(`Get proxyA1 last_vote_weight`, async () => {
     try {
       proxyA1.last_vote_weight = await getAccountVoteWeight(proxyA1.account);
-      //console.log('proxyA1.last_vote_weight:', proxyA1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
       expect(err).to.equal('null')
@@ -2834,7 +2625,6 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
   it(`Get bp1@dapixdev total_votes`, async () => {
     try {
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal('null')
@@ -2852,7 +2642,6 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -2864,7 +2653,6 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
 
   it(`Get total_voted_fio before proxyA1 votes`, async () => {
     total_voted_fio = await getTotalVotedFio();
-    //console.log('total_voted_fio:', total_voted_fio)
   })
 
   it(`proxyA1 votes for bp1@dapixdev using address #1`, async () => {
@@ -2881,7 +2669,6 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -2894,7 +2681,6 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
   it(`Get proxyA1 last_vote_weight`, async () => {
     try {
       proxyA1.last_vote_weight = await getAccountVoteWeight(proxyA1.account);
-      //console.log('proxyA1.last_vote_weight: ', proxyA1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -2903,7 +2689,6 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
   it(`Get user1 last_vote_weight. Expect null`, async () => {
     try {
       user1.last_vote_weight = await getAccountVoteWeight(user1.account);
-      //console.log('user1.last_vote_weight: ', user1.last_vote_weight)
       expect(user1.last_vote_weight).to.equal(null)
     } catch (err) {
       console.log('Error: ', err.json)
@@ -2916,7 +2701,6 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
         fioPublicKey: user1.publicKey
       })
       user1.last_vote_weight = result.balance
-      //console.log('user1 fio balance', result.balance)
     } catch (err) {
       console.log('Error', err)
       expect(err).to.equal('null')
@@ -2925,13 +2709,11 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
 
   it(`Get total_voted_fio`, async () => {
     total_voted_fio = await getTotalVotedFio();
-    //console.log('total_voted_fio:', total_voted_fio)
   })
 
   it(`Get bp1@dapixdev total_votes`, async () => {
     try {
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal('null')
@@ -2952,7 +2734,6 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -2965,7 +2746,6 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
     try {
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes + user1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
@@ -2977,7 +2757,6 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio:', total_voted_fio)
       expect(total_voted_fio).to.equal(prev_total_voted_fio + user1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
@@ -2988,7 +2767,6 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
   it(`Get tuser2 last_vote_weight`, async () => {
     try {
       faucet.last_vote_weight = await getAccountVoteWeight(tuser2.account);
-      //console.log('faucet.last_vote_weight: ', faucet.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -3008,7 +2786,6 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -3022,7 +2799,6 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
     try {
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes + tuser2.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
@@ -3034,7 +2810,6 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio:', total_voted_fio)
       expect(total_voted_fio).to.equal(prev_total_voted_fio + faucet.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
@@ -3068,7 +2843,6 @@ describe(`K. regproxy results in faulty record in voters table if account alread
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -3088,10 +2862,8 @@ describe(`K. regproxy results in faulty record in voters table if account alread
             show_payer: false
         }
         voters = await callFioApi("get_table_rows", json);
-        //console.log('voters: ', voters);
         for (voter in voters.rows) {
             if (voters.rows[voter].owner == proxyA1.account) {
-              //console.log('voters.rows[voter]: ', voters.rows[voter]);
               break;
             }
         }
@@ -3117,7 +2889,6 @@ describe(`K. regproxy results in faulty record in voters table if account alread
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -3137,10 +2908,8 @@ describe(`K. regproxy results in faulty record in voters table if account alread
             show_payer: false          // Optional: Show ram payer
         }
         voters = await callFioApi("get_table_rows", json);
-        //console.log('voters: ', voters);
         for (voter in voters.rows) {
             if (voters.rows[voter].owner == proxyA1.account) {
-              //console.log('voters.rows[voter]: ', voters.rows[voter]);
               break;
             }
         }
@@ -3168,13 +2937,11 @@ describe(`L. Test total_voted_fio when user changes votes`, () => {
 
   it(`Get initial total_voted_fio`, async () => {
     total_voted_fio = await getTotalVotedFio();
-    //console.log('total_voted_fio:', total_voted_fio / 1000000000)
   })
 
   it(`Get bp1@dapixdev total_votes`, async () => {
     try {
       totalVotesBP1 = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', totalVotesBP1 / 1000000000)
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal('null')
@@ -3184,7 +2951,6 @@ describe(`L. Test total_voted_fio when user changes votes`, () => {
   it(`Get bp2@dapixdev total_votes`, async () => {
     try {
       totalVotesBP2 = await getProdVoteTotal('bp2@dapixdev');
-      //console.log('bp2@dapixdev total_votes:', totalVotesBP2 / 1000000000)
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal('null')
@@ -3194,7 +2960,6 @@ describe(`L. Test total_voted_fio when user changes votes`, () => {
   it(`Get bp3@dapixdev total_votes`, async () => {
     try {
       totalVotesBP3 = await getProdVoteTotal('bp3@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', totalVotesBP3)
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal('null')
@@ -3204,7 +2969,6 @@ describe(`L. Test total_voted_fio when user changes votes`, () => {
   it(`Get user1.last_vote_weight`, async () => {
     try {
       user1.last_vote_weight = await getAccountVoteWeight(user1.account);
-      //console.log('user1.last_vote_weight: ', user1.last_vote_weight / 1000000000)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -3225,7 +2989,6 @@ describe(`L. Test total_voted_fio when user changes votes`, () => {
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -3238,7 +3001,6 @@ describe(`L. Test total_voted_fio when user changes votes`, () => {
   it(`Get user1.last_vote_weight`, async () => {
     try {
       user1.last_vote_weight = await getAccountVoteWeight(user1.account);
-      //console.log('user1.last_vote_weight: ', user1.last_vote_weight / 1000000000)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -3247,9 +3009,7 @@ describe(`L. Test total_voted_fio when user changes votes`, () => {
   it(`prev_total_voted_fio increased by user1 vote weight`, async () => {
     try {
       let prev_total_voted_fio = total_voted_fio;
-      //console.log('prev_total_voted_fio:', prev_total_voted_fio / 1000000000)
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio:', total_voted_fio / 1000000000)
       expect(total_voted_fio).to.equal(prev_total_voted_fio + user1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
@@ -3261,7 +3021,6 @@ describe(`L. Test total_voted_fio when user changes votes`, () => {
     try {
       let prevVotes = totalVotesBP1
       totalVotesBP1 = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', totalVotesBP1 / 1000000000)
       expect(totalVotesBP1).to.equal(prevVotes + user1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
@@ -3273,7 +3032,6 @@ describe(`L. Test total_voted_fio when user changes votes`, () => {
     try {
       let prevVotes = totalVotesBP2
       totalVotesBP2 = await getProdVoteTotal('bp2@dapixdev');
-      //console.log('bp2@dapixdev total_votes:', totalVotesBP2 / 1000000000)
       expect(totalVotesBP2).to.equal(prevVotes + user1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
@@ -3295,7 +3053,6 @@ describe(`L. Test total_voted_fio when user changes votes`, () => {
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -3309,7 +3066,6 @@ describe(`L. Test total_voted_fio when user changes votes`, () => {
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio:', total_voted_fio)
       expect(total_voted_fio).to.equal(prev_total_voted_fio)
     } catch (err) {
       console.log('Error: ', err)
@@ -3321,7 +3077,6 @@ describe(`L. Test total_voted_fio when user changes votes`, () => {
     try {
       let prevVotes = totalVotesBP1
       totalVotesBP1 = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', totalVotesBP1)
       expect(totalVotesBP1).to.equal(prevVotes)
     } catch (err) {
       console.log('Error: ', err)
@@ -3333,7 +3088,6 @@ describe(`L. Test total_voted_fio when user changes votes`, () => {
     try {
       let prevVotes = totalVotesBP2
       totalVotesBP2 = await getProdVoteTotal('bp2@dapixdev');
-      //console.log('bp2@dapixdev total_votes:', totalVotesBP2)
       expect(totalVotesBP2).to.equal(prevVotes - user1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
@@ -3365,10 +3119,8 @@ describe(`M. Set Auto-proxy, then vote for producer (attempting to repro BD-3800
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
-      //console.log('Error: ', err.json)
       expect(err).to.equal('null')
     }
   })
@@ -3404,7 +3156,6 @@ describe(`M. Set Auto-proxy, then vote for producer (attempting to repro BD-3800
         index_position: 3,
       }
       const voterInfo = await callFioApi("get_table_rows", json);
-      //console.log('voterInfo: ', voterInfo);
       expect(voterInfo.rows[0].is_auto_proxy).to.equal(1);
       expect(voterInfo.rows[0].producers.length).to.equal(0);  // Has not voted for producers
     } catch (err) {
@@ -3429,7 +3180,6 @@ describe(`M. Set Auto-proxy, then vote for producer (attempting to repro BD-3800
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -3451,7 +3201,6 @@ describe(`M. Set Auto-proxy, then vote for producer (attempting to repro BD-3800
         index_position: 3,
       }
       const voterInfo = await callFioApi("get_table_rows", json);
-      //console.log('voterInfo: ', voterInfo);
       expect(voterInfo.rows[0].is_auto_proxy).to.equal(0);
       expect(voterInfo.rows[0].producers.length).to.equal(2);  // Has not voted for producers
     } catch (err) {
@@ -3503,7 +3252,6 @@ describe(`N. Accounts A,B,C, C registers as proxy, A proxies to C, B proxies to 
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -3527,7 +3275,6 @@ describe(`N. Accounts A,B,C, C registers as proxy, A proxies to C, B proxies to 
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -3549,7 +3296,6 @@ describe(`N. Accounts A,B,C, C registers as proxy, A proxies to C, B proxies to 
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -3568,7 +3314,6 @@ describe(`N. Accounts A,B,C, C registers as proxy, A proxies to C, B proxies to 
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -3577,13 +3322,11 @@ describe(`N. Accounts A,B,C, C registers as proxy, A proxies to C, B proxies to 
 
   it(`Get total_voted_fio`, async () => {
     total_voted_fio = await getTotalVotedFio();
-    //console.log('total_voted_fio:', total_voted_fio)
   })
 
   it(`Get accountC last_vote_weight`, async () => {
     try {
       accountC.last_vote_weight = await getAccountVoteWeight(accountC.account);
-      //console.log('proxyA1.last_vote_weight: ', proxyA1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -3592,7 +3335,6 @@ describe(`N. Accounts A,B,C, C registers as proxy, A proxies to C, B proxies to 
   it(`Get bp1@dapixdev total_votes`, async () => {
     try {
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal('null')
@@ -3613,7 +3355,6 @@ describe(`N. Accounts A,B,C, C registers as proxy, A proxies to C, B proxies to 
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -3626,7 +3367,6 @@ describe(`N. Accounts A,B,C, C registers as proxy, A proxies to C, B proxies to 
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
     //  console.log('bp1@dapixdev total_votes:', total_bp_votes)
-     // console.log('difference is ', prev_total_bp_votes - total_bp_votes)
      // expect(total_bp_votes).to.equal(prev_total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
@@ -3638,7 +3378,6 @@ describe(`N. Accounts A,B,C, C registers as proxy, A proxies to C, B proxies to 
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio:', total_voted_fio)
       expect(total_voted_fio).to.equal(prev_total_voted_fio)
     } catch (err) {
       console.log('Error: ', err)
@@ -3649,7 +3388,6 @@ describe(`N. Accounts A,B,C, C registers as proxy, A proxies to C, B proxies to 
   it(`Get A last_vote_weight`, async () => {
     try {
       accountA.last_vote_weight = await getAccountVoteWeight(accountA.account);
-      //console.log('user1.last_vote_weight: ', user1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -3668,7 +3406,6 @@ describe(`N. Accounts A,B,C, C registers as proxy, A proxies to C, B proxies to 
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result);
       regproxyfee = result.fee_collected;
       expect(result.status).to.equal('OK')
       //expect that the total voted fio is decremented by the fee.
@@ -3688,7 +3425,6 @@ describe(`N. Accounts A,B,C, C registers as proxy, A proxies to C, B proxies to 
           const result1 = await accountB.sdk.genericAction('getFioBalance', {
             fioPublicKey: accountB.publicKey
           })
-          //console.log('proxyA1 fio balance', result)
 
       const json = {
         json: true,
@@ -3718,8 +3454,6 @@ describe(`N. Accounts A,B,C, C registers as proxy, A proxies to C, B proxies to 
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-     // console.log('total_voted_fio:', total_voted_fio);
-     // console.log('prev_total_voted_fio ', prev_total_voted_fio);
       expect(total_voted_fio).lessThan(prev_total_voted_fio)
     } catch (err) {
       console.log('Error: ', err)
@@ -3741,7 +3475,6 @@ describe(`N. Accounts A,B,C, C registers as proxy, A proxies to C, B proxies to 
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -3764,8 +3497,6 @@ describe(`N. Accounts A,B,C, C registers as proxy, A proxies to C, B proxies to 
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-     // console.log('total_voted_fio:', total_voted_fio);
-     // console.log('prev_total_voted_fio ', prev_total_voted_fio);
       expect(total_voted_fio).to.equal(prev_total_voted_fio + accountB.last_vote_weight)
 
     } catch (err) {
@@ -3788,7 +3519,6 @@ describe(`N. Accounts A,B,C, C registers as proxy, A proxies to C, B proxies to 
           max_fee: config.api.vote_producer.fee
         }
       })
-     // console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -3802,8 +3532,6 @@ describe(`N. Accounts A,B,C, C registers as proxy, A proxies to C, B proxies to 
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-     // console.log('total_voted_fio:', total_voted_fio);
-     // console.log('prev_total_voted_fio ', prev_total_voted_fio);
       expect(total_voted_fio).to.equal(prev_total_voted_fio)
     } catch (err) {
       console.log('Error: ', err)
@@ -3839,7 +3567,6 @@ describe(`O. recursive proxy tests`, () => {
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -3863,7 +3590,6 @@ describe(`O. recursive proxy tests`, () => {
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -3887,7 +3613,6 @@ describe(`O. recursive proxy tests`, () => {
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -3916,7 +3641,6 @@ describe(`O. recursive proxy tests`, () => {
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -3938,7 +3662,6 @@ describe(`O. recursive proxy tests`, () => {
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -3950,8 +3673,6 @@ describe(`O. recursive proxy tests`, () => {
     try {
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
       expect(start_bp_votes).greaterThan(total_bp_votes);
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes);
-      // console.log('change in bp votes is ',total_bp_votes - start_bp_votes);
     } catch (err) {
       console.log('Error: ', err)
       throw err;
@@ -3964,7 +3685,6 @@ describe(`O. recursive proxy tests`, () => {
   it(`empty account C`, async () => {
     try {
       const result = await accountC.sdk.genericAction('getFioBalance', { })
-      //console.log('Result: ', result)
       let tamount = result.balance - transfer_tokens_pub_key_fee;
 
       let result1 = await accountC.sdk.genericAction('transferTokens', {
@@ -3974,7 +3694,6 @@ describe(`O. recursive proxy tests`, () => {
       })
 
       //const result2 = await accountC.sdk.genericAction('getFioBalance', { })
-      //console.log('Result balance: ', result2.balance);
     } catch (err) {
       expect(err.json.message).to.equal(null)
     }
@@ -3985,7 +3704,6 @@ describe(`O. recursive proxy tests`, () => {
   it('Transfer funds from accountB to accountC', async () => {
     try {
       const result = await accountB.sdk.genericAction('getFioBalance', {})
-      // console.log('Result: ', result)
       let tamount = result.balance - transfer_tokens_pub_key_fee;
 
 
@@ -3994,7 +3712,6 @@ describe(`O. recursive proxy tests`, () => {
         amount: tamount,
         maxFee: config.maxFee,
       })
-      // console.log('Result', result1)
       expect(result1.status).to.equal('OK')
     }catch(err){
       console.log(err);
@@ -4013,7 +3730,6 @@ describe(`O. recursive proxy tests`, () => {
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -4031,7 +3747,6 @@ describe(`O. recursive proxy tests`, () => {
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -4053,7 +3768,6 @@ describe(`O. recursive proxy tests`, () => {
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -4064,8 +3778,6 @@ describe(`O. recursive proxy tests`, () => {
   it(`Verify bp1@dapixdev total_votes`, async () => {
     try {
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes);
-      // console.log('change in bp votes is ',total_bp_votes - start_bp_votes);
       expect(start_bp_votes).greaterThan(total_bp_votes);
     } catch (err) {
       console.log('Error: ', err)
@@ -4077,7 +3789,6 @@ describe(`O. recursive proxy tests`, () => {
   it(`empty account D`, async () => {
     try {
       const result = await accountD.sdk.genericAction('getFioBalance', { })
-      //console.log('Result: ', result)
       prevFundsAmount = result.balance
       let tamount = result.balance - transfer_tokens_pub_key_fee;
 
@@ -4088,7 +3799,6 @@ describe(`O. recursive proxy tests`, () => {
       })
 
       const result2 = await accountD.sdk.genericAction('getFioBalance', { })
-      //console.log('Result balance: ', result2.balance);
     } catch (err) {
       expect(err.json.message).to.equal(null)
     }
@@ -4098,7 +3808,6 @@ describe(`O. recursive proxy tests`, () => {
 
   it('Transfer funds from accountC to accountD', async () => {
     const result = await accountC.sdk.genericAction('getFioBalance', { })
-    //console.log('Result: ', result)
     let tamount = result.balance - transfer_tokens_pub_key_fee;
 
 
@@ -4107,7 +3816,6 @@ describe(`O. recursive proxy tests`, () => {
       amount: tamount,
       maxFee: config.maxFee,
     })
-    //console.log('Result', result)
     expect(result1.status).to.equal('OK')
   })
 
@@ -4123,7 +3831,6 @@ describe(`O. recursive proxy tests`, () => {
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -4141,7 +3848,6 @@ describe(`O. recursive proxy tests`, () => {
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -4163,7 +3869,6 @@ describe(`O. recursive proxy tests`, () => {
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -4174,8 +3879,6 @@ describe(`O. recursive proxy tests`, () => {
   it(`Verify bp1@dapixdev total_votes `, async () => {
     try {
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes);
-      //console.log('change in bp votes is ',total_bp_votes - start_bp_votes);
       expect(start_bp_votes).greaterThan(total_bp_votes);
     } catch (err) {
       console.log('Error: ', err)
@@ -4210,7 +3913,6 @@ describe(`P. proxy then spend verify BP total_vote_weight is managed correctly`,
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -4234,7 +3936,6 @@ describe(`P. proxy then spend verify BP total_vote_weight is managed correctly`,
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -4258,7 +3959,6 @@ describe(`P. proxy then spend verify BP total_vote_weight is managed correctly`,
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -4279,7 +3979,6 @@ describe(`P. proxy then spend verify BP total_vote_weight is managed correctly`,
   it('Transfer funds from accountB to accountC', async () => {
     try {
       const result = await accountB.sdk.genericAction('getFioBalance', {})
-      // console.log('Result: ', result)
       let tamount = result.balance - transfer_tokens_pub_key_fee;
 
 
@@ -4288,7 +3987,6 @@ describe(`P. proxy then spend verify BP total_vote_weight is managed correctly`,
         amount: tamount,
         maxFee: config.maxFee,
       })
-      // console.log('Result', result1)
       expect(result1.status).to.equal('OK')
     }catch(err){
       console.log(err);
@@ -4299,8 +3997,6 @@ describe(`P. proxy then spend verify BP total_vote_weight is managed correctly`,
     try {
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
       expect(start_bp_votes).greaterThan(total_bp_votes);
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes);
-      // console.log('change in bp votes is ',total_bp_votes - start_bp_votes);
     } catch (err) {
       console.log('Error: ', err)
     }
@@ -4335,7 +4031,6 @@ describe(`Q. C registers as proxy, A proxies to C, B proxies to C, B then regist
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -4359,7 +4054,6 @@ describe(`Q. C registers as proxy, A proxies to C, B proxies to C, B then regist
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -4381,7 +4075,6 @@ describe(`Q. C registers as proxy, A proxies to C, B proxies to C, B then regist
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -4400,7 +4093,6 @@ describe(`Q. C registers as proxy, A proxies to C, B proxies to C, B then regist
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -4409,13 +4101,11 @@ describe(`Q. C registers as proxy, A proxies to C, B proxies to C, B then regist
 
   it(`Get total_voted_fio`, async () => {
     total_voted_fio = await getTotalVotedFio();
-    //console.log('total_voted_fio:', total_voted_fio)
   })
 
   it(`Get accountC last_vote_weight`, async () => {
     try {
       accountC.last_vote_weight = await getAccountVoteWeight(accountC.account);
-      //console.log('proxyA1.last_vote_weight: ', proxyA1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -4424,7 +4114,6 @@ describe(`Q. C registers as proxy, A proxies to C, B proxies to C, B then regist
   it(`Get bp1@dapixdev total_votes`, async () => {
     try {
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal('null')
@@ -4445,7 +4134,6 @@ describe(`Q. C registers as proxy, A proxies to C, B proxies to C, B then regist
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -4458,7 +4146,6 @@ describe(`Q. C registers as proxy, A proxies to C, B proxies to C, B then regist
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
       //  console.log('bp1@dapixdev total_votes:', total_bp_votes)
-      // console.log('difference is ', prev_total_bp_votes - total_bp_votes)
       // expect(total_bp_votes).to.equal(prev_total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
@@ -4470,7 +4157,6 @@ describe(`Q. C registers as proxy, A proxies to C, B proxies to C, B then regist
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio:', total_voted_fio)
       expect(total_voted_fio).to.equal(prev_total_voted_fio)
     } catch (err) {
       console.log('Error: ', err)
@@ -4481,7 +4167,6 @@ describe(`Q. C registers as proxy, A proxies to C, B proxies to C, B then regist
   it(`Get A last_vote_weight`, async () => {
     try {
       accountA.last_vote_weight = await getAccountVoteWeight(accountA.account);
-      //console.log('user1.last_vote_weight: ', user1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -4500,7 +4185,6 @@ describe(`Q. C registers as proxy, A proxies to C, B proxies to C, B then regist
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result);
       regproxyfee = result.fee_collected;
       expect(result.status).to.equal('OK')
       //expect that the total voted fio is decremented by the fee.
@@ -4520,7 +4204,6 @@ describe(`Q. C registers as proxy, A proxies to C, B proxies to C, B then regist
       const result1 = await accountB.sdk.genericAction('getFioBalance', {
         fioPublicKey: accountB.publicKey
       })
-      //console.log('proxyA1 fio balance', result)
 
       const json = {
         json: true,
@@ -4550,8 +4233,6 @@ describe(`Q. C registers as proxy, A proxies to C, B proxies to C, B then regist
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-      // console.log('total_voted_fio:', total_voted_fio);
-      // console.log('prev_total_voted_fio ', prev_total_voted_fio);
       expect(total_voted_fio).lessThan(prev_total_voted_fio)
     } catch (err) {
       console.log('Error: ', err)
@@ -4573,7 +4254,6 @@ describe(`Q. C registers as proxy, A proxies to C, B proxies to C, B then regist
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -4596,8 +4276,6 @@ describe(`Q. C registers as proxy, A proxies to C, B proxies to C, B then regist
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-      // console.log('total_voted_fio:', total_voted_fio);
-      // console.log('prev_total_voted_fio ', prev_total_voted_fio);
       expect(total_voted_fio).to.equal(prev_total_voted_fio + accountB.last_vote_weight)
 
     } catch (err) {
@@ -4620,7 +4298,6 @@ describe(`Q. C registers as proxy, A proxies to C, B proxies to C, B then regist
           max_fee: config.api.vote_producer.fee
         }
       })
-      // console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -4634,8 +4311,6 @@ describe(`Q. C registers as proxy, A proxies to C, B proxies to C, B then regist
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-      // console.log('total_voted_fio:', total_voted_fio);
-      // console.log('prev_total_voted_fio ', prev_total_voted_fio);
       expect(total_voted_fio).to.equal(prev_total_voted_fio)
     } catch (err) {
       console.log('Error: ', err)
@@ -4728,7 +4403,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -4765,7 +4439,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -4950,7 +4623,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           voteracct: accountA.account
         }
       })
-      //console.log('Result: ', result)
       // expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -4996,7 +4668,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.api.unregister_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -5015,7 +4686,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -5058,7 +4728,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.api.unregister_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -5077,7 +4746,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -5120,7 +4788,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.api.unregister_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -5139,7 +4806,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -5189,7 +4855,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -5214,7 +4879,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
       amount: 100000000000,
       maxFee: config.maxFee,
     })
-    //console.log('Result', result)
     expect(result.status).to.equal('OK')
   })
 
@@ -5241,7 +4905,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -5265,7 +4928,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -5285,7 +4947,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -5304,7 +4965,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -5328,7 +4988,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -5347,7 +5006,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -5371,7 +5029,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -5390,7 +5047,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -5414,7 +5070,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -5433,7 +5088,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -5457,7 +5111,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -5483,7 +5136,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -5492,7 +5144,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
 
   it(`Get total_voted_fio`, async () => {
     total_voted_fio = await getTotalVotedFio();
-    //console.log('total_voted_fio:', total_voted_fio)
   })
 
   it(`Get bp1@dapixdev total_votes this value should not change any further through this test!!`, async () => {
@@ -5518,10 +5169,8 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
         show_payer: false
       }
       voters = await callFioApi("get_table_rows", json);
-      //console.log('voters: ', voters);
       for (voter in voters.rows) {
         if (voters.rows[voter].owner == accountC.account) {
-          //console.log('voters.rows[voter]: ', voters.rows[voter]);
           break;
         }
       }
@@ -5547,10 +5196,8 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
         show_payer: false
       }
       voters = await callFioApi("get_table_rows", json);
-      //console.log('voters: ', voters);
       for (voter in voters.rows) {
         if (voters.rows[voter].owner == accountB.account) {
-          //console.log('voters.rows[voter]: ', voters.rows[voter]);
           break;
         }
       }
@@ -5569,7 +5216,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
   it(`Get accountC last_vote_weight`, async () => {
     try {
       accountC.last_vote_weight = await getAccountVoteWeight(accountC.account);
-      //console.log('proxyA1.last_vote_weight: ', proxyA1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -5589,7 +5235,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -5623,7 +5268,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -5658,7 +5302,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -5693,7 +5336,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -5734,7 +5376,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -5755,7 +5396,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
     try {
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
@@ -5767,7 +5407,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio:', total_voted_fio)
       expect(total_voted_fio).to.equal(prev_total_voted_fio)
     } catch (err) {
       console.log('Error: ', err)
@@ -5778,7 +5417,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
   it(`Get A last_vote_weight`, async () => {
     try {
       accountA.last_vote_weight = await getAccountVoteWeight(accountA.account);
-      //console.log('user1.last_vote_weight: ', user1.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -5797,7 +5435,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result);
       regproxyfee = result.fee_collected;
       expect(result.status).to.equal('OK')
       //expect that the total voted fio is decremented by the fee.
@@ -5813,8 +5450,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-      // console.log('total_voted_fio:', total_voted_fio);
-      //console.log('prev_total_voted_fio ', prev_total_voted_fio);
       expect(total_voted_fio).to.equal(prev_total_voted_fio)
     } catch (err) {
       console.log('Error: ', err)
@@ -5836,7 +5471,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -5850,8 +5484,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
     try {
       let prev_total_voted_fio = total_voted_fio - regproxyfee ;
       total_voted_fio = await getTotalVotedFio();
-      // console.log('total_voted_fio:', total_voted_fio);
-      // console.log('prev_total_voted_fio ', prev_total_voted_fio);
       expect(total_voted_fio).to.equal(prev_total_voted_fio)
 
     } catch (err) {
@@ -5881,10 +5513,8 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
         show_payer: false
       }
       voters = await callFioApi("get_table_rows", json);
-      //console.log('voters: ', voters);
       for (voter in voters.rows) {
         if (voters.rows[voter].owner == accountC.account) {
-          //console.log('voters.rows[voter]: ', voters.rows[voter]);
           break;
         }
       }
@@ -5911,10 +5541,8 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
         show_payer: false
       }
       voters = await callFioApi("get_table_rows", json);
-      //console.log('voters: ', voters);
       for (voter in voters.rows) {
         if (voters.rows[voter].owner == accountB.account) {
-          //console.log('voters.rows[voter]: ', voters.rows[voter]);
           break;
         }
       }
@@ -5944,7 +5572,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.api.vote_producer.fee
         }
       })
-      // console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -5958,8 +5585,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-      // console.log('total_voted_fio:', total_voted_fio);
-      // console.log('prev_total_voted_fio ', prev_total_voted_fio);
       expect(total_voted_fio).to.equal(prev_total_voted_fio)
     } catch (err) {
       console.log('Error: ', err)
@@ -5979,10 +5604,8 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
         show_payer: false
       }
       voters = await callFioApi("get_table_rows", json);
-      //console.log('voters: ', voters);
       for (voter in voters.rows) {
         if (voters.rows[voter].owner == accountC.account) {
-          //console.log('voters.rows[voter]: ', voters.rows[voter]);
           break;
         }
       }
@@ -6010,7 +5633,6 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err)
@@ -6029,10 +5651,8 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
         show_payer: false
       }
       voters = await callFioApi("get_table_rows", json);
-      //console.log('voters: ', voters);
       for (voter in voters.rows) {
         if (voters.rows[voter].owner == accountB.account) {
-          //console.log('voters.rows[voter]: ', voters.rows[voter]);
           break;
         }
       }
@@ -6058,10 +5678,8 @@ describe.skip(`Q. SETUP REQUIRED, see above in .js file-- Auto proxy testing of 
         show_payer: false
       }
       voters = await callFioApi("get_table_rows", json);
-      //console.log('voters: ', voters);
       for (voter in voters.rows) {
         if (voters.rows[voter].owner == accountC.account) {
-          //console.log('voters.rows[voter]: ', voters.rows[voter]);
           break;
         }
       }
@@ -6091,7 +5709,6 @@ describe('R. Vote/unvote for producer', () => {
   it(`Get bp1@dapixdev total_votes`, async () => {
     try {
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
     }
@@ -6111,7 +5728,6 @@ describe('R. Vote/unvote for producer', () => {
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error: ', err)
@@ -6123,7 +5739,6 @@ describe('R. Vote/unvote for producer', () => {
       const voter1_last_vote_weight = await getAccountVoteWeight(voter1.account);
       const prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes + voter1_last_vote_weight)
     } catch (err) {
       console.log('Error: ', err);
@@ -6143,7 +5758,6 @@ describe('R. Vote/unvote for producer', () => {
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error: ', err);
@@ -6156,7 +5770,6 @@ describe('R. Vote/unvote for producer', () => {
       const voter1_last_vote_weight = await getAccountVoteWeight(voter1.account);
       const prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes - voter1_last_vote_weight)
     } catch (err) {
       console.log('Error: ', err);
@@ -6186,7 +5799,6 @@ describe('S. voter1 votes for bp1, then proxies vote to proxy1, then votes for b
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err);
@@ -6197,7 +5809,6 @@ describe('S. voter1 votes for bp1, then proxies vote to proxy1, then votes for b
   it(`Get bp1@dapixdev total_votes`, async () => {
     try {
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal('null');
@@ -6218,7 +5829,6 @@ describe('S. voter1 votes for bp1, then proxies vote to proxy1, then votes for b
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error: ', err)
@@ -6230,7 +5840,6 @@ describe('S. voter1 votes for bp1, then proxies vote to proxy1, then votes for b
       const proxy1_last_vote_weight = await getAccountVoteWeight(proxy1.account);
       const prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes + proxy1_last_vote_weight)
     } catch (err) {
       console.log('Error: ', err);
@@ -6252,7 +5861,6 @@ describe('S. voter1 votes for bp1, then proxies vote to proxy1, then votes for b
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error: ', err)
@@ -6264,7 +5872,6 @@ describe('S. voter1 votes for bp1, then proxies vote to proxy1, then votes for b
       const voter1_last_vote_weight = await getAccountVoteWeight(voter1.account);
       const prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes + voter1_last_vote_weight)
     } catch (err) {
       console.log('Error: ', err);
@@ -6284,7 +5891,6 @@ describe('S. voter1 votes for bp1, then proxies vote to proxy1, then votes for b
           max_fee: config.api.proxy_vote.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err);
@@ -6306,7 +5912,6 @@ describe('S. voter1 votes for bp1, then proxies vote to proxy1, then votes for b
         json: true
       }
       const result = await callFioApi("get_table_rows", json);
-      //console.log('Result: ', result)
       voter1.last_vote_weight = result.rows[0].last_vote_weight;
       expect(result.rows[0].proxy).to.equal(proxy1.account);
       expect(result.rows[0].is_proxy).to.equal(0);
@@ -6331,7 +5936,6 @@ describe('S. voter1 votes for bp1, then proxies vote to proxy1, then votes for b
         json: true
       }
       const result = await callFioApi("get_table_rows", json);
-      //console.log('Result: ', result)
       proxy1.last_vote_weight = result.rows[0].last_vote_weight;
       expect(result.rows[0].proxy).to.equal('');
       expect(result.rows[0].is_proxy).to.equal(1);
@@ -6348,7 +5952,6 @@ describe('S. voter1 votes for bp1, then proxies vote to proxy1, then votes for b
       const voter1_last_vote_weight = await getAccountVoteWeight(voter1.account);
       const prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes)
     } catch (err) {
       console.log('Error: ', err);
@@ -6370,7 +5973,6 @@ describe('S. voter1 votes for bp1, then proxies vote to proxy1, then votes for b
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error: ', err)
@@ -6391,7 +5993,6 @@ describe('S. voter1 votes for bp1, then proxies vote to proxy1, then votes for b
         json: true
       }
       const result = await callFioApi("get_table_rows", json);
-      //console.log('Result: ', result)
       expect(result.rows[0].proxy).to.equal('');
       expect(result.rows[0].is_proxy).to.equal(0);
       expect(result.rows[0].is_auto_proxy).to.equal(0);
@@ -6417,7 +6018,6 @@ describe('S. voter1 votes for bp1, then proxies vote to proxy1, then votes for b
         json: true
       }
       const result = await callFioApi("get_table_rows", json);
-      //console.log('Result: ', result)
       expect(Number(result.rows[0].proxied_vote_weight)).to.equal(0);
       expect(Number(result.rows[0].last_vote_weight)).to.equal(proxy1_prev_last_vote_weight - voter1_last_vote_weight);
     } catch (err) {
@@ -6431,7 +6031,6 @@ describe('S. voter1 votes for bp1, then proxies vote to proxy1, then votes for b
       const voter1_last_vote_weight = await getAccountVoteWeight(voter1.account);
       const prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes - voter1_last_vote_weight)
     } catch (err) {
       console.log('Error: ', err);
@@ -6472,7 +6071,6 @@ describe('T. Vote for bp1, then vote for bp1 + bp2, then vote for bp2', () => {
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error: ', err)
@@ -6506,7 +6104,6 @@ describe('T. Vote for bp1, then vote for bp1 + bp2, then vote for bp2', () => {
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error: ', err);
@@ -6543,7 +6140,6 @@ describe('T. Vote for bp1, then vote for bp1 + bp2, then vote for bp2', () => {
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error: ', err);
@@ -6558,7 +6154,6 @@ describe('T. Vote for bp1, then vote for bp1 + bp2, then vote for bp2', () => {
       const prev_total_bp2_votes = total_bp2_votes;
       total_bp1_votes = await getProdVoteTotal('bp1@dapixdev');
       total_bp2_votes = await getProdVoteTotal('bp2@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp2_votes).to.equal(prev_total_bp2_votes);
       expect(prev_total_bp1_votes - total_bp1_votes).to.equal(voter1_last_vote_weight);
     } catch (err) {
@@ -6589,7 +6184,6 @@ describe('U. proxy1 votes for bp1, voter1 proxies to proxy1, then proxy1 votes f
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err);
@@ -6601,7 +6195,6 @@ describe('U. proxy1 votes for bp1, voter1 proxies to proxy1, then proxy1 votes f
     try {
       total_bp1_votes = await getProdVoteTotal('bp1@dapixdev');
       total_bp2_votes = await getProdVoteTotal('bp2@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal('null');
@@ -6622,7 +6215,6 @@ describe('U. proxy1 votes for bp1, voter1 proxies to proxy1, then proxy1 votes f
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error: ', err)
@@ -6634,7 +6226,6 @@ describe('U. proxy1 votes for bp1, voter1 proxies to proxy1, then proxy1 votes f
       const proxy1_last_vote_weight = await getAccountVoteWeight(proxy1.account);
       const prev_total_bp1_votes = total_bp1_votes;
       total_bp1_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp1_votes).to.equal(prev_total_bp1_votes + proxy1_last_vote_weight)
     } catch (err) {
       console.log('Error: ', err);
@@ -6654,7 +6245,6 @@ describe('U. proxy1 votes for bp1, voter1 proxies to proxy1, then proxy1 votes f
           max_fee: config.api.proxy_vote.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err);
@@ -6676,7 +6266,6 @@ describe('U. proxy1 votes for bp1, voter1 proxies to proxy1, then proxy1 votes f
         json: true
       }
       const result = await callFioApi("get_table_rows", json);
-      //console.log('Result: ', result)
       voter1.last_vote_weight = result.rows[0].last_vote_weight;
       expect(result.rows[0].proxy).to.equal(proxy1.account);
       expect(result.rows[0].is_proxy).to.equal(0);
@@ -6701,7 +6290,6 @@ describe('U. proxy1 votes for bp1, voter1 proxies to proxy1, then proxy1 votes f
         json: true
       }
       const result = await callFioApi("get_table_rows", json);
-      //console.log('Result: ', result)
       proxy1.last_vote_weight = result.rows[0].last_vote_weight;
       expect(result.rows[0].proxy).to.equal('');
       expect(result.rows[0].is_proxy).to.equal(1);
@@ -6740,7 +6328,6 @@ describe('U. proxy1 votes for bp1, voter1 proxies to proxy1, then proxy1 votes f
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error: ', err)
@@ -6754,7 +6341,6 @@ describe('U. proxy1 votes for bp1, voter1 proxies to proxy1, then proxy1 votes f
       const prev_total_bp2_votes = total_bp2_votes;
       total_bp1_votes = await getProdVoteTotal('bp1@dapixdev');
       total_bp2_votes = await getProdVoteTotal('bp2@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp1_votes).to.equal(prev_total_bp1_votes);
       expect(total_bp2_votes - prev_total_bp2_votes).to.equal(proxy1_last_vote_weight);
     } catch (err) {
@@ -6777,7 +6363,6 @@ describe('U. proxy1 votes for bp1, voter1 proxies to proxy1, then proxy1 votes f
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error: ', err)
@@ -6791,7 +6376,6 @@ describe('U. proxy1 votes for bp1, voter1 proxies to proxy1, then proxy1 votes f
       const prev_total_bp2_votes = total_bp2_votes;
       total_bp1_votes = await getProdVoteTotal('bp1@dapixdev');
       total_bp2_votes = await getProdVoteTotal('bp2@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp2_votes).to.equal(prev_total_bp2_votes);
       expect(prev_total_bp1_votes - total_bp1_votes).to.equal(proxy1_last_vote_weight);
     } catch (err) {
@@ -6871,7 +6455,6 @@ describe('V. voter1 proxies vote to proxy1, then proxies vote to proxy2', () => 
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error: ', err)
@@ -6892,7 +6475,6 @@ describe('V. voter1 proxies vote to proxy1, then proxies vote to proxy2', () => 
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error: ', err)
@@ -6905,7 +6487,6 @@ describe('V. voter1 proxies vote to proxy1, then proxies vote to proxy2', () => 
       const proxy2_last_vote_weight = await getAccountVoteWeight(proxy2.account);
       const prev_total_bp1_votes = total_bp1_votes;
       total_bp1_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp1_votes).to.equal(prev_total_bp1_votes + proxy1_last_vote_weight + proxy2_last_vote_weight)
     } catch (err) {
       console.log('Error: ', err);
@@ -6925,7 +6506,6 @@ describe('V. voter1 proxies vote to proxy1, then proxies vote to proxy2', () => 
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err);
@@ -6947,7 +6527,6 @@ describe('V. voter1 proxies vote to proxy1, then proxies vote to proxy2', () => 
         json: true
       }
       const result = await callFioApi("get_table_rows", json);
-      //console.log('Result: ', result)
       expect(result.rows[0].proxy).to.equal(proxy1.account);
       expect(result.rows[0].is_proxy).to.equal(0);
       expect(result.rows[0].is_auto_proxy).to.equal(0);
@@ -6971,7 +6550,6 @@ describe('V. voter1 proxies vote to proxy1, then proxies vote to proxy2', () => 
         json: true
       }
       const result = await callFioApi("get_table_rows", json);
-      //console.log('Result: ', result)
       const voter1_last_vote_weight = await getAccountVoteWeight(voter1.account);
       expect(result.rows[0].proxy).to.equal('');
       expect(result.rows[0].is_proxy).to.equal(1);
@@ -7007,7 +6585,6 @@ describe('V. voter1 proxies vote to proxy1, then proxies vote to proxy2', () => 
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err);
@@ -7029,7 +6606,6 @@ describe('V. voter1 proxies vote to proxy1, then proxies vote to proxy2', () => 
         json: true
       }
       const result = await callFioApi("get_table_rows", json);
-      //console.log('Result: ', result)
       expect(result.rows[0].proxy).to.equal(proxy2.account);
       expect(result.rows[0].is_proxy).to.equal(0);
       expect(result.rows[0].is_auto_proxy).to.equal(0);
@@ -7053,7 +6629,6 @@ describe('V. voter1 proxies vote to proxy1, then proxies vote to proxy2', () => 
         json: true
       }
       const result = await callFioApi("get_table_rows", json);
-      //console.log('Result: ', result)
       expect(result.rows[0].proxy).to.equal('');
       expect(result.rows[0].is_proxy).to.equal(1);
       expect(result.rows[0].is_auto_proxy).to.equal(0);
@@ -7078,7 +6653,6 @@ describe('V. voter1 proxies vote to proxy1, then proxies vote to proxy2', () => 
         json: true
       }
       const result = await callFioApi("get_table_rows", json);
-      //console.log('Result: ', result)
       const voter1_last_vote_weight = await getAccountVoteWeight(voter1.account);
       expect(result.rows[0].proxy).to.equal('');
       expect(result.rows[0].is_proxy).to.equal(1);
@@ -7154,7 +6728,6 @@ describe('W. proxy1 registers/unregisters. voter1 regproxy to proxy1', () => {
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error: ', err)
@@ -7166,7 +6739,6 @@ describe('W. proxy1 registers/unregisters. voter1 regproxy to proxy1', () => {
       const proxy1_last_vote_weight = await getAccountVoteWeight(proxy1.account);
       const prev_total_bp1_votes = total_bp1_votes;
       total_bp1_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp1_votes).to.equal(prev_total_bp1_votes + proxy1_last_vote_weight)
     } catch (err) {
       console.log('Error: ', err);
@@ -7186,7 +6758,6 @@ describe('W. proxy1 registers/unregisters. voter1 regproxy to proxy1', () => {
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err);
@@ -7208,7 +6779,6 @@ describe('W. proxy1 registers/unregisters. voter1 regproxy to proxy1', () => {
         json: true
       }
       const result = await callFioApi("get_table_rows", json);
-      //console.log('Result: ', result)
       expect(result.rows[0].proxy).to.equal(proxy1.account);
       expect(result.rows[0].is_proxy).to.equal(0);
       expect(result.rows[0].is_auto_proxy).to.equal(0);
@@ -7232,7 +6802,6 @@ describe('W. proxy1 registers/unregisters. voter1 regproxy to proxy1', () => {
         json: true
       }
       const result = await callFioApi("get_table_rows", json);
-      //console.log('Result: ', result)
       const voter1_last_vote_weight = await getAccountVoteWeight(voter1.account);
       expect(result.rows[0].proxy).to.equal('');
       expect(result.rows[0].is_proxy).to.equal(1);
@@ -7387,7 +6956,6 @@ describe('X. proxy1 registers/unregisters. voter1 AUTOproxies to proxy1', () => 
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error: ', err)
@@ -7399,7 +6967,6 @@ describe('X. proxy1 registers/unregisters. voter1 AUTOproxies to proxy1', () => 
       const proxy1_last_vote_weight = await getAccountVoteWeight(proxy1.account);
       const prev_total_bp1_votes = total_bp1_votes;
       total_bp1_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp1_votes).to.equal(prev_total_bp1_votes + proxy1_last_vote_weight)
     } catch (err) {
       console.log('Error: ', err);
@@ -7461,7 +7028,6 @@ describe('X. proxy1 registers/unregisters. voter1 AUTOproxies to proxy1', () => 
         json: true
       }
       const result = await callFioApi("get_table_rows", json);
-      //console.log('Result: ', result)
       const voter1_last_vote_weight = await getAccountVoteWeight(voter1.account);
       expect(result.rows[0].proxy).to.equal('');
       expect(result.rows[0].is_proxy).to.equal(1);
@@ -7616,7 +7182,6 @@ describe('Y. voter1 autoproxies to proxy1 then regsters as proxy', () => {
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error: ', err)
@@ -7628,7 +7193,6 @@ describe('Y. voter1 autoproxies to proxy1 then regsters as proxy', () => {
       const proxy1_last_vote_weight = await getAccountVoteWeight(proxy1.account);
       const prev_total_bp1_votes = total_bp1_votes;
       total_bp1_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp1_votes).to.equal(prev_total_bp1_votes + proxy1_last_vote_weight)
     } catch (err) {
       console.log('Error: ', err);
@@ -7690,7 +7254,6 @@ describe('Y. voter1 autoproxies to proxy1 then regsters as proxy', () => {
         json: true
       }
       const result = await callFioApi("get_table_rows", json);
-      //console.log('Result: ', result)
       const voter1_last_vote_weight = await getAccountVoteWeight(voter1.account);
       expect(result.rows[0].proxy).to.equal('');
       expect(result.rows[0].is_proxy).to.equal(1);
@@ -7747,7 +7310,6 @@ describe('Y. voter1 autoproxies to proxy1 then regsters as proxy', () => {
         json: true
       }
       const result = await callFioApi("get_table_rows", json);
-      //console.log('result: ', result)
       expect(result.rows[0].proxy).to.equal('');
       expect(result.rows[0].is_proxy).to.equal(1);
       expect(result.rows[0].is_auto_proxy).to.equal(0);
@@ -7795,7 +7357,6 @@ describe('Z. Voter1 votes for producer then regsters as proxy', () => {
   it(`Get bp1@dapixdev total_votes`, async () => {
     try {
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
     }
@@ -7815,7 +7376,6 @@ describe('Z. Voter1 votes for producer then regsters as proxy', () => {
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error: ', err)
@@ -7827,7 +7387,6 @@ describe('Z. Voter1 votes for producer then regsters as proxy', () => {
       const voter1_last_vote_weight = await getAccountVoteWeight(voter1.account);
       const prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes + voter1_last_vote_weight)
     } catch (err) {
       console.log('Error: ', err);
@@ -7846,7 +7405,6 @@ describe('Z. Voter1 votes for producer then regsters as proxy', () => {
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       fee_collected = result.fee_collected ;
       expect(result.status).to.equal('OK');
     } catch (err) {
@@ -7860,7 +7418,6 @@ describe('Z. Voter1 votes for producer then regsters as proxy', () => {
       const voter1_last_vote_weight = await getAccountVoteWeight(voter1.account);
       const prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes - fee_collected)
     } catch (err) {
       console.log('Error: ', err);
@@ -7922,7 +7479,6 @@ describe('AA. voter1 autoproxies to proxy1 then proxies to proxy1', () => {
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error: ', err)
@@ -7934,7 +7490,6 @@ describe('AA. voter1 autoproxies to proxy1 then proxies to proxy1', () => {
       const proxy1_last_vote_weight = await getAccountVoteWeight(proxy1.account);
       const prev_total_bp1_votes = total_bp1_votes;
       total_bp1_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp1_votes).to.equal(prev_total_bp1_votes + proxy1_last_vote_weight)
     } catch (err) {
       console.log('Error: ', err);
@@ -7996,7 +7551,6 @@ describe('AA. voter1 autoproxies to proxy1 then proxies to proxy1', () => {
         json: true
       }
       const result = await callFioApi("get_table_rows", json);
-      //console.log('Result: ', result)
       prev_proxied_vote_weight = result.rows[0].proxied_vote_weight;
       prev_last_vote_weight = result.rows[0].last_vote_weight;
       const voter1_last_vote_weight = await getAccountVoteWeight(voter1.account);
@@ -8055,7 +7609,6 @@ describe('AA. voter1 autoproxies to proxy1 then proxies to proxy1', () => {
         json: true
       }
       const result = await callFioApi("get_table_rows", json);
-      //console.log('result: ', result)
       expect(result.rows[0].proxy).to.equal(proxy1.account);
       expect(result.rows[0].is_proxy).to.equal(0);
       expect(result.rows[0].is_auto_proxy).to.equal(0);
@@ -8079,7 +7632,6 @@ describe('AA. voter1 autoproxies to proxy1 then proxies to proxy1', () => {
         json: true
       }
       const result = await callFioApi("get_table_rows", json);
-      //console.log('Result: ', result);
       expect(result.rows[0].is_proxy).to.equal(1);
       expect(result.rows[0].is_auto_proxy).to.equal(0);
       expect(result.rows[0].proxied_vote_weight).to.equal(prev_proxied_vote_weight);
@@ -8136,7 +7688,6 @@ describe('(BUG - Fails) AB. voter1 proxies to proxy1. Transfer FIO to voter1 and
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK');
     } catch (err) {
       console.log('Error: ', err)
@@ -8154,7 +7705,6 @@ describe('(BUG - Fails) AB. voter1 proxies to proxy1. Transfer FIO to voter1 and
           max_fee: config.maxFee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err);
