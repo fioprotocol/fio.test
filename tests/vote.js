@@ -2764,9 +2764,11 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
     }
   })
 
+  let t_last_vote_weight  = 0;
+
   it(`Get tuser2 last_vote_weight`, async () => {
     try {
-      faucet.last_vote_weight = await getAccountVoteWeight(tuser2.account);
+      t_last_vote_weight = await getAccountVoteWeight(tuser2.account);
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -2782,7 +2784,7 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
             'bp1@dapixdev'
           ],
           fio_address: tuser2.address,
-          actor: faucet.account,
+          actor: tuser2.account,
           max_fee: config.maxFee
         }
       })
@@ -2810,7 +2812,7 @@ describe(`J. Test total_voted_fio when user votes for proxy`, () => {
     try {
       let prev_total_voted_fio = total_voted_fio;
       total_voted_fio = await getTotalVotedFio();
-      expect(total_voted_fio).to.equal(prev_total_voted_fio + faucet.last_vote_weight)
+      expect(total_voted_fio).to.equal(prev_total_voted_fio + t_last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal('null')
@@ -3133,7 +3135,7 @@ describe(`M. Set Auto-proxy, then vote for producer (attempting to repro BD-3800
         payee_public_key: proxy1.publicKey,
         amount: 100000000000,
         max_fee: config.maxFee,
-        actor: faucet.account,
+        actor: user1.account,
         tpid: proxy1.address
       }
     });
