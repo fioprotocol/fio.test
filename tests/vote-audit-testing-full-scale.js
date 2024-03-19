@@ -18,6 +18,7 @@ NOT for QA
 
  NOTE -- this file is used for dev testing of the voting power and voting power audit in the fio
  protocol. it is NOT intended to be used for QA regression tests.
+ choose which tests to run and change skip to only and add to index.js to run.
 
  */
 const eosio = {
@@ -661,7 +662,7 @@ describe.skip(`Initialize blockchain server for dev testing on AWS hosted dev pl
 
 })
 
-describe.only(`call auditvote 50 times.`, () => {
+describe.skip(`call auditvote 50 times.`, () => {
 
   let accountA
 
@@ -2439,7 +2440,7 @@ describe.skip(`Initialize blockchain server for full scale testing of audit mach
     }
 
 
-    for (let numits = 0; numits < 342; numits++) {
+    for (let numits = 0; numits < 1342; numits++) {
 
       console.log("making proxy1 participant ", numits);
       accountB = await newUser(faucet);
@@ -3849,6 +3850,62 @@ describe.skip(`Initialize blockchain server for full scale testing of audit mach
 
 
 
+  })
+
+
+})
+
+describe.skip(' AD. call audit vote in all phases', () => {
+  let voter1, phase_change = 0
+
+  it(`Create users`, async () => {
+    voter1 = await newUser(faucet);
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+  it(`call audit vote until its in phase 1, max number of calls to audit vote is 20`, async () => {
+    try {
+      let audit_phase = '10'
+      let last_phase = "9"
+      let n_called = 0;
+      let max_calls_audit = 100
+      console.log("this test will call audit a max of "+max_calls_audit+" times")
+
+      while(((audit_phase.localeCompare('4') != 0) || (phase_change < 3)) ) {
+        n_called++;
+        const result = await voter1.sdk.genericAction('pushTransaction', {
+          action: 'auditvote',
+          account: 'eosio',
+          data: {
+            actor: voter1.account,
+            max_fee: config.api.audit_vote.fee
+          }
+        })
+        audit_phase = result.audit_phase
+
+        //if there is lots of voters the account may run out of funds and
+        //throw exceptions...
+        if(n_called > max_calls_audit) break;
+
+        if(last_phase.localeCompare(audit_phase) != 0){
+          if(last_phase.localeCompare("9") != 0){
+            phase_change ++
+          }
+          last_phase = audit_phase;
+
+        }
+        console.log("completed call to audit vote, audit phase "+result.audit_phase)
+        console.log("          records processed "+result.records_processed)
+        expect(result.status).to.equal('OK')
+        expect(result.fee_collected).to.equal(config.api.audit_vote.fee)
+
+        await timeout(3000)
+      }
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal('null');
+    }
   })
 
 
@@ -6013,9 +6070,6 @@ describe.skip(`register fio address,  mandatory fee (test transfer) sender is in
 
 
 })
-
-
-
 
 describe.skip(`voting power tests, test reading account info`, () => {
 

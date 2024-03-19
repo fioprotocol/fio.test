@@ -1,4 +1,14 @@
 require('mocha')
+/*
+NOTE -- these tests perform a validation of all the actions on the fio chain from a voting perspective
+the tests are meant to be used for QA level testing, and are not meant as regression tests.
+
+THESE TESTS ARE FOR VOTING QA ONLY
+NOT FOR REGRRESSION.
+
+These tests need to be run on a clenly started server to succeed...
+
+ */
 const {expect} = require('chai')
 const {
   newUser, 

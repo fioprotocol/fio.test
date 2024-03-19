@@ -7719,7 +7719,6 @@ describe('(BUG - Fails) AB. voter1 proxies to proxy1. Transfer FIO to voter1 and
   it(`Get bp1 total_votes`, async () => {
     try {
       prev_total_bp1_votes = await getProdVoteTotal('bp1@dapixdev');
-      console.log('bp1 total votes: ', prev_total_bp1_votes);
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal('null');
@@ -7740,7 +7739,6 @@ describe('(BUG - Fails) AB. voter1 proxies to proxy1. Transfer FIO to voter1 and
         json: true
       }
       const result = await callFioApi("get_table_rows", json);
-      console.log('Result: ', result);
       prev_last_vote_weight = Number(result.rows[0].last_vote_weight);
       prev_proxied_vote_weight = Number(result.rows[0].proxied_vote_weight);
     } catch (err) {
@@ -7786,7 +7784,6 @@ describe('(BUG - Fails) AB. voter1 proxies to proxy1. Transfer FIO to voter1 and
         json: true
       }
       const result = await callFioApi("get_table_rows", json);
-      console.log('Result: ', result)
       expect(Number(result.rows[0].proxied_vote_weight)).to.equal(prev_proxied_vote_weight + xferAmount);
       expect(Number(result.rows[0].last_vote_weight)).to.equal(prev_last_vote_weight + xferAmount);
     } catch (err) {
@@ -7798,12 +7795,122 @@ describe('(BUG - Fails) AB. voter1 proxies to proxy1. Transfer FIO to voter1 and
   it(`Confirm bp1 total_votes increases by transfer amount`, async () => {
     try {
       total_bp1_votes = await getProdVoteTotal('bp1@dapixdev');
-      console.log('bp1 total votes: ', total_bp1_votes);
       expect(total_bp1_votes).to.equal(prev_total_bp1_votes + xferAmount ); // Minus Fee?
     } catch (err) {
       console.log('Error: ', err);
       expect(err).to.equal('null');
     }
   })
+
+})
+
+describe(' AC. audit vote tests', () => {
+  let voter1, balance
+
+  it(`Create users`, async () => {
+    voter1 = await newUser(faucet);
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+  it(`Get balance for voter1`, async () => {
+    try {
+      const result = await voter1.sdk.genericAction('getFioBalance', {
+        fioPublicKey: voter1.publicKey
+      })
+      balance = result.balance
+    } catch (err) {
+      expect(err).to.equal(null)
+    }
+  })
+
+
+
+  it(`call audit vote verify fee collected`, async () => {
+    try {
+      const result = await voter1.sdk.genericAction('pushTransaction', {
+        action: 'auditvote',
+        account: 'eosio',
+        data: {
+          actor: voter1.account,
+          max_fee: config.api.audit_vote.fee
+        }
+      })
+      expect(result.status).to.equal('OK')
+      expect(result.fee_collected).to.equal(config.api.audit_vote.fee)
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal('null');
+    }
+  })
+
+  it('Confirm fee was deducted from voter1 account', async () => {
+    let origBalance = balance
+    try {
+      const result = await voter1.sdk.genericAction('getFioBalance', {
+        fioPublicKey: voter1.publicKey
+      })
+      expect(result.balance).to.equal(origBalance - config.api.audit_vote.fee)
+    } catch (err) {
+      expect(err).to.equal(null)
+    }
+  })
+
+})
+
+
+describe(' AD. call audit vote in all phases', () => {
+  let voter1, phase_change = 0
+
+  it(`Create users`, async () => {
+    voter1 = await newUser(faucet);
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+  it(`call audit vote until its in phase 1, max number of calls to audit vote is 20`, async () => {
+    try {
+      let audit_phase = '10'
+      let last_phase = "9"
+      let n_called = 0;
+      let max_calls_audit = 100
+      console.log("this test will call audit a max of "+max_calls_audit+" times")
+
+      while(((audit_phase.localeCompare('4') != 0) || (phase_change < 3)) ) {
+        n_called++;
+        const result = await voter1.sdk.genericAction('pushTransaction', {
+          action: 'auditvote',
+          account: 'eosio',
+          data: {
+            actor: voter1.account,
+            max_fee: config.api.audit_vote.fee
+          }
+        })
+        audit_phase = result.audit_phase
+
+        //if there is lots of voters the account may run out of funds and
+        //throw exceptions...
+        if(n_called > max_calls_audit) break;
+
+        if(last_phase.localeCompare(audit_phase) != 0){
+          if(last_phase.localeCompare("9") != 0){
+            phase_change ++
+          }
+          last_phase = audit_phase;
+
+        }
+        console.log("completed call to audit vote, audit phase "+result.audit_phase)
+        console.log("          records processed "+result.records_processed)
+        expect(result.status).to.equal('OK')
+        expect(result.fee_collected).to.equal(config.api.audit_vote.fee)
+
+        await timeout(3000)
+      }
+    } catch (err) {
+      console.log('Error: ', err);
+      expect(err).to.equal('null');
+    }
+  })
+
 
 })
