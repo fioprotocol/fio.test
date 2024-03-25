@@ -282,6 +282,10 @@ const config = {
             bundledEligible: false,
             fee: 200000000000
         },
+        audit_vote: {
+            bundledEligible: false,
+            fee: 7000000000
+        },
         register_proxy: {
             bundledEligible: false,
             fee: 20000000000

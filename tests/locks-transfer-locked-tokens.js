@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, getProdVoteTotal, fetchJson, generateFioDomain, callFioApi,  generateFioAddress, createKeypair, getTestType, timeout} = require('../utils.js');
+const {newUser, getProdVoteTotal, fetchJson, generateFioDomain, getTotalVotedFio,getAccountVoteWeight, callFioApi,  generateFioAddress, createKeypair, getTestType, timeout} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
 const testType = getTestType();
@@ -11,7 +11,7 @@ before(async () => {
 
 let userA1, userA2, userA3, userA4, keys, keys1, keys2, keys3,keys4, locksdk,
     locksdk1, locksdk2, locksdk3,locksdk4, newFioAddress, newFioDomain, newFioDomain2, newFioAddress2,
-    total_bp_votes_before, total_bp_votes_after
+    total_bp_votes_before, total_bp_votes_after,total_voted_fio,balancebefore
 const fundsAmount = 500000000000
 const maxTestFundsAmount = 5000000000
 const halfundsAmount = 220000000000
@@ -1147,7 +1147,7 @@ describe.skip(`FUTURE FEATURE (commented out) C. staking incentives, canvote = f
         })
         expect(result.status).to.equal('OK')
       } catch (err) {
-        console.log('edededed Error', err)
+        console.log(' Error', err)
       }
     })
 
@@ -1847,6 +1847,8 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
     }
   })
 
+
+
   it(`Register domain for voting for locked account `, async () => {
     try {
       newFioDomain = generateFioDomain(15)
@@ -1874,6 +1876,25 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
       expect(err).to.equal(null);
     }
   })
+
+  //get total voted fio,
+  it(`Get total_voted_fio before fioSdk votes`, async () => {
+    try {
+      total_voted_fio = await getTotalVotedFio();
+      console.log('total_voted_fio:', total_voted_fio)
+    }catch(err){
+      console.log(err)
+    }
+  })
+  //get the fio balance of the voting account.
+  it(`getFioBalance after, verify Fee transfer_locked_tokens was collected`, async () => {
+    const result = await locksdk3.genericAction('getFioBalance', {})
+ console.log(result);
+    expect(result).to.have.all.keys('balance','available','staked','srps','roe')
+    balancebefore = result.balance;
+  })
+
+
 
   it(`Get bp1@dapixdev total_votes before locked account votes`, async () => {
     try {
@@ -1917,6 +1938,26 @@ describe(`D. Canvote true, verify tokens are voted.`, () => {
       expect(err).to.equal(null);
     }
   })
+
+  //get last vote weight of the voting account, should be total in the account.
+  it(`Get B last_vote_weight`, async () => {
+    try {
+      let last_vote_weight = await getAccountVoteWeight(fiosdk3.account);
+      expect(last_vote_weight).equal(balancebefore);
+    } catch (err) {
+      console.log('Error: ', err.json)
+    }
+  })
+
+
+  //get the total_voted_fio after vote, diff should be balance of voting account.
+  it(`Get total_voted_fio before fioSdk votes`, async () => {
+    let prev_total_voted_fio = total_voted_fio;
+    total_voted_fio = await getTotalVotedFio();
+    console.log('total_voted_fio:', total_voted_fio)
+    expect(total_voted_fio - prev_total_voted_fio).equal(balancebefore);
+  })
+
 })
 
 describe(`E. Token unlocking tests`, () => {

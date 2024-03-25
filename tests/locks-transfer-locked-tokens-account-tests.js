@@ -44,13 +44,13 @@ before(async () => {
 describe(`************************** locks-transfer-locked-tokens-account-tests.js ************************** \n    A. Create accounts for tests`, () => {
 
   
-  it(`Show keys`, async () => {
-    //console.log('privateKey: ', privateKey)
-    //console.log('publicKey: ', publicKey)
-    //console.log('account: ', account)
-    //console.log('privateKey2: ', privateKey2)
-    //console.log('publicKey2: ', publicKey2)
-    //console.log('account2: ', account2)
+  it.skip(`Show keys`, async () => {
+    console.log('privateKey: ', privateKey)
+    console.log('publicKey: ', publicKey)
+    console.log('account: ', account)
+    console.log('privateKey2: ', privateKey2)
+    console.log('publicKey2: ', publicKey2)
+    console.log('account2: ', account2)
   })
   
 
@@ -189,7 +189,6 @@ describe(`************************** locks-transfer-locked-tokens-account-tests.
 
   it(`getFioBalance for fioSdk and confirm 'available' = 0`, async () => {
     const result = await fioSdk.genericAction('getFioBalance', {})
-    //console.log('Result: ', result)
     expect(result).to.have.all.keys('balance','available','staked','srps','roe')
     expect(result.available).equal(0)
   })
@@ -208,7 +207,6 @@ describe(`************************** locks-transfer-locked-tokens-account-tests.
         index_position: '2' 
       }
       result = await callFioApi("get_table_rows", json);
-      //console.log('Result: ', result);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
     } catch (err) {
       console.log('Error', err);
@@ -227,7 +225,6 @@ describe(`************************** locks-transfer-locked-tokens-account-tests.
       })
       expect(result).to.equal(null);
     } catch (err) {
-      //console.log(JSON.stringify(err, null, 4));
       expect(err.json.fields[0].error).to.equal('Funds locked');
       expect(err.code).to.equal(400);
     }
@@ -235,7 +232,6 @@ describe(`************************** locks-transfer-locked-tokens-account-tests.
 
   it(`getFioBalance for fioSdk2 and confirm 'available' = 0`, async () => {
     const result = await fioSdk2.genericAction('getFioBalance', {})
-    //console.log('Result: ', result)
     expect(result).to.have.all.keys('balance','available','staked','srps','roe')
     expect(result.available).equal(0)
   })
@@ -254,7 +250,6 @@ describe(`************************** locks-transfer-locked-tokens-account-tests.
         index_position: '2'
       }
       result = await callFioApi("get_table_rows", json);
-      //console.log('Result: ', result);
       expect(result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).to.equal(0);
     } catch (err) {
       console.log('Error', err);
@@ -273,7 +268,6 @@ describe(`************************** locks-transfer-locked-tokens-account-tests.
         })
         expect(result).to.equal(null);
       } catch (err) {
-        //console.log(JSON.stringify(err, null, 4));
         expect(err.json.fields[0].error).to.equal('Funds locked');
         expect(err.code).to.equal(400);
       }
@@ -290,7 +284,6 @@ describe(`************************** locks-transfer-locked-tokens-account-tests.
   let balance1, balance2;
   it(`[Fix for Bahamas release] getFioBalance for fioSdk and confirm 'available' > 0`, async () => {
     const result = await fioSdk.genericAction('getFioBalance', {})
-    //console.log('Result: ', result)
     balance1 = result.balance;
     // Add back: expect(result).to.have.all.keys('balance','available','staked','srps','roe')
     //expect(result.available).is.greaterThan(0)
@@ -310,7 +303,6 @@ describe(`************************** locks-transfer-locked-tokens-account-tests.
         index_position: '2'
       }
       result = await callFioApi("get_table_rows", json);
-      //console.log('Result: ', result);
       expect(balance1 - result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).is.greaterThan(0)
     } catch (err) {
       console.log('Error', err);
@@ -320,7 +312,6 @@ describe(`************************** locks-transfer-locked-tokens-account-tests.
 
   it(`[Fix for Bahamas release] getFioBalance for fioSdk2 and confirm 'available' > 0`, async () => {
     const result = await fioSdk2.genericAction('getFioBalance', {})
-    //console.log('Result: ', result)
     balance2 = result.balance
     // Add back: expect(result).to.have.all.keys('balance','available','staked','srps','roe')
     //expect(result.available).is.greaterThan(0)
@@ -340,7 +331,6 @@ describe(`************************** locks-transfer-locked-tokens-account-tests.
         index_position: '2'
       }
       result = await callFioApi("get_table_rows", json);
-      //console.log('Result: ', result);
       expect(balance2 - result.rows[0].lock_amount - result.rows[0].remaining_lock_amount).is.greaterThan(0)
     } catch (err) {
       console.log('Error', err);
@@ -401,13 +391,11 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
 
   it(`Get initial total_voted_fio`, async () => {
     total_voted_fio = await getTotalVotedFio();
-    //console.log('total_voted_fio:', total_voted_fio)
   })
 
   it(`Get fioSdk last_vote_weight`, async () => {
     try {
-      fioSdk.last_vote_weight = await getAccountVoteWeight(fioSdk.account);
-      //console.log('fioSdk.last_vote_weight:', fioSdk.last_vote_weight)
+      fioSdk.last_vote_weight = await getAccountVoteWeight(account);
     } catch (err) {
       console.log('Error: ', err.json)
       expect(err).to.equal('null')
@@ -417,7 +405,6 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
   it(`Get bp1@dapixdev total_votes`, async () => {
     try {
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
     } catch (err) {
       console.log('Error: ', err)
       expect(err).to.equal('null')
@@ -435,7 +422,6 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
           max_fee: config.api.register_proxy.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json.error.details)
@@ -447,7 +433,20 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
 
   it(`Get total_voted_fio before fioSdk votes`, async () => {
     total_voted_fio = await getTotalVotedFio();
-    //console.log('total_voted_fio:', total_voted_fio)
+  })
+
+
+  it(`Get fioSdk last_vote_weight`, async () => {
+    try {
+      fioSdk.last_vote_weight = await getAccountVoteWeight(account);
+    } catch (err) {
+      console.log('Error: ', err.json)
+    }
+  })
+
+  it(`Get total_voted_fio before fioSdk votes`, async () => {
+    total_voted_fio = await getTotalVotedFio();
+    console.log('total_voted_fio:', total_voted_fio)
   })
 
   it(`fioSdk votes for bp1@dapixdev using address #1`, async () => {
@@ -464,7 +463,6 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
           max_fee: config.api.vote_producer.fee
         }
       })
-      //console.log('Result: ', result)
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
@@ -477,7 +475,6 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
   it(`Get fioSdk last_vote_weight`, async () => {
     try {
       fioSdk.last_vote_weight = await getAccountVoteWeight(account);
-      //console.log('fioSdk.last_vote_weight:', fioSdk.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err.json)
     }
@@ -488,7 +485,6 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
         const result = await fioSdk.genericAction('getFioBalance', {
           fioPublicKey: publicKey
         })
-        //console.log('User 1 fio balance', result)
         expect(result.balance - lockedFundsAmount).to.equal(fioSdk.last_vote_weight)
       } catch (err) {
         console.log('Error', err)
@@ -496,11 +492,17 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
       }
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(5000) })
+
   it(`total_voted_fio increased by fioSdk last_vote_weight`, async () => {
     try {
       let prev_total_voted_fio = total_voted_fio
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio: ', total_voted_fio / config.BILLION)
+     /* console.log('total_voted_fio: ', total_voted_fio / config.BILLION)
+      console.log("fiosdk last vote weight ",fioSdk.last_vote_weight)
+      console.log("fioSdk account ",keys.account)
+      console.log("difference is ", total_voted_fio - (prev_total_voted_fio + fioSdk.last_vote_weight))
+      */
       expect(total_voted_fio).to.equal(prev_total_voted_fio + fioSdk.last_vote_weight)
     } catch (err) {
       console.log('Error', err)
@@ -512,7 +514,6 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
     try {
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes + fioSdk.last_vote_weight)
     } catch (err) {
       console.log('Error: ', err)
@@ -526,7 +527,6 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
       amount: 500000000000,
       maxFee: config.api.transfer_tokens_pub_key.fee,
     })
-    //console.log('Result', result)
     expect(result.status).to.equal('OK')
   })
 
@@ -536,7 +536,6 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
     try {
       prevVoteWeight = fioSdk.last_vote_weight
       fioSdk.last_vote_weight = await getAccountVoteWeight(account);
-      //console.log('fioSdk.last_vote_weight:', fioSdk.last_vote_weight)
       expect(fioSdk.last_vote_weight).to.equal(prevVoteWeight + 500000000000)
     } catch (err) {
       console.log('Error: ', err.json)
@@ -547,7 +546,6 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
     try {
       let prev_total_voted_fio = total_voted_fio
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio: ', total_voted_fio / config.BILLION)
       expect(total_voted_fio).to.equal(prev_total_voted_fio + 500000000000)
     } catch (err) {
       console.log('Error', err)
@@ -559,7 +557,6 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
     try {
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes + 500000000000)
     } catch (err) {
       console.log('Error: ', err)
@@ -573,7 +570,6 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
       amount: 200000000000,
       maxFee: config.maxFee,
     })
-    //console.log('Result', result)
     expect(result.status).to.equal('OK')
   })
 
@@ -583,7 +579,6 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
     try {
       prevVoteWeight = fioSdk.last_vote_weight
       fioSdk.last_vote_weight = await getAccountVoteWeight(account);
-      //console.log('fioSdk.last_vote_weight:', fioSdk.last_vote_weight)
       expect(fioSdk.last_vote_weight).to.equal(prevVoteWeight- 200000000000 - transfer_tokens_pub_key_fee)
     } catch (err) {
       console.log('Error: ', err)
@@ -595,7 +590,6 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
     try {
       let prev_total_voted_fio = total_voted_fio
       total_voted_fio = await getTotalVotedFio();
-      //console.log('total_voted_fio: ', total_voted_fio)
       expect(total_voted_fio).to.equal(prev_total_voted_fio - 200000000000 - transfer_tokens_pub_key_fee)
     } catch (err) {
       console.log('Error', err)
@@ -607,7 +601,6 @@ describe(`B. Test locked token accounts with proxy voting`, () => {
     try {
       let prev_total_bp_votes = total_bp_votes;
       total_bp_votes = await getProdVoteTotal('bp1@dapixdev');
-      //console.log('bp1@dapixdev total_votes:', total_bp_votes)
       expect(total_bp_votes).to.equal(prev_total_bp_votes - 200000000000 - transfer_tokens_pub_key_fee)
     } catch (err) {
       console.log('Error: ', err)
