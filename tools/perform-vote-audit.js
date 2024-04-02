@@ -7,7 +7,12 @@ const { readBufferWithDetectedEncoding } = require('tslint/lib/utils');
 const testType = getTestType();
 
 let calling_account;
-
+/*
+ This test tool will invoke auditvote on the target environment.
+ the tool will call audit vote until phase 4 is completed by the audit vote engine.
+ the account used to call auditvote must have adequate funds to pay the fee of auditvote each time it is called
+ see setup for further details.
+ */
 
 /* SETUP --
       onNetAccount is used when running on test net or main net, it should contain the
