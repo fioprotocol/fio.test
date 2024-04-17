@@ -78,8 +78,7 @@ describe(`************************** BD-4612-epoc-formatting-tests.js **********
         userA1 = await newUser(faucet);
     });
 
-
-    it(`testing. `, async () => {
+    it(`testing 2024-04-15T18:10:29 `, async () => {
         try {
             const result = await userA1.sdk.genericAction('pushTransaction', {
                 action: 'fmtepochtm',
@@ -96,7 +95,7 @@ describe(`************************** BD-4612-epoc-formatting-tests.js **********
     })
 
 
-    it(`testing. `, async () => {
+    it(`testing 2024-02-15T17:24:20. `, async () => {
 
             const result = await userA1.sdk.genericAction('pushTransaction', {
                 action: 'fmtepochtm',
@@ -107,6 +106,103 @@ describe(`************************** BD-4612-epoc-formatting-tests.js **********
             })
             console.log('Result: ', result)
             expect(result.timeresult).to.equal('2024-02-15T17:24:20')
+    })
+
+    it(`testing 2023-12-01T00:00:01. `, async () => {
+        try {
+            const result = await userA1.sdk.genericAction('pushTransaction', {
+                action: 'fmtepochtm',
+                account: 'fio.address',
+                data: {
+                    epochtmseconds: '1701388801'
+                }
+            })
+            console.log('Result: ', result)
+            expect(result.timeresult).to.equal('2023-12-01T00:00:01')
+        } catch (err) {
+            console.log('Error: ', err)
+        }
+    })
+
+    it(`testing 2023-12-31T23:59:59. `, async () => {
+        try {
+            const result = await userA1.sdk.genericAction('pushTransaction', {
+                action: 'fmtepochtm',
+                account: 'fio.address',
+                data: {
+                    epochtmseconds: '1704067199'
+                }
+            })
+            console.log('Result: ', result)
+            expect(result.timeresult).to.equal('2023-12-31T23:59:59')
+        } catch (err) {
+            console.log('Error: ', err)
+        }
+    })
+
+    it(`testing 2024-01-01T00:00:01. `, async () => {
+        try {
+            const result = await userA1.sdk.genericAction('pushTransaction', {
+                action: 'fmtepochtm',
+                account: 'fio.address',
+                data: {
+                    epochtmseconds: '1704067201'
+                }
+            })
+            console.log('Result: ', result)
+            expect(result.timeresult).to.equal('2024-01-01T00:00:01')
+        } catch (err) {
+            console.log('Error: ', err)
+        }
+    })
+
+    it(`testing 2024-03-30T23:59:5. `, async () => {
+        try {
+            const result = await userA1.sdk.genericAction('pushTransaction', {
+                action: 'fmtepochtm',
+                account: 'fio.address',
+                data: {
+                    epochtmseconds: '1711843199'
+                }
+            })
+            console.log('Result: ', result)
+            expect(result.timeresult).to.equal('2024-03-30T23:59:59')
+        } catch (err) {
+            console.log('Error: ', err)
+        }
+    })
+
+    it(`testing 2024-04-01T00:00:01. `, async () => {
+        try {
+            const result = await userA1.sdk.genericAction('pushTransaction', {
+                action: 'fmtepochtm',
+                account: 'fio.address',
+                data: {
+                    epochtmseconds: '1711929601'
+                }
+            })
+            console.log('Result: ', result)
+            expect(result.timeresult).to.equal('2024-04-01T00:00:01')
+        } catch (err) {
+            console.log('Error: ', err)
+        }
+    })
+
+
+    it(`testing 2023-02-28T23:59:59. `, async () => {
+        try {
+            const result = await userA1.sdk.genericAction('pushTransaction', {
+                action: 'fmtepochtm',
+                account: 'fio.address',
+                data: {
+                    epochtmseconds: '1677628799'
+                }
+            })
+            console.log('Result: ', result)
+            expect(result.timeresult).to.equal('2023-02-28T23:59:59')
+        } catch (err) {
+            console.log('Error: ', err)
+        }
     })
 
 });
