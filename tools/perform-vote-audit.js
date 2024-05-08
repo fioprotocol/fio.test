@@ -33,9 +33,9 @@ let calling_account;
 
  */
 const onNetAccount = {
-  account: 'v2lgwcdkb5gn',
-  publicKey: 'FIO8k7N7jU9eyj57AfazGxMuvPGZG5hvXNUyxt9pBchnkXXx9KUuD',
-  privateKey: '5Jw78NzS2QMvjcyemCgJ9XQv8SMSEvTEuLxF8TcKf27xWcX5fmw'
+  account: 'wxrm1xzulbpy'
+  privateKey: '5K2rhwLJptp1ycvJz58tzMUvVf2FHPCxBbSu5ejrRZBNLWqxRSH',
+  publicKey: 'FIO57FuR9isLbaPemXopbh5oUxqgPGXr7k9wyinuwF6ZCDM1woB9H'
 }
 const sdkAcc = {
   sdk: 'undefined',
@@ -61,12 +61,8 @@ const sdkAcc = {
  */
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
-
   calling_account = await newUser(faucet);
 })
-
-
-
 
 describe(' A. call audit vote until phase 4 completes or max calls exceeded', () => {
   let  phase_change = 0

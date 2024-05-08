@@ -35,16 +35,16 @@ the before also needs changed for local or (testnet mainnet) uses, see comments 
 for the required setup in the before.
  */
 /* testnet account key that may be used
-privateKey = '5Jw78NzS2QMvjcyemCgJ9XQv8SMSEvTEuLxF8TcKf27xWcX5fmw',
-    publicKey = 'FIO8k7N7jU9eyj57AfazGxMuvPGZG5hvXNUyxt9pBchnkXXx9KUuD',
-    account = 'v2lgwcdkb5gn',
-    */
+    account: 'wxrm1xzulbpy',
+    privateKey: '5K2rhwLJptp1ycvJz58tzMUvVf2FHPCxBbSu5ejrRZBNLWqxRSH',
+    publicKey: 'FIO57FuR9isLbaPemXopbh5oUxqgPGXr7k9wyinuwF6ZCDM1woB9H'
+*/
 //SETUP edit the account private and pub key for the pre existing account on main net or test net
 //This is NOT USED if running local private network.
 const onNetAccount = {
-  account: 'v2lgwcdkb5gn',
-  publicKey: 'FIO8k7N7jU9eyj57AfazGxMuvPGZG5hvXNUyxt9pBchnkXXx9KUuD',
-  privateKey: '5Jw78NzS2QMvjcyemCgJ9XQv8SMSEvTEuLxF8TcKf27xWcX5fmw'
+    account: 'wxrm1xzulbpy',
+    privateKey: '5K2rhwLJptp1ycvJz58tzMUvVf2FHPCxBbSu5ejrRZBNLWqxRSH',
+    publicKey: 'FIO57FuR9isLbaPemXopbh5oUxqgPGXr7k9wyinuwF6ZCDM1woB9H'
 }
 const sdkAcc = {
   sdk: 'somefin'
