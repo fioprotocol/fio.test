@@ -22,22 +22,21 @@ let calling_account;
     is used to create and fund the account used to call trnsfiopubky
 
     test net account that may be used (NOTE please verify account balance before running)
-    account: 'v2lgwcdkb5gn',
-    publicKey: 'FIO8k7N7jU9eyj57AfazGxMuvPGZG5hvXNUyxt9pBchnkXXx9KUuD',
-    privateKey: '5Jw78NzS2QMvjcyemCgJ9XQv8SMSEvTEuLxF8TcKf27xWcX5fmw'
+    account: 'wxrm1xzulbpy',
+    publicKey: 'FIO57FuR9isLbaPemXopbh5oUxqgPGXr7k9wyinuwF6ZCDM1woB9H',
+    privateKey: '5K2rhwLJptp1ycvJz58tzMUvVf2FHPCxBbSu5ejrRZBNLWqxRSH'
 
     for main net account info please contact the FIO release manager.
-
- */
+*/
 const onNetAccount = {
-    account: 'wxrm1xzulbpy',
-    privateKey: '5K2rhwLJptp1ycvJz58tzMUvVf2FHPCxBbSu5ejrRZBNLWqxRSH',
-    publicKey: 'FIO57FuR9isLbaPemXopbh5oUxqgPGXr7k9wyinuwF6ZCDM1woB9H'
-  }
-  const sdkAcc = {
-    sdk: 'undefined',
-    account: 'undefined'
-  }
+  account: 'wxrm1xzulbpy',
+  publicKey: 'FIO57FuR9isLbaPemXopbh5oUxqgPGXr7k9wyinuwF6ZCDM1woB9H',
+  privateKey: '5K2rhwLJptp1ycvJz58tzMUvVf2FHPCxBbSu5ejrRZBNLWqxRSH'
+}
+const sdkAcc = {
+  sdk: 'undefined',
+  account: 'undefined'
+}
   
 /* SETUP
     for private test net use the following block
