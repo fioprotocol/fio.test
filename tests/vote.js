@@ -7860,13 +7860,115 @@ describe(' AC. audit vote tests', () => {
 
 
 describe(' AD. call audit vote in all phases', () => {
-  let voter1, phase_change = 0
+  let voter1, voter2, voter3, phase_change = 0
 
   it(`Create users`, async () => {
     voter1 = await newUser(faucet);
+    voter2 = await newUser(faucet); //this account will be a proxy and stake tokens
+    voter3 = await newUser(faucet);
   })
 
   it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+  //set voter2 to be proxy and stake tokens
+
+  it(`Register voter2 as a proxy`, async () => {
+    try {
+      const result = await voter2.sdk.genericAction('pushTransaction', {
+        action: 'regproxy',
+        account: 'eosio',
+        data: {
+          fio_address: voter2.address,
+          actor: voter2.account,
+          max_fee: config.maxFee
+        }
+      })
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+  it(`voter3 proxy votes to voter2`, async () => {
+    try {
+      const result = await voter3.sdk.genericAction('pushTransaction', {
+        action: 'voteproxy',
+        account: 'eosio',
+        data: {
+          proxy: voter2.address,
+          fio_address: voter3.address,
+          actor: voter3.account,
+          max_fee: config.api.proxy_vote.fee
+        }
+      })
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json)
+    }
+  })
+
+
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+  it(`voter2 votes for bp1@dapixdev using address #1`, async () => {
+    try {
+      const result = await voter2.sdk.genericAction('pushTransaction', {
+        action: 'voteproducer',
+        account: 'eosio',
+        data: {
+          "producers": [
+            'bp1@dapixdev'
+          ],
+          fio_address: voter2.address,
+          actor: voter2.account,
+          max_fee: config.maxFee
+        }
+      })
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json)
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+  it(`Success voter2 stake 500 fio`, async () => {
+    try {
+      // console.log("address used ",userA1.address)
+      // console.log("account used ",userA1.account)
+      const result = await voter2.sdk.genericAction('pushTransaction', {
+        action: 'stakefio',
+        account: 'fio.staking',
+        data: {
+          fio_address: voter2.address,
+          amount: 500000000000,
+          actor: voter2.account,
+          max_fee: config.maxFee,
+          tpid: ''
+        }
+      })
+
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log("Error : ", err)
+      // expect(err.json.fields[0].error).to.contain('has not voted')
+    }
+  })
+
+  //check voter2 last vote weight not changed
+  it(`Get voter2 last_vote_weight`, async () => {
+    try {
+      voter2.last_vote_weight = await getAccountVoteWeight(voter2.account);
+    } catch (err) {
+      console.log('Error: ', err.json)
+    }
+  })
+
+  //end setup proxy
 
   it(`call audit vote until its in phase 1, max number of calls to audit vote is 20`, async () => {
     try {
@@ -7911,6 +8013,18 @@ describe(' AD. call audit vote in all phases', () => {
       expect(err).to.equal('null');
     }
   })
+
+
+  it(`Get voter2 last_vote_weight`, async () => {
+    try {
+      let lvote = await getAccountVoteWeight(voter2.account);
+      expect(lvote).to.equal(voter2.last_vote_weight);
+    } catch (err) {
+      console.log('Error: ', err.json)
+    }
+  })
+
+
 
 
 })
