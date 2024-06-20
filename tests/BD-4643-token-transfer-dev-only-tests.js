@@ -1,19 +1,12 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, fetchJson, generateFioDomain, generateFioAddress, createKeypair, callFioApi} = require('../utils.js');
+const {newUser, fetchJson, generateFioDomain, generateFioAddress, timeout, createKeypair, callFioApi} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
-before(async () => {
-  faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
-})
-
-describe(`************************** BD-4643-token-transfer-dev-only-tests.js ************************** \n    A. Transferring tokens to Happy`, () => {
-  let userA1, prevFundsAmount
-  const fundsAmount = 1000000000000
-
-
 /*
+SETUPREQUIRED!!!!!!!!!!
+these are one off tests that introduce unexpected data into the voters and general locks,
    this test requires custom actions to be added to the contracts, and also to the list of allowed actions
    on the FIO protocol.
 
@@ -73,156 +66,261 @@ describe(`************************** BD-4643-token-transfer-dev-only-tests.js **
 
  */
 
-  it(`SUCCESS TEST Test data incoherency, account has proxy and voted producers as well`, async () => {
+
+before(async () => {
+  faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
+})
+
+describe(`************************** BD-4643-token-transfer-dev-only-tests.js ************************** \n    A. Setup required! Transfer tokens when voters has proxy and producers voted`, () => {
+  let proxyB1, voterB1, user1, user2;
+
+  it(`SUCCESS setup accounts`, async () => {
 
     try{
-    let proxyB1, voterB1, user1, user2;
-    //we have to create a proxy, vote the proxy, and then
-    //create accounts that participate in the proxy.
+
     proxyB1 = await newUser(faucet);
     voterB1 = await newUser(faucet);
     user1 = await newUser(faucet);
     user2 = await newUser(faucet);
 
-    const result = await proxyB1.sdk.genericAction('pushTransaction', {
-      action: 'regproxy',
-      account: 'eosio',
-      data: {
-        fio_address: proxyB1.address,
-        actor: proxyB1.account,
-        max_fee: config.api.register_proxy.fee
-      }
-    })
-    expect(result.status).to.equal('OK')
-    const result1 = await voterB1.sdk.genericAction('pushTransaction', {
-      action: 'voteproxy',
-      account: 'eosio',
-      data: {
-        proxy: proxyB1.address,
-        fio_address: voterB1.address,
-        actor: voterB1.account,
-        max_fee: config.api.proxy_vote.fee
-      }
-    })
-    expect(result1.status).to.equal('OK')
-    const result3 = await proxyB1.sdk.genericAction('pushTransaction', {
-      action: 'voteproducer',
-      account: 'eosio',
-      data: {
-        "producers": [
-          'bp1@dapixdev'
-        ],
-        fio_address: proxyB1.address,
-        actor: proxyB1.account,
-        max_fee: config.api.vote_producer.fee
-      }
-    })
-    expect(result3.status).to.equal('OK')
-    const result4 = await user1.sdk.genericAction('pushTransaction', {
-      action: 'voteproducer',
-      account: 'eosio',
-      data: {
-        "producers": [
-          'bp1@dapixdev'
-        ],
-        fio_address: user1.address,
-        actor: user1.account,
-        max_fee: config.api.vote_producer.fee
-      }
-    })
-    expect(result4.status).to.equal('OK')
-
-    //void system_contract::tvoteproxy(const name &proxy, const string &fio_address, const name &actor) {
-    const result5 = await user1.sdk.genericAction('pushTransaction', {
-      action: 'tvoteproxy',
-      account: 'eosio',
-      data: {
-        proxy: proxyB1.account,
-        fio_address: user1.address,
-        actor: user1.account,
-        max_fee: config.api.vote_producer.fee
-      }
-    })
-
-
-    const json = {
-      json: true,
-      code: 'eosio',
-      scope: 'eosio',
-      table: 'voters',
-      limit: 1000,
-      reverse: false,
-      show_payer: false
+    } catch (err) {
+      console.log('Error: ', err)
     }
-    let voters = await callFioApi("get_table_rows", json);
-    for (voter in voters.rows) {
-      if (voters.rows[voter].owner == user1.account) {
-        break;
-      }
+  })
+  it(`SUCCESS regproxy`, async () => {
+
+    try{
+      const result = await proxyB1.sdk.genericAction('pushTransaction', {
+        action: 'regproxy',
+        account: 'eosio',
+        data: {
+          fio_address: proxyB1.address,
+          actor: proxyB1.account,
+          max_fee: config.api.register_proxy.fee
+        }
+      })
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err)
     }
-   console.log("voter info before id: " + voters.rows[voter].id)
+  })
+  it(`SUCCESS vote proxy`, async () => {
+
+    try{
+      const result1 = await voterB1.sdk.genericAction('pushTransaction', {
+        action: 'voteproxy',
+        account: 'eosio',
+        data: {
+          proxy: proxyB1.address,
+          fio_address: voterB1.address,
+          actor: voterB1.account,
+          max_fee: config.api.proxy_vote.fee
+        }
+      })
+      expect(result1.status).to.equal('OK')
+
+    } catch (err) {
+      console.log('Error: ', err)
+    }
+  })
+  it(`SUCCESS vote producer`, async () => {
+
+    try{
+
+
+      const result3 = await proxyB1.sdk.genericAction('pushTransaction', {
+        action: 'voteproducer',
+        account: 'eosio',
+        data: {
+          "producers": [
+            'bp1@dapixdev'
+          ],
+          fio_address: proxyB1.address,
+          actor: proxyB1.account,
+          max_fee: config.api.vote_producer.fee
+        }
+      })
+      expect(result3.status).to.equal('OK')
+
+    } catch (err) {
+      console.log('Error: ', err)
+    }
+  })
+
+  it(`SUCCESS vote producer incoherency account`, async () => {
+
+    try{
+
+
+      const result3 = await user1.sdk.genericAction('pushTransaction', {
+        action: 'voteproducer',
+        account: 'eosio',
+        data: {
+          "producers": [
+            'bp1@dapixdev'
+          ],
+          fio_address: user1.address,
+          actor: user1.account,
+          max_fee: config.api.vote_producer.fee
+        }
+      })
+      expect(result3.status).to.equal('OK')
+
+    } catch (err) {
+      console.log('Error: ', err)
+    }
+  })
+  it(`SUCCESS set voter incoherent`, async () => {
+
+    try{
+
+
+      //void system_contract::tvoteproxy(const name &proxy, const string &fio_address, const name &actor) {
+      const result5 = await user1.sdk.genericAction('pushTransaction', {
+        action: 'tvoteproxy',
+        account: 'eosio',
+        data: {
+          proxy: proxyB1.account,
+          fio_address: user1.address,
+          actor: user1.account,
+          max_fee: config.api.vote_producer.fee
+        }
+      })
+
+
+
+    } catch (err) {
+      console.log('Error: ', err.json.error.details[0])
+    }
+  })
+  it(`SUCCESS verify data incoherency`, async () => {
+
+    try{
+
+
+
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        limit: 1000,
+        reverse: false,
+        show_payer: false
+      }
+      let voters = await callFioApi("get_table_rows", json);
+      for (voter in voters.rows) {
+        if (voters.rows[voter].owner == user1.account) {
+          break;
+        }
+      }
+      console.log("voter info before id: " + voters.rows[voter].id)
       console.log("voter info before owner: " + voters.rows[voter].owner)
       console.log("voter info before proxy: " + voters.rows[voter].proxy)
       console.log("voter info before is_proxy: " + voters.rows[voter].is_proxy)
       console.log("voter info before producers: " + voters.rows[voter].producers[0])
       console.log("voter info before is_auto_proxy: " + voters.rows[voter].is_auto_proxy)
-    //horked
-    expect(voters.rows[voter].proxy).to.equal(proxyB1.account);
-    expect(voters.rows[voter].is_proxy).to.equal(0);
-    expect(voters.rows[voter].producers.length).to.equal(1);
-    expect(voters.rows[voter].is_auto_proxy).to.equal(1);
+      //horked
+      expect(voters.rows[voter].proxy).to.equal(proxyB1.account);
+      expect(voters.rows[voter].is_proxy).to.equal(0);
+      expect(voters.rows[voter].producers.length).to.equal(1);
+      expect(voters.rows[voter].is_auto_proxy).to.equal(1);
 
-    const result6 = await user2.sdk.genericAction('pushTransaction', {
-      action: 'trnsfiopubky',
-      account: 'fio.token',
-      data: {
-        payee_public_key: user1.publicKey,
-        amount: 10000000000,
-        max_fee: config.maxFee,
-        tpid: ''
-      }
-    })
-    //console.log('Result: ', result)
-    expect(result6.status).to.equal('OK')
 
-    voters = await callFioApi("get_table_rows", json);
-    for (voter in voters.rows) {
-      if (voters.rows[voter].owner == user1.account) {
-        break;
-      }
+
+    } catch (err) {
+      console.log('Error: ', err)
     }
+  })
+  it(`SUCCESS transfer funds `, async () => {
+
+    try{
+
+
+      const result6 = await user2.sdk.genericAction('pushTransaction', {
+        action: 'trnsfiopubky',
+        account: 'fio.token',
+        data: {
+          payee_public_key: user1.publicKey,
+          amount: 10000000000,
+          max_fee: config.maxFee,
+          tpid: ''
+        }
+      })
+      //console.log('Result: ', result)
+      expect(result6.status).to.equal('OK')
+
+
+
+    } catch (err) {
+      console.log('Error: ', err)
+    }
+  })
+  it(`SUCCESS verify proxy and is_auto_proxy cleared`, async () => {
+
+    try{
+
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        limit: 1000,
+        reverse: false,
+        show_payer: false
+      }
+
+
+      let voters = await callFioApi("get_table_rows", json);
+      for (voter in voters.rows) {
+        if (voters.rows[voter].owner == user1.account) {
+          break;
+        }
+      }
       console.log("voter info after id: " + voters.rows[voter].id)
       console.log("voter info after owner: " + voters.rows[voter].owner)
       console.log("voter info after proxy: " + voters.rows[voter].proxy)
       console.log("voter info after is_proxy: " + voters.rows[voter].is_proxy)
       console.log("voter info after producers: " + voters.rows[voter].producers[0])
       console.log("voter info after is_auto_proxy: " + voters.rows[voter].is_auto_proxy)
-    //un horked
-    expect(voters.rows[voter].proxy).to.equal(''); //proxy cleared
-    expect(voters.rows[voter].is_proxy).to.equal(0); //not proxy
-    expect(voters.rows[voter].producers.length).to.equal(1); //producers voted
-    expect(voters.rows[voter].is_auto_proxy).to.equal(0); //is auto proxy cleared
-
-
-
-
-    //then we need to create a new account, vote producer on that account,
-    //then call tvote and set proxy to be the proxy we created.
-    //do this for a couple accounts.
+      //un horked
+      expect(voters.rows[voter].proxy).to.equal(''); //proxy cleared
+      expect(voters.rows[voter].is_proxy).to.equal(0); //not proxy
+      expect(voters.rows[voter].producers.length).to.equal(1); //producers voted
+      expect(voters.rows[voter].is_auto_proxy).to.equal(0); //is auto proxy cleared
 
     } catch (err) {
       console.log('Error: ', err)
     }
   })
-  it(`SUCCESS TEST Test data incoherency, account has locks with remaining lock amount > account balance`, async () => {
+
+
+
+
+});
+
+
+describe(`   B. Setup required! Transfer tokens when gen locks contain incoherent data`, () => {
+
+  let voterB1, user1, user2;
+
+  it(`SUCCESS setup accounts `, async () => {
 
     try{
-      let voterB1, user1, user2;
-      //voting account with incoherent locks
+
       voterB1 = await newUser(faucet);
-      //non voting account with incoherent locks.
       user1 = await newUser(faucet);
       user2 = await newUser(faucet);
+
+
+    } catch (err) {
+      console.log('Error: ', err.error.details[0])
+    }
+  })
+  it(`SUCCESS voteproducer`, async () => {
+
+    try{
+
 
 
       const result3 = await voterB1.sdk.genericAction('pushTransaction', {
@@ -239,13 +337,17 @@ describe(`************************** BD-4643-token-transfer-dev-only-tests.js **
       })
       expect(result3.status).to.equal('OK')
 
-      //hork up the accounts.
 
-/*
- void eosiosystem::system_contract::tgenlocked(const name &owner, const vector<lockperiodv2> &periods, const bool &canvote,
-                                                    const int64_t &amount)
 
- */
+    } catch (err) {
+      console.log('Error: ', err)
+    }
+  })
+  it(`SUCCESS set inchorent gen locks for voting account`, async () => {
+
+    try{
+
+
 
 
       let result4 = await voterB1.sdk.genericAction('pushTransaction', {
@@ -360,7 +462,19 @@ describe(`************************** BD-4643-token-transfer-dev-only-tests.js **
         }
       })
 
-      result4 = await user1.sdk.genericAction('pushTransaction', {
+
+
+    } catch (err) {
+      console.log('Error: ', err)
+    }
+  })
+  it(`SUCCESS set incoherent gen locks for non voting account`, async () => {
+
+    try{
+
+
+
+      let result4 = await user1.sdk.genericAction('pushTransaction', {
         action: 'tgenlocked',
         account: 'eosio',
         data: {
@@ -473,27 +587,44 @@ describe(`************************** BD-4643-token-transfer-dev-only-tests.js **
       })
 
 
-     //get the balance, check that they are horked.
-      let result = await voterB1.sdk.genericAction('getFioBalance', {})
 
-      console.log(result)
+
+    } catch (err) {
+      console.log('Error: ', err)
+    }
+  })
+  it(`SUCCESS verify remaining lock amount is 0 for voting account `, async () => {
+
+    try{
+
+
 
       //get the locks
 
-        let json = {
-          json: true,
-          code: 'eosio',
-          scope: 'eosio',
-          table: 'locktokensv2',
-          lower_bound: voterB1.account,
-          upper_bound: voterB1.account,
-          key_type: 'i64',
-          reverse: true,
-          index_position: '2'
-        }
-        result = await callFioApi("get_table_rows", json);
-      console.log(result.rows[0].remaining_lock_amount)
-      console.log(result.rows[0].periods)
+      let json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'locktokensv2',
+        lower_bound: voterB1.account,
+        upper_bound: voterB1.account,
+        key_type: 'i64',
+        reverse: true,
+        index_position: '2'
+      }
+      result = await callFioApi("get_table_rows", json);
+      expect(result.rows[0].remaining_lock_amount).to.equal(0);
+
+
+
+
+    } catch (err) {
+      console.log('Error: ', err)
+    }
+  })
+  it(`SUCCESS transfer fio to voting account`, async () => {
+
+    try{
 
 
 
@@ -512,14 +643,51 @@ describe(`************************** BD-4643-token-transfer-dev-only-tests.js **
       //console.log('Result: ', result)
       expect(result6.status).to.equal('OK')
 
-      result = await callFioApi("get_table_rows", json);
-      expect(result.rows.count ==0)
+
+
+    } catch (err) {
+      console.log('Error: ', err)
+    }
+  })
 
 
 
+  it(`SUCCESS verify locks removed for voting account`, async () => {
+
+    try{
+
+      //get the locks
+
+      let json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'locktokensv2',
+        lower_bound: voterB1.account,
+        upper_bound: voterB1.account,
+        key_type: 'i64',
+        reverse: true,
+        index_position: '2'
+      }
+
+
+      let result = await callFioApi("get_table_rows", json);
+
+      expect(result.rows.length).to.equal(0);
+
+
+
+
+    } catch (err) {
+      console.log('Error: ', err)
+    }
+  })
+  it(`SUCCESS verify remaining lock amount is 0 for non voting account`, async () => {
+
+    try{
 
       //user1 account non voting
-       json = {
+     let json = {
         json: true,
         code: 'eosio',
         scope: 'eosio',
@@ -530,11 +698,19 @@ describe(`************************** BD-4643-token-transfer-dev-only-tests.js **
         reverse: true,
         index_position: '2'
       }
-      result = await callFioApi("get_table_rows", json);
-      console.log(result.rows[0].remaining_lock_amount)
-      console.log(result.rows[0].periods)
+     let  result = await callFioApi("get_table_rows", json);
+
+      expect(result.rows[0].remaining_lock_amount).to.equal(0);
 
 
+
+    } catch (err) {
+      console.log('Error: ', err)
+    }
+  })
+  it(`SUCCESS transfer fio to non voting account`, async () => {
+
+    try{
 
 
 
@@ -551,20 +727,35 @@ describe(`************************** BD-4643-token-transfer-dev-only-tests.js **
       //console.log('Result: ', result)
       expect(result7.status).to.equal('OK')
 
-      result = await callFioApi("get_table_rows", json);
-      expect(result.rows.count ==0)
-
-
-
-
-
-
-      //then we need to create a new account, vote producer on that account,
-      //then call tvote and set proxy to be the proxy we created.
-      //do this for a couple accounts.
 
     } catch (err) {
-      console.log('Error: ', err.error.details[0])
+      console.log('Error: ', err)
+    }
+  })
+  it(`SUCCESS verify locks removed for non voting account `, async () => {
+
+    try{
+
+
+
+      //user1 account non voting
+      let json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'locktokensv2',
+        lower_bound: user1.account,
+        upper_bound: user1.account,
+        key_type: 'i64',
+        reverse: true,
+        index_position: '2'
+      }
+     let result = await callFioApi("get_table_rows", json);
+
+      expect(result.rows.length).to.equal(0);
+
+    } catch (err) {
+      console.log('Error: ', err)
     }
   })
 
