@@ -62,7 +62,7 @@ these are one off tests that introduce unexpected data into the voters and gener
 
   add these actions to the chain on the command line after startup....these dont copy paste well so re-edit!!
   ../fio/build/bin/clio -u http://localhost:8889 push action eosio addaction '{"action":"tvoteproxy","contract":"eosio","actor":"eosio"}' --permission eosio
-  ../fio/build/bin/clio -u http://localhost:8889 push action eosio addaction '{"action”:”tgenlocked",”contract":"eosio","actor":"eosio"}' --permission eosio
+  ../fio/build/bin/clio -u http://localhost:8889 push action eosio addaction '{"action":"tgenlocked","contract":"eosio","actor":"eosio"}' --permission eosio
 
  */
 
