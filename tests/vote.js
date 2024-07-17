@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const {newUser, existingUser, getTestType, getProdVoteTotal, timeout, getBundleCount, getAccountVoteWeight, getTotalVotedFio, callFioApi, fetchJson} = require('../utils.js');
+const {newUser, existingUser, getTestType, getProdVoteTotal, createKeypair,getAccountFromKey, generateFioAddress, generateFioDomain, timeout, getBundleCount, getAccountVoteWeight, getTotalVotedFio, callFioApi, fetchJson} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk');
 const config = require('../config.js');
 const { readBufferWithDetectedEncoding } = require('tslint/lib/utils');
@@ -252,6 +252,185 @@ describe(`************************** vote.js ************************** \n    A.
   })
 
 })
+
+describe(`A.1. BD-4662 Test  proxy when proxy account does regaddress and target account does addaddress `, () => {
+
+  let proxyA1, user2;
+  let keys;
+
+  it(`Create users`, async () => {
+    proxyA1 = await newUser(faucet);
+    user2 = await newUser(faucet);
+    keys = await createKeypair();
+
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+  it(`Register proxyA1 as a proxy`, async () => {
+    try {
+      const result = await proxyA1.sdk.genericAction('pushTransaction', {
+        action: 'regproxy',
+        account: 'eosio',
+        data: {
+          fio_address: proxyA1.address,
+          actor: proxyA1.account,
+          max_fee: config.maxFee
+        }
+      })
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      expect(err).to.equal('null')
+    }
+  })
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+  it(`proxyA1 votes for bp1@dapixdev`, async () => {
+    try {
+      const result = await proxyA1.sdk.genericAction('pushTransaction', {
+        action: 'voteproducer',
+        account: 'eosio',
+        data: {
+          "producers": [
+            'bp1@dapixdev'
+          ],
+          fio_address: proxyA1.address,
+          actor: proxyA1.account,
+          max_fee: config.api.vote_producer.fee
+        }
+      })
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json)
+    }
+  })
+
+
+  it(`Wait a few seconds.`, async () => { await timeout(3000) })
+
+  it(`SUCCESS proxyA1 register fio domain using TPID to register tpid`, async () => {
+  try {
+
+    let domainGood = generateFioDomain(7);
+    const result = await proxyA1.sdk.genericAction('registerFioDomain', {
+      fioDomain: domainGood,
+      maxFee: config.api.register_fio_domain.fee,
+      technologyProviderId: proxyA1.address
+    })
+    expect(result.status).to.equal('OK')
+
+  }catch(err1){
+    console.log('failed iteraton ', err1)
+  }
+  })
+
+
+
+
+  let addaddress3;
+  it(`SUCCESS proxyA1 performs regaddress for a pub key not on chain, new account is made and auto proxies.`, async () => {
+    try {
+        addaddress3 = generateFioAddress(proxyA1.domain, 7);
+        const result = await proxyA1.sdk.genericAction('pushTransaction', {
+          action: 'regaddress',
+          account: 'fio.address',
+          data: {
+            fio_address: addaddress3,
+            owner_fio_public_key: keys.publicKey,
+            max_fee: config.maxFee,
+            tpid: proxyA1.address,
+            actor: proxyA1.account
+          }
+        });
+        expect(result.status).to.equal('OK');
+    } catch (err) {
+      expect(err).to.equal(null);
+    }
+  })
+
+
+  it(`Register user2 as a proxy`, async () => {
+    try {
+      const result = await user2.sdk.genericAction('pushTransaction', {
+        action: 'regproxy',
+        account: 'eosio',
+        data: {
+          fio_address: user2.address,
+          actor: user2.account,
+          max_fee: config.maxFee
+        }
+      })
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      expect(err).to.equal('null')
+    }
+  })
+
+
+
+
+
+  it(`regaddress owner account calls addaddress`, async () => {
+    try {
+     let taccsdk = await new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+     let taccount = await getAccountFromKey(keys.publicKey);
+    // console.log(taccount)
+
+     //try to map an address
+      let address1 = {chain_code: 'BCH', token_code: 'BCH', public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9'};
+      const result = await taccsdk.genericAction('pushTransaction', {
+        action: 'addaddress',
+        account: 'fio.address',
+        data: {
+          fio_address: addaddress3, // the one i just registered.
+          public_addresses:[ address1 ],
+          max_fee: 0,
+          tpid: proxyA1.address,    //this is the proxy account
+          actor: taccount
+        }
+      })
+     // console.log("RESULT : ",result)
+      expect(result.status).to.equal('OK');
+
+    } catch (err) {
+      console.log('Error: ', err)
+    }
+  })
+
+  it('Confirm voters record:  ', async () => {
+    try {
+      let taccount = await getAccountFromKey(keys.publicKey);
+
+
+      const json = {
+        json: true,
+        code: 'eosio',
+        scope: 'eosio',
+        table: 'voters',
+        limit: 1000,
+        reverse: false,
+        show_payer: false
+      }
+      voters = await callFioApi("get_table_rows", json);
+
+      for (voter in voters.rows) {
+        if (voters.rows[voter].owner == taccount) {
+          break;
+        }
+      }
+      expect(voters.rows[voter].owner).to.equal(taccount);
+      expect(voters.rows[voter].proxy).to.equal(proxyA1.account);
+      expect(voters.rows[voter].is_auto_proxy).to.equal(1);
+    } catch (err) {
+      console.log('Error', err);
+      expect(err).to.equal(null);
+    }
+  })
+
+})
+
+
 
 describe('B. Test vote counts with proxy when proxy increases and decreases funds', () => {
 
