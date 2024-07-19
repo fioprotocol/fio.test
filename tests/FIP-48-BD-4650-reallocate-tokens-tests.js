@@ -52,12 +52,7 @@ for testing, once the test action is in your copy of the contracts you must add 
 ../fio/build/bin/clio -u http://localhost:8889 push action eosio addaction '{"action":"addlocked1","contract":"eosio","actor":"eosio"}' --permission eosio
 
 
-//release actions must be added manually at this time
-
-
-
-../fio/build/bin/clio -u http://localhost:8889 push action eosio addaction '{"action":"fipxlviiilck","contract":"eosio","actor":"eosio"}' --permission eosio
-../fio/build/bin/clio -u http://localhost:8889 push action eosio addaction '{"action":"fipxlviii","contract":"fio.token","actor":"eosio"}' --permission eosio
+//release actions must be added and are added in the PR for fio.devtools
 
 you may now run these tests.
 

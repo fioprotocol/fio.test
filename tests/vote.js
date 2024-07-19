@@ -329,7 +329,7 @@ describe(`A.1. BD-4662 Test  proxy when proxy account does regaddress and target
 
 
   let addaddress3;
-  it(`SUCCESS proxyA1 performs regaddress for a pub key not on chain, new account is made and auto proxies.`, async () => {
+  it(`SUCCESS proxyA1 performs regaddress for a pub key not on chain, new account is made.`, async () => {
     try {
         addaddress3 = generateFioAddress(proxyA1.domain, 7);
         const result = await proxyA1.sdk.genericAction('pushTransaction', {
