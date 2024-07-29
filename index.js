@@ -3,8 +3,10 @@ const {expect} = require('chai');
 
 describe('TEST SUITE', () => {
 
-  describe(`Run only...`, function () {
+  describe.only(`Run only...`, function () {
     // Use this to run only a few tests
+   // require('./tests/vote.js')
+    require('./tests/FIP-48-BD-4650-reallocate-tokens-tests.js')
 
   });
 
