@@ -106,7 +106,7 @@ pkfbwyi2qzii          FIO6WYaLQzB196NAyrfqCBQzJXYkDk99B2by1F8MHyEbAWHYJRnK2
 
 
 
-describe.only(`Setup fipxlviii on local test box.`, () => {
+describe(`Setup fipxlviii on local test box.`, () => {
 
   let userA1;
   const lockType4 = 4;
