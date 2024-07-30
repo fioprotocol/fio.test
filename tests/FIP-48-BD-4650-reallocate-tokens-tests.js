@@ -51,9 +51,6 @@ for testing, once the test action is in your copy of the contracts you must add 
 
 ../fio/build/bin/clio -u http://localhost:8889 push action eosio addaction '{"action":"addlocked1","contract":"eosio","actor":"eosio"}' --permission eosio
 
-
-//release actions must be added and are added in the PR for fio.devtools
-
 you may now run these tests.
 
 the test "setup fipxlviii" will setup your newly started chain with the reallocation accounts.
@@ -73,16 +70,13 @@ and that its locks have been adapted to contain the total of the re-allocation.
 
 ../fio/build/bin/clio -u http://localhost:8889 get table eosio eosio lockedtokens --limit 2000
 
-
 */
 
 const lockdurationseconds = 10;   // What was set in the contract above in place of SECONDSPERDAY
 const lockType = 1;  // Default
 
-
 /* list of accounts for setup of type 2 lock grants for re-allocation.
 PLEASE VERIFY THE ACCOUNTS AMOUNTS AND OTHER INFO MATCHES THE FIP-48
-
 
 amounts per account
 xkezj1ocwe4r	FIO8Wyh738QK7iZRyL1tBZredeubrHugjYCjEPJGxc7Cvj3niML9G	9,999,960
@@ -104,12 +98,9 @@ receiving account
 pkfbwyi2qzii          FIO6WYaLQzB196NAyrfqCBQzJXYkDk99B2by1F8MHyEbAWHYJRnK2
  */
 
-
 //additional test cases.
 //to test do a clean restart of the chain, then run the setup for the test case, then run the fipxlviii from the command line and
 //observe the result
-
-
 
 /*
   1) reallocation account does not exist on chain.
@@ -198,11 +189,6 @@ describe.skip(`Error (fresh chain start required) reallocation account does not 
     fioamount: 1000000000
   }
 
-
-
-
-
-
   it(`Create account`, async () => {
     try {
       userA1 = await newUser(faucet);
@@ -210,7 +196,6 @@ describe.skip(`Error (fresh chain start required) reallocation account does not 
       console.log("ERROR CREATING USERS " + err);
     }
   });
-
 
   //account 1 start do not set up account 1 for test case
   it.skip(`Transfer  tokens to account1`, async () => {
@@ -411,7 +396,6 @@ describe.skip(`Error (fresh chain start required) reallocation account does not 
   });
   //account 7 end
 
-
   //account 8 start
   it(`Transfer  tokens to account8`, async () => {
     const result = await faucet.genericAction('transferTokens', {
@@ -438,7 +422,6 @@ describe.skip(`Error (fresh chain start required) reallocation account does not 
     expect(result1.status).to.equal('OK')
   });
   //account 8 end
-
 
   //account 9 start
   it(`Transfer  tokens to account9`, async () => {
@@ -548,7 +531,6 @@ describe.skip(`Error (fresh chain start required) reallocation account does not 
   });
   //account 12 end
 
-
   //account 13 start
   it(`Transfer  tokens to account13`, async () => {
     const result = await faucet.genericAction('transferTokens', {
@@ -601,8 +583,8 @@ describe.skip(`Error (fresh chain start required) reallocation account does not 
     expect(result1.status).to.equal('OK')
   });
 
-
 });
+
 //expected result
 /*
 Error 3200005: http request fail
@@ -689,11 +671,6 @@ describe.skip(`Error (fresh chain start required) reallocation account inadequat
     fioamount: 1000000000
   }
 
-
-
-
-
-
   it(`Create account`, async () => {
     try {
       userA1 = await newUser(faucet);
@@ -701,7 +678,6 @@ describe.skip(`Error (fresh chain start required) reallocation account inadequat
       console.log("ERROR CREATING USERS " + err);
     }
   });
-
 
   //account 1 start
   it(`Transfer  tokens to account1`, async () => {
@@ -902,7 +878,6 @@ describe.skip(`Error (fresh chain start required) reallocation account inadequat
   });
   //account 7 end
 
-
   //account 8 start
   it(`Transfer  tokens to account8`, async () => {
     const result = await faucet.genericAction('transferTokens', {
@@ -929,7 +904,6 @@ describe.skip(`Error (fresh chain start required) reallocation account inadequat
     expect(result1.status).to.equal('OK')
   });
   //account 8 end
-
 
   //account 9 start
   it(`Transfer  tokens to account9`, async () => {
@@ -1039,7 +1013,6 @@ describe.skip(`Error (fresh chain start required) reallocation account inadequat
   });
   //account 12 end
 
-
   //account 13 start
   it(`Transfer  tokens to account13`, async () => {
     const result = await faucet.genericAction('transferTokens', {
@@ -1092,8 +1065,8 @@ describe.skip(`Error (fresh chain start required) reallocation account inadequat
     expect(result1.status).to.equal('OK')
   });
 
-
 });
+
 //expected result
 //assertion failure with message: fip48 NO WORK PERFORMED account has no lockedtokens table entry xkezj1ocwe4r
 describe.skip(`Error (fresh chain start required) reallocation account no locked tokens. Setup error case on local test box, verify expected error.`, () => {
@@ -1173,11 +1146,6 @@ describe.skip(`Error (fresh chain start required) reallocation account no locked
     fioamount: 1000000000
   }
 
-
-
-
-
-
   it(`Create account`, async () => {
     try {
       userA1 = await newUser(faucet);
@@ -1185,7 +1153,6 @@ describe.skip(`Error (fresh chain start required) reallocation account no locked
       console.log("ERROR CREATING USERS " + err);
     }
   });
-
 
   //account 1 start
   it(`Transfer  tokens to account1`, async () => {
@@ -1387,7 +1354,6 @@ describe.skip(`Error (fresh chain start required) reallocation account no locked
   });
   //account 7 end
 
-
   //account 8 start
   it(`Transfer  tokens to account8`, async () => {
     const result = await faucet.genericAction('transferTokens', {
@@ -1414,7 +1380,6 @@ describe.skip(`Error (fresh chain start required) reallocation account no locked
     expect(result1.status).to.equal('OK')
   });
   //account 8 end
-
 
   //account 9 start
   it(`Transfer  tokens to account9`, async () => {
@@ -1524,7 +1489,6 @@ describe.skip(`Error (fresh chain start required) reallocation account no locked
   });
   //account 12 end
 
-
   //account 13 start
   it(`Transfer  tokens to account13`, async () => {
     const result = await faucet.genericAction('transferTokens', {
@@ -1577,8 +1541,8 @@ describe.skip(`Error (fresh chain start required) reallocation account no locked
     expect(result1.status).to.equal('OK')
   });
 
-
 });
+
 /*
 expected error
 Error 3050003: eosio_assert_message assertion failure
@@ -1662,11 +1626,6 @@ describe.skip(`Error (fresh chain start required) receiving account does not exi
     fioamount: 1000000000
   }
 
-
-
-
-
-
   it(`Create account`, async () => {
     try {
       userA1 = await newUser(faucet);
@@ -1674,7 +1633,6 @@ describe.skip(`Error (fresh chain start required) receiving account does not exi
       console.log("ERROR CREATING USERS " + err);
     }
   });
-
 
   //account 1 start
   it(`Transfer  tokens to account1`, async () => {
@@ -1875,7 +1833,6 @@ describe.skip(`Error (fresh chain start required) receiving account does not exi
   });
   //account 7 end
 
-
   //account 8 start
   it(`Transfer  tokens to account8`, async () => {
     const result = await faucet.genericAction('transferTokens', {
@@ -1902,7 +1859,6 @@ describe.skip(`Error (fresh chain start required) receiving account does not exi
     expect(result1.status).to.equal('OK')
   });
   //account 8 end
-
 
   //account 9 start
   it(`Transfer  tokens to account9`, async () => {
@@ -2011,7 +1967,6 @@ describe.skip(`Error (fresh chain start required) receiving account does not exi
     expect(result1.status).to.equal('OK')
   });
   //account 12 end
-
 
   //account 13 start
   it(`Transfer  tokens to account13`, async () => {
@@ -2066,15 +2021,15 @@ describe.skip(`Error (fresh chain start required) receiving account does not exi
     expect(result1.status).to.equal('OK')
   });
 
-
 });
+
 /*
 expected result
 Error 3050003: eosio_assert_message assertion failure
 Error Details:
 assertion failure with message: FIP 48 could not find lock grant in lockedtokens for receiver account
  */
-describe.only(`Error (fresh chain start required) receiving account has no locked tokens. Setup error case on local test box, verify expected error.`, () => {
+describe.skip(`Error (fresh chain start required) receiving account has no locked tokens. Setup error case on local test box, verify expected error.`, () => {
 
   let userA1;
   const lockType4 = 4;
@@ -2151,11 +2106,6 @@ describe.only(`Error (fresh chain start required) receiving account has no locke
     fioamount: 1000000000
   }
 
-
-
-
-
-
   it(`Create account`, async () => {
     try {
       userA1 = await newUser(faucet);
@@ -2163,7 +2113,6 @@ describe.only(`Error (fresh chain start required) receiving account has no locke
       console.log("ERROR CREATING USERS " + err);
     }
   });
-
 
   //account 1 start
   it(`Transfer  tokens to account1`, async () => {
@@ -2364,7 +2313,6 @@ describe.only(`Error (fresh chain start required) receiving account has no locke
   });
   //account 7 end
 
-
   //account 8 start
   it(`Transfer  tokens to account8`, async () => {
     const result = await faucet.genericAction('transferTokens', {
@@ -2391,7 +2339,6 @@ describe.only(`Error (fresh chain start required) receiving account has no locke
     expect(result1.status).to.equal('OK')
   });
   //account 8 end
-
 
   //account 9 start
   it(`Transfer  tokens to account9`, async () => {
@@ -2500,7 +2447,6 @@ describe.only(`Error (fresh chain start required) receiving account has no locke
     expect(result1.status).to.equal('OK')
   });
   //account 12 end
-
 
   //account 13 start
   it(`Transfer  tokens to account13`, async () => {
@@ -2555,10 +2501,10 @@ describe.only(`Error (fresh chain start required) receiving account has no locke
     expect(result1.status).to.equal('OK')
   });
 
-
 });
 
-describe.skip(`Setup fipxlviii success case on local test box.`, () => {
+// Positive test
+describe(`Setup fipxlviii success case on local test box.`, () => {
   let userA1;
   const lockType4 = 4;
   const lockType2 = 2;
@@ -2634,11 +2580,6 @@ describe.skip(`Setup fipxlviii success case on local test box.`, () => {
     fioamount: 1000000000
   }
 
-
-
-
-
-
   it(`Create account`, async () => {
     try {
       userA1 = await newUser(faucet);
@@ -2646,7 +2587,6 @@ describe.skip(`Setup fipxlviii success case on local test box.`, () => {
       console.log("ERROR CREATING USERS " + err);
     }
   });
-
 
   //account 1 start
   it(`Transfer  tokens to account1`, async () => {
@@ -2660,7 +2600,6 @@ describe.skip(`Setup fipxlviii success case on local test box.`, () => {
   });
 
   it(`Lock  tokens account1 lock type 2`, async () => {
-
     const result1 = await userA1.sdk.genericAction('pushTransaction', {
       action: 'addlocked1',
       account: 'eosio',
@@ -2847,7 +2786,6 @@ describe.skip(`Setup fipxlviii success case on local test box.`, () => {
   });
   //account 7 end
 
-
   //account 8 start
   it(`Transfer  tokens to account8`, async () => {
     const result = await faucet.genericAction('transferTokens', {
@@ -2874,7 +2812,6 @@ describe.skip(`Setup fipxlviii success case on local test box.`, () => {
     expect(result1.status).to.equal('OK')
   });
   //account 8 end
-
 
   //account 9 start
   it(`Transfer  tokens to account9`, async () => {
@@ -2984,7 +2921,6 @@ describe.skip(`Setup fipxlviii success case on local test box.`, () => {
   });
   //account 12 end
 
-
   //account 13 start
   it(`Transfer  tokens to account13`, async () => {
     const result = await faucet.genericAction('transferTokens', {
@@ -3036,6 +2972,5 @@ describe.skip(`Setup fipxlviii success case on local test box.`, () => {
     })
     expect(result1.status).to.equal('OK')
   });
-
 
 });
