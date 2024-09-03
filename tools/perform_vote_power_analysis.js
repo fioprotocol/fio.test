@@ -45,7 +45,7 @@ const onNetAccount = {
   account: 'v2lgwcdkb5gn',
   publicKey: 'FIO8k7N7jU9eyj57AfazGxMuvPGZG5hvXNUyxt9pBchnkXXx9KUuD',
   privateKey: '5Jw78NzS2QMvjcyemCgJ9XQv8SMSEvTEuLxF8TcKf27xWcX5fmw'
-}
+  }
 const sdkAcc = {
   sdk: 'somefin'
 }
@@ -68,7 +68,7 @@ analysis_account = tacc;
  */
 
 before(async () => {
-  //local private network setup
+//local private network setup
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
   analysis_account = await newUser(faucet);
 })
@@ -320,7 +320,7 @@ it will output several csv files, it will remove and overwrite the files if they
           if (balancekey.balance != balancekey.available) {
             var can_vote = await get_locks_vote(voter.owner);
             if (can_vote == 0) {
-              token_power = balancekey.available;
+              token_power = balancekey.available / 1000000000;
             }
           }
           console.log(" VOTER ID ",voter.id)
@@ -332,6 +332,7 @@ it will output several csv files, it will remove and overwrite the files if they
               tp += voter.producers[p]
             }
           }
+         
           var voteritem = {
             owner: voter.owner,
             proxied_vote_weight: voter.proxied_vote_weight / 1000000000,
@@ -482,6 +483,57 @@ it will output several csv files, it will remove and overwrite the files if they
     }
     console.log("analysis completed!!! output dir is "+OUTPUTDIR);
 
+  })
+
+
+  describe.skip(' A. Send 1 FIO to all voters...', () => {
+    it(`Sending...`, async () => {
+      let calling_account = await newUser(faucet);
+
+      let voter_rows = Array();
+      let bad_voters = Array();
+
+      // Establish Voters
+      console.log("Fetching voters and computing power...");
+      let limit = 900;
+      let start = 0;
+      let ix = 0;
+
+      let voters = await get_voters(start,limit);
+      console.log("Fetched voters start limit,"+start+" "+limit);
+      while (voters.rows.length > 0) {
+        console.log("the number of rows is " + voters.rows.length);
+        for (let i=0;i<voters.rows.length;i++) {
+          let voter = voters.rows[i]
+          ix++;
+          try {
+            let voter_pub_key = await get_pub_key(voter.owner)
+            console.log("Sending funds to ", voter.owner);
+            await calling_account.sdk.genericAction('pushTransaction', {
+              action: 'trnsfiopubky',
+              account: 'fio.token',
+              data: {
+                payee_public_key: voter_pub_key,
+                amount: 1000000000,
+                max_fee: config.maxFee,
+                actor: calling_account.account,
+                tpid: ''
+              }
+            });
+          } catch (error) {
+            console.log("unexpected error processing funding; voter " + voter.owner + " " + error);
+            bad_voters.push(voter.owner);
+          }
+        }
+
+        start = start + voters.rows.length;
+        voters = await get_voters(start, limit);
+        console.log("Fetched voters start limit," + start + " " + limit);
+      }
+      bad_voters.forEach(function(item, index) {
+        console.log(index + ": " + item);
+      });
+    })
   })
 
 
