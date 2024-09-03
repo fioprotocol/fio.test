@@ -71,11 +71,11 @@ describe(' AE. load voters with data ordering issues, call audit vote in all pha
           can_vote: 0,
           periods: [
             {
-              duration: 20,
+              duration: 2628000,
               amount: 100000000000,
             },
             {
-              duration: 30000000,
+              duration: 2629000,
               amount: 100000000000,
             }
           ],
@@ -120,11 +120,11 @@ describe(' AE. load voters with data ordering issues, call audit vote in all pha
           can_vote: 0,
           periods: [
             {
-              duration: 20,
+              duration: 2628000,
               amount: 100000000000,
             },
             {
-              duration: 30000000,
+              duration: 2629000,
               amount: 100000000000,
             }
           ],
@@ -330,6 +330,7 @@ describe(' AE. load voters with data ordering issues, call audit vote in all pha
     }
   })
 
+
   it(`regaddress for keys2 so it can vote`, async () => {
     try {
       keys2.address = await generateFioAddress(voter1.domain, 8)
@@ -393,6 +394,23 @@ describe(' AE. load voters with data ordering issues, call audit vote in all pha
       expect(err).to.equal('null')
     }
   })
+  //register keys1 as proxy
+  it(`Register keys1 as a proxy`, async () => {
+    try {
+      const result = await key1sdk.genericAction('pushTransaction', {
+        action: 'regproxy',
+        account: 'eosio',
+        data: {
+          fio_address: keys1.address,
+          actor: keys1account,
+          max_fee: config.maxFee
+        }
+      })
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      expect(err).to.equal('null')
+    }
+  })
   it(`Register voter5 as a proxy`, async () => {
     try {
       const result = await voter5.sdk.genericAction('pushTransaction', {
@@ -412,6 +430,24 @@ describe(' AE. load voters with data ordering issues, call audit vote in all pha
 
   it(`Wait a few seconds.`, async () => { await timeout(3000) })
 
+  //keys2 proxy to keys1
+  it(`keys2 proxy votes to keys1`, async () => {
+    try {
+      const result = await key2sdk.genericAction('pushTransaction', {
+        action: 'voteproxy',
+        account: 'eosio',
+        data: {
+          proxy: keys1.address,
+          fio_address: keys2.address,
+          actor: keys2account,
+          max_fee: config.api.proxy_vote.fee
+        }
+      })
+      expect(result.status).to.equal('OK')
+    } catch (err) {
+      console.log('Error: ', err.json)
+    }
+  })
 
 
   it(`voter5 votes for bp1@dapixdev using address #1`, async () => {
@@ -485,23 +521,6 @@ describe(' AE. load voters with data ordering issues, call audit vote in all pha
         }
       })
       // console.log('Result: ', result)
-      expect(result.status).to.equal('OK')
-    } catch (err) {
-      console.log('Error: ', err.json)
-    }
-  })
-  it(`keys1 proxy votes to voter5`, async () => {
-    try {
-      const result = await key1sdk.genericAction('pushTransaction', {
-        action: 'voteproxy',
-        account: 'eosio',
-        data: {
-          proxy: voter5.address,
-          fio_address: keys1.address,
-          actor: keys1account,
-          max_fee: config.api.proxy_vote.fee
-        }
-      })
       expect(result.status).to.equal('OK')
     } catch (err) {
       console.log('Error: ', err.json)
