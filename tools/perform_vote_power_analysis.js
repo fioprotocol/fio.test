@@ -6,7 +6,6 @@ const config = require('../config.js');
 const { readBufferWithDetectedEncoding } = require('tslint/lib/utils');
 const testType = getTestType();
 
-
 /*
 NOTE -- output files are removed and replaced every run....
 This test will perform a comprehensive voting analysis and output files that
@@ -35,16 +34,16 @@ the before also needs changed for local or (testnet mainnet) uses, see comments 
 for the required setup in the before.
  */
 /* testnet account key that may be used
-privateKey = '5Jw78NzS2QMvjcyemCgJ9XQv8SMSEvTEuLxF8TcKf27xWcX5fmw',
-    publicKey = 'FIO8k7N7jU9eyj57AfazGxMuvPGZG5hvXNUyxt9pBchnkXXx9KUuD',
-    account = 'v2lgwcdkb5gn',
-    */
+    account: 'wxrm1xzulbpy',
+    publicKey: 'FIO57FuR9isLbaPemXopbh5oUxqgPGXr7k9wyinuwF6ZCDM1woB9H',
+    privateKey: '5K2rhwLJptp1ycvJz58tzMUvVf2FHPCxBbSu5ejrRZBNLWqxRSH'
+*/
 //SETUP edit the account private and pub key for the pre existing account on main net or test net
 //This is NOT USED if running local private network.
 const onNetAccount = {
-  account: 'v2lgwcdkb5gn',
-  publicKey: 'FIO8k7N7jU9eyj57AfazGxMuvPGZG5hvXNUyxt9pBchnkXXx9KUuD',
-  privateKey: '5Jw78NzS2QMvjcyemCgJ9XQv8SMSEvTEuLxF8TcKf27xWcX5fmw'
+  account: 'wxrm1xzulbpy',
+  publicKey: 'FIO57FuR9isLbaPemXopbh5oUxqgPGXr7k9wyinuwF6ZCDM1woB9H',
+  privateKey: '5K2rhwLJptp1ycvJz58tzMUvVf2FHPCxBbSu5ejrRZBNLWqxRSH'
 }
 const sdkAcc = {
   sdk: 'somefin'
@@ -241,10 +240,6 @@ async function get_csv_obj(t1) {
   }
   return tp;
 }
-
-
-
-
 
 describe(`************************** perform_vote_analysis.js ************************** \n    A. (this takes a while) analyze voters table, bp vote, and global vote and report results to csv`, () => {
 
@@ -483,7 +478,5 @@ it will output several csv files, it will remove and overwrite the files if they
     console.log("analysis completed!!! output dir is "+OUTPUTDIR);
 
   })
-
-
 
 })

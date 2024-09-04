@@ -7,6 +7,7 @@ const { readBufferWithDetectedEncoding } = require('tslint/lib/utils');
 const testType = getTestType();
 
 let calling_account;
+
 /*
  This test tool will invoke auditvote on the target environment.
  the tool will call audit vote until phase 4 is completed by the audit vote engine.
@@ -25,23 +26,21 @@ let calling_account;
       is used to create and fund the account used to call auditvote.
 
       test net account that may be used (NOTE please verify account balance before running)
-      account: 'v2lgwcdkb5gn',
-      publicKey: 'FIO8k7N7jU9eyj57AfazGxMuvPGZG5hvXNUyxt9pBchnkXXx9KUuD',
-      privateKey: '5Jw78NzS2QMvjcyemCgJ9XQv8SMSEvTEuLxF8TcKf27xWcX5fmw'
+      account: 'wxrm1xzulbpy',
+      publicKey: 'FIO57FuR9isLbaPemXopbh5oUxqgPGXr7k9wyinuwF6ZCDM1woB9H',
+      privateKey: '5K2rhwLJptp1ycvJz58tzMUvVf2FHPCxBbSu5ejrRZBNLWqxRSH'
 
       for main net account info please contact the FIO release manager.
-
- */
+*/
 const onNetAccount = {
-  account: 'v2lgwcdkb5gn',
-  publicKey: 'FIO8k7N7jU9eyj57AfazGxMuvPGZG5hvXNUyxt9pBchnkXXx9KUuD',
-  privateKey: '5Jw78NzS2QMvjcyemCgJ9XQv8SMSEvTEuLxF8TcKf27xWcX5fmw'
+  account: 'wxrm1xzulbpy',
+  publicKey: 'FIO57FuR9isLbaPemXopbh5oUxqgPGXr7k9wyinuwF6ZCDM1woB9H',
+  privateKey: '5K2rhwLJptp1ycvJz58tzMUvVf2FHPCxBbSu5ejrRZBNLWqxRSH'
 }
 const sdkAcc = {
   sdk: 'undefined',
   account: 'undefined'
 }
-
 
 /* SETUP
     for private test net use the following block
@@ -61,16 +60,11 @@ const sdkAcc = {
  */
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
-
   calling_account = await newUser(faucet);
 })
 
-
-
-
 describe(' A. call audit vote until phase 4 completes or max calls exceeded', () => {
   let  phase_change = 0
-
 
   it(`call audit vote until it has completed phase 4, max number of calls to audit vote is 100`, async () => {
     try {
@@ -125,6 +119,5 @@ describe(' A. call audit vote until phase 4 completes or max calls exceeded', ()
       expect(err).to.equal('null');
     }
   })
-
 
 })
