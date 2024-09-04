@@ -88,6 +88,7 @@ describe('TEST SUITE', () => {
 
   describe('** GENERAL TESTS - NO SETUP **', () => {
 
+    require('./tests/BD-4669-auditvote-with-staking-and-locks.js');
     //FIP-40 tests
     require("./tests/FIP-40-permissions-dev-tests.js");
 

@@ -527,11 +527,7 @@ describe(' AE. load voters with data ordering issues, call audit vote in all pha
     }
   })
 
-
-
-
-
-  it.skip(`call audit vote until its in phase 1, max number of calls to audit vote is 20`, async () => {
+  it(`call audit vote until its in phase 1, max number of calls to audit vote is 20`, async () => {
     try {
       let audit_phase = '10'
       let last_phase = "9"
