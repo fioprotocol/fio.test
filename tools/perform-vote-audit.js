@@ -37,11 +37,11 @@ const onNetAccount = {
   publicKey: 'FIO8k7N7jU9eyj57AfazGxMuvPGZG5hvXNUyxt9pBchnkXXx9KUuD',
   privateKey: '5Jw78NzS2QMvjcyemCgJ9XQv8SMSEvTEuLxF8TcKf27xWcX5fmw'
 }
+
 const sdkAcc = {
   sdk: 'undefined',
   account: 'undefined'
 }
-
 
 /* SETUP
     for private test net use the following block
@@ -61,16 +61,29 @@ const sdkAcc = {
  */
 before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
-
   calling_account = await newUser(faucet);
 })
 
-
-
+async function get_audit_status() {
+  try {
+    const json = {
+      json: true,
+      code: 'eosio',
+      scope: 'eosio',
+      table: 'auditglobal',
+      reverse: false,
+      show_payer: false
+    }
+    let result = await callFioApi("get_table_rows", json);
+    console.log(result);
+    return result
+  }catch(error) {
+    console.log("unexpected error getting audit status " + error);
+  }
+}
 
 describe(' A. call audit vote until phase 4 completes or max calls exceeded', () => {
   let  phase_change = 0
-
 
   it(`call audit vote until it has completed phase 4, max number of calls to audit vote is 100`, async () => {
     try {
@@ -83,6 +96,7 @@ describe(' A. call audit vote until phase 4 completes or max calls exceeded', ()
 
       //do until the next audit phase is 1 and the previous phase completed is 4
       while(!((audit_phase.localeCompare('1') == 0)&&(last_phase.localeCompare('4') == 0)) ) {
+        let status = await get_audit_status();
 
         n_called++;
         const result = await calling_account.sdk.genericAction('pushTransaction', {
@@ -94,7 +108,7 @@ describe(' A. call audit vote until phase 4 completes or max calls exceeded', ()
           }
         })
 
-          last_phase = audit_phase;
+        last_phase = audit_phase;
         audit_phase = result.audit_phase
 
         //if there is lots of voters the account may run out of funds and
@@ -110,21 +124,27 @@ describe(' A. call audit vote until phase 4 completes or max calls exceeded', ()
         } else {
           tx = tx + " next phase is " + audit_phase;
         }
+
         console.log("       ", tx);
         //phase 4 reports no records processed, do not output records processed if its 0 its just confusing.
         if (result.records_processed > 0) {
           console.log("          records processed " + result.records_processed)
         }
+
         expect(result.status).to.equal('OK')
         expect(result.fee_collected).to.equal(config.api.audit_vote.fee)
 
-        await timeout(3000)
+        await timeout(1000)
       }
     } catch (err) {
       console.log('Error: ', err);
+      console.log('unexpected error funding voter; \tname: ' + err.name + ' message: ' + err.message + ' at: ' + err.at + ' text: ' + err.text);
+      console.log();
+      console.log("error object stack: ");
+      console.log(err.stack);
+
       expect(err).to.equal('null');
     }
   })
-
 
 })
