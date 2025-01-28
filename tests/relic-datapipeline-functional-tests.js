@@ -14,7 +14,7 @@ before(async () => {
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
   client = new Client({
     user: 'chronicle_user',
-    host: '35.82.73.97',
+    host: 'localhost',
     database: 'relicdb',
     password: 'relicchronicle1@0@2',
     port: 5432, // Default PostgreSQL port
