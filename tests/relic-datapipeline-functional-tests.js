@@ -1,4 +1,5 @@
 require('mocha')
+//NOTE -- to run these tests do npm install pg first.
 const { Client } = require('pg');
 const {expect} = require('chai')
 const {newUser, fetchJson, timeout, callFioApi} = require('../utils.js');
@@ -48,6 +49,8 @@ describe(`************************** relic-datapipeline-finctional-tests.js ****
       try {
 
           let userA2 = await newUser(faucet);
+
+          //accounts info
           const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'' + userA2.account + '\'';
           const resAccounts = await client.query(qstrAccounts);
           //console.log("res ",res);
@@ -61,6 +64,9 @@ describe(`************************** relic-datapipeline-finctional-tests.js ****
           let result = await callFioApi("get_encrypt_key", json);
           console.log("bind2eosio verify account pub key matches chain");
           expect(result.encrypt_public_key).to.equal(resAccounts.rows[0].public_key);
+         
+         
+          //block info
           const qstrBlocks = 'SELECT * FROM blocks WHERE pk_block_number = ' + resAccounts.rows[0].fk_block_number ;
           const resBlocks = await client.query(qstrBlocks);
          // console.log(resBlocks);
@@ -68,7 +74,9 @@ describe(`************************** relic-datapipeline-finctional-tests.js ****
           expect(resBlocks.rowCount).to.equal(1);
           console.log("bind2eosio verify timestamp from blocks");
           expect(resBlocks.rows[0].stamp.getTime()).to.equal(resAccounts.rows[0].block_timestamp.getTime());
-          //get the transaction for this.
+          
+          
+          //get transaction info.
           const qstrTransactionss = 'SELECT * FROM transactions WHERE fk_block_number = ' + resAccounts.rows[0].fk_block_number ;
           const resTransactions = await client.query(qstrTransactionss);
          // console.log(resTransactions);
@@ -91,6 +99,8 @@ describe(`************************** relic-datapipeline-finctional-tests.js ****
           let userA2 = await newUser(faucet);
           const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'' + userA2.account + '\'';
           const resAccounts = await client.query(qstrAccounts);
+
+
           //account info
           //console.log("res ",res);
           console.log("trnsfiopubky verify one row returned from accounts");
@@ -136,7 +146,7 @@ describe(`************************** relic-datapipeline-finctional-tests.js ****
       }
     })
 /*
-list of items for relic
+list of items for relic yet to be tested.
 Trnsloctoks
 Transfer
 Issue
