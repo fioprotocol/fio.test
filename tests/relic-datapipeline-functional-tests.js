@@ -2,7 +2,7 @@ require('mocha')
 //NOTE -- to run these tests do npm install pg first.
 const { Client } = require('pg');
 const {expect} = require('chai')
-const {newUser, fetchJson, timeout, callFioApi} = require('../utils.js');
+const {newUser, createKeypair, fetchJson, timeout, callFioApi} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 let client;
@@ -139,6 +139,96 @@ describe(`************************** relic-datapipeline-finctional-tests.js ****
           expect(resTransactions.rows[0].request_data).contains(resAccounts.rows[0].public_key);
           console.log("trnsfiopubky verify that the transaction action_name contains the pub key for userA2");
           expect(resTransactions.rows[0].action_name).equals('trnsfiopubky');  
+        
+      }catch(err){
+        console.log(err);
+        expect(err).to.equal(null);
+      }
+    })
+
+    it(`trnsloctoks trigger verify accounts, and account_activity contents`, async () => {
+      try {
+
+        userA1 = await newUser(faucet);
+        let keys = await createKeypair();
+        let locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+        let accountnm = await FIOSDK.accountHash(keys.publicKey)
+       // console.log(accountnm);
+       
+        //call transfer locked tokens success case.
+        const result = await userA1.sdk.genericAction('pushTransaction', {
+          action: 'trnsloctoks',
+          account: 'fio.token',
+          data: {
+            payee_public_key: keys.publicKey,
+            can_vote: 0,
+            periods: [
+              {
+                duration: 20,
+                amount: 200000000000,
+              },
+              {
+                duration: 40,
+                amount: 300000000000,
+              }
+            ],
+            amount: 500000000000,
+            max_fee: config.maxFee,
+            tpid: '',
+            actor: userA1.account,
+          }
+
+        })
+        expect(result.status).to.equal('OK');
+
+//
+//wait
+await timeout(2000)
+
+
+          const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'' + accountnm.accountnm + '\'';
+          const resAccounts = await client.query(qstrAccounts);
+
+          //console.log("query ",qstrAccounts);
+          //account info
+          //console.log("res ",resAccounts);
+          console.log("trnsloctoks verify one row returned from accounts");
+          expect(resAccounts.rowCount).to.equal(1);
+          console.log("trnsloctoks verify account name returned");
+          expect(resAccounts.rows[0].account_name).equals(accountnm.accountnm);
+
+          //token transfers
+          const qstrTransToks = 'SELECT * FROM tokentransfers WHERE fk_payee_account_id = ' + resAccounts.rows[0].pk_account_id ;
+          const resTokTrans = await client.query(qstrTransToks);
+         // console.log("tokenTransfers ", qstrTransToks);
+         // console.log("resTokTrans ",resTokTrans);
+          console.log("trnsloctoks verify one row returned from tokentransfers");
+          expect(resTokTrans.rowCount).to.equal(1);
+          console.log("trnsloctoks verify tokentransfers payee account name returned");
+          expect(resTokTrans.rows[0].fk_payee_account_id).equals(resAccounts.rows[0].pk_account_id);
+          console.log("trnsloctoks verify tokentransfers type returned");
+          expect(resTokTrans.rows[0].token_transfer_type).equals('transfer_locked');
+         
+          //block info
+          const qstrBlocks = 'SELECT * FROM blocks WHERE pk_block_number = ' + resTokTrans.rows[0].fk_block_number ;
+          const resBlocks = await client.query(qstrBlocks);
+          console.log("trnsloctoks verify one row returned from blocks");
+          expect(resBlocks.rowCount).to.equal(1);
+          console.log("trnsloctoks verify timestamp from blocks");
+          expect(resBlocks.rows[0].stamp.getTime()).to.equal(resTokTrans.rows[0].block_timestamp.getTime());
+          
+          //transaction info
+          const qstrTransactionss = 'SELECT * FROM transactions WHERE fk_block_number = ' + resAccounts.rows[0].fk_block_number ;
+          const resTransactions = await client.query(qstrTransactionss);
+         // console.log(resTransactions);
+          console.log("trnsloctoks verify one row returned from transactions");
+          expect(resTransactions.rowCount).to.equal(1);
+          console.log("trnsloctoks verify timestamp from transactions");
+          expect(resTransactions.rows[0].block_timestamp.getTime()).to.equal(resAccounts.rows[0].block_timestamp.getTime());
+          console.log("trnsloctoks verify that the transaction request_data contains the pub key for userA2");
+          expect(resTransactions.rows[0].request_data).contains(resAccounts.rows[0].public_key);
+          console.log("trnsloctoks verify that the transaction action_name contains the pub key for userA2");
+          expect(resTransactions.rows[0].action_name).equals('trnsloctoks');  
         
       }catch(err){
         console.log(err);
