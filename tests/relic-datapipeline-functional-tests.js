@@ -1,3 +1,13 @@
+
+/*
+this test will perform trigger adata verfificatioins.
+to run the test, you must have a fio local dev net, running state history,and also have
+relic database and fio.chronicle running on the dev box.
+this file hardcodes the relic database connection information,
+edit the info to match your chronicle installation.
+*/
+
+
 require('mocha')
 //NOTE -- to run these tests do npm install pg first.
 const { Client } = require('pg');
@@ -235,15 +245,178 @@ await timeout(2000)
         expect(err).to.equal(null);
       }
     })
+
+    //note stake unstake tests must be run, both of them sequentially.
+    let userstake;
+    it(`stakefio trigger tokenstaking contents`, async () => {
+      try {
+
+        userstake = await newUser(faucet);
+
+        //vote for producers
+        let result = await userstake.sdk.genericAction('pushTransaction', {
+          action: 'voteproducer',
+          account: 'eosio',
+          data: {
+            producers: ["bp1@dapixdev"],
+            fio_address: userstake.address,
+            actor: userstake.account,
+            max_fee: config.maxFee
+          }
+        })
+        expect(result.status).to.equal('OK')
+       
+       
+       
+        result = await userstake.sdk.genericAction('pushTransaction', {
+          action: 'stakefio',
+          account: 'fio.staking',
+          data: {
+            fio_address: userstake.address,
+            amount: 111111111111,
+            actor: userstake.account,
+            max_fee: config.maxFee,
+            tpid:''
+          }
+        })
+        // console.log('Result: ', result)
+        expect(result.status).to.equal('OK')
+
+//
+//wait
+await timeout(2000)
+
+
+          const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'' + userstake.account + '\'';
+          const resAccounts = await client.query(qstrAccounts);
+
+          //console.log("query ",qstrAccounts);
+          //account info
+          //console.log("res ",resAccounts);
+          console.log("stakefio verify one row returned from accounts");
+          expect(resAccounts.rowCount).to.equal(1);
+          console.log("stakefio verify account name returned");
+          expect(resAccounts.rows[0].account_name).equals(userstake.account);
+
+          //token transfers
+          const qstrTokenStakings = 'SELECT * FROM tokenstakings WHERE fk_staker_account_id = ' + resAccounts.rows[0].pk_account_id ;
+          const resTokenStakings = await client.query(qstrTokenStakings);
+         // console.log("tokenstakings ", qstrTokenStakings);
+         // console.log("resTokenStakings ",resTokenStakings);
+          console.log("stakefio verify one row returned from tokenstakings");
+          expect(resTokenStakings.rowCount).to.equal(1);
+          console.log("stakefio verify tokenstakings payee account name returned");
+          expect(resTokenStakings.rows[0].fk_staker_account_id).equals(resAccounts.rows[0].pk_account_id);
+          
+          console.log("stakefio verify tokenstakings fio_suf_amount returned");
+          expect(resTokenStakings.rows[0].fio_suf_amount).equals('111111111111');
+         
+          //block info
+          const qstrBlocks = 'SELECT * FROM blocks WHERE pk_block_number = ' + resTokenStakings.rows[0].fk_block_number ;
+          const resBlocks = await client.query(qstrBlocks);
+          console.log("stakefio verify one row returned from blocks");
+          expect(resBlocks.rowCount).to.equal(1);
+           
+          //transaction info
+          const qstrTransactionss = 'SELECT * FROM transactions WHERE fk_block_number = ' + resTokenStakings.rows[0].fk_block_number ;
+          const resTransactions = await client.query(qstrTransactionss);
+        // console.log(resTransactions);
+          console.log("stakefio verify one row returned from transactions");
+          expect(resTransactions.rowCount).to.equal(1);
+          console.log("stakefio verify timestamp from transactions");
+          expect(resTransactions.rows[0].block_timestamp.getTime()).to.equal(resBlocks.rows[0].stamp.getTime());
+          console.log("stakefio verify that the transaction request_data contains userstake.account");
+          expect(resTransactions.rows[0].request_data).contains(userstake.account);
+          console.log("stakefio verify that the transaction request_data contains amount used");
+          expect(resTransactions.rows[0].request_data).contains('111111111111');
+          console.log("stakefio verify that the transaction action_name contains the pub key for userA2");
+          expect(resTransactions.rows[0].action_name).equals('stakefio');  
+        
+      }catch(err){
+        console.log(err);
+        expect(err).to.equal(null);
+      }
+    })
+
+    it(`unstakefio trigger tokenstaking contents`, async () => {
+      try {
+
+        const result = await userstake.sdk.genericAction('pushTransaction', {
+          action: 'unstakefio',
+          account: 'fio.staking',
+          data: {
+            fio_address: userstake.address,
+            amount: 55555555555,
+            actor: userstake.account,
+            max_fee: config.maxFee,
+            tpid:''
+          }
+        })
+        // console.log('Result: ', result)
+        expect(result.status).to.equal('OK')
+
+//
+//wait
+await timeout(2000)
+
+
+          const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'' + userstake.account + '\'';
+          const resAccounts = await client.query(qstrAccounts);
+
+          //console.log("query ",qstrAccounts);
+          //account info
+          //console.log("res ",resAccounts);
+          console.log("unstakefio verify one row returned from accounts");
+          expect(resAccounts.rowCount).to.equal(1);
+          console.log("unstakefio verify account name returned");
+          expect(resAccounts.rows[0].account_name).equals(userstake.account);
+
+          //token transfers
+          const qstrTokenStakings = 'SELECT * FROM tokenstakings WHERE fk_staker_account_id = ' + resAccounts.rows[0].pk_account_id  ;
+          const resTokenStakings = await client.query(qstrTokenStakings);
+         // console.log("tokenstakings ", qstrTokenStakings);
+         // console.log("resTokenStakings ",resTokenStakings);
+          console.log("unstakefio verify one row returned from tokenstakings");
+          expect(resTokenStakings.rowCount).to.equal(2);
+          console.log("unstakefio verify tokenstakings payee account name returned");
+          expect(resTokenStakings.rows[1].fk_staker_account_id).equals(resAccounts.rows[0].pk_account_id);
+          
+          console.log("unstakefio verify tokenstakings fio_suf_amount returned");
+          expect(resTokenStakings.rows[1].fio_suf_amount).equals('-55555555555');
+         
+          //block info
+          const qstrBlocks = 'SELECT * FROM blocks WHERE pk_block_number = ' + resTokenStakings.rows[1].fk_block_number ;
+          const resBlocks = await client.query(qstrBlocks);
+          console.log("unstakefio verify one row returned from blocks");
+          expect(resBlocks.rowCount).to.equal(1);
+           
+          //transaction info
+          const qstrTransactions = 'SELECT * FROM transactions WHERE fk_block_number = ' + resTokenStakings.rows[1].fk_block_number ;
+          const resTransactions = await client.query(qstrTransactions);
+         //console.log(resTransactions);
+          console.log("unstakefio verify one row returned from transactions");
+          expect(resTransactions.rowCount).to.equal(1);
+          console.log("unstakefio verify timestamp from transactions");
+          expect(resTransactions.rows[0].block_timestamp.getTime()).to.equal(resBlocks.rows[0].stamp.getTime());
+          console.log("unstakefio verify that the transaction request_data contains userstake.account");
+          expect(resTransactions.rows[0].request_data).contains(userstake.account);
+          console.log("unstakefio verify that the transaction request_data contains amount used");
+          expect(resTransactions.rows[0].request_data).contains('55555555555');
+          console.log("unstakefio verify that the transaction action_name contains the pub key for userA2");
+          expect(resTransactions.rows[0].action_name).equals('unstakefio');  
+        
+      }catch(err){
+        console.log(err);
+        expect(err).to.equal(null);
+      }
+    })
 /*
 list of items for relic yet to be tested.
-Trnsloctoks
+
 Transfer
 Issue
 Wraptokens
-Stakefio
 Retire
-Unstakefio
 Regdomain
 Renewdomain
 Xferdomain
