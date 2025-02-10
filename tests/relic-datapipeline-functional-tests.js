@@ -12,7 +12,7 @@ require('mocha')
 //NOTE -- to run these tests do npm install pg first.
 const { Client } = require('pg');
 const {expect} = require('chai')
-const {newUser, createKeypair, fetchJson, timeout, callFioApi} = require('../utils.js');
+const {newUser, existingUser, createKeypair, fetchJson, timeout, callFioApi} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 let client;
@@ -410,12 +410,88 @@ await timeout(2000)
         expect(err).to.equal(null);
       }
     })
+
+    it(`retire tokens verify tokentransfers contents`, async function () {
+      try {
+        let userA1 = await newUser(faucet);
+        const result = await userA1.sdk.genericAction('pushTransaction', {
+          action: 'retire',
+          account: 'fio.token',
+          data: {
+            quantity: 1000000000000,
+            memo: "edtst",
+            actor: userA1.account,
+          }
+        });
+        expect(result.status).to.equal('OK');
+
+        await timeout(2000)
+
+        const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'' + userA1.account + '\'';
+        const resAccounts = await client.query(qstrAccounts);
+
+        console.log("retire verify one row returned from accounts");
+        expect(resAccounts.rowCount).to.equal(1);
+        console.log("retire verify account name returned");
+        expect(resAccounts.rows[0].account_name).equals(userA1.account);
+
+        const qstrEmptyAccounts = 'SELECT * FROM accounts WHERE account_name = \'\'';
+        const resEmptyAccounts = await client.query(qstrEmptyAccounts);
+
+        console.log("retire verify one row returned from accounts");
+        expect(resEmptyAccounts.rowCount).to.equal(1);
+        console.log("retire verify account name returned");
+        expect(resEmptyAccounts.rows[0].account_name).equals('');
+
+        //token transfers
+        const qstrTokTrans = 'SELECT * FROM tokentransfers WHERE fk_payer_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND token_transfer_type = \'retire\'' ;
+        const resTokTrans = await client.query(qstrTokTrans);
+
+        console.log("retire verify one row returned from tokentransfers");
+        expect(resTokTrans.rowCount).to.equal(1);
+        console.log("retire verify tokentransfers payee account name returned");
+        expect(resTokTrans.rows[0].fk_payee_account_id).equals(resEmptyAccounts.rows[0].pk_account_id);
+        console.log("retire verify tokentransfers suf amount");
+        expect(resTokTrans.rows[0].fio_suf_amount).equals('1000000000000');
+        console.log("retire verify tokentransfers memo");
+        expect(resTokTrans.rows[0].transfer_memo).equals('edtst');
+        
+
+        //block info
+        const qstrBlocks = 'SELECT * FROM blocks WHERE pk_block_number = ' + resTokTrans.rows[0].fk_block_number ;
+        const resBlocks = await client.query(qstrBlocks);
+        console.log("retire verify one row returned from blocks");
+        expect(resBlocks.rowCount).to.equal(1);
+        console.log("retire verify timestamp from blocks");
+        expect(resBlocks.rows[0].stamp.getTime()).to.equal(resTokTrans.rows[0].block_timestamp.getTime());
+
+                  
+        //transaction info
+        const qstrTransactions = 'SELECT * FROM transactions WHERE fk_block_number = ' + resTokTrans.rows[0].fk_block_number ;
+        const resTransactions = await client.query(qstrTransactions);
+        //console.log(resTransactions);
+        console.log("retire verify one row returned from transactions");
+        expect(resTransactions.rowCount).to.equal(1);
+        console.log("retire verify timestamp from transactions");
+        expect(resTransactions.rows[0].block_timestamp.getTime()).to.equal(resBlocks.rows[0].stamp.getTime());
+        console.log("retire verify that the transaction request_data contains userA1.account");
+        expect(resTransactions.rows[0].request_data).contains(userA1.account);
+        console.log("retire verify that the transaction request_data contains amount used");
+        expect(resTransactions.rows[0].request_data).contains('1000000000000');
+        console.log("retire verify that the transaction action_name contains retire");
+        expect(resTransactions.rows[0].action_name).equals('retire');  
+
+      } catch (err) {
+        console.log(err);
+        expect(err).to.equal(null);
+      }
+    });
+    
+  
 /*
 list of items for relic yet to be tested.
 
-Transfer
-Issue
-Wraptokens
+
 Retire
 Regdomain
 Renewdomain
@@ -441,6 +517,10 @@ cancelfndreq
 recordobt
 Burn domain (domains table delta)
 Burn address (fionames table delta)
+
+Transfer
+Issue
+Wraptokens
 
 */
 
