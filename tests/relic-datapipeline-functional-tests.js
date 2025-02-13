@@ -340,6 +340,8 @@ await timeout(2000)
 
     it(`unstakefio trigger tokenstaking contents`, async () => {
       try {
+        
+await timeout(2000); //make sure it goes into a distinct block
 
         const result = await userstake.sdk.genericAction('pushTransaction', {
           action: 'unstakefio',
@@ -1099,7 +1101,7 @@ it(`regaddress, actor is owner, verify handles, domainactivities accountactiviti
     expect(resTransactions.rows[0].request_data).contains(userA1.address1);
     console.log("regaddress verify that the transaction action_name contains regaddress");
     expect(resTransactions.rows[0].action_name).equals('regaddress');  
-    console.log("regaddress verify that the domainactivity transaction id contains regaddress");
+    console.log("regaddress verify that the handleactivities transaction id contains regaddress");
     expect(resTransactions.rows[0].pk_transaction_id).equals(resHandleActivities.rows[0].fk_transaction_id);  
 
     const qstrAccountActivities = 'SELECT * FROM accountactivities WHERE fk_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND fk_block_number = ' + resHandles.rows[0].fk_block_number +
@@ -1207,7 +1209,7 @@ it(`regaddress, actor is not owner, verify handles, domainactivities accountacti
     expect(resTransactions.rows[0].request_data).contains(userA2.address1);
     console.log("regaddress verify that the transaction action_name contains regaddress");
     expect(resTransactions.rows[0].action_name).equals('regaddress');  
-    console.log("regaddress verify that the domainactivity transaction id contains regaddress");
+    console.log("regaddress verify that the handleactivities transaction id contains regaddress");
     expect(resTransactions.rows[0].pk_transaction_id).equals(resHandleActivities.rows[0].fk_transaction_id);  
 
     const qstrAccountActivities = 'SELECT * FROM accountactivities WHERE fk_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND fk_block_number = ' + resHandles.rows[0].fk_block_number +
@@ -1311,7 +1313,7 @@ it(`renewaddress,  verify handles, handleacitivity contents`, async function () 
     expect(resTransactions.rows[0].request_data).contains(userC1.domain);
     console.log("renewaddress verify that the transaction action_name contains renewaddress");
     expect(resTransactions.rows[0].action_name).equals('renewaddress');  
-    console.log("renewaddress verify that the domainactivity transaction id contains renewaddress");
+    console.log("renewaddress verify that the handleactivities transaction id contains renewaddress");
     expect(resTransactions.rows[0].pk_transaction_id).equals(resHandleActivities.rows[0].fk_transaction_id);  
 
   } catch (err) {
@@ -1320,10 +1322,38 @@ it(`renewaddress,  verify handles, handleacitivity contents`, async function () 
   }
 });   
 
-it(`xferaddress, verify domains, domainactivities accountactivities contents`, async function () {
+it.only(`xferaddress, verify domains, domainactivities accountactivities contents`, async function () {
   try {
     let userC1 = await newUser(faucet);
     let userC2 = await newUser(faucet);
+
+    const qstrAccountsbefore = 'SELECT * FROM accounts WHERE account_name = \'' + userC1.account + '\'';
+    const resAccountsbefore = await client.query(qstrAccountsbefore);
+
+    console.log("xferaddress verify one row returned from accounts");
+    expect(resAccountsbefore.rowCount).to.equal(1);
+    console.log("xferaddress verify account name returned");
+    expect(resAccountsbefore.rows[0].account_name).equals(userC1.account);
+
+    const qstrHandlesbefore = 'SELECT * FROM handles WHERE fk_owner_account_id = ' + resAccountsbefore.rows[0].pk_account_id + ' AND handle = \'' + userC1.address + '\'' ;
+    const resHandlesbefore = await client.query(qstrHandlesbefore);
+
+    console.log("xferaddress verify one row returned from domains");
+    expect(resHandlesbefore.rowCount).to.equal(1);
+    console.log("xferaddress verify domains owner account returned");
+    expect(resHandlesbefore.rows[0].fk_owner_account_id).equals(resAccountsbefore.rows[0].pk_account_id);
+    console.log("xferaddress verify domain_status ");
+    expect(resHandlesbefore.rows[0].handle_status).equals('active');
+
+     //check pub addresses, see that only one FIO pub address is present after trnsfer
+     const qstrPubAddressesbefore = 'SELECT * FROM pubaddresses WHERE fk_handle_id = ' + resHandlesbefore.rows[0].pk_handle_id +
+     ' AND chain_code = \'FIO\'' ;
+     const resPubAddressesbefore = await client.query(qstrPubAddressesbefore);
+     //console.log(resPubAddresses);
+     console.log("addaddress verify 1 row returned from pubaddresses");
+     expect(resPubAddressesbefore.rowCount).to.equal(1);
+    console.log("addaddress verify one row returned from pubaddresses");
+     expect(resPubAddressesbefore.rows[0].token_code).to.equal('FIO');
     
     const result = await userC1.sdk.genericAction('transferFioAddress', {
       fioAddress: userC1.address,
@@ -1337,6 +1367,7 @@ it(`xferaddress, verify domains, domainactivities accountactivities contents`, a
 
     await timeout(2000)
 
+    
     const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'' + userC2.account + '\'';
     const resAccounts = await client.query(qstrAccounts);
 
@@ -1344,7 +1375,6 @@ it(`xferaddress, verify domains, domainactivities accountactivities contents`, a
     expect(resAccounts.rowCount).to.equal(1);
     console.log("xferaddress verify account name returned");
     expect(resAccounts.rows[0].account_name).equals(userC2.account);
-
     
     const qstrHandles = 'SELECT * FROM handles WHERE fk_owner_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND handle = \'' + userC1.address + '\'' ;
     const resHandles = await client.query(qstrHandles);
@@ -1389,7 +1419,7 @@ it(`xferaddress, verify domains, domainactivities accountactivities contents`, a
     expect(resTransactions.rows[0].request_data).contains(userC1.address);
     console.log("xferaddress verify that the transaction action_name contains xferaddress");
     expect(resTransactions.rows[0].action_name).equals('xferaddress');  
-    console.log("xferaddress verify that the domainactivity transaction id contains xferaddress");
+    console.log("xferaddress verify that the handleactivities transaction id contains xferaddress");
     expect(resTransactions.rows[0].pk_transaction_id).equals(resHandleActivities.rows[0].fk_transaction_id);  
 
     const qstrAccountActivities = 'SELECT * FROM accountactivities WHERE fk_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND fk_block_number = ' + resHandleActivities.rows[0].fk_block_number +
@@ -1402,12 +1432,429 @@ it(`xferaddress, verify domains, domainactivities accountactivities contents`, a
     console.log("xferaddress verify AccountActivities activity type");
     expect(resAccountActivities.rows[0].activity_type).equals('receiver');
 
+     //check pub addresses, see that only one FIO pub address is present after trnsfer
+     const qstrPubAddresses = 'SELECT * FROM pubaddresses WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id +
+     ' AND chain_code = \'FIO\'' ;
+     const resPubAddresses = await client.query(qstrPubAddresses);
+     //console.log(resPubAddresses);
+     console.log("addaddress verify 1 row returned from pubaddresses");
+     expect(resPubAddresses.rowCount).to.equal(1);
+       console.log("addaddress verify one row returned from pubaddresses");
+     expect(resPubAddresses.rows[0].token_code).to.equal('FIO');
+     console.log("addaddress verify FIO pubaddress pubaddresses");
+     expect(resPubAddresses.rows[0].pub_address).to.equal(userC2.publicKey);
   } catch (err) {
     console.log(err);
     expect(err).to.equal(null);
   }
 });
 
+it(`addbundles,  verify handles, handleacitivity contents`, async function () {
+  try {
+    let userC1 = await newUser(faucet);
+
+    await timeout(2000)
+
+
+    const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'' + userC1.account + '\'';
+    const resAccounts = await client.query(qstrAccounts);
+
+    console.log("addbundles verify one row returned from accounts");
+    expect(resAccounts.rowCount).to.equal(1);
+    console.log("addbundles verify account name returned");
+    expect(resAccounts.rows[0].account_name).equals(userC1.account);
+
+
+    const qstrHandlesbefore = 'SELECT * FROM handles WHERE fk_owner_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND handle = \'' + userC1.address + '\'' ;
+    const resHandlesbefore = await client.query(qstrHandlesbefore);
+    console.log("addbundles verify one row returned from Handles");
+    expect(resHandlesbefore.rowCount).to.equal(1);
+
+    const result = await userC1.sdk.genericAction('pushTransaction', {
+      action: 'addbundles',
+      account: 'fio.address',
+      data: {
+          fio_address: userC1.address,
+          bundle_sets: 1,
+          max_fee: 400000000000,
+          technologyProviderId: ''
+      }
+    })
+    feeCollected = result.fee_collected;
+    //console.log('Result: ', result);
+    expect(result.status).to.equal('OK');
+
+    await timeout(2000)
+
+    const qstrHandles = 'SELECT * FROM handles WHERE fk_owner_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND handle = \'' + userC1.address + '\'' ;
+    const resHandles = await client.query(qstrHandles);
+
+    console.log("addbundles verify one row returned from Handles");
+    expect(resHandles.rowCount).to.equal(1);
+    console.log("addbundles verify Handles owner account returned");
+    expect(resHandles.rows[0].fk_owner_account_id).equals(resAccounts.rows[0].pk_account_id);
+    console.log("addbundles verify Handles status returned");
+    expect(resHandles.rows[0].handle_status).equals('active');
+    console.log("addbundles verify Handles expiration returned");
+    expect(resHandles.rows[0].expiration_stamp.getTime()).equals(resHandlesbefore.rows[0].expiration_stamp.getTime());
+    console.log("addbundles verify Handles bundled_tx_count returned");
+    expect(resHandles.rows[0].bundled_tx_count).equals(resHandlesbefore.rows[0].bundled_tx_count + 100);
+
+    const qstrHandleActivities = 'SELECT * FROM handleactivities WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id + ' AND handle_activity_type = \'add_bundles\'';
+    const resHandleActivities = await client.query(qstrHandleActivities);
+
+    console.log("addbundles verify one row returned from handleactivities");
+    expect(resHandleActivities.rowCount).to.equal(1);
+   console.log("addbundles verify handleactivities activity type");
+    expect(resHandleActivities.rows[0].handle_activity_type).equals('add_bundles');
+
+
+    //block info
+    const qstrBlocks = 'SELECT * FROM blocks WHERE pk_block_number = ' + resHandleActivities.rows[0].fk_block_number ;
+    const resBlocks = await client.query(qstrBlocks);
+    console.log("addbundles verify one row returned from blocks");
+    expect(resBlocks.rowCount).to.equal(1);
+    console.log("addbundles verify timestamp from blocks");
+    expect(resBlocks.rows[0].stamp.getTime()).to.equal(resHandleActivities.rows[0].block_timestamp.getTime());
+
+    
+              
+    //transaction info
+    const qstrTransactions = 'SELECT * FROM transactions WHERE fk_block_number = ' + resHandleActivities.rows[0].fk_block_number ;
+    const resTransactions = await client.query(qstrTransactions);
+    // console.log(resTransactions);
+    console.log("addbundles verify one row returned from transactions");
+    expect(resTransactions.rowCount).to.equal(1);
+    console.log("addbundles verify timestamp from transactions");
+    expect(resTransactions.rows[0].block_timestamp.getTime()).to.equal(resBlocks.rows[0].stamp.getTime());
+    console.log("addbundles verify that the transaction request_data contains userA1.account");
+    expect(resTransactions.rows[0].request_data).contains(userC1.account);
+    console.log("addbundles verify that the transaction request_data contains domain name");
+    expect(resTransactions.rows[0].request_data).contains(userC1.domain);
+    console.log("addbundles verify that the transaction action_name contains addbundles");
+    expect(resTransactions.rows[0].action_name).equals('addbundles');  
+    console.log("addbundles verify that the handleacitvities transaction id");
+    expect(resTransactions.rows[0].pk_transaction_id).equals(resHandleActivities.rows[0].fk_transaction_id);  
+
+  } catch (err) {
+    console.log(err);
+    expect(err).to.equal(null);
+  }
+});  
+
+it(`addaddress, set fio pub key, verify handles, handleacitivity contents`, async function () {
+  try {
+    let userC1 = await newUser(faucet);
+
+    await timeout(2000)
+
+
+    const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'' + userC1.account + '\'';
+    const resAccounts = await client.query(qstrAccounts);
+
+    console.log("addaddress verify one row returned from accounts");
+    expect(resAccounts.rowCount).to.equal(1);
+    console.log("addaddress verify account name returned");
+    expect(resAccounts.rows[0].account_name).equals(userC1.account);
+
+    const qstrHandlesbefore = 'SELECT * FROM handles WHERE fk_owner_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND handle = \'' + userC1.address + '\'' ;
+    const resHandlesbefore = await client.query(qstrHandlesbefore);
+    console.log("addaddress verify one row returned from Handles");
+    expect(resHandlesbefore.rowCount).to.equal(1);
+
+    const result = await userC1.sdk.genericAction('pushTransaction', {
+      action: 'addaddress',
+      account: 'fio.address',
+      data: {
+        fio_address: userC1.address,
+        public_addresses:[
+          {
+            chain_code: 'BCH',
+            token_code: 'BCH',
+            public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+          },
+          {
+            chain_code: 'FIO',
+            token_code: 'FIO',
+            public_address: 'XyCyPKzTWvW2XdcYjPaPXGQDCGk946ywEv',
+          }
+        ],
+        max_fee: config.maxFee,
+        tpid: '',
+        actor: userC1.account
+      }
+    })
+    expect(result.status).to.equal('OK');
+
+    await timeout(2000)
+
+    const qstrHandles = 'SELECT * FROM handles WHERE fk_owner_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND handle = \'' + userC1.address + '\'' ;
+    const resHandles = await client.query(qstrHandles);
+
+    console.log("addaddress verify one row returned from Handles");
+    expect(resHandles.rowCount).to.equal(1);
+    console.log("addaddress verify Handles owner account returned");
+    expect(resHandles.rows[0].fk_owner_account_id).equals(resAccounts.rows[0].pk_account_id);
+    console.log("addaddress verify Handles status returned");
+    expect(resHandles.rows[0].handle_status).equals('active');
+    console.log("addaddress verify Handles expiration returned");
+    expect(resHandles.rows[0].expiration_stamp.getTime()).equals(resHandlesbefore.rows[0].expiration_stamp.getTime());
+    console.log("addaddress verify Handles expiration returned");
+    expect(resHandles.rows[0].expiration_stamp.getTime()).equals(resHandlesbefore.rows[0].expiration_stamp.getTime());
+    console.log("addaddress verify Handles encrypt key set is false returned");
+    expect(resHandles.rows[0].is_encrypt_key_set).equals(false);
+    console.log("addaddress verify Handles encrypt key returned");
+    expect(resHandles.rows[0].encryption_key).equals('XyCyPKzTWvW2XdcYjPaPXGQDCGk946ywEv');
+    
+
+    const qstrHandleActivities = 'SELECT * FROM handleactivities WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id + ' AND handle_activity_type = \'add_pubadd\'';
+    const resHandleActivities = await client.query(qstrHandleActivities);
+
+    console.log("addaddress verify 2 row returned from handleactivities");
+    expect(resHandleActivities.rowCount).to.equal(2);
+   console.log("addaddress verify handleactivities activity type");
+    expect(resHandleActivities.rows[0].handle_activity_type).equals('add_pubadd');
+
+
+    //block info
+    const qstrBlocks = 'SELECT * FROM blocks WHERE pk_block_number = ' + resHandleActivities.rows[0].fk_block_number ;
+    const resBlocks = await client.query(qstrBlocks);
+    console.log("addaddress verify one row returned from blocks");
+    expect(resBlocks.rowCount).to.equal(1);
+   
+    
+              
+    //transaction info
+    const qstrTransactions = 'SELECT * FROM transactions WHERE fk_block_number = ' + resHandleActivities.rows[0].fk_block_number ;
+    const resTransactions = await client.query(qstrTransactions);
+    // console.log(resTransactions);
+    console.log("addaddress verify one row returned from transactions");
+    expect(resTransactions.rowCount).to.equal(1);
+    console.log("addaddress verify timestamp from transactions");
+    expect(resTransactions.rows[0].block_timestamp.getTime()).to.equal(resBlocks.rows[0].stamp.getTime());
+    console.log("addaddress verify that the transaction request_data contains userA1.account");
+    expect(resTransactions.rows[0].request_data).contains(userC1.account);
+    console.log("addaddress verify that the transaction request_data contains domain name");
+    expect(resTransactions.rows[0].request_data).contains(userC1.domain);
+    console.log("addaddress verify that the transaction action_name contains addaddress");
+    expect(resTransactions.rows[0].action_name).equals('addaddress');  
+    
+  } catch (err) {
+    console.log(err);
+    expect(err).to.equal(null);
+  }
+});  
+
+it(`addaddress, set fio pub key using *, verify handles, handleacitivity contents`, async function () {
+  try {
+    let userC1 = await newUser(faucet);
+
+    await timeout(2000)
+
+
+    const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'' + userC1.account + '\'';
+    const resAccounts = await client.query(qstrAccounts);
+
+    console.log("addaddress verify one row returned from accounts");
+    expect(resAccounts.rowCount).to.equal(1);
+    console.log("addaddress verify account name returned");
+    expect(resAccounts.rows[0].account_name).equals(userC1.account);
+
+    const qstrHandlesbefore = 'SELECT * FROM handles WHERE fk_owner_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND handle = \'' + userC1.address + '\'' ;
+    const resHandlesbefore = await client.query(qstrHandlesbefore);
+    console.log("addaddress verify one row returned from Handles");
+    expect(resHandlesbefore.rowCount).to.equal(1);
+
+    const result = await userC1.sdk.genericAction('pushTransaction', {
+      action: 'addaddress',
+      account: 'fio.address',
+      data: {
+        fio_address: userC1.address,
+        public_addresses:[
+          {
+            chain_code: 'BCH',
+            token_code: 'BCH',
+            public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+          },
+          {
+            chain_code: 'FIO',
+            token_code: '*',
+            public_address: 'XyCyPKzTWvW2XdcYjPaPXGQDCGk946ywEv',
+          }
+        ],
+        max_fee: config.maxFee,
+        tpid: '',
+        actor: userC1.account
+      }
+    })
+    expect(result.status).to.equal('OK');
+
+    await timeout(2000)
+
+    const qstrHandles = 'SELECT * FROM handles WHERE fk_owner_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND handle = \'' + userC1.address + '\'' ;
+    const resHandles = await client.query(qstrHandles);
+
+    console.log("addaddress verify one row returned from Handles");
+    expect(resHandles.rowCount).to.equal(1);
+    console.log("addaddress verify Handles owner account returned");
+    expect(resHandles.rows[0].fk_owner_account_id).equals(resAccounts.rows[0].pk_account_id);
+    console.log("addaddress verify Handles status returned");
+    expect(resHandles.rows[0].handle_status).equals('active');
+    console.log("addaddress verify Handles expiration returned");
+    expect(resHandles.rows[0].expiration_stamp.getTime()).equals(resHandlesbefore.rows[0].expiration_stamp.getTime());
+    console.log("addaddress verify Handles expiration returned");
+    expect(resHandles.rows[0].expiration_stamp.getTime()).equals(resHandlesbefore.rows[0].expiration_stamp.getTime());
+    console.log("addaddress verify Handles encrypt key set is false returned");
+    expect(resHandles.rows[0].is_encrypt_key_set).equals(false);
+    console.log("regadaddaddressdress verify Handles encrypt key returned");
+    expect(resHandles.rows[0].encryption_key).equals('XyCyPKzTWvW2XdcYjPaPXGQDCGk946ywEv');
+    
+
+    const qstrHandleActivities = 'SELECT * FROM handleactivities WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id + ' AND handle_activity_type = \'add_pubadd\'';
+    const resHandleActivities = await client.query(qstrHandleActivities);
+
+    console.log("addaddress verify 2 row returned from handleactivities");
+    expect(resHandleActivities.rowCount).to.equal(2);
+   console.log("addaddress verify handleactivities activity type");
+    expect(resHandleActivities.rows[0].handle_activity_type).equals('add_pubadd');
+
+
+    //block info
+    const qstrBlocks = 'SELECT * FROM blocks WHERE pk_block_number = ' + resHandleActivities.rows[0].fk_block_number ;
+    const resBlocks = await client.query(qstrBlocks);
+    console.log("addaddress verify one row returned from blocks");
+    expect(resBlocks.rowCount).to.equal(1);
+   
+    
+              
+    //transaction info
+    const qstrTransactions = 'SELECT * FROM transactions WHERE fk_block_number = ' + resHandleActivities.rows[0].fk_block_number ;
+    const resTransactions = await client.query(qstrTransactions);
+    // console.log(resTransactions);
+    console.log("addaddress verify one row returned from transactions");
+    expect(resTransactions.rowCount).to.equal(1);
+    console.log("addaddress verify timestamp from transactions");
+    expect(resTransactions.rows[0].block_timestamp.getTime()).to.equal(resBlocks.rows[0].stamp.getTime());
+    console.log("addaddress verify that the transaction request_data contains userA1.account");
+    expect(resTransactions.rows[0].request_data).contains(userC1.account);
+    console.log("addaddress verify that the transaction request_data contains domain name");
+    expect(resTransactions.rows[0].request_data).contains(userC1.domain);
+    console.log("addaddress verify that the transaction action_name contains addaddress");
+    expect(resTransactions.rows[0].action_name).equals('addaddress');  
+    
+    //check pub addresses, see that only one FIO pub address is present
+    const qstrPubAddresses = 'SELECT * FROM pubaddresses WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id +
+    ' AND chain_code = \'FIO\'' ;
+    const resPubAddresses = await client.query(qstrPubAddresses);
+   // console.log(resPubAddresses);
+    console.log("addaddress verify 2 row returned from pubaddresses");
+    expect(resPubAddresses.rowCount).to.equal(2);
+    //TODO we have both token FIO and token * in the pub addresses table for chain FIO.
+    console.log("addaddress verify one row returned from pubaddresses");
+    expect(resPubAddresses.rows[1].token_code).to.equal('*');
+  } catch (err) {
+    console.log(err);
+    expect(err).to.equal(null);
+  }
+});  
+
+it(`addaddress, do not set fio pub key, verify handles, handleacitivity contents`, async function () {
+  try {
+    let userC1 = await newUser(faucet);
+
+    await timeout(2000)
+
+
+    const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'' + userC1.account + '\'';
+    const resAccounts = await client.query(qstrAccounts);
+
+    console.log("addaddress verify one row returned from accounts");
+    expect(resAccounts.rowCount).to.equal(1);
+    console.log("addaddress verify account name returned");
+    expect(resAccounts.rows[0].account_name).equals(userC1.account);
+
+    const qstrHandlesbefore = 'SELECT * FROM handles WHERE fk_owner_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND handle = \'' + userC1.address + '\'' ;
+    const resHandlesbefore = await client.query(qstrHandlesbefore);
+    console.log("addaddress verify one row returned from Handles");
+    expect(resHandlesbefore.rowCount).to.equal(1);
+
+    const result = await userC1.sdk.genericAction('pushTransaction', {
+      action: 'addaddress',
+      account: 'fio.address',
+      data: {
+        fio_address: userC1.address,
+        public_addresses:[
+          {
+            chain_code: 'BCH',
+            token_code: 'BCH',
+            public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+          }
+        ],
+        max_fee: config.maxFee,
+        tpid: '',
+        actor: userC1.account
+      }
+    })
+    expect(result.status).to.equal('OK');
+
+    await timeout(2000)
+
+    const qstrHandles = 'SELECT * FROM handles WHERE fk_owner_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND handle = \'' + userC1.address + '\'' ;
+    const resHandles = await client.query(qstrHandles);
+
+    console.log("addaddress verify one row returned from Handles");
+    expect(resHandles.rowCount).to.equal(1);
+    console.log("addaddress verify Handles owner account returned");
+    expect(resHandles.rows[0].fk_owner_account_id).equals(resAccounts.rows[0].pk_account_id);
+    console.log("addaddress verify Handles status returned");
+    expect(resHandles.rows[0].handle_status).equals('active');
+    console.log("addaddress verify Handles expiration returned");
+    expect(resHandles.rows[0].expiration_stamp.getTime()).equals(resHandlesbefore.rows[0].expiration_stamp.getTime());
+    console.log("addaddress verify Handles expiration returned");
+    expect(resHandles.rows[0].expiration_stamp.getTime()).equals(resHandlesbefore.rows[0].expiration_stamp.getTime());
+    console.log("addaddress verify Handles encrypt key set is false returned");
+    expect(resHandles.rows[0].is_encrypt_key_set).equals(false);
+    console.log("addaddress verify Handles encrypt key returned");
+    expect(resHandles.rows[0].encryption_key).equals(resHandlesbefore.rows[0].encryption_key);
+    
+    const qstrHandleActivities = 'SELECT * FROM handleactivities WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id + ' AND handle_activity_type = \'add_pubadd\'';
+    const resHandleActivities = await client.query(qstrHandleActivities);
+
+    console.log("addaddress verify 1 row returned from handleactivities");
+    expect(resHandleActivities.rowCount).to.equal(1);
+   console.log("addaddress verify handleactivities activity type");
+    expect(resHandleActivities.rows[0].handle_activity_type).equals('add_pubadd');
+
+
+    //block info
+    const qstrBlocks = 'SELECT * FROM blocks WHERE pk_block_number = ' + resHandleActivities.rows[0].fk_block_number ;
+    const resBlocks = await client.query(qstrBlocks);
+    console.log("addaddress verify one row returned from blocks");
+    expect(resBlocks.rowCount).to.equal(1);
+   
+    
+              
+    //transaction info
+    const qstrTransactions = 'SELECT * FROM transactions WHERE fk_block_number = ' + resHandleActivities.rows[0].fk_block_number ;
+    const resTransactions = await client.query(qstrTransactions);
+    // console.log(resTransactions);
+    console.log("addaddress verify one row returned from transactions");
+    expect(resTransactions.rowCount).to.equal(1);
+    console.log("addaddress verify timestamp from transactions");
+    expect(resTransactions.rows[0].block_timestamp.getTime()).to.equal(resBlocks.rows[0].stamp.getTime());
+    console.log("addaddress verify that the transaction request_data contains userA1.account");
+    expect(resTransactions.rows[0].request_data).contains(userC1.account);
+    console.log("addaddress verify that the transaction request_data contains domain name");
+    expect(resTransactions.rows[0].request_data).contains(userC1.domain);
+
+    console.log("addaddress verify that the transaction action_name contains addaddress");
+    expect(resTransactions.rows[0].action_name).equals('addaddress');  
+    
+  } catch (err) {
+    console.log(err);
+    expect(err).to.equal(null);
+  }
+}); 
 
 
 /*
