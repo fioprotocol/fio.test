@@ -1322,7 +1322,7 @@ it(`renewaddress,  verify handles, handleacitivity contents`, async function () 
   }
 });   
 
-it.only(`xferaddress, verify domains, domainactivities accountactivities contents`, async function () {
+it(`xferaddress, verify domains, domainactivities accountactivities contents`, async function () {
   try {
     let userC1 = await newUser(faucet);
     let userC2 = await newUser(faucet);
@@ -1856,16 +1856,230 @@ it(`addaddress, do not set fio pub key, verify handles, handleacitivity contents
   }
 }); 
 
+it(`remaddress, set fio pub key using *, verify handles, handleacitivity contents`, async function () {
+  try {
+    let userC1 = await newUser(faucet);
+
+    await timeout(2000)
+
+
+    const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'' + userC1.account + '\'';
+    const resAccounts = await client.query(qstrAccounts);
+
+    console.log("remaddress verify one row returned from accounts");
+    expect(resAccounts.rowCount).to.equal(1);
+    console.log("remaddress verify account name returned");
+    expect(resAccounts.rows[0].account_name).equals(userC1.account);
+
+    const result = await userC1.sdk.genericAction('pushTransaction', {
+      action: 'remaddress',
+      account: 'fio.address',
+      data: {
+        fio_address: userC1.address,
+        public_addresses:[
+          {
+            chain_code: 'BCH',
+            token_code: 'BCH',
+            public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+          },
+          {
+            chain_code: 'FIO',
+            token_code: '*',
+            public_address: 'XyCyPKzTWvW2XdcYjPaPXGQDCGk946ywEv',
+          }
+        ],
+        max_fee: config.maxFee,
+        tpid: '',
+        actor: userC1.account
+      }
+    })
+    expect(result.status).to.equal('OK');
+
+    await timeout(2000)
+
+    const result1 = await userC1.sdk.genericAction('pushTransaction', {
+      action: 'remaddress',
+      account: 'fio.address',
+      data: {
+        "fio_address": userC1.address,
+        "public_addresses": [
+          {
+            chain_code: 'BCH',
+            token_code: 'BCH',
+            public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+          },
+          {
+            chain_code: 'FIO',
+            token_code: '*',
+            public_address: 'XyCyPKzTWvW2XdcYjPaPXGQDCGk946ywEv',
+          }
+        ],
+        "max_fee": 400000000000,
+        "tpid": '',
+        "actor": userC1.account
+      }
+    })
+    expect(result1.status).to.equal('OK');
+
+    await timeout(2000);
+
+    const qstrHandles = 'SELECT * FROM handles WHERE fk_owner_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND handle = \'' + userC1.address + '\'' ;
+    const resHandles = await client.query(qstrHandles);
+
+    console.log("remaddress verify one row returned from Handles");
+    expect(resHandles.rowCount).to.equal(1);
+   
+    const qstrHandleActivities = 'SELECT * FROM handleactivities WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id + ' AND handle_activity_type = \'rem_pubadd\'';
+    const resHandleActivities = await client.query(qstrHandleActivities);
+
+    console.log("remaddress verify 2 row returned from handleactivities");
+    expect(resHandleActivities.rowCount).to.equal(2);
+    
+
+    //block info
+    const qstrBlocks = 'SELECT * FROM blocks WHERE pk_block_number = ' + resHandleActivities.rows[0].fk_block_number ;
+    const resBlocks = await client.query(qstrBlocks);
+    console.log("remaddress verify one row returned from blocks");
+    expect(resBlocks.rowCount).to.equal(1);
+   
+    
+              
+    //transaction info
+    const qstrTransactions = 'SELECT * FROM transactions WHERE fk_block_number = ' + resHandleActivities.rows[0].fk_block_number ;
+    const resTransactions = await client.query(qstrTransactions);
+    // console.log(resTransactions);
+    console.log("remaddress verify one row returned from transactions");
+    expect(resTransactions.rowCount).to.equal(1);
+    console.log("remaddress verify timestamp from transactions");
+    expect(resTransactions.rows[0].block_timestamp.getTime()).to.equal(resBlocks.rows[0].stamp.getTime());
+    console.log("remaddress verify that the transaction request_data contains userA1.account");
+    expect(resTransactions.rows[0].request_data).contains(userC1.account);
+    console.log("remaddress verify that the transaction request_data contains domain name");
+    expect(resTransactions.rows[0].request_data).contains(userC1.domain);
+    console.log("remaddress verify that the transaction action_name contains remaddress");
+    expect(resTransactions.rows[0].action_name).equals('remaddress');  
+    
+    //check pub addresses, see that only one FIO pub address is present
+    const qstrPubAddresses = 'SELECT * FROM pubaddresses WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id  ;
+    const resPubAddresses = await client.query(qstrPubAddresses);
+   // console.log(resPubAddresses);
+    console.log("remaddress verify 1 row returned from pubaddresses");
+    expect(resPubAddresses.rowCount).to.equal(1);
+     console.log("remaddress verify one row returned from pubaddresses");
+    expect(resPubAddresses.rows[0].token_code).not.equal('*');
+  } catch (err) {
+    console.log(err);
+    expect(err).to.equal(null);
+  }
+});  
+
+it(`remalladdr, set fio pub key using *, verify handles, handleacitivity contents`, async function () {
+  try {
+    let userC1 = await newUser(faucet);
+
+    await timeout(2000)
+
+
+    const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'' + userC1.account + '\'';
+    const resAccounts = await client.query(qstrAccounts);
+
+
+
+    console.log("remaddress verify one row returned from accounts");
+    expect(resAccounts.rowCount).to.equal(1);
+    console.log("remaddress verify account name returned");
+    expect(resAccounts.rows[0].account_name).equals(userC1.account);
+
+    const result = await userC1.sdk.genericAction('pushTransaction', {
+      action: 'addaddress',
+      account: 'fio.address',
+      data: {
+        fio_address: userC1.address,
+        public_addresses:[
+          {
+            chain_code: 'BCH',
+            token_code: 'BCH',
+            public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+          }
+        ],
+        max_fee: config.maxFee,
+        tpid: '',
+        actor: userC1.account
+      }
+    })
+    expect(result.status).to.equal('OK');
+
+    await timeout(2000)
+
+
+    const result1 = await userC1.sdk.genericAction('pushTransaction', {
+      action: 'remalladdr',
+      account: 'fio.address',
+      data: {
+        fio_address: userC1.address,
+        max_fee: config.maxFee,
+        tpid: "",
+        actor: userC1.account
+      }
+    })
+    expect(result1.status).to.equal('OK');
+
+    await timeout(2000);
+
+    const qstrHandles = 'SELECT * FROM handles WHERE fk_owner_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND handle = \'' + userC1.address + '\'' ;
+    const resHandles = await client.query(qstrHandles);
+
+    console.log("remalladdr verify one row returned from Handles");
+    expect(resHandles.rowCount).to.equal(1);
+   
+    const qstrHandleActivities = 'SELECT * FROM handleactivities WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id + ' AND handle_activity_type = \'rem_all_pubadd\'';
+    const resHandleActivities = await client.query(qstrHandleActivities);
+
+    //console.log(qstrHandleActivities);
+    console.log("remalladdr verify 1 row returned from handleactivities");
+    expect(resHandleActivities.rowCount).to.equal(1);
+    
+
+    //block info
+    const qstrBlocks = 'SELECT * FROM blocks WHERE pk_block_number = ' + resHandleActivities.rows[0].fk_block_number ;
+    const resBlocks = await client.query(qstrBlocks);
+    console.log("remalladdr verify one row returned from blocks");
+    expect(resBlocks.rowCount).to.equal(1);
+   
+    
+              
+    //transaction info
+    const qstrTransactions = 'SELECT * FROM transactions WHERE fk_block_number = ' + resHandleActivities.rows[0].fk_block_number ;
+    const resTransactions = await client.query(qstrTransactions);
+    // console.log(resTransactions);
+    console.log("remalladdr verify one row returned from transactions");
+    expect(resTransactions.rowCount).to.equal(1);
+    console.log("remalladdr verify timestamp from transactions");
+    expect(resTransactions.rows[0].block_timestamp.getTime()).to.equal(resBlocks.rows[0].stamp.getTime());
+    console.log("remalladdr verify that the transaction request_data contains userA1.account");
+    expect(resTransactions.rows[0].request_data).contains(userC1.account);
+    console.log("remalladdr verify that the transaction request_data contains domain name");
+    expect(resTransactions.rows[0].request_data).contains(userC1.domain);
+    console.log("remalladdr verify that the transaction action_name contains remalladdr");
+    expect(resTransactions.rows[0].action_name).equals('remalladdr');  
+    
+    //check pub addresses, see that only one FIO pub address is present
+    const qstrPubAddresses = 'SELECT * FROM pubaddresses WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id  ;
+    const resPubAddresses = await client.query(qstrPubAddresses);
+   // console.log(resPubAddresses);
+    console.log("remalladdr verify 0 row returned from pubaddresses");
+    expect(resPubAddresses.rowCount).to.equal(0);
+  } catch (err) {
+    console.log(err);
+    expect(err).to.equal(null);
+  }
+});  
+
+
 
 /*
 list of items for relic yet to be tested.
 
-
-
-Addbundles
-Addaddress
-Remaddress
-remalladdr
 addnft
 remnft
 rmallnfts
