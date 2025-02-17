@@ -253,6 +253,7 @@ await timeout(2000)
 
         userstake = await newUser(faucet);
 
+        await timeout(2000)
         //vote for producers
         let result = await userstake.sdk.genericAction('pushTransaction', {
           action: 'voteproducer',
@@ -266,7 +267,7 @@ await timeout(2000)
         })
         expect(result.status).to.equal('OK')
        
-       
+        await timeout(2000)
        
         result = await userstake.sdk.genericAction('pushTransaction', {
           action: 'stakefio',
@@ -1269,15 +1270,15 @@ it(`renewaddress,  verify handles, handleacitivity contents`, async function () 
     const qstrHandles = 'SELECT * FROM handles WHERE fk_owner_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND handle = \'' + userC1.address + '\'' ;
     const resHandles = await client.query(qstrHandles);
 
-    console.log("regaddress verify one row returned from Handles");
+    console.log("renewaddress verify one row returned from Handles");
     expect(resHandles.rowCount).to.equal(1);
-    console.log("regaddress verify Handles owner account returned");
+    console.log("renewaddress verify Handles owner account returned");
     expect(resHandles.rows[0].fk_owner_account_id).equals(resAccounts.rows[0].pk_account_id);
-    console.log("regaddress verify Handles status returned");
+    console.log("renewaddress verify Handles status returned");
     expect(resHandles.rows[0].handle_status).equals('active');
-    console.log("regaddress verify Handles expiration returned");
+    console.log("renewaddress verify Handles expiration returned");
     expect(resHandles.rows[0].expiration_stamp.getTime()).equals(resHandlesbefore.rows[0].expiration_stamp.getTime());
-    console.log("regaddress verify Handles bundled_tx_count returned");
+    console.log("renewaddress verify Handles bundled_tx_count returned");
     expect(resHandles.rows[0].bundled_tx_count).equals(resHandlesbefore.rows[0].bundled_tx_count + 100);
 
     const qstrHandleActivities = 'SELECT * FROM handleactivities WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id + ' AND handle_activity_type = \'renew\'';
@@ -2298,16 +2299,695 @@ it(`remalladdr, set fio pub key using *, verify handles, handleacitivity content
   }
 });  
 
+it(`addnft, verify handles, handleacitivity, nftsignuatures contents`, async function () {
+  try {
+    let userC1 = await newUser(faucet);
+
+    await timeout(2000)
+
+
+    const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'' + userC1.account + '\'';
+    const resAccounts = await client.query(qstrAccounts);
+
+
+
+    console.log("addnft verify one row returned from accounts");
+    expect(resAccounts.rowCount).to.equal(1);
+    console.log("addnft verify account name returned");
+    expect(resAccounts.rows[0].account_name).equals(userC1.account);
+
+    const result = await userC1.sdk.genericAction('pushTransaction', {
+      action: 'addnft',
+      account: 'fio.address',
+      data: {
+        fio_address: userC1.address,
+        nfts: [{
+            "chain_code":"ETH","contract_address":"0x123456789ABCDEF", "token_id":"1", "url":"", "hash":"","metadata":""
+          }],
+        max_fee: config.maxFee,
+        actor: userC1.account,
+        tpid: ""
+      }
+    })
+    //console.log(`Result: `, result)
+    expect(result.status).to.equal('OK')
+
+    await timeout(2000)
+
+    const qstrHandles = 'SELECT * FROM handles WHERE fk_owner_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND handle = \'' + userC1.address + '\'' ;
+    const resHandles = await client.query(qstrHandles);
+
+    console.log("addnft verify one row returned from Handles");
+    expect(resHandles.rowCount).to.equal(1);
+   
+    const qstrHandleActivities = 'SELECT * FROM handleactivities WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id + ' AND handle_activity_type = \'add_nft\'';
+    const resHandleActivities = await client.query(qstrHandleActivities);
+
+    //console.log(qstrHandleActivities);
+    console.log("addnft verify 1 row returned from handleactivities");
+    expect(resHandleActivities.rowCount).to.equal(1);
+    
+
+    //block info
+    const qstrBlocks = 'SELECT * FROM blocks WHERE pk_block_number = ' + resHandleActivities.rows[0].fk_block_number ;
+    const resBlocks = await client.query(qstrBlocks);
+    console.log("addnft verify one row returned from blocks");
+    expect(resBlocks.rowCount).to.equal(1);
+   
+    
+              
+    //transaction info
+    const qstrTransactions = 'SELECT * FROM transactions WHERE fk_block_number = ' + resHandleActivities.rows[0].fk_block_number ;
+    const resTransactions = await client.query(qstrTransactions);
+    // console.log(resTransactions);
+    console.log("addnft verify one row returned from transactions");
+    expect(resTransactions.rowCount).to.equal(1);
+    console.log("addnft verify timestamp from transactions");
+    expect(resTransactions.rows[0].block_timestamp.getTime()).to.equal(resBlocks.rows[0].stamp.getTime());
+    console.log("addnft verify that the transaction request_data contains userA1.account");
+    expect(resTransactions.rows[0].request_data).contains(userC1.account);
+    console.log("addnft verify that the transaction request_data contains domain name");
+    expect(resTransactions.rows[0].request_data).contains(userC1.domain);
+    console.log("addnft verify that the transaction action_name contains addnft");
+    expect(resTransactions.rows[0].action_name).equals('addnft');  
+    
+    //check pub addresses, see that only one FIO pub address is present
+    const qstrNFTSignatures = 'SELECT * FROM nftsignatures WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id  ;
+    const resNFTSignatures = await client.query(qstrNFTSignatures);
+   // console.log(resNFTSignatures);
+    console.log("addnft verify 1 row returned from nftsignatures");
+    expect(resNFTSignatures.rowCount).to.equal(1);
+    console.log("addnft verify block numberfrom nftsignatures");
+    expect(resNFTSignatures.rows[0].fk_block_number).to.equal(resBlocks.rows[0].pk_block_number);
+    console.log("addnft verify contract address from nftsignatures");
+    expect(resNFTSignatures.rows[0].contract_address).to.equal('0x123456789ABCDEF');
+    console.log("addnft verify chain_code from nftsignatures");
+    expect(resNFTSignatures.rows[0].chain_code).to.equal('ETH');
+    console.log("addnft verify token_id from nftsignatures");
+    expect(resNFTSignatures.rows[0].token_id).to.equal('1');
+    console.log("addnft verify nft_url from nftsignatures");
+    expect(resNFTSignatures.rows[0].nft_url).to.equal('');
+    console.log("addnft verify nft hash from nftsignatures");
+    expect(resNFTSignatures.rows[0].nft_hash).to.equal('');
+    console.log("addnft verify nft meta data from nftsignatures");
+    expect(resNFTSignatures.rows[0].nft_meta_data).to.equal('');
+
+    
+  } catch (err) {
+    console.log(err);
+    expect(err).to.equal(null);
+  }
+});  
+
+
+it(`remnft, verify handles, handleacitivity, nftsignuatures contents`, async function () {
+  try {
+    let userC1 = await newUser(faucet);
+
+    await timeout(2000)
+
+
+    const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'' + userC1.account + '\'';
+    const resAccounts = await client.query(qstrAccounts);
+
+
+
+    console.log("remnft verify one row returned from accounts");
+    expect(resAccounts.rowCount).to.equal(1);
+    console.log("remnft verify account name returned");
+    expect(resAccounts.rows[0].account_name).equals(userC1.account);
+
+    const result = await userC1.sdk.genericAction('pushTransaction', {
+      action: 'addnft',
+      account: 'fio.address',
+      data: {
+        fio_address: userC1.address,
+        nfts: [{
+            "chain_code":"ETH","contract_address":"0x123456789ABCDEF", "token_id":"1", "url":"", "hash":"","metadata":""
+          }],
+        max_fee: config.maxFee,
+        actor: userC1.account,
+        tpid: ""
+      }
+    })
+    //console.log(`Result: `, result)
+    expect(result.status).to.equal('OK')
+
+    await timeout(2000)
+
+    const result1 = await userC1.sdk.genericAction('pushTransaction', {
+      action: 'remnft',
+      account: 'fio.address',
+      data: {
+        fio_address: userC1.address,
+        nfts: [{
+            "chain_code":"ETH","contract_address":"0x123456789ABCDEF", "token_id":"1", "url":"", "hash":"","metadata":""
+          }],
+        max_fee: 500000000000,
+        actor: userC1.account,
+        tpid: ""
+      }
+    })
+    //console.log(`Result: `, result)
+    expect(result1.status).to.equal('OK')
+    await timeout(2000)
+
+    const qstrHandles = 'SELECT * FROM handles WHERE fk_owner_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND handle = \'' + userC1.address + '\'' ;
+    const resHandles = await client.query(qstrHandles);
+
+    console.log("remnft verify one row returned from Handles");
+    expect(resHandles.rowCount).to.equal(1);
+   
+    const qstrHandleActivities = 'SELECT * FROM handleactivities WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id + ' AND handle_activity_type = \'rem_nft\'';
+    const resHandleActivities = await client.query(qstrHandleActivities);
+
+    //console.log(qstrHandleActivities);
+    console.log("remnft verify 1 row returned from handleactivities");
+    expect(resHandleActivities.rowCount).to.equal(1);
+    
+
+    //block info
+    const qstrBlocks = 'SELECT * FROM blocks WHERE pk_block_number = ' + resHandleActivities.rows[0].fk_block_number ;
+    const resBlocks = await client.query(qstrBlocks);
+    console.log("remnft verify one row returned from blocks");
+    expect(resBlocks.rowCount).to.equal(1);
+   
+    
+              
+    //transaction info
+    const qstrTransactions = 'SELECT * FROM transactions WHERE fk_block_number = ' + resHandleActivities.rows[0].fk_block_number ;
+    const resTransactions = await client.query(qstrTransactions);
+    // console.log(resTransactions);
+    console.log("remnft verify one row returned from transactions");
+    expect(resTransactions.rowCount).to.equal(1);
+    console.log("remnft verify timestamp from transactions");
+    expect(resTransactions.rows[0].block_timestamp.getTime()).to.equal(resBlocks.rows[0].stamp.getTime());
+    console.log("remnft verify that the transaction request_data contains userA1.account");
+    expect(resTransactions.rows[0].request_data).contains(userC1.account);
+    console.log("remnft verify that the transaction request_data contains domain name");
+    expect(resTransactions.rows[0].request_data).contains(userC1.domain);
+    console.log("remnft verify that the transaction action_name contains remnft");
+    expect(resTransactions.rows[0].action_name).equals('remnft');  
+    
+    
+    const qstrNFTSignatures = 'SELECT * FROM nftsignatures WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id  ;
+    const resNFTSignatures = await client.query(qstrNFTSignatures);
+   // console.log(resNFTSignatures);
+    console.log("remnft verify 0 row returned from nftsignatures");
+    expect(resNFTSignatures.rowCount).to.equal(0);
+   
+    
+  } catch (err) {
+    console.log(err);
+    expect(err).to.equal(null);
+  }
+});  
+
+it(`remallnft, verify handles, handleacitivity, nftsignuatures contents`, async function () {
+  try {
+    let userC1 = await newUser(faucet);
+
+    await timeout(2000)
+
+
+    const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'' + userC1.account + '\'';
+    const resAccounts = await client.query(qstrAccounts);
+
+
+
+    console.log("remallnfts verify one row returned from accounts");
+    expect(resAccounts.rowCount).to.equal(1);
+    console.log("remallnfts verify account name returned");
+    expect(resAccounts.rows[0].account_name).equals(userC1.account);
+
+    const result = await userC1.sdk.genericAction('pushTransaction', {
+      action: 'addnft',
+      account: 'fio.address',
+      data: {
+        fio_address: userC1.address,
+        nfts: [{
+            "chain_code":"ETH","contract_address":"0x123456789ABCDEF", "token_id":"1", "url":"", "hash":"","metadata":""
+          }],
+        max_fee: config.maxFee,
+        actor: userC1.account,
+        tpid: ""
+      }
+    })
+    //console.log(`Result: `, result)
+    expect(result.status).to.equal('OK')
+
+    await timeout(2000)
+
+    const result2 = await userC1.sdk.genericAction('pushTransaction', {
+      action: 'addnft',
+      account: 'fio.address',
+      data: {
+        fio_address: userC1.address,
+        nfts: [{
+            "chain_code":"ETH","contract_address":"0x12389ABCDEF", "token_id":"1", "url":"", "hash":"","metadata":""
+          }],
+        max_fee: config.maxFee,
+        actor: userC1.account,
+        tpid: ""
+      }
+    })
+    //console.log(`Result: `, result)
+    expect(result2.status).to.equal('OK')
+
+
+    await timeout(2000)
+
+    const result1 = await userC1.sdk.genericAction('pushTransaction', {
+      action: 'remallnfts',
+      account: 'fio.address',
+      data: {
+        fio_address: userC1.address,
+        max_fee: 500000000000,
+        actor: userC1.account,
+        tpid: ""
+      }
+    })
+    //console.log(`Result: `, result)
+    expect(result1.status).to.equal('OK')
+    await timeout(2000)
+
+    const qstrHandles = 'SELECT * FROM handles WHERE fk_owner_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND handle = \'' + userC1.address + '\'' ;
+    const resHandles = await client.query(qstrHandles);
+
+    console.log("remallnfts verify one row returned from Handles");
+    expect(resHandles.rowCount).to.equal(1);
+   
+    const qstrHandleActivities = 'SELECT * FROM handleactivities WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id + ' AND handle_activity_type = \'rem_all_nft\'';
+    const resHandleActivities = await client.query(qstrHandleActivities);
+
+    //console.log(qstrHandleActivities);
+    console.log("remallnfts verify 1 row returned from handleactivities");
+    expect(resHandleActivities.rowCount).to.equal(1);
+    
+
+    //block info
+    const qstrBlocks = 'SELECT * FROM blocks WHERE pk_block_number = ' + resHandleActivities.rows[0].fk_block_number ;
+    const resBlocks = await client.query(qstrBlocks);
+    console.log("remallnfts verify one row returned from blocks");
+    expect(resBlocks.rowCount).to.equal(1);
+   
+    
+              
+    //transaction info
+    const qstrTransactions = 'SELECT * FROM transactions WHERE fk_block_number = ' + resHandleActivities.rows[0].fk_block_number ;
+    const resTransactions = await client.query(qstrTransactions);
+    // console.log(resTransactions);
+    console.log("remallnfts verify one row returned from transactions");
+    expect(resTransactions.rowCount).to.equal(1);
+    console.log("remallnfts verify timestamp from transactions");
+    expect(resTransactions.rows[0].block_timestamp.getTime()).to.equal(resBlocks.rows[0].stamp.getTime());
+    console.log("remallnfts verify that the transaction request_data contains userA1.account");
+    expect(resTransactions.rows[0].request_data).contains(userC1.account);
+    console.log("remallnfts verify that the transaction request_data contains domain name");
+    expect(resTransactions.rows[0].request_data).contains(userC1.domain);
+    console.log("remallnfts verify that the transaction action_name contains remallnfts");
+    expect(resTransactions.rows[0].action_name).equals('remallnfts');  
+    
+    
+    const qstrNFTSignatures = 'SELECT * FROM nftsignatures WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id  ;
+    const resNFTSignatures = await client.query(qstrNFTSignatures);
+   // console.log(resNFTSignatures);
+    console.log("remallnfts verify 0 row returned from nftsignatures");
+    expect(resNFTSignatures.rowCount).to.equal(0);
+   
+    
+  } catch (err) {
+    console.log(err);
+    expect(err).to.equal(null);
+  }
+});  
+
+it(`updcryptkey, verify handles, handleacitivity contents`, async function () {
+  try {
+    let userC1 = await newUser(faucet);
+
+    await timeout(2000)
+
+
+    const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'' + userC1.account + '\'';
+    const resAccounts = await client.query(qstrAccounts);
+
+    console.log("updcryptkey verify one row returned from accounts");
+    expect(resAccounts.rowCount).to.equal(1);
+    console.log("updcryptkey verify account name returned");
+    expect(resAccounts.rows[0].account_name).equals(userC1.account);
+
+    const result = await userC1.sdk.genericAction('pushTransaction', {
+      action: 'addaddress',
+      account: 'fio.address',
+      data: {
+        fio_address: userC1.address,
+        public_addresses:[
+          {
+            chain_code: 'BCH',
+            token_code: 'BCH',
+            public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+          },
+          {
+            chain_code: 'FIO',
+            token_code: '*',
+            public_address: 'XyCyPKzTWvW2XdcYjPaPXGQDCGk946ywEv',
+          }
+        ],
+        max_fee: config.maxFee,
+        tpid: '',
+        actor: userC1.account
+      }
+    })
+    expect(result.status).to.equal('OK');
+
+    await timeout(2000)
+
+   
+    const keypair = await createKeypair();
+
+    const result2 = await userC1.sdk.genericAction('pushTransaction', {
+               action: 'updcryptkey',
+               account: 'fio.address',
+               data: {
+                   fio_address: userC1.address,
+                   encrypt_public_key: keypair.publicKey,
+                   max_fee: config.maxFee,
+                   tpid: ''
+               }
+           })
+    expect(result2.status).to.equal('OK');
+
+    await timeout(2000);
+
+    const qstrHandlesbefore = 'SELECT * FROM handles WHERE fk_owner_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND handle = \'' + userC1.address + '\'' ;
+    const resHandlesbefore = await client.query(qstrHandlesbefore);
+
+    console.log("updcryptkey verify one row returned from Handles");
+    expect(resHandlesbefore.rowCount).to.equal(1);
+
+    const qstrHandles = 'SELECT * FROM handles WHERE fk_owner_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND handle = \'' + userC1.address + '\'' ;
+    const resHandles = await client.query(qstrHandles);
+
+    console.log("updcryptkey verify one row returned from Handles");
+    expect(resHandles.rowCount).to.equal(1);
+    console.log("updcryptkey verify encrypt key unchanged from Handles");
+    expect(resHandles.rows[0].encryption_key).to.equal(keypair.publicKey);
+   
+    const qstrHandleActivities = 'SELECT * FROM handleactivities WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id + ' AND handle_activity_type = \'upd_encryptkey\'';
+    const resHandleActivities = await client.query(qstrHandleActivities);
+
+    console.log("updcryptkey verify 1 row returned from handleactivities");
+    expect(resHandleActivities.rowCount).to.equal(1);
+    
+
+    //block info
+    const qstrBlocks = 'SELECT * FROM blocks WHERE pk_block_number = ' + resHandleActivities.rows[0].fk_block_number ;
+    const resBlocks = await client.query(qstrBlocks);
+    console.log("updcryptkey verify one row returned from blocks");
+    expect(resBlocks.rowCount).to.equal(1);
+   
+    
+              
+    //transaction info
+    const qstrTransactions = 'SELECT * FROM transactions WHERE fk_block_number = ' + resHandleActivities.rows[0].fk_block_number ;
+    const resTransactions = await client.query(qstrTransactions);
+    // console.log(resTransactions);
+    console.log("updcryptkey verify one row returned from transactions");
+    expect(resTransactions.rowCount).to.equal(1);
+    console.log("updcryptkey verify timestamp from transactions");
+    expect(resTransactions.rows[0].block_timestamp.getTime()).to.equal(resBlocks.rows[0].stamp.getTime());
+    console.log("updcryptkey verify that the transaction request_data contains userA1.account");
+    expect(resTransactions.rows[0].request_data).contains(userC1.account);
+    console.log("updcryptkey verify that the transaction request_data contains domain name");
+    expect(resTransactions.rows[0].request_data).contains(userC1.domain);
+    console.log("updcryptkey verify that the transaction action_name contains updcryptkey");
+    expect(resTransactions.rows[0].action_name).equals('updcryptkey');  
+    
+  } catch (err) {
+    console.log(err);
+    expect(err).to.equal(null);
+  }
+}); 
+
+
+it(`regdomadd, actor is owner, verify domains, domainactivities accountactivities contents`, async function () {
+  try {
+    let userA1 = await newUser(faucet);
+
+
+    let domain1 = await generateFioDomain(5);
+    let address1 = await generateFioAddress(domain1, 5);
+
+
+    const result = await userA1.sdk.genericAction('pushTransaction', {
+      action: 'regdomadd',
+      account: 'fio.address',
+      data: {
+        fio_address: address1,
+        is_public: 1,
+        owner_fio_public_key: userA1.publicKey,
+        max_fee: 1000000000000,
+        tpid: '',
+        actor: userA1.account
+      }
+    })
+    //console.log(`Result: `, result)
+    expect(result.status).to.equal('OK')
+
+
+    await timeout(2000)
+
+    const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'' + userA1.account + '\'';
+    const resAccounts = await client.query(qstrAccounts);
+
+    console.log("regdomadd verify one row returned from accounts");
+    expect(resAccounts.rowCount).to.equal(1);
+    console.log("regdomadd verify account name returned");
+    expect(resAccounts.rows[0].account_name).equals(userA1.account);
+
+    
+    const qstrDomains = 'SELECT * FROM domains WHERE fk_owner_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND domain_name = \'' + domain1 + '\'' ;
+    console.log(qstrDomains);
+    const resDomains = await client.query(qstrDomains);
+
+    console.log("regdomadd verify one row returned from domains");
+    expect(resDomains.rowCount).to.equal(1);
+    console.log("regdomadd verify domains owner account returned");
+    expect(resDomains.rows[0].fk_owner_account_id).equals(resAccounts.rows[0].pk_account_id);
+    console.log("regdomadd verify domains public");
+    expect(resDomains.rows[0].is_public).equals(false);
+    console.log("regdomadd verify domain_status ");
+    expect(resDomains.rows[0].domain_status).equals('active');
+    
+    
+    const qstrDomainActivities = 'SELECT * FROM domainactivities WHERE fk_domain_id = ' + resDomains.rows[0].pk_domain_id + ' AND fk_block_number = ' + resDomains.rows[0].fk_block_number  ;
+   // console.log(qstrDomainActivities);
+    const resDomainActivities = await client.query(qstrDomainActivities);
+
+    console.log("regdomadd verify one row returned from DomainActivities");
+    expect(resDomainActivities.rowCount).to.equal(1);
+    console.log("regdomadd verify DomainActivities expiration returned");
+    expect(resDomainActivities.rows[0].expiration_stamp.getTime()).equals(resDomains.rows[0].expiration_timestamp.getTime());
+    console.log("regdomadd verify DomainActivities activity type");
+    expect(resDomainActivities.rows[0].domain_activity_type).equals('register');
+  
+    const qstrHandles = 'SELECT * FROM handles WHERE fk_owner_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND handle = \'' + address1 + '\'' ;
+    const resHandles = await client.query(qstrHandles);
+
+    console.log("regdomadd verify one row returned from Handles");
+    expect(resHandles.rowCount).to.equal(1);
+    console.log("regdomadd verify Handles owner account returned");
+    expect(resHandles.rows[0].fk_owner_account_id).equals(resAccounts.rows[0].pk_account_id);
+    console.log("regdomadd verify Handles domain returned");
+    expect(resHandles.rows[0].fk_domain_id).equals(resDomains.rows[0].pk_domain_id);
+    console.log("regdomadd verify Handles status returned");
+    expect(resHandles.rows[0].handle_status).equals('active');
+    
+    
+    const qstrHandleActivities = 'SELECT * FROM handleactivities WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id + ' AND fk_block_number = ' + resHandles.rows[0].fk_block_number  ;
+    const resHandleActivities = await client.query(qstrHandleActivities);
+
+    console.log("regdomadd verify one row returned from HandleActivities");
+    expect(resHandleActivities.rowCount).to.equal(1);
+    console.log("regdomadd verify HandleActivities activity type");
+    expect(resHandleActivities.rows[0].handle_activity_type).equals('register');
+  
+
+    //block info
+    const qstrBlocks = 'SELECT * FROM blocks WHERE pk_block_number = ' + resDomains.rows[0].fk_block_number ;
+    const resBlocks = await client.query(qstrBlocks);
+    console.log("regdomadd verify one row returned from blocks");
+    expect(resBlocks.rowCount).to.equal(1);
+    console.log("regdomadd verify timestamp from blocks");
+    expect(resBlocks.rows[0].stamp.getTime()).to.equal(resDomainActivities.rows[0].block_timestamp.getTime());
+
+    
+              
+    //transaction info
+    const qstrTransactions = 'SELECT * FROM transactions WHERE fk_block_number = ' + resDomains.rows[0].fk_block_number ;
+    const resTransactions = await client.query(qstrTransactions);
+    // console.log(resTransactions);
+    console.log("regdomadd verify one row returned from transactions");
+    expect(resTransactions.rowCount).to.equal(1);
+    console.log("regdomadd verify timestamp from transactions");
+    expect(resTransactions.rows[0].block_timestamp.getTime()).to.equal(resBlocks.rows[0].stamp.getTime());
+    console.log("regdomadd verify that the transaction request_data contains userA1.account");
+    expect(resTransactions.rows[0].request_data).contains(userA1.account);
+    console.log("regdomadd verify that the transaction request_data contains domain name");
+    expect(resTransactions.rows[0].request_data).contains(domain1);
+    console.log("regdomadd verify that the transaction action_name contains regdomadd");
+    expect(resTransactions.rows[0].action_name).equals('regdomadd');  
+    console.log("regdomadd verify that the domainactivity transaction id contains regdomadd");
+    expect(resTransactions.rows[0].pk_transaction_id).equals(resDomainActivities.rows[0].fk_transaction_id);  
+
+    const qstrAccountActivities = 'SELECT * FROM accountactivities WHERE fk_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND fk_block_number = ' + resDomains.rows[0].fk_block_number +
+      ' AND fk_transaction_id = ' + resTransactions.rows[0].pk_transaction_id ;
+    const resAccountActivities = await client.query(qstrAccountActivities);
+
+    //console.log(qstrAccountActivities);
+    console.log("regdomadd verify no record added to AccountActivities");
+    expect(resAccountActivities.rowCount).to.equal(0);
+    //console.log("regdomadd verify AccountActivities activity type");
+    //expect(resAccountActivities.rows[0].activity_type).equals('receiver');
+
+  } catch (err) {
+    console.log(err);
+    expect(err).to.equal(null);
+  }
+});
+
+
+it(`regdomadd, actor is not owner, verify domains, domainactivities accountactivities contents`, async function () {
+  try {
+    let userA1 = await newUser(faucet);
+    let userA2 = await newUser(faucet);
+
+    let domain1 = await generateFioDomain(5);
+    let address1 = await generateFioAddress(domain1, 5);
+
+
+    const result = await userA1.sdk.genericAction('pushTransaction', {
+      action: 'regdomadd',
+      account: 'fio.address',
+      data: {
+        fio_address: address1,
+        is_public: 1,
+        owner_fio_public_key: userA2.publicKey,
+        max_fee: 1000000000000,
+        tpid: '',
+        actor: userA1.account
+      }
+    })
+    //console.log(`Result: `, result)
+    expect(result.status).to.equal('OK')
+
+
+    await timeout(2000)
+
+    const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'' + userA2.account + '\'';
+    const resAccounts = await client.query(qstrAccounts);
+
+    console.log("regdomadd verify one row returned from accounts");
+    expect(resAccounts.rowCount).to.equal(1);
+    console.log("regdomadd verify account name returned");
+    expect(resAccounts.rows[0].account_name).equals(userA2.account);
+
+    
+    const qstrDomains = 'SELECT * FROM domains WHERE fk_owner_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND domain_name = \'' + domain1 + '\'' ;
+   // console.log(qstrDomains);
+    const resDomains = await client.query(qstrDomains);
+
+    console.log("regdomadd verify one row returned from domains");
+    expect(resDomains.rowCount).to.equal(1);
+    console.log("regdomadd verify domains owner account returned");
+    expect(resDomains.rows[0].fk_owner_account_id).equals(resAccounts.rows[0].pk_account_id);
+    console.log("regdomadd verify domains public");
+    expect(resDomains.rows[0].is_public).equals(false);
+    console.log("regdomadd verify domain_status ");
+    expect(resDomains.rows[0].domain_status).equals('active');
+    
+    
+    const qstrDomainActivities = 'SELECT * FROM domainactivities WHERE fk_domain_id = ' + resDomains.rows[0].pk_domain_id + ' AND fk_block_number = ' + resDomains.rows[0].fk_block_number  ;
+    //console.log(qstrDomainActivities);
+    const resDomainActivities = await client.query(qstrDomainActivities);
+
+    console.log("regdomadd verify one row returned from DomainActivities");
+    expect(resDomainActivities.rowCount).to.equal(1);
+    console.log("regdomadd verify DomainActivities expiration returned");
+    expect(resDomainActivities.rows[0].expiration_stamp.getTime()).equals(resDomains.rows[0].expiration_timestamp.getTime());
+    console.log("regdomadd verify DomainActivities activity type");
+    expect(resDomainActivities.rows[0].domain_activity_type).equals('register');
+  
+    const qstrHandles = 'SELECT * FROM handles WHERE fk_owner_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND handle = \'' + address1 + '\'' ;
+    const resHandles = await client.query(qstrHandles);
+
+    console.log("regdomadd verify one row returned from Handles");
+    expect(resHandles.rowCount).to.equal(1);
+    console.log("regdomadd verify Handles owner account returned");
+    expect(resHandles.rows[0].fk_owner_account_id).equals(resAccounts.rows[0].pk_account_id);
+    console.log("regdomadd verify Handles domain returned");
+    expect(resHandles.rows[0].fk_domain_id).equals(resDomains.rows[0].pk_domain_id);
+    console.log("regdomadd verify Handles status returned");
+    expect(resHandles.rows[0].handle_status).equals('active');
+    
+    
+    const qstrHandleActivities = 'SELECT * FROM handleactivities WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id + ' AND fk_block_number = ' + resHandles.rows[0].fk_block_number  ;
+    const resHandleActivities = await client.query(qstrHandleActivities);
+
+    console.log("regdomadd verify one row returned from HandleActivities");
+    expect(resHandleActivities.rowCount).to.equal(1);
+    console.log("regdomadd verify HandleActivities activity type");
+    expect(resHandleActivities.rows[0].handle_activity_type).equals('register');
+  
+
+    //block info
+    const qstrBlocks = 'SELECT * FROM blocks WHERE pk_block_number = ' + resDomains.rows[0].fk_block_number ;
+    const resBlocks = await client.query(qstrBlocks);
+    console.log("regdomadd verify one row returned from blocks");
+    expect(resBlocks.rowCount).to.equal(1);
+    console.log("regdomadd verify timestamp from blocks");
+    expect(resBlocks.rows[0].stamp.getTime()).to.equal(resDomainActivities.rows[0].block_timestamp.getTime());
+
+    
+              
+    //transaction info
+    const qstrTransactions = 'SELECT * FROM transactions WHERE fk_block_number = ' + resDomains.rows[0].fk_block_number ;
+    const resTransactions = await client.query(qstrTransactions);
+    // console.log(resTransactions);
+    console.log("regdomadd verify one row returned from transactions");
+    expect(resTransactions.rowCount).to.equal(1);
+    console.log("regdomadd verify timestamp from transactions");
+    expect(resTransactions.rows[0].block_timestamp.getTime()).to.equal(resBlocks.rows[0].stamp.getTime());
+    console.log("regdomadd verify that the transaction request_data contains userA1.account");
+    expect(resTransactions.rows[0].request_data).contains(userA1.account);
+    console.log("regdomadd verify that the transaction request_data contains domain name");
+    expect(resTransactions.rows[0].request_data).contains(domain1);
+    console.log("regdomadd verify that the transaction action_name contains regdomadd");
+    expect(resTransactions.rows[0].action_name).equals('regdomadd');  
+    console.log("regdomadd verify that the domainactivity transaction id contains regdomadd");
+    expect(resTransactions.rows[0].pk_transaction_id).equals(resDomainActivities.rows[0].fk_transaction_id);  
+
+    const qstrAccountActivities = 'SELECT * FROM accountactivities WHERE fk_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND fk_block_number = ' + resDomains.rows[0].fk_block_number +
+      ' AND fk_transaction_id = ' + resTransactions.rows[0].pk_transaction_id ;
+    const resAccountActivities = await client.query(qstrAccountActivities);
+
+    //console.log(qstrAccountActivities);
+    console.log("regdomadd verify record added to AccountActivities");
+    expect(resAccountActivities.rowCount).to.equal(1);
+    console.log("regdomadd verify AccountActivities activity type");
+    expect(resAccountActivities.rows[0].activity_type).equals('receiver');
+
+  } catch (err) {
+    console.log(err);
+    expect(err).to.equal(null);
+  }
+});
 
 
 /*
 list of items for relic yet to be tested.
 
-addnft
-remnft
-rmallnfts
-updcryptkey
-regdomadd
 burnaddress
 newfundsreq
 cancelfndreq
