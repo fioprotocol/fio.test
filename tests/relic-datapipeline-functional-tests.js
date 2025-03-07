@@ -939,6 +939,99 @@ it(`xferdomain, verify domains, domainactivities accountactivities contents`, as
   }
 });
 
+it(`xferdomain, create new account, verify domains, domainactivities accountactivities contents`, async function () {
+  try {
+    let userC1 = await newUser(faucet);
+    let keys = await createKeypair();
+    let accountnm = await getAccountFromKey(keys.publicKey);
+    
+    const result = await userC1.sdk.genericAction('transferFioDomain', {
+      fioDomain: userC1.domain,
+      newOwnerKey: keys.publicKey,
+      maxFee: 400000000000,
+      technologyProviderId: ''
+    })
+    feeCollected = result.fee_collected;
+    //console.log('Result: ', result);
+    expect(result.status).to.equal('OK');
+
+    await timeout(2000)
+
+    const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'' + accountnm + '\'';
+    const resAccounts = await client.query(qstrAccounts);
+
+    console.log("xferdomain verify one row returned from accounts");
+    expect(resAccounts.rowCount).to.equal(1);
+    console.log("xferdomain verify account name returned");
+    expect(resAccounts.rows[0].account_name).equals(accountnm);
+
+    
+    const qstrDomains = 'SELECT * FROM domains WHERE fk_owner_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND domain_name = \'' + userC1.domain + '\'' ;
+    const resDomains = await client.query(qstrDomains);
+
+    console.log("xferdomain verify one row returned from domains");
+    expect(resDomains.rowCount).to.equal(1);
+    console.log("xferdomain verify domains owner account returned");
+    expect(resDomains.rows[0].fk_owner_account_id).equals(resAccounts.rows[0].pk_account_id);
+    console.log("xferdomain verify domains public");
+    expect(resDomains.rows[0].is_public).equals(false);
+    console.log("xferdomain verify domain_status ");
+    expect(resDomains.rows[0].domain_status).equals('active');
+    
+    const qstrDomainActivities = 'SELECT * FROM domainactivities WHERE fk_domain_id = ' + resDomains.rows[0].pk_domain_id + ' AND domain_activity_type = \'transfer\''  ;
+    const resDomainActivities = await client.query(qstrDomainActivities);
+
+    console.log("xferdomain verify one row returned from DomainActivities");
+    expect(resDomainActivities.rowCount).to.equal(1);
+    console.log("xferdomain verify DomainActivities expiration returned");
+    expect(resDomainActivities.rows[0].expiration_stamp.getTime()).equals(resDomains.rows[0].expiration_timestamp.getTime());
+    console.log("xferdomain verify DomainActivities activity type");
+    expect(resDomainActivities.rows[0].domain_activity_type).equals('transfer');
+
+
+    //block info
+    const qstrBlocks = 'SELECT * FROM blocks WHERE pk_block_number = ' + resDomainActivities.rows[0].fk_block_number ;
+    const resBlocks = await client.query(qstrBlocks);
+    console.log("xferdomain verify one row returned from blocks");
+    expect(resBlocks.rowCount).to.equal(1);
+    console.log("xferdomain verify timestamp from blocks");
+    expect(resBlocks.rows[0].stamp.getTime()).to.equal(resDomainActivities.rows[0].block_timestamp.getTime());
+
+   
+              
+    //transaction info
+    const qstrTransactions = 'SELECT * FROM transactions WHERE fk_block_number = ' + resDomainActivities.rows[0].fk_block_number ;
+    const resTransactions = await client.query(qstrTransactions);
+   // console.log(resTransactions);
+    console.log("xferdomain verify one row returned from transactions");
+    expect(resTransactions.rowCount).to.equal(1);
+    console.log("xferdomain verify timestamp from transactions");
+    expect(resTransactions.rows[0].block_timestamp.getTime()).to.equal(resBlocks.rows[0].stamp.getTime());
+    console.log("xferdomain verify that the transaction request_data contains userA1.account");
+    expect(resTransactions.rows[0].request_data).contains(userC1.account);
+    console.log("xferdomain verify that the transaction request_data contains domain name");
+    expect(resTransactions.rows[0].request_data).contains(userC1.domain);
+    console.log("xferdomain verify that the transaction action_name contains xferdomain");
+    expect(resTransactions.rows[0].action_name).equals('xferdomain');  
+    console.log("xferdomain verify that the domainactivity transaction id contains xferdomain");
+    expect(resTransactions.rows[0].pk_transaction_id).equals(resDomainActivities.rows[0].fk_transaction_id);  
+
+    const qstrAccountActivities = 'SELECT * FROM accountactivities WHERE fk_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND fk_block_number = ' + resDomainActivities.rows[0].fk_block_number +
+    ' AND fk_transaction_id = ' + resTransactions.rows[0].pk_transaction_id ;
+    const resAccountActivities = await client.query(qstrAccountActivities);
+
+    //console.log(qstrAccountActivities);
+    console.log("xferdomain verify no record added to AccountActivities");
+    expect(resAccountActivities.rowCount).to.equal(1);
+    console.log("xferdomain verify AccountActivities activity type");
+    expect(resAccountActivities.rows[0].activity_type).equals('receiver');
+
+  } catch (err) {
+    console.log(err);
+    expect(err).to.equal(null);
+  }
+});
+
 it(`setdomainpub,  verify domains, domainactivities contents`, async function () {
   try {
     let userC1 = await newUser(faucet);
@@ -2487,7 +2580,6 @@ it(`remalladdr, set fio pub key using *, verify handles, handleacitivity content
 
     await timeout(2000)
 
-
     const result1 = await userC1.sdk.genericAction('pushTransaction', {
       action: 'remalladdr',
       account: 'fio.address',
@@ -2543,8 +2635,12 @@ it(`remalladdr, set fio pub key using *, verify handles, handleacitivity content
     const qstrPubAddresses = 'SELECT * FROM pubaddresses WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id  ;
     const resPubAddresses = await client.query(qstrPubAddresses);
    // console.log(resPubAddresses);
-    console.log("remalladdr verify 0 row returned from pubaddresses");
-    expect(resPubAddresses.rowCount).to.equal(0);
+    console.log("remalladdr verify 1 row returned from pubaddresses");
+    expect(resPubAddresses.rowCount).to.equal(1);
+    console.log("remalladdr verify 1 row returned from pubaddresses");
+    expect(resPubAddresses.rows[0].token_code).to.equal("FIO");
+    console.log("remalladdr verify 1 row returned from pubaddresses");
+    expect(resPubAddresses.rows[0].chain_code).to.equal("FIO");
   } catch (err) {
     console.log(err);
     expect(err).to.equal(null);
@@ -3410,9 +3506,9 @@ it(`newfundsreq, verify handles, handleacitivity, accountactivities, requests co
     console.log("newfundsreq verify timestamp from FIORequests");
     expect(resFIORequests.rows[0].block_timestamp.getTime()).to.equal(resBlocks.rows[0].stamp.getTime());
     console.log("newfundsreq verify payee pub key from FIORequests");
-    expect(resFIORequests.rows[0].payee_pub_key).to.equal(userC1.publicKey);
+    expect(resFIORequests.rows[0].payee_pub_key).to.equal(resHandles.rows[0].encryption_key);
     console.log("newfundsreq verify payer pub key from FIORequests");
-    expect(resFIORequests.rows[0].payer_pub_key).to.equal(keys.publicKey);
+    expect(resFIORequests.rows[0].payer_pub_key).to.equal(resHandlespayer.rows[0].encryption_key);
   
     console.log("newfundsreq verify request status from FIORequests");
     expect(resFIORequests.rows[0].request_status).to.equal('pending');
@@ -3883,6 +3979,10 @@ it(`burnaddress, verify handles, handleacitivity, nftsignuatures contents`, asyn
    expect(resHandles1.rows[0].handle_status).to.equal('burnt');
    console.log("burnaddress verify one row returned from Handles has owner null");
     expect(resHandles1.rows[0].fk_owner_account_id).to.equal(null);
+    console.log("burnaddress verify one row returned from Handles encrypt key set false");
+    expect(resHandles1.rows[0].is_encrypt_key_set).to.equal(false);
+    console.log("burnaddress verify one row returned from Handles encrypt key cleared");
+    expect(resHandles1.rows[0].encryption_key).to.equal('');
    
   } catch (err) {
     console.log(err);
