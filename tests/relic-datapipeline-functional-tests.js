@@ -448,13 +448,13 @@ await timeout(2000)
         console.log("retire verify account name returned");
         expect(resAccounts.rows[0].account_name).equals(userA1.account);
 
-        const qstrEmptyAccounts = 'SELECT * FROM accounts WHERE account_name = \'\'';
+        const qstrEmptyAccounts = 'SELECT * FROM accounts WHERE account_name = \'fio.token\'';
         const resEmptyAccounts = await client.query(qstrEmptyAccounts);
 
         console.log("retire verify one row returned from accounts");
         expect(resEmptyAccounts.rowCount).to.equal(1);
         console.log("retire verify account name returned");
-        expect(resEmptyAccounts.rows[0].account_name).equals('');
+        expect(resEmptyAccounts.rows[0].account_name).equals('fio.token');
 
         //token transfers
         const qstrTokTrans = 'SELECT * FROM tokentransfers WHERE fk_payer_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND token_transfer_type = \'retire\'' ;
