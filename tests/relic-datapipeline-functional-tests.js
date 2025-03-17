@@ -22,18 +22,18 @@ let client;
 before(async () => {
   try{
   faucet = new FIOSDK(config.FAUCET_PRIV_KEY, config.FAUCET_PUB_KEY, config.BASE_URL, fetchJson);
-  client =  new Client({
+ client =  new Client({
     user: 'chronicle_user',
     host: '35.82.73.97',
     database: 'relicdb',
     password: 'relicchronicle1@0@2',
     port: 5432, // Default PostgreSQL port
   });
- /* client =  new Client({
+  /*client =  new Client({
     user: 'chronicle_user',
     host: '18.246.18.161',
     database: 'relicdb',
-    password: 'password123!',
+    password: 'password123!'
     //port: 5432, // Default PostgreSQL port
   });*/
   await client.connect();
@@ -432,7 +432,7 @@ await timeout(2000)
           account: 'fio.token',
           data: {
             quantity: 1000000000000,
-            memo: "edtst",
+            memo: "ed'tst",
             actor: userA1.account,
           }
         });
@@ -467,7 +467,7 @@ await timeout(2000)
         console.log("retire verify tokentransfers suf amount");
         expect(resTokTrans.rows[0].fio_suf_amount).equals('1000000000000');
         console.log("retire verify tokentransfers memo");
-        expect(resTokTrans.rows[0].transfer_memo).equals('edtst');
+        expect(resTokTrans.rows[0].transfer_memo).equals('ed\'tst');
         
 
         //block info
@@ -765,7 +765,8 @@ it(`renewdomain,  verify domains, domainactivities contents`, async function () 
   try {
     let userC1 = await newUser(faucet);
 
-
+    await timeout(2000)
+    
     const result = await userC1.sdk.genericAction('pushTransaction', {
       action: 'renewdomain',
       account: 'fio.address',
@@ -1036,6 +1037,7 @@ it(`setdomainpub,  verify domains, domainactivities contents`, async function ()
   try {
     let userC1 = await newUser(faucet);
 
+    await timeout(2000);
 
     const result = await userC1.sdk.genericAction('pushTransaction', {
       action: 'setdomainpub',
@@ -1888,7 +1890,7 @@ it(`addbundles,  verify handles, handleacitivity contents`, async function () {
   }
 });  
 
-it(`addaddress, set fio pub key, verify handles, handleacitivity contents`, async function () {
+it(`addaddress, set fio pub key, set one pubkey with single quote verify handles, handleacitivity contents`, async function () {
   try {
     let userC1 = await newUser(faucet);
 
@@ -1897,17 +1899,18 @@ it(`addaddress, set fio pub key, verify handles, handleacitivity contents`, asyn
 
     const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'' + userC1.account + '\'';
     const resAccounts = await client.query(qstrAccounts);
-
+    // console.log(resAccounts);
     console.log("addaddress verify one row returned from accounts");
     expect(resAccounts.rowCount).to.equal(1);
     console.log("addaddress verify account name returned");
     expect(resAccounts.rows[0].account_name).equals(userC1.account);
-
     const qstrHandlesbefore = 'SELECT * FROM handles WHERE fk_owner_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND handle = \'' + userC1.address + '\'' ;
+   // console.log(qstrHandlesbefore);
     const resHandlesbefore = await client.query(qstrHandlesbefore);
     console.log("addaddress verify one row returned from Handles");
     expect(resHandlesbefore.rowCount).to.equal(1);
 
+    //console.log(userC1);
     const result = await userC1.sdk.genericAction('pushTransaction', {
       action: 'addaddress',
       account: 'fio.address',
@@ -1917,12 +1920,12 @@ it(`addaddress, set fio pub key, verify handles, handleacitivity contents`, asyn
           {
             chain_code: 'BCH',
             token_code: 'BCH',
-            public_address: 'bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9',
+            public_address: "bitcoincash:qzf8zha7'4ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9",
           },
           {
             chain_code: 'FIO',
             token_code: 'FIO',
-            public_address: 'XyCyPKzTWvW2XdcYjPaPXGQDCGk946ywEv',
+            public_address: "XyCyPKzTWvW2Xdc'YjPaPXGQDCGk946ywEv",
           }
         ],
         max_fee: config.maxFee,
@@ -1930,6 +1933,7 @@ it(`addaddress, set fio pub key, verify handles, handleacitivity contents`, asyn
         actor: userC1.account
       }
     })
+
     expect(result.status).to.equal('OK');
 
     await timeout(2000)
@@ -1950,7 +1954,7 @@ it(`addaddress, set fio pub key, verify handles, handleacitivity contents`, asyn
     console.log("addaddress verify Handles encrypt key set is false returned");
     expect(resHandles.rows[0].is_encrypt_key_set).equals(false);
     console.log("addaddress verify Handles encrypt key returned");
-    expect(resHandles.rows[0].encryption_key).equals('XyCyPKzTWvW2XdcYjPaPXGQDCGk946ywEv');
+    expect(resHandles.rows[0].encryption_key).equals('XyCyPKzTWvW2Xdc\'YjPaPXGQDCGk946ywEv');
     
 
     const qstrHandleActivities = 'SELECT * FROM handleactivities WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id + ' AND handle_activity_type = \'add_pubadd\'';
@@ -2670,7 +2674,7 @@ it(`addnft, verify handles, handleacitivity, nftsignuatures contents`, async fun
       data: {
         fio_address: userC1.address,
         nfts: [{
-            "chain_code":"ETH","contract_address":"0x123456789ABCDEF", "token_id":"1", "url":"", "hash":"","metadata":""
+            "chain_code":"ETH","contract_address":"0x12345'6789ABCDEF", "token_id":"1'", "url":"http://localhost:123/th'is/that", "hash":"","metadata":"thisd'fght"
           }],
         max_fee: config.maxFee,
         actor: userC1.account,
@@ -2728,17 +2732,17 @@ it(`addnft, verify handles, handleacitivity, nftsignuatures contents`, async fun
     console.log("addnft verify block numberfrom nftsignatures");
     expect(resNFTSignatures.rows[0].fk_block_number).to.equal(resBlocks.rows[0].pk_block_number);
     console.log("addnft verify contract address from nftsignatures");
-    expect(resNFTSignatures.rows[0].contract_address).to.equal('0x123456789ABCDEF');
+    expect(resNFTSignatures.rows[0].contract_address).to.equal('0x12345\'6789ABCDEF');
     console.log("addnft verify chain_code from nftsignatures");
     expect(resNFTSignatures.rows[0].chain_code).to.equal('ETH');
     console.log("addnft verify token_id from nftsignatures");
-    expect(resNFTSignatures.rows[0].token_id).to.equal('1');
+    expect(resNFTSignatures.rows[0].token_id).to.equal('1\'');
     console.log("addnft verify nft_url from nftsignatures");
-    expect(resNFTSignatures.rows[0].nft_url).to.equal('');
+    expect(resNFTSignatures.rows[0].nft_url).to.equal('http://localhost:123/th\'is/that');
     console.log("addnft verify nft hash from nftsignatures");
     expect(resNFTSignatures.rows[0].nft_hash).to.equal('');
     console.log("addnft verify nft meta data from nftsignatures");
-    expect(resNFTSignatures.rows[0].nft_meta_data).to.equal('');
+    expect(resNFTSignatures.rows[0].nft_meta_data).to.equal('thisd\'fght');
 
     
   } catch (err) {
@@ -3083,11 +3087,12 @@ it(`regdomadd, actor is owner, verify domains, domainactivities accountactivitie
   try {
     let userA1 = await newUser(faucet);
 
+    await timeout(2000)
 
     let domain1 = await generateFioDomain(5);
     let address1 = await generateFioAddress(domain1, 5);
 
-
+//console.log(userA1);
     const result = await userA1.sdk.genericAction('pushTransaction', {
       action: 'regdomadd',
       account: 'fio.address',
@@ -3209,7 +3214,8 @@ it(`regdomadd, actor is owner, verify domains, domainactivities accountactivitie
 it(`regdomadd, actor is not owner, verify domains, domainactivities accountactivities contents`, async function () {
   try {
     let userA1 = await newUser(faucet);
-    let userA2 = await newUser(faucet);
+    let keys = await createKeypair();
+    let accountnm = await getAccountFromKey(keys.publicKey);
 
     let domain1 = await generateFioDomain(5);
     let address1 = await generateFioAddress(domain1, 5);
@@ -3221,7 +3227,7 @@ it(`regdomadd, actor is not owner, verify domains, domainactivities accountactiv
       data: {
         fio_address: address1,
         is_public: 1,
-        owner_fio_public_key: userA2.publicKey,
+        owner_fio_public_key: keys.publicKey,
         max_fee: 1000000000000,
         tpid: '',
         actor: userA1.account
@@ -3233,13 +3239,13 @@ it(`regdomadd, actor is not owner, verify domains, domainactivities accountactiv
 
     await timeout(2000)
 
-    const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'' + userA2.account + '\'';
+    const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'' + accountnm + '\'';
     const resAccounts = await client.query(qstrAccounts);
 
     console.log("regdomadd verify one row returned from accounts");
     expect(resAccounts.rowCount).to.equal(1);
     console.log("regdomadd verify account name returned");
-    expect(resAccounts.rows[0].account_name).equals(userA2.account);
+    expect(resAccounts.rows[0].account_name).equals(accountnm);
 
     
     const qstrDomains = 'SELECT * FROM domains WHERE fk_owner_account_id = ' + resAccounts.rows[0].pk_account_id + ' AND domain_name = \'' + domain1 + '\'' ;
@@ -3419,7 +3425,7 @@ it(`newfundsreq, verify handles, handleacitivity, accountactivities, requests co
           amount: 2000000000,
           chain_code: 'BTC',
           token_code: 'BTC',
-          memo: "need BTC.",
+          memo: "need B'TC.",
           hash:'',
           offline_url: ''
         },
@@ -3557,7 +3563,7 @@ it(`cancelfndreq,  verify handles, handleacitivity, accountactivities, requests 
           amount: 2000000000,
           chain_code: 'BTC',
           token_code: 'BTC',
-          memo: "need BTC.",
+          memo: "need B'TC.",
           hash:'',
           offline_url: ''
         },
@@ -3736,7 +3742,7 @@ it(`recordobt,  verify handles, handleacitivity, accountactivities, fiodatas con
       maxFee: config.api.record_obt_data.fee,
       technologyProviderId: '',
       payeeFioPublicKey: userC2.publicKey,
-      memo: "obtMemo",
+      memo: "obtM'emo",
       hash: '',
       offLineUrl: ''
   })
@@ -4166,7 +4172,7 @@ try {
     workDoneThisRound = true;
     retryCount = 0;
     //log the tx and traces.
-    console.log(result);
+   // console.log(result);
     await timeout(1000); // To avoid duplicate transaction
 } catch (err) {
     workDoneThisOffset = false;
