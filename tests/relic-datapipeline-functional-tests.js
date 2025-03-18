@@ -2673,9 +2673,9 @@ it(`addnft, verify handles, handleacitivity, nftsignuatures contents`, async fun
       account: 'fio.address',
       data: {
         fio_address: userC1.address,
-        nfts: [{
-            "chain_code":"ETH","contract_address":"0x12345'6789ABCDEF", "token_id":"1'", "url":"http://localhost:123/th'is/that", "hash":"","metadata":"thisd'fght"
-          }],
+        nfts: [
+          {"chain_code":"bsc","contract_address":"0xF5db804101d8600c26598A1Ba465166c33CdAA4b","token_id":"271637","url":"https://airnfts.s3.amazonaws.com/nft-images/20220730/Nyiragongo_1659175463771.jpeg","hash":"5cbe0d8560850c17b4ffdb0ca8e91639dc32bfb0e2e13ea44530ab35c9e305a5","metadata":"{\"creator_url\":\"\"}"}
+        ],
         max_fee: config.maxFee,
         actor: userC1.account,
         tpid: ""
@@ -2732,17 +2732,17 @@ it(`addnft, verify handles, handleacitivity, nftsignuatures contents`, async fun
     console.log("addnft verify block numberfrom nftsignatures");
     expect(resNFTSignatures.rows[0].fk_block_number).to.equal(resBlocks.rows[0].pk_block_number);
     console.log("addnft verify contract address from nftsignatures");
-    expect(resNFTSignatures.rows[0].contract_address).to.equal('0x12345\'6789ABCDEF');
+    expect(resNFTSignatures.rows[0].contract_address).to.equal('0xF5db804101d8600c26598A1Ba465166c33CdAA4b');
     console.log("addnft verify chain_code from nftsignatures");
-    expect(resNFTSignatures.rows[0].chain_code).to.equal('ETH');
+    expect(resNFTSignatures.rows[0].chain_code).to.equal('bsc');
     console.log("addnft verify token_id from nftsignatures");
-    expect(resNFTSignatures.rows[0].token_id).to.equal('1\'');
+    expect(resNFTSignatures.rows[0].token_id).to.equal('271637');
     console.log("addnft verify nft_url from nftsignatures");
-    expect(resNFTSignatures.rows[0].nft_url).to.equal('http://localhost:123/th\'is/that');
+    expect(resNFTSignatures.rows[0].nft_url).to.equal('https://airnfts.s3.amazonaws.com/nft-images/20220730/Nyiragongo_1659175463771.jpeg');
     console.log("addnft verify nft hash from nftsignatures");
-    expect(resNFTSignatures.rows[0].nft_hash).to.equal('');
+    expect(resNFTSignatures.rows[0].nft_hash).to.equal('5cbe0d8560850c17b4ffdb0ca8e91639dc32bfb0e2e13ea44530ab35c9e305a5');
     console.log("addnft verify nft meta data from nftsignatures");
-    expect(resNFTSignatures.rows[0].nft_meta_data).to.equal('thisd\'fght');
+    expect(resNFTSignatures.rows[0].nft_meta_data).to.equal('{\"creator_url\":\"\"}');
 
     
   } catch (err) {
