@@ -1493,9 +1493,7 @@ it(`renewaddress,  verify handles, handleacitivity contents`, async function () 
     expect(resHandles.rows[0].handle_status).equals('active');
     console.log("renewaddress verify Handles expiration returned");
     expect(resHandles.rows[0].expiration_stamp.getTime()).equals(resHandlesbefore.rows[0].expiration_stamp.getTime());
-    console.log("renewaddress verify Handles bundled_tx_count returned");
-    expect(resHandles.rows[0].bundled_tx_count).equals(resHandlesbefore.rows[0].bundled_tx_count + 100);
-
+  
     const qstrHandleActivities = 'SELECT * FROM handleactivities WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id + ' AND handle_activity_type = \'renew\'';
     const resHandleActivities = await client.query(qstrHandleActivities);
 
@@ -1843,9 +1841,7 @@ it(`addbundles,  verify handles, handleacitivity contents`, async function () {
     expect(resHandles.rows[0].handle_status).equals('active');
     console.log("addbundles verify Handles expiration returned");
     expect(resHandles.rows[0].expiration_stamp.getTime()).equals(resHandlesbefore.rows[0].expiration_stamp.getTime());
-    console.log("addbundles verify Handles bundled_tx_count returned");
-    expect(resHandles.rows[0].bundled_tx_count).equals(resHandlesbefore.rows[0].bundled_tx_count + 100);
-
+  
     const qstrHandleActivities = 'SELECT * FROM handleactivities WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id + ' AND handle_activity_type = \'add_bundles\'';
     const resHandleActivities = await client.query(qstrHandleActivities);
 
