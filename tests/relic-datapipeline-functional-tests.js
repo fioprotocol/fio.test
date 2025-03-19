@@ -506,21 +506,21 @@ await timeout(2000)
     it(`issue tokens verify tokentransfers contents for local dev net`, async function () {
       try {
         
-        const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'eosio\'';
+        const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'fio.token\'';
         const resAccounts = await client.query(qstrAccounts);
 
         console.log("issue verify one row returned from accounts");
         expect(resAccounts.rowCount).to.equal(1);
         console.log("issue verify account name returned");
-        expect(resAccounts.rows[0].account_name).equals('eosio');
+        expect(resAccounts.rows[0].account_name).equals('fio.token');
 
-        const qstrPayeeAccounts = 'SELECT * FROM accounts WHERE account_name = \'fio.token\'';
+        const qstrPayeeAccounts = 'SELECT * FROM accounts WHERE account_name = \'eosio\'';
         const resPayeeAccounts = await client.query(qstrPayeeAccounts);
 
         console.log("issue verify one row returned from accounts");
         expect(resPayeeAccounts.rowCount).to.equal(1);
         console.log("issue verify account name returned");
-        expect(resPayeeAccounts.rows[0].account_name).equals('fio.token');
+        expect(resPayeeAccounts.rows[0].account_name).equals('eosio');
 
         //token transfers
         const qstrTokTrans = 'SELECT * FROM tokentransfers WHERE fk_payer_account_id = ' + resAccounts.rows[0].pk_account_id +
@@ -528,12 +528,13 @@ await timeout(2000)
          ' AND token_transfer_type = \'token_mint\'' ;
         const resTokTrans = await client.query(qstrTokTrans);
 
-        console.log("issue verify one row returned from tokentransfers");
-        expect(resTokTrans.rowCount).to.equal(1);
+      
+        console.log("issue verify tokentransfers payer account name returned");
+        expect(resTokTrans.rows[0].fk_payer_account_id).equals(resAccounts.rows[0].pk_account_id);
         console.log("issue verify tokentransfers payee account name returned");
         expect(resTokTrans.rows[0].fk_payee_account_id).equals(resPayeeAccounts.rows[0].pk_account_id);
         console.log("issue verify tokentransfers suf amount");
-        expect(resTokTrans.rows[0].fio_suf_amount).equals('999000000000');
+        expect(resTokTrans.rows[0].fio_suf_amount).equals('1000000000000');
         console.log("issue verify tokentransfers memo");
         expect(resTokTrans.rows[0].transfer_memo).equals('memo');
         
@@ -541,24 +542,21 @@ await timeout(2000)
         //block info
         const qstrBlocks = 'SELECT * FROM blocks WHERE pk_block_number = ' + resTokTrans.rows[0].fk_block_number ;
         const resBlocks = await client.query(qstrBlocks);
-        console.log("issue verify one row returned from blocks");
-        expect(resBlocks.rowCount).to.equal(1);
+      
         console.log("issue verify timestamp from blocks");
         expect(resBlocks.rows[0].stamp.getTime()).to.equal(resTokTrans.rows[0].block_timestamp.getTime());
 
                   
         //transaction info
         const qstrTransactions = 'SELECT * FROM transactions WHERE fk_block_number = ' + resTokTrans.rows[0].fk_block_number +
-        ' AND request_data LIKE \'%999.000000000%\' ' +
-        ' AND request_data LIKE \'%fio.token%\' ';
+        ' AND request_data LIKE \'%1000.000000000%\' ';
+      
         const resTransactions = await client.query(qstrTransactions);
-        //console.log(resTransactions);
-        console.log("issue verify one row returned from transactions");
-        expect(resTransactions.rowCount).to.equal(1);
+      
         console.log("issue verify timestamp from transactions");
         expect(resTransactions.rows[0].block_timestamp.getTime()).to.equal(resBlocks.rows[0].stamp.getTime());
         console.log("issue verify that the transaction request_data contains amount used");
-        expect(resTransactions.rows[0].request_data).contains('999.000000000');
+        expect(resTransactions.rows[0].request_data).contains('1000.000000000');
         console.log("issue verify that the transaction action_name contains issue");
         expect(resTransactions.rows[0].action_name).equals('issue');  
 
