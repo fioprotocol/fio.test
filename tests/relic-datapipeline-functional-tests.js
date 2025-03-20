@@ -156,6 +156,21 @@ describe(`************************** relic-datapipeline-finctional-tests.js ****
           console.log("trnsfiopubky verify that the transaction action_name contains the pub key for userA2");
           expect(resTransactions.rows[0].action_name).equals('trnsfiopubky');  
         
+
+          //wait
+          await timeout(2000)      
+          
+          //check that relic balance equals on chain balance
+          const qstrAccountsbal = 'SELECT * FROM accounts WHERE account_name = \'' + userA2.account + '\'';
+          const resAccountsbal = await client.query(qstrAccountsbal);
+
+          const resultbal = await userA2.sdk.genericAction('getFioBalance', { })
+
+
+          console.log("verify account balance matches on chain");
+          expect(parseInt(resAccountsbal.rows[0].fio_balance_suf)).equals(resultbal.balance);
+
+
       }catch(err){
         console.log(err);
         expect(err).to.equal(null);
@@ -169,7 +184,7 @@ describe(`************************** relic-datapipeline-finctional-tests.js ****
         let tpidUser = await newUser(faucet);
 
         let keys = await createKeypair();
-        let locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+        let locksdk = await new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
         let accountnm = await FIOSDK.accountHash(keys.publicKey)
        // console.log(accountnm);
        
@@ -250,6 +265,20 @@ await timeout(2000)
           console.log("trnsloctoks verify that the transaction tpid");
           expect(resTransactions.rows[0].tpid).equals(tpidUser.address);  
         
+
+            //wait
+            await timeout(2000)      
+          
+            //check that relic balance equals on chain balance
+            const qstrAccountsbal = 'SELECT * FROM accounts WHERE account_name = \'' + accountnm.accountnm + '\'';
+            const resAccountsbal = await client.query(qstrAccountsbal);
+  
+            const resultbal = await locksdk.genericAction('getFioBalance', { })
+  
+  
+            console.log("verify account balance matches on chain");
+            expect(parseInt(resAccountsbal.rows[0].fio_balance_suf)).equals(resultbal.balance);
+  
       }catch(err){
         console.log(err);
         expect(err).to.equal(null);
@@ -2311,6 +2340,20 @@ it(`remaddress, set fio pub key using *, verify handles, handleacitivity content
     expect(resPubAddresses.rowCount).to.equal(1);
      console.log("remaddress verify one row returned from pubaddresses");
     expect(resPubAddresses.rows[0].token_code).not.equal('*');
+
+     //wait
+     await timeout(2000)      
+          
+     //check that relic balance equals on chain balance
+     const qstrAccountsbal = 'SELECT * FROM accounts WHERE account_name = \'' + userC1.account + '\'';
+     const resAccountsbal = await client.query(qstrAccountsbal);
+
+     const resultbal = await userC1.sdk.genericAction('getFioBalance', { })
+
+
+     console.log("verify account balance matches on chain");
+     expect(parseInt(resAccountsbal.rows[0].fio_balance_suf)).equals(resultbal.balance);
+
   } catch (err) {
     console.log(err);
     expect(err).to.equal(null);
