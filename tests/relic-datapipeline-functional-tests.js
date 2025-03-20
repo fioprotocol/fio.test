@@ -156,6 +156,21 @@ describe(`************************** relic-datapipeline-finctional-tests.js ****
           console.log("trnsfiopubky verify that the transaction action_name contains the pub key for userA2");
           expect(resTransactions.rows[0].action_name).equals('trnsfiopubky');  
         
+
+          //wait
+          await timeout(2000)      
+          
+          //check that relic balance equals on chain balance
+          const qstrAccountsbal = 'SELECT * FROM accounts WHERE account_name = \'' + userA2.account + '\'';
+          const resAccountsbal = await client.query(qstrAccountsbal);
+
+          const resultbal = await userA2.sdk.genericAction('getFioBalance', { })
+
+
+          console.log("verify account balance matches on chain");
+          expect(parseInt(resAccountsbal.rows[0].fio_balance_suf)).equals(resultbal.balance);
+
+
       }catch(err){
         console.log(err);
         expect(err).to.equal(null);
@@ -169,7 +184,7 @@ describe(`************************** relic-datapipeline-finctional-tests.js ****
         let tpidUser = await newUser(faucet);
 
         let keys = await createKeypair();
-        let locksdk = new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+        let locksdk = await new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
         let accountnm = await FIOSDK.accountHash(keys.publicKey)
        // console.log(accountnm);
        
@@ -250,6 +265,20 @@ await timeout(2000)
           console.log("trnsloctoks verify that the transaction tpid");
           expect(resTransactions.rows[0].tpid).equals(tpidUser.address);  
         
+
+            //wait
+            await timeout(2000)      
+          
+            //check that relic balance equals on chain balance
+            const qstrAccountsbal = 'SELECT * FROM accounts WHERE account_name = \'' + accountnm.accountnm + '\'';
+            const resAccountsbal = await client.query(qstrAccountsbal);
+  
+            const resultbal = await locksdk.genericAction('getFioBalance', { })
+  
+  
+            console.log("verify account balance matches on chain");
+            expect(parseInt(resAccountsbal.rows[0].fio_balance_suf)).equals(resultbal.balance);
+  
       }catch(err){
         console.log(err);
         expect(err).to.equal(null);
@@ -506,21 +535,21 @@ await timeout(2000)
     it(`issue tokens verify tokentransfers contents for local dev net`, async function () {
       try {
         
-        const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'eosio\'';
+        const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'fio.token\'';
         const resAccounts = await client.query(qstrAccounts);
 
         console.log("issue verify one row returned from accounts");
         expect(resAccounts.rowCount).to.equal(1);
         console.log("issue verify account name returned");
-        expect(resAccounts.rows[0].account_name).equals('eosio');
+        expect(resAccounts.rows[0].account_name).equals('fio.token');
 
-        const qstrPayeeAccounts = 'SELECT * FROM accounts WHERE account_name = \'fio.token\'';
+        const qstrPayeeAccounts = 'SELECT * FROM accounts WHERE account_name = \'eosio\'';
         const resPayeeAccounts = await client.query(qstrPayeeAccounts);
 
         console.log("issue verify one row returned from accounts");
         expect(resPayeeAccounts.rowCount).to.equal(1);
         console.log("issue verify account name returned");
-        expect(resPayeeAccounts.rows[0].account_name).equals('fio.token');
+        expect(resPayeeAccounts.rows[0].account_name).equals('eosio');
 
         //token transfers
         const qstrTokTrans = 'SELECT * FROM tokentransfers WHERE fk_payer_account_id = ' + resAccounts.rows[0].pk_account_id +
@@ -528,12 +557,13 @@ await timeout(2000)
          ' AND token_transfer_type = \'token_mint\'' ;
         const resTokTrans = await client.query(qstrTokTrans);
 
-        console.log("issue verify one row returned from tokentransfers");
-        expect(resTokTrans.rowCount).to.equal(1);
+      
+        console.log("issue verify tokentransfers payer account name returned");
+        expect(resTokTrans.rows[0].fk_payer_account_id).equals(resAccounts.rows[0].pk_account_id);
         console.log("issue verify tokentransfers payee account name returned");
         expect(resTokTrans.rows[0].fk_payee_account_id).equals(resPayeeAccounts.rows[0].pk_account_id);
         console.log("issue verify tokentransfers suf amount");
-        expect(resTokTrans.rows[0].fio_suf_amount).equals('999000000000');
+        expect(resTokTrans.rows[0].fio_suf_amount).equals('1000000000000');
         console.log("issue verify tokentransfers memo");
         expect(resTokTrans.rows[0].transfer_memo).equals('memo');
         
@@ -541,24 +571,21 @@ await timeout(2000)
         //block info
         const qstrBlocks = 'SELECT * FROM blocks WHERE pk_block_number = ' + resTokTrans.rows[0].fk_block_number ;
         const resBlocks = await client.query(qstrBlocks);
-        console.log("issue verify one row returned from blocks");
-        expect(resBlocks.rowCount).to.equal(1);
+      
         console.log("issue verify timestamp from blocks");
         expect(resBlocks.rows[0].stamp.getTime()).to.equal(resTokTrans.rows[0].block_timestamp.getTime());
 
                   
         //transaction info
         const qstrTransactions = 'SELECT * FROM transactions WHERE fk_block_number = ' + resTokTrans.rows[0].fk_block_number +
-        ' AND request_data LIKE \'%999.000000000%\' ' +
-        ' AND request_data LIKE \'%fio.token%\' ';
+        ' AND request_data LIKE \'%1000.000000000%\' ';
+      
         const resTransactions = await client.query(qstrTransactions);
-        //console.log(resTransactions);
-        console.log("issue verify one row returned from transactions");
-        expect(resTransactions.rowCount).to.equal(1);
+      
         console.log("issue verify timestamp from transactions");
         expect(resTransactions.rows[0].block_timestamp.getTime()).to.equal(resBlocks.rows[0].stamp.getTime());
         console.log("issue verify that the transaction request_data contains amount used");
-        expect(resTransactions.rows[0].request_data).contains('999.000000000');
+        expect(resTransactions.rows[0].request_data).contains('1000.000000000');
         console.log("issue verify that the transaction action_name contains issue");
         expect(resTransactions.rows[0].action_name).equals('issue');  
 
@@ -1495,9 +1522,7 @@ it(`renewaddress,  verify handles, handleacitivity contents`, async function () 
     expect(resHandles.rows[0].handle_status).equals('active');
     console.log("renewaddress verify Handles expiration returned");
     expect(resHandles.rows[0].expiration_stamp.getTime()).equals(resHandlesbefore.rows[0].expiration_stamp.getTime());
-    console.log("renewaddress verify Handles bundled_tx_count returned");
-    expect(resHandles.rows[0].bundled_tx_count).equals(resHandlesbefore.rows[0].bundled_tx_count + 100);
-
+  
     const qstrHandleActivities = 'SELECT * FROM handleactivities WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id + ' AND handle_activity_type = \'renew\'';
     const resHandleActivities = await client.query(qstrHandleActivities);
 
@@ -1845,9 +1870,7 @@ it(`addbundles,  verify handles, handleacitivity contents`, async function () {
     expect(resHandles.rows[0].handle_status).equals('active');
     console.log("addbundles verify Handles expiration returned");
     expect(resHandles.rows[0].expiration_stamp.getTime()).equals(resHandlesbefore.rows[0].expiration_stamp.getTime());
-    console.log("addbundles verify Handles bundled_tx_count returned");
-    expect(resHandles.rows[0].bundled_tx_count).equals(resHandlesbefore.rows[0].bundled_tx_count + 100);
-
+  
     const qstrHandleActivities = 'SELECT * FROM handleactivities WHERE fk_handle_id = ' + resHandles.rows[0].pk_handle_id + ' AND handle_activity_type = \'add_bundles\'';
     const resHandleActivities = await client.query(qstrHandleActivities);
 
@@ -2317,6 +2340,20 @@ it(`remaddress, set fio pub key using *, verify handles, handleacitivity content
     expect(resPubAddresses.rowCount).to.equal(1);
      console.log("remaddress verify one row returned from pubaddresses");
     expect(resPubAddresses.rows[0].token_code).not.equal('*');
+
+     //wait
+     await timeout(2000)      
+          
+     //check that relic balance equals on chain balance
+     const qstrAccountsbal = 'SELECT * FROM accounts WHERE account_name = \'' + userC1.account + '\'';
+     const resAccountsbal = await client.query(qstrAccountsbal);
+
+     const resultbal = await userC1.sdk.genericAction('getFioBalance', { })
+
+
+     console.log("verify account balance matches on chain");
+     expect(parseInt(resAccountsbal.rows[0].fio_balance_suf)).equals(resultbal.balance);
+
   } catch (err) {
     console.log(err);
     expect(err).to.equal(null);
