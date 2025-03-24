@@ -177,6 +177,93 @@ describe(`************************** relic-datapipeline-finctional-tests.js ****
       }
     })
 
+    it(`trnsfiopubky to self, trigger verify accounts, and account_activity contents`, async () => {
+      try {
+
+          let userA2 = await newUser(faucet);
+
+          await timeout(4000);
+          const qstrAccounts = 'SELECT * FROM accounts WHERE account_name = \'' + userA2.account + '\'';
+          const resAccounts = await client.query(qstrAccounts);
+
+          console.log("trnsfiopubky verify one row returned from accounts");
+          expect(resAccounts.rowCount).to.equal(1);
+          console.log("trnsfiopubky verify account name returned");
+          expect(resAccounts.rows[0].fio_balance_suf).equals('2160000000000');
+
+          const result = await userA2.sdk.genericAction('transferTokens', {
+            payeeFioPublicKey: userA2.publicKey,
+            amount: 123456789000,
+            maxFee: config.api.transfer_tokens_pub_key.fee,
+            technologyProviderId: ''
+          })
+          //console.log('Result: ', result)
+          expect(result).to.have.any.keys('status');
+          expect(result).to.have.any.keys('fee_collected');
+          expect(result).to.have.any.keys('block_num');
+          expect(result).to.have.any.keys('transaction_id');
+
+          await timeout(2000);
+          //account info
+          //console.log("res ",res);
+          console.log("trnsfiopubky verify one row returned from accounts");
+          expect(resAccounts.rowCount).to.equal(1);
+          console.log("trnsfiopubky verify account name returned");
+          expect(resAccounts.rows[0].account_name).equals(userA2.account);
+
+          //token transfers
+          const qstrTransToks = 'SELECT * FROM tokentransfers WHERE fk_payee_account_id = ' + resAccounts.rows[0].pk_account_id ;
+          const resTokTrans = await client.query(qstrTransToks);
+          //console.log("resTokTrans ",resTokTrans);
+          console.log("trnsfiopubky verify one row returned from tokentransfers");
+          expect(resTokTrans.rowCount).to.equal(2);
+          console.log("trnsfiopubky verify tokentransfers payee account name returned");
+          expect(resTokTrans.rows[0].fk_payee_account_id).equals(resAccounts.rows[0].pk_account_id);
+          console.log("trnsfiopubky verify tokentransfers type returned");
+          expect(resTokTrans.rows[0].token_transfer_type).equals('transfer');
+         
+          //block info
+          const qstrBlocks = 'SELECT * FROM blocks WHERE pk_block_number = ' + resTokTrans.rows[0].fk_block_number ;
+          const resBlocks = await client.query(qstrBlocks);
+          console.log("trnsfiopubky verify one row returned from blocks");
+          expect(resBlocks.rowCount).to.equal(1);
+          console.log("trnsfiopubky verify timestamp from blocks");
+          expect(resBlocks.rows[0].stamp.getTime()).to.equal(resTokTrans.rows[0].block_timestamp.getTime());
+          
+          //transaction info
+          const qstrTransactionss = 'SELECT * FROM transactions WHERE fk_block_number = ' + resAccounts.rows[0].fk_block_number ;
+          const resTransactions = await client.query(qstrTransactionss);
+         // console.log(resTransactions);
+          console.log("trnsfiopubky verify one row returned from transactions");
+          expect(resTransactions.rowCount).to.equal(1);
+          console.log("trnsfiopubky verify timestamp from transactions");
+          expect(resTransactions.rows[0].block_timestamp.getTime()).to.equal(resAccounts.rows[0].block_timestamp.getTime());
+          console.log("trnsfiopubky verify that the transaction request_data contains the pub key for userA2");
+          expect(resTransactions.rows[0].request_data).contains(resAccounts.rows[0].public_key);
+          console.log("trnsfiopubky verify that the transaction action_name contains the pub key for userA2");
+          expect(resTransactions.rows[0].action_name).equals('trnsfiopubky');  
+        
+
+          //wait
+          await timeout(2000)      
+          
+          //check that relic balance equals on chain balance
+          const qstrAccountsbal = 'SELECT * FROM accounts WHERE account_name = \'' + userA2.account + '\'';
+          const resAccountsbal = await client.query(qstrAccountsbal);
+
+          const resultbal = await userA2.sdk.genericAction('getFioBalance', { })
+
+
+          console.log("verify account balance matches on chain");
+          expect(parseInt(resAccountsbal.rows[0].fio_balance_suf)).equals(resultbal.balance);
+
+
+      }catch(err){
+        console.log(err);
+        expect(err).to.equal(null);
+      }
+    })
+
     it(`trnsloctoks with tpid, verify tpid in relic db, trigger verify accounts, and account_activity contents`, async () => {
       try {
 
@@ -3368,6 +3455,21 @@ it(`regdomadd, actor is not owner, verify domains, domainactivities accountactiv
     expect(resAccountActivities.rowCount).to.equal(1);
     console.log("regdomadd verify AccountActivities activity type");
     expect(resAccountActivities.rows[0].activity_type).equals('receiver');
+
+     //wait
+     await timeout(2000)      
+          
+     //check that relic balance equals on chain balance
+     const qstrAccountsbal = 'SELECT * FROM accounts WHERE account_name = \'' + accountnm + '\'';
+     const resAccountsbal = await client.query(qstrAccountsbal);
+
+     const userA2sdk = await new FIOSDK(keys.privateKey, keys.publicKey, config.BASE_URL, fetchJson);
+       
+     const resultbal = await userA2sdk.genericAction('getFioBalance', { })
+
+
+     console.log("verify account balance matches on chain");
+     expect(parseInt(resAccountsbal.rows[0].fio_balance_suf)).equals(resultbal.balance);
 
   } catch (err) {
     console.log(err);
