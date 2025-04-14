@@ -205,8 +205,8 @@ describe(`C. Register Address for other user and confirm get_fio_balance returns
           //console.log('Result: ', result)
           expect(result.status).to.equal('OK');
         } catch (err) {
-          console.log('Error: ', err.json.error);
-          expect(err).to.equal('null');
+            console.log(JSON.stringify(err, null, 4));
+            expect(err).to.equal('null');
         }
       })
     

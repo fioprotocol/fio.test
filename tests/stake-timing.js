@@ -885,9 +885,9 @@ describe(`************************** stake-timing.js ************************** 
               await setPrevGlobals(stakedTokenPool, combinedTokenPool, lastCombinedTokenPool, rewardsTokenPool, globalSrpCount, lastGlobalSrpCount, dailyStakingRewards, stakingRewardsReservesMinted);
 
              } catch (err) {
-              if (err.errorCode == 400) {
+              if (err.code == 400) {
                 console.log('\nStaking Error 400: ', err.json);
-              } else if (err.errorCode == 500) {
+              } else if (err.code == 500) {
                 console.log('\nStaking Error 500: ', err.json.error);
               } else {
                 console.log('\nStaking Error: ', err);
@@ -1169,9 +1169,9 @@ describe(`************************** stake-timing.js ************************** 
               await setPrevGlobals(stakedTokenPool, combinedTokenPool, lastCombinedTokenPool, rewardsTokenPool, globalSrpCount, lastGlobalSrpCount, dailyStakingRewards, stakingRewardsReservesMinted);
 
            } catch (err) {
-              if (err.errorCode == 400) {
+              if (err.code == 400) {
                 console.log('\nUnstaking Error 400: ', err.json);
-              } else if (err.errorCode == 500) {
+              } else if (err.code == 500) {
                 console.log('\nUnstaking Error 500: ', err.json.error);
               } else {
                 console.log('\nUnstaking Error: ', err);
@@ -1479,9 +1479,9 @@ describe(`************************** stake-timing.js ************************** 
             if (dayNumber == 0) {
               expect(err.json.fields[0].error).to.equal('FIO Address not producer or nothing payable')             
             } else {
-              if (err.errorCode == 400) {
+              if (err.code == 400) {
                 console.log('\bpclaim Error 400: ', err.json);
-              } else if (err.errorCode == 500) {
+              } else if (err.code == 500) {
                 console.log('\nbpclaim Error  500: ', err.json.error);
               } else {
                 console.log('\nbpclaim Error  ', err);

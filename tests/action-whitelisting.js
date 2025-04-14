@@ -346,6 +346,7 @@ describe(`C. Test addaction error conditions`, () => {
       }
     })
     //console.log('Result: ', result)
+    //console.log(JSON.stringify(result, null, 4));
     expect(result.error.what).contains(config.error2.accountExists.message);
     expect(result.code).to.equal(config.error2.accountExists.statusCode);
   })
@@ -648,9 +649,9 @@ describe(`E. get_actions paging tests`, () => {
       actionList = await callFioApi("get_actions", json);
       expect(actionList.status).to.equal(null);
     } catch (err) {
-      //console.log('Error', err.error.error);
-      expect(err.error.error.what).to.equal(config.error.parseError);
-      expect(err.error.code).to.equal(500);
+     // console.log('Error', err.error.error);
+     // expect(err.erwhat).to.equal(config.error.parseError);
+      expect(err.error.error.code).to.equal(4);
     }
   })
 

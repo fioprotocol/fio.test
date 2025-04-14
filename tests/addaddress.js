@@ -75,6 +75,21 @@ describe(`************************** addaddress.js ************************** \n
       }
     })
 
+    it('getPublicAddress for BCH when FIO Address has uppercase letters', async () => {
+      try {
+        const result = await userA1.sdk.genericAction('getPublicAddress', {
+          fioAddress: userA1.address.toUpperCase(),
+          chainCode: "BCH",
+          tokenCode: "BCH"
+        })
+        //console.log('Result', result)
+        expect(result.public_address).to.equal('bitcoincash:qzf8zha74ahdh9j0xnwlffdn0zuyaslx3c90q7n9g9')
+      } catch (err) {
+        console.log('Error', err)
+        expect(err).to.equal(null);
+      }
+    })
+
     it(`Re-add DASH and BCH addresses plus additional ELA address to userA1`, async () => {
       try {
         const result = await userA1.sdk.genericAction('addPublicAddresses', {

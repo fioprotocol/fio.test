@@ -554,8 +554,8 @@ describe(`B. (BD-3153) accounts with remaining locked FIP-6 periods should not b
       });
       expect(result.status).to.equal('OK');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Locked tokens can only be transferred to new account');
       throw err;
     }
@@ -691,8 +691,8 @@ describe(`C. Retire locked FIO Tokens`, function () {
       });
       expect(result.status).to.equal('OK');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Locked tokens can only be transferred to new account');
       throw err;
     }
@@ -899,8 +899,8 @@ describe(`C. Retire locked FIO Tokens`, function () {
       });
       expect(result.status).to.equal('OK');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Locked tokens can only be transferred to new account');
       throw err;
     }
@@ -1096,8 +1096,8 @@ describe(`C. Retire locked FIO Tokens`, function () {
       });
       expect(result.status).to.equal('OK');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Locked tokens can only be transferred to new account');
       throw err;
     }
@@ -1280,8 +1280,8 @@ describe(`C. Retire locked FIO Tokens`, function () {
       });
       expect(result.status).to.equal('OK');
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err).to.have.all.keys('json', 'code', 'requestParams');
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Locked tokens can only be transferred to new account');
       throw err;
     }
@@ -1716,7 +1716,7 @@ describe.skip(`D. Try to retire from accounts with staked tokens`, function () {
     expect(result1.remaining_lock_amount).to.equal(1000000000000);
     expect(result1.unlock_periods.length).to.equal(1);
     expect(result1.unlock_periods[0].amount).to.equal(1000000000000);
-    expect(result1.unlock_periods[0].duration).to.be.greaterThanOrEqual(140);
+    expect(result1.unlock_periods[0].duration).to.be.greaterThan(139);
     await timeout(142000);
     // check again after the period unlocks
     const result2 = await userA1.sdk.getLocks(userA1Keys.publicKey);
@@ -1773,8 +1773,8 @@ describe.skip(`D. Try to retire from accounts with staked tokens`, function () {
       });
       expect(result.status).to.equal('OK');
       newUserBal = await userA1.sdk.genericAction('getFioBalance', {});
-      expect(newUserBal.available).to.be.lessThanOrEqual(userA1Bal.available - fundsAmount);
-      expect(newUserBal.balance).to.be.lessThanOrEqual(userA1Bal.balance - fundsAmount);
+      expect(newUserBal.available).to.be.lessThan(userA1Bal.available - fundsAmount+1);
+      expect(newUserBal.balance).to.be.lessThan(userA1Bal.balance - fundsAmount+1);
       userA1Bal = newUserBal;
     } catch (err) {
       newUserBal = await userA1.sdk.genericAction('getFioBalance', {});

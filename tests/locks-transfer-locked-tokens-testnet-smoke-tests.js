@@ -145,7 +145,7 @@ describe(`************************** locks-transfer-locked-tokens-testnet-smoke-
       expect(result.status).to.not.equal('OK')
 
     } catch (err) {
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid total amount for unlock periods');
     }
   })

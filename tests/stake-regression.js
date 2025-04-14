@@ -408,7 +408,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.rows[0].remaining_lock_amount).to.equal(unstake1)
       expect(result.rows[0].payouts_performed).to.equal(0)
       expect(result.rows[0].periods[0].amount).to.equal(unstake1)
-      expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(UNSTAKELOCKDURATIONSECONDS)  // Hard to know this. It is 7 days + the time that has elapsed since the original record was created (the timestamp)
+      expect(result.rows[0].periods[0].duration).is.greaterThan(UNSTAKELOCKDURATIONSECONDS-1)  // Hard to know this. It is 7 days + the time that has elapsed since the original record was created (the timestamp)
       lockDuration = result.rows[0].periods[0].duration  // Grab this to make sure it does not change later
     } catch (err) {
       console.log('Error', err);
@@ -486,7 +486,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.rows[0].remaining_lock_amount).to.equal(unstake1 + unstake2)
       expect(result.rows[0].payouts_performed).to.equal(0)
       expect(result.rows[0].periods[0].amount).to.equal(unstake1 + unstake2)
-      expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(lockDuration)
+      expect(result.rows[0].periods[0].duration).is.greaterThan(lockDuration-1)
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -541,7 +541,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.rows[0].remaining_lock_amount).to.equal(unstake1 + unstake2)
       expect(result.rows[0].payouts_performed).to.equal(0)
       expect(result.rows[0].periods[0].amount).to.equal(unstake1 + unstake2)
-      expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(lockDuration)
+      expect(result.rows[0].periods[0].duration).is.greaterThan(lockDuration-1)
     } catch (err) {
       console.log('Error', err);
       expect(err).to.equal(null);
@@ -603,7 +603,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.rows[0].remaining_lock_amount).to.equal(unstake1 + unstake2 + unstake3)
       expect(result.rows[0].payouts_performed).to.equal(0)
       expect(result.rows[0].periods[0].amount).to.equal(unstake1 + unstake2)
-      expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(lockDuration)
+      expect(result.rows[0].periods[0].duration).is.greaterThan(lockDuration-1)
       expect(result.rows[0].periods[1].amount).to.equal(unstake3)
       durEstimate = UNSTAKELOCKDURATIONSECONDS + (dayNumber * SECONDSPERDAY)
       expect(result.rows[0].periods[1].duration).is.greaterThan(durEstimate - 3).and.lessThan(durEstimate + 3);  // Duration is approximate
@@ -711,7 +711,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.rows[0].remaining_lock_amount).to.equal(unstake1 + unstake2 + unstake3 + unstake4)
       expect(result.rows[0].payouts_performed).to.equal(0)
       expect(result.rows[0].periods[0].amount).to.equal(unstake1 + unstake2)
-      expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(lockDuration)
+      expect(result.rows[0].periods[0].duration).is.greaterThan(lockDuration-1)
       expect(result.rows[0].periods[1].amount).to.equal(unstake3 + unstake4)
       expect(result.rows[0].periods[1].duration).to.equal(durActual1);
     } catch (err) {
@@ -784,7 +784,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.rows[0].remaining_lock_amount).to.equal(unstake1 + unstake2 + unstake3 + unstake4 + unstake5)
       expect(result.rows[0].payouts_performed).to.equal(0)
       expect(result.rows[0].periods[0].amount).to.equal(unstake1 + unstake2)
-     // expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(lockDuration)
+     // expect(result.rows[0].periods[0].duration).is.greaterThan(lockDuration-1)
       expect(result.rows[0].periods[1].amount).to.equal(unstake3 + unstake4)
       expect(result.rows[0].periods[1].duration).to.equal(durActual1);
       expect(result.rows[0].periods[2].amount).to.equal(unstake5)
@@ -862,7 +862,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.rows[0].remaining_lock_amount).to.equal(unstake1 + unstake2 + unstake3 + unstake4 + unstake5 + unstake6)
       expect(result.rows[0].payouts_performed).to.equal(0)
       expect(result.rows[0].periods[0].amount).to.equal(unstake1 + unstake2)
-      expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(lockDuration)
+      expect(result.rows[0].periods[0].duration).is.greaterThan(lockDuration-1)
       expect(result.rows[0].periods[1].amount).to.equal(unstake3 + unstake4)
       expect(result.rows[0].periods[1].duration).to.equal(durActual1);
       expect(result.rows[0].periods[2].amount).to.equal(unstake5)
@@ -942,7 +942,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.rows[0].remaining_lock_amount).to.equal(unstake1 + unstake2 + unstake3 + unstake4 + unstake5 + unstake6 + unstake7)
       expect(result.rows[0].payouts_performed).to.equal(0)
       expect(result.rows[0].periods[0].amount).to.equal(unstake1 + unstake2)
-      expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(lockDuration)
+      expect(result.rows[0].periods[0].duration).is.greaterThan(lockDuration-1)
       expect(result.rows[0].periods[1].amount).to.equal(unstake3 + unstake4)
       expect(result.rows[0].periods[1].duration).to.equal(durActual1);
       expect(result.rows[0].periods[2].amount).to.equal(unstake5)
@@ -1023,7 +1023,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.rows[0].remaining_lock_amount).to.equal(unstake1 + unstake2 + unstake3 + unstake4 + unstake5 + unstake6 + unstake7 + unstake8)
       expect(result.rows[0].payouts_performed).to.equal(0)
       expect(result.rows[0].periods[0].amount).to.equal(unstake1 + unstake2)
-      expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(lockDuration)
+      expect(result.rows[0].periods[0].duration).is.greaterThan(lockDuration-1)
       expect(result.rows[0].periods[1].amount).to.equal(unstake3 + unstake4)
       expect(result.rows[0].periods[1].duration).to.equal(durActual1);
       expect(result.rows[0].periods[2].amount).to.equal(unstake5)
@@ -1106,7 +1106,7 @@ describe(`************************** stake-regression.js ***********************
       expect(result.rows[0].remaining_lock_amount).to.equal(unstake1 + unstake2 + unstake3 + unstake4 + unstake5 + unstake6 + unstake7 + unstake8 + unstake9)
       expect(result.rows[0].payouts_performed).to.equal(0)
       expect(result.rows[0].periods[0].amount).to.equal(unstake1 + unstake2)
-      expect(result.rows[0].periods[0].duration).is.greaterThanOrEqual(lockDuration)
+      expect(result.rows[0].periods[0].duration).is.greaterThan(lockDuration-1)
       expect(result.rows[0].periods[1].amount).to.equal(unstake3 + unstake4)
       expect(result.rows[0].periods[1].duration).to.equal(durActual1);
       expect(result.rows[0].periods[2].amount).to.equal(unstake5)

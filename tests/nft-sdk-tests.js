@@ -341,8 +341,7 @@ describe(`B. (unhappy) Test SDK getters with invalid method arguments`, () => {
       const result = await user1.sdk.getNfts({fioAddress: '!invaliD$@$%'});
       console.log(result);
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid FIO Address');
     }
   });
@@ -360,8 +359,7 @@ describe(`B. (unhappy) Test SDK getters with invalid method arguments`, () => {
       const result = await user1.sdk.getNfts({chainCode: '!Invalid$#', contractAddress: randomEthAddr});
       console.log(result);
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(404);
+      expect(err.code).to.equal(404);
       expect(err.json.message).to.equal('No NFTS are mapped');
     }
   });
@@ -386,8 +384,7 @@ describe(`B. (unhappy) Test SDK getters with invalid method arguments`, () => {
       const result = await user1.sdk.getNfts({contractAddress: 'Inval!d$#$@', chainCode: 'ETH'});
       console.log(result);
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(404);
+      expect(err.code).to.equal(404);
       expect(err.json.message).to.equal('No NFTS are mapped');
     }
   });
@@ -428,8 +425,7 @@ describe(`B. (unhappy) Test SDK getters with invalid method arguments`, () => {
       const result = await user1.sdk.getNfts({hash: '$Invalid$#!'});
       console.log(result);
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(404);
+      expect(err.code).to.equal(404);
       expect(err.json.message).to.equal('No NFTS are mapped');
     }
   });
@@ -439,8 +435,8 @@ describe(`B. (unhappy) Test SDK getters with invalid method arguments`, () => {
       const result = await user1.sdk.getNfts({fioAddress: user1.address}, "invalid", 10);
       console.log(result);
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(500);
+      //console.log(err);
+      expect(err.json.code).to.equal(500);
       expect(err.json.error.details[0].message).to.equal('Couldn\'t parse int64_t');
     }
   });
@@ -449,8 +445,8 @@ describe(`B. (unhappy) Test SDK getters with invalid method arguments`, () => {
       const result = await user1.sdk.getNfts({fioAddress: user1.address}, 10, 'invalid');
       console.log(result);
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(500);
+      //console.log(err);
+      expect(err.json.code).to.equal(500);
       expect(err.json.error.details[0].message).to.equal('Couldn\'t parse int64_t');
     }
   });
@@ -459,8 +455,7 @@ describe(`B. (unhappy) Test SDK getters with invalid method arguments`, () => {
       const result = await user1.sdk.getNfts({fioAddress: user1.address}, -10, 10);
       console.log(result);
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid limit');
     }
   });
@@ -469,8 +464,7 @@ describe(`B. (unhappy) Test SDK getters with invalid method arguments`, () => {
       const result = await user1.sdk.getNfts({fioAddress: user1.address}, 10, -10);
       console.log(result);
     } catch (err) {
-      expect(err).to.have.all.keys('json', 'errorCode', 'requestParams');
-      expect(err.errorCode).to.equal(400);
+      expect(err.code).to.equal(400);
       expect(err.json.fields[0].error).to.equal('Invalid offset');
     }
   });

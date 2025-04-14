@@ -1,6 +1,6 @@
 require('mocha')
 const {expect} = require('chai')
-const { newUser, callFioApi, generateFioAddress, generateFioDomain, fetchJson} = require('../utils.js');
+const { newUser, callFioApi, generateFioAddress, generateFioDomain, timeout, fetchJson} = require('../utils.js');
 const {FIOSDK } = require('@fioprotocol/fiosdk')
 config = require('../config.js');
 
@@ -190,6 +190,8 @@ describe('************************** fee-distribution.js ***********************
       expect(err).to.equal(null);
     }
   })
+
+  it(`Wait a few seconds.`, async () => { await timeout(2000) });
 
   it(`Confirm fee collected > 0`, async () => {
     expect(feeCollected).to.greaterThan(0)
@@ -483,6 +485,8 @@ describe('B. Test transfer_tokens_pub_key fee distribution (NO TPID)', () => {
     }
   })
 
+  it(`Wait a few seconds.`, async () => { await timeout(2000) });
+
   it(`Confirm fee collected > 0`, async () => {
     expect(feeCollected).to.greaterThan(0)
   })
@@ -772,6 +776,8 @@ describe('C. Test register_fio_address fee distribution', () => {
     }
   });
 
+  it(`Wait a few seconds.`, async () => { await timeout(2000) });
+
   it(`Confirm fee collected > 0`, async () => {
     expect(feeCollected).to.greaterThan(0)
   })
@@ -1060,6 +1066,8 @@ describe('D. Test register_fio_domain fee distribution', () => {
       expect(err).to.equal(null)
     }
   });
+
+  it(`Wait a few seconds.`, async () => { await timeout(2000) });
 
   it(`Confirm fee collected > 0`, async () => {
     expect(feeCollected).to.greaterThan(0)

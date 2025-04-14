@@ -147,7 +147,7 @@ describe(`************************** fio-domain-wrapping-api.js ****************
   it(`userA queries the oracless table, expects results to contain oracle1`, async function () {
     try {
       const oracleRecords = await getOracleRecords();
-      expect(oracleRecords.rows.length).to.be.greaterThanOrEqual(3);
+      expect(oracleRecords.rows.length).to.be.greaterThan(2);
       let existingOracles = [];
       for (let row in oracleRecords.rows) {
         row = oracleRecords.rows[row]

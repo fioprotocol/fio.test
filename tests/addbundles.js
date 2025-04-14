@@ -399,7 +399,7 @@ describe('C. Error testing', () => {
         } catch (err) {
             //console.log('Error: ', err.json.fields);
             expect(err.json.fields[0].error).to.equal(config.error2.invalidFioAddress.message)
-            expect(err.errorCode).to.equal(config.error2.invalidFioAddress.statusCode);
+            expect(err.code).to.equal(config.error2.invalidFioAddress.statusCode);
         }
     })
 
@@ -436,7 +436,7 @@ describe('C. Error testing', () => {
         } catch (err) {
             //console.log('Error: ', err.json.fields);
             expect(err.json.fields[0].error).to.equal(config.error2.fioAddressNotRegistered.message)
-            expect(err.errorCode).to.equal(config.error2.fioAddressNotRegistered.statusCode);
+            expect(err.code).to.equal(config.error2.fioAddressNotRegistered.statusCode);
         }
     })
 
@@ -457,7 +457,7 @@ describe('C. Error testing', () => {
         } catch (err) {
             //console.log('Error: ', err.json.fields);
             expect(err.json.fields[0].error).to.equal(config.error2.invalidBundleSets.message)
-            expect(err.errorCode).to.equal(config.error2.invalidBundleSets.statusCode);
+            expect(err.code).to.equal(config.error2.invalidBundleSets.statusCode);
         }
     })
 
@@ -478,7 +478,7 @@ describe('C. Error testing', () => {
         } catch (err) {
             //console.log('Error: ', err.json.fields);
             expect(err.json.fields[0].error).to.equal(config.error2.invalidBundleSets.message)
-            expect(err.errorCode).to.equal(config.error2.invalidBundleSets.statusCode);
+            expect(err.code).to.equal(config.error2.invalidBundleSets.statusCode);
         }
     })
 
@@ -499,7 +499,7 @@ describe('C. Error testing', () => {
         } catch (err) {
             //console.log('Error: ', err);
             expect(err.json.fields[0].error).to.equal(config.error2.invalidFeeValue.message)
-            expect(err.errorCode).to.equal(config.error2.invalidFeeValue.statusCode);
+            expect(err.code).to.equal(config.error2.invalidFeeValue.statusCode);
         }
     })
 
@@ -520,7 +520,7 @@ describe('C. Error testing', () => {
         } catch (err) {
             //console.log('Error: ', err);
             expect(err.json.fields[0].error).to.equal(config.error2.invalidTpid.message)
-            expect(err.errorCode).to.equal(config.error2.invalidTpid.statusCode);
+            expect(err.code).to.equal(config.error2.invalidTpid.statusCode);
         }
     })
 
@@ -600,7 +600,7 @@ describe('C. Error testing', () => {
         } catch (err) {
             //console.log('Error: ', err);
             expect(err.json.fields[0].error).to.equal(config.error2.feeExceedsMax.message)
-            expect(err.errorCode).to.equal(config.error2.feeExceedsMax.statusCode);
+            expect(err.code).to.equal(config.error2.feeExceedsMax.statusCode);
         }
     })
 
@@ -666,7 +666,7 @@ describe('C. Error testing', () => {
         } catch (err) {
             //console.log('Error: ', err);
             expect(err.json.fields[0].error).to.equal(config.error2.insufficientFunds.message)
-            expect(err.errorCode).to.equal(config.error2.insufficientFunds.statusCode);
+            expect(err.code).to.equal(config.error2.insufficientFunds.statusCode);
         }
     })
 

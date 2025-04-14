@@ -351,7 +351,7 @@ describe('C. burnFioAddress Error testing', () => {
         } catch (err) {
             //console.log('Error: ', err)
             expect(err.json.fields[0].error).to.equal(config.error.invalidTpid);
-            expect(err.errorCode).to.equal(400);
+            expect(err.code).to.equal(400);
         }
     })
 
@@ -691,7 +691,7 @@ describe('E. Confirm active producers and proxy cannot burn address', () => {
         } catch (err) {
             //console.log('Error: ', err)
             expect(err.json.fields[0].error).to.equal(config.error.activeProducer);
-            expect(err.errorCode).to.equal(400);
+            expect(err.code).to.equal(400);
         }
     })
 
@@ -761,7 +761,7 @@ describe('E. Confirm active producers and proxy cannot burn address', () => {
         } catch (err) {
             //console.log('Error: ', err)
             expect(err.json.fields[0].error).to.equal(config.error.activeProxy);
-            expect(err.errorCode).to.equal(400);
+            expect(err.code).to.equal(400);
         }
     })
 
@@ -1273,7 +1273,7 @@ describe('G. Burn Address with NFTs, re-register account, confirm cannot add new
             expect(addnftResult).to.not.equal('OK');
         } catch (err) {
             //console.log('Error: ', err)
-            expect(err.errorCode).to.equal(400);
+            expect(err.code).to.equal(400);
             expect(err.json.fields[0].error).to.equal('FIO Address NFTs are being burned');
         }
     })
@@ -1295,7 +1295,7 @@ describe('G. Burn Address with NFTs, re-register account, confirm cannot add new
             }
         } catch (err) {
             //console.log(err.json);
-            expect(err.errorCode).to.equal(400);
+            expect(err.code).to.equal(400);
             expect(err.json.fields[0].error).to.equal('Nothing to burn');
         }
     })
@@ -1339,7 +1339,7 @@ describe('G. Burn Address with NFTs, re-register account, confirm cannot add new
             expect(addnftResult).to.not.equal('OK');
         } catch (err) {
             console.log('Error: ', err);
-            expect(err.errorCode).to.equal(400);
+            expect(err.code).to.equal(400);
             expect(err.json.fields[0].error).to.equal('FIO Address NFTs are being burned');
         }
     })

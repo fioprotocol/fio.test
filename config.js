@@ -1,13 +1,13 @@
-const TESTURL = 'http://localhost:8889'           // Localhost
-//const TESTURL = 'http://54.200.124.65:8889'       // QAnet
-//const TESTURL = 'http://18.237.87.177:8889'       // DEV1
-//const TESTURL = 'http://44.238.153.162:8889'      // Devnet
-//const TESTURL = 'http://fiotestnet.greymass.com'  // Testnet
-//const TESTURL = 'https://fio.greymass.com'        // Mainnet
-//const TESTURL = 'http://52.40.41.71:8889'         // Eric DEV
-//const TESTURL = 'http://52.35.164.8:8889'         // Mike DEV
+const TESTURL = 'http://localhost:8889'          // Localhost
+// const TESTURL = 'http://44.240.21.122:8889'      // DEV1
+// const TESTURL = 'http://44.238.153.162:8889'     // Devnet
+// const TESTURL = 'http://fiotestnet.greymass.com' // Testnet
+// const TESTURL = 'https://fio.greymass.com'       // Mainnet
+// const TESTURL = 'http://35.82.73.97:8889'        // Eric DEV
+// const TESTURL = 'http://52.35.164.8:8889'        // Mike DEV
 
-const HISTORYURL = 'http://35.85.153.248:8080'        // History
+const HISTORYURL = 'http://44.240.21.122:8080'          // History
+// const HISTORYURL = 'http://35.82.73.97:8080'         // Eric History
 
 const DEVTOOLSDIR = '../fio.devtools'
 
@@ -55,7 +55,7 @@ const config = {
         invalidDomain: 'Invalid FIO domain',
         fioDomainRequired: 'fioDomain is required.',
         fioAddressNotRegistered: 'FIO Address not registered',
-        fioDomainInvalidChar: 'fioDomain must match /^[a-z0-9\\-]+$/i.',
+        fioDomainInvalidChar: 'fioDomain must match /^[a-zA-Z0-9]{1}(?:(?:(?!-{2,}))[a-zA-Z0-9-]*[a-zA-Z0-9]+){0,1}$/i.',
         fioAddressRequired: 'fioAddress is required.',
         fioDomainLengthErr: 'fioDomain must have a length between 1 and 62.',
         fioAddressLengthErr: 'fioAddress must have a length between 3 and 64.',
@@ -162,6 +162,58 @@ const config = {
         fioAddressNotRegistered: {
             message: 'FIO Address not registered',
             statusCode: 400
+        },
+        accountExistsPubKey: {
+            message: 'Invalid public key used, Account already exists on FIO chain',
+            statusCode: 400
+        },
+        invalidKey: {
+            message: 'Invalid FIO Public Key',
+            statusCode: 400
+        },
+        invalidOwnerPerm: {
+            message: 'Invalid owner permission format',
+            statusCode: 400
+        },
+        invalidactivePerm: {
+            message: 'Invalid active permission format',
+            statusCode: 400
+        },
+        prodAlreadyRegistered: {
+            message: 'Already registered as producer',
+            statusCode: 400
+        },
+        domainExpired: {
+            message: 'FIO Domain expired',
+            statusCode: 400
+        },
+        addaddressMinMax: {
+            message: 'Min 1, Max 5 public addresses are allowed',
+            statusCode: 400
+        },
+        invalidUnlockPeriodTotal: {
+            message: 'Invalid total amount for unlock periods',
+            statusCode: 400
+        },
+        invalidUnlockPeriodSorted: {
+            message: 'Invalid duration value in unlock periods, must be sorted',
+            statusCode: 400
+        },
+        invalidUnlockPeriodDuration: {
+            message: 'Invalid duration value in unlock periods',
+            statusCode: 400
+        },
+        noEncryptionAddress: {
+            message: 'No such FIO address',
+            statusCode: 400
+        },
+        invalidEncryptKey: {
+            message: 'Encrypt key not a valid FIO Public Key',
+            statusCode: 400
+        },
+        fioAddressNotExist: {
+            message: 'FIO Address invalid or does not exist',
+            statusCode: 400
         }
     },
 
@@ -229,6 +281,10 @@ const config = {
         register_producer: {
             bundledEligible: false,
             fee: 200000000000
+        },
+        audit_vote: {
+            bundledEligible: false,
+            fee: 5400000000
         },
         register_proxy: {
             bundledEligible: false,
@@ -325,6 +381,10 @@ const config = {
         set_marketplace_config: {
             bundledEligible: false,
             fee: 500000000
+        },
+        new_fio_chain_account: {
+            bundledEligible: false,
+            fee: 2000000000
         }
     },
 
@@ -387,7 +447,9 @@ const config = {
         UNSTAKEFIOTOKENSRAM: 512,
         WRAPTOKENRAM: 512,
         WRAPDOMAINRAM: 512,
-        TRANSLOCTOKSRAM: 1200
+        TRANSLOCTOKSRAM: 1200,
+        NEWFIOCHAINACCOUNTRAM: 0,
+        UPDENCRYPTKEYRAM: 2560
     },
 
     public_addresses: [

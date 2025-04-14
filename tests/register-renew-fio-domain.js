@@ -10,21 +10,21 @@ before(async () => {
 })
 
 describe(`************************** register-renew-fio-domain.js ************************** \n    A. Check valid and invalid domain and address formats`, () => {
-    let userA1
-    const fiftyfiveChars = "0123456789012345678901234567890123456789012345678901234"
-    domain0Bad = ""
-    domain1Good = generateFioDomain(1);
-    domain2Good = generateFioDomain(2);
-    domain62Good = fiftyfiveChars + Math.random().toString(26).substr(2, 7)
-    domain63Bad = fiftyfiveChars + Math.random().toString(26).substr(2, 8)
-    address1at62Good = Math.random().toString(26).substr(2, 1) + "@" + domain62Good
-    address2at62Bad = Math.random().toString(26).substr(2, 2) + "@" + domain62Good
-    address62at1Good = fiftyfiveChars + Math.random().toString(26).substr(2, 7) + "@" + domain1Good
-    address62at2Bad = fiftyfiveChars + Math.random().toString(26).substr(2, 8) + "@" + domain2Good
+  let userA1
+  const fiftyfiveChars = "0123456789012345678901234567890123456789012345678901234"
+  let domain0Bad = ""
+  let domain1Good = generateFioDomain(1);
+  let domain2Good = generateFioDomain(2);
+  let domain62Good = fiftyfiveChars + Math.random().toString(26).substr(2, 7)
+  let domain63Bad = fiftyfiveChars + Math.random().toString(26).substr(2, 8)
+  let address1at62Good = Math.random().toString(26).substr(2, 1) + "@" + domain62Good
+  let address2at62Bad = Math.random().toString(26).substr(2, 2) + "@" + domain62Good
+  let address62at1Good = fiftyfiveChars + Math.random().toString(26).substr(2, 7) + "@" + domain1Good
+  let address62at2Bad = fiftyfiveChars + Math.random().toString(26).substr(2, 8) + "@" + domain2Good
 
-    it(`Create users and domains`, async () => {
-        userA1 = await newUser(faucet);
-    })
+  it(`Create users and domains`, async () => {
+    userA1 = await newUser(faucet);
+  })
 
     it(`Transfer in additional funds for domain registration`, async () => {
       try {
@@ -371,8 +371,8 @@ describe('E. Test set_fio_domain_public', () => {
   })
 
   it(`Register domain2 succeeds`, async () => {
-    const result = await user1.sdk.genericAction('registerFioDomain', { 
-      fioDomain: user1.domain2, 
+    const result = await user1.sdk.genericAction('registerFioDomain', {
+      fioDomain: user1.domain2,
       maxFee: register_fio_domain_fee,
       technologyProviderId: ''
     })
@@ -445,12 +445,12 @@ describe('F. Test renewdomain on account with permissions', () => {
   it(`user1 creates regmyadd permission and assigns to user2`, async () => {
     try {
 
-      const authorization_object = { 
-        threshold: 1, 
-        accounts: [ 
+      const authorization_object = {
+        threshold: 1,
+        accounts: [
           {
             permission: {
-              actor: user2.account, 
+              actor: user2.account,
               permission: 'active'
             },
             weight: 1

@@ -1021,7 +1021,7 @@ describe(`H. clio error testing`, () => {
             expect(result).to.equal(null)
         } catch (err) {
             //console.log('Error', err)
-            expect(String(err)).to.include('Error code 400')
+            expect(String(err)).to.include('code 400')
         }
     })
 

@@ -135,19 +135,22 @@ describe(`************************** nft-uniqueness.js *************************
   let ethContractAddr = '0x123456789ABCDEF';
   let numUsers = 50;
 
-  before(async () => {
-    for (let i=0; i<numUsers; i++) {
-      users[i] = await newUser(faucet);
+  it(`Create ${numUsers} new users`, async () => {
+    try {
+      for (let i=0; i<numUsers; i++) {
+        users[i] = await newUser(faucet);
+      }
+      massNft = {
+        "chain_code":"ETH",
+        "contract_address":`${ethContractAddr}`,
+        "token_id":"1",
+        "url":"http://fio.example.nft",
+        "hash":`${nftHash}`,
+        "metadata": "abc-xyz-123"
+      };
+    } catch (err) {
+      expect(err).to.equal(null);
     }
-
-    massNft = {
-      "chain_code":"ETH",
-      "contract_address":`${ethContractAddr}`,
-      "token_id":"1",
-      "url":"http://fio.example.nft",
-      "hash":`${nftHash}`,
-      "metadata": "abc-xyz-123"
-    };
   });
 
   it(`has ${numUsers} new users`, async () => {
